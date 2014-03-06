@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -g -O2
+CFLAGS=-c -g -Wall
 EXECUTABLE=qemu_manage
 LDFLAGS=
 SOURCES=qemu_manage.cpp
