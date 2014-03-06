@@ -1,7 +1,11 @@
 #include <iostream>
+#include "qemu_manage.h"
 
 int main() {
-  std::cout << "WIP..." << std::endl;
+  using std::cout;
+  using std::endl;
+
+  cout << "WIP..." << endl;
 
   return 0;
 }
