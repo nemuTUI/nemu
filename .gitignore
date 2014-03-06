@@ -1,0 +1,3 @@
+*.swp
+*.o
+qemu_manage
