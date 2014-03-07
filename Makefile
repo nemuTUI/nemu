@@ -1,17 +1,17 @@
-CC=g++
-CFLAGS=-c -g -Wall
+CXX=g++
+CXXFLAGS=-c -g -Wall
 EXECUTABLE=qemu_manage
 LDFLAGS=-lboost_regex
 SOURCES=qemu_manage.cpp
 OBJECTS=$(SOURCES:.cpp=.o) 
 
-all: $(SOURCES) $(EXECUTABLE)
+all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CXX) $(LDFLAGS) $(OBJECTS) -o $@
 
-.cpp.o:
-	$(CC) $(CFLAGS) $< -o $@
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:
-	rm *.o $(TARGET)
+	rm -f $(OBJECTS) $(EXECUTABLE)
