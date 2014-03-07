@@ -6,10 +6,6 @@
 
 #include <boost/regex.hpp>
 
-class ParseCfg {
-  public:
-    std::string param;
-  private:
-};
+std::string get_param(const std::string &cfg, const std::string &regex);
 
 #endif
