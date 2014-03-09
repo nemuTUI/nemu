@@ -1,8 +1,8 @@
 CXX=g++
-CXXFLAGS=-c -g -Wall
+CXXFLAGS=-c -g -Wall -std=c++11
 EXECUTABLE=qemu_manage
 LDFLAGS=-lboost_regex
-SOURCES=qemu_manage.cpp
+SOURCES=qemu_manage.cpp qemu_hostinfo.cpp
 OBJECTS=$(SOURCES:.cpp=.o) 
 
 all: $(EXECUTABLE)
