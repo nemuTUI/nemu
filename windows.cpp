@@ -14,11 +14,11 @@ void TemplateWindow::Init() {
   use_default_colors();
   window = newwin(height_, width_, starty_, startx_);
   keypad(window, TRUE);
-  border(0,0,0,0,0,0,0,0);
 }
 
 void MainWindow::Print() {
   clear();
+  border(0,0,0,0,0,0,0,0);
   mvprintw(1, 1, "Use arrow keys to go up and down, Press enter to select a choice, F10 - exit");
   refresh();
 }
