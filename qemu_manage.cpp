@@ -56,6 +56,8 @@ int main() {
           choice = highlight;
           break;
         case KEY_F(10):
+          clear();
+          refresh();
           endwin();
           exit(10);
           break;
