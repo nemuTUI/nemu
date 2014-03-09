@@ -18,6 +18,7 @@ void TemplateWindow::Init() {
 }
 
 void MainWindow::Print() {
+  clear();
   mvprintw(1, 1, "Use arrow keys to go up and down, Press enter to select a choice, F10 - exit");
   refresh();
 }
