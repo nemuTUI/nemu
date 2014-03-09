@@ -8,18 +8,16 @@ TemplateWindow::TemplateWindow(int height, int width, int starty, int startx) {
   startx = startx;
 }
 
-void TemplateWindow::Init() const {
-  WINDOW *window;
+void TemplateWindow::Init() {
   clear();
   start_color();
   use_default_colors();
-  window = newwin(height, width, starty, startx);
-  keypad(window, TRUE);
+  main_window = newwin(height, width, starty, startx);
+  keypad(main_window, TRUE);
   border(0,0,0,0,0,0,0,0);
 }
 
-void MainWindow::Print() const {
-  Init();
+void MainWindow::Print() {
   mvprintw(1, 1, "Use arrow keys to go up and down, Press enter to select a choice, F10 - exit");
   refresh();
 }
