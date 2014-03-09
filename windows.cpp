@@ -22,7 +22,7 @@ void MainWindow::Print() {
   refresh();
 }
 
-MenuList::MenuList(WINDOW *window, int &highlight, const std::vector<std::string> &list) {
+MenuList::MenuList(WINDOW *window, u_int &highlight, const std::vector<std::string> &list) {
   window_ = window;
   highlight_ = highlight;
   list_ = list;

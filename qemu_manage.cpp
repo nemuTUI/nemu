@@ -19,8 +19,8 @@ int main() {
   choices.push_back("Add qemu VM");
   choices.push_back("Show network map");
 
-  int highlight(1);
-  int ch;
+  u_int highlight(1);
+  u_int ch;
 
   initscr();
   raw();
