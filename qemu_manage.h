@@ -11,7 +11,7 @@ class TemplateWindow {
   public:
     TemplateWindow(int height, int width, int starty = 7, int startx = 25);
     void Init();
-    virtual void Print() = 0;
+//    virtual void Print() = 0;
     WINDOW *window;
 
   private:
@@ -23,7 +23,19 @@ class MainWindow : public TemplateWindow {
   public:
     MainWindow(int height, int width, int starty = 7, int startx = 25)
       : TemplateWindow(height, width, starty, startx) {}
-    virtual void Print();
+    void Print();
+};
+
+class PopupWarning : public TemplateWindow {
+  public:
+    PopupWarning(const std::string &msg, int height,
+      int width, int starty = 7, int startx = 25);
+      int Print(WINDOW *window);
+
+  private:
+    std::string msg_;
+    WINDOW *window_;
+    int ch_;
 };
 
 class MenuList {

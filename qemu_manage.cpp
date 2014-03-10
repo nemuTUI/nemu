@@ -59,7 +59,7 @@ int main() {
           clear();
           refresh();
           endwin();
-          exit(10);
+          exit(0);
           break;
       }
 
@@ -70,17 +70,17 @@ int main() {
         break;
     }
     if(choice == 1) {
-      clear();
-      mvprintw(2, 2, "ch#1");
-      getch();
+      PopupWarning Warn("choice 1", 3, 15, 7, 31);
+      Warn.Init();
+      Warn.Print(Warn.window);
     } else if(choice == 2) {
-      clear();
-      mvprintw(2, 2, "ch#2");
-      getch();
+      PopupWarning Warn("choice 2", 3, 15, 7, 31);
+      Warn.Init();
+      Warn.Print(Warn.window);
     } else if(choice == 3) {
-      clear();
-      mvprintw(2, 2, "ch#3");
-      getch();
+      PopupWarning Warn("choice 3", 3, 15, 7, 31);
+      Warn.Init();
+      Warn.Print(Warn.window);
     }
   }
 
