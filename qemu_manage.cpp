@@ -10,6 +10,7 @@ typedef unsigned int u_int;
 static const std::string vmdir_regex = "^vmdir\\s*=\\s*\"(.*)\"";
 static const std::string lmax_regex = "^list_max\\s*=\\s*\"(.*)\"";
 static const std::string cfg = "test.cfg";
+static const std::string dbf = "/var/db/qemu_manage2.db";
 
 std::vector<std::string> choices;
 
@@ -70,6 +71,7 @@ int main() {
         break;
     }
     if(choice == 1) {
+      QemuDb db(dbf);
       PopupWarning Warn("choice 1", 3, 15, 7, 31);
       Warn.Init();
       Warn.Print(Warn.window);
