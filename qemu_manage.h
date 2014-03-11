@@ -56,7 +56,8 @@ class QemuDb {
 
   private:
     std::string dbf_;
-    std::string sql_c1, sql_c2, sql_c3;
+    //std::string sql_c1, sql_c2, sql_c3;
+    std::vector<std::string> sql;
     int dbexec;
     char *zErrMsg;
 };
