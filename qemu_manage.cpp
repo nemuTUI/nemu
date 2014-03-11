@@ -1,8 +1,11 @@
 #include <iostream>
+#include <cstdlib>
 #include <string>
 #include <vector>
 #include <ncurses.h>
-
+// debug
+#include <fstream>
+// end debug
 #include "qemu_manage.h"
 
 typedef unsigned int u_int;
@@ -11,6 +14,7 @@ static const std::string vmdir_regex = "^vmdir\\s*=\\s*\"(.*)\"";
 static const std::string lmax_regex = "^list_max\\s*=\\s*\"(.*)\"";
 static const std::string cfg = "test.cfg";
 static const std::string dbf = "/var/db/qemu_manage2.db";
+static const std::string sql_list_vm = "select name from vms order by name asc";
 
 std::vector<std::string> choices;
 
@@ -72,6 +76,14 @@ int main() {
     }
     if(choice == 1) {
       QemuDb db(dbf);
+      std::vector<std::string> res = db.SelectQuery(sql_list_vm);
+
+      if(res.empty()) {
+        // print warn
+      } else {
+        // do list guests
+      }
+
       PopupWarning Warn("choice 1", 3, 15, 7, 31);
       Warn.Init();
       Warn.Print(Warn.window);

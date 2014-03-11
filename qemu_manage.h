@@ -53,10 +53,12 @@ class MenuList {
 class QemuDb {
   public:
     QemuDb(const std::string &dbf);
+    std::vector<std::string> SelectQuery(const std::string &query);
+    void ActionQuery(const std::string &query);
 
   private:
-    std::string dbf_;
-    //std::string sql_c1, sql_c2, sql_c3;
+    sqlite3 *qdb;
+    std::string dbf_, query_;
     std::vector<std::string> sql;
     int dbexec;
     char *zErrMsg;
