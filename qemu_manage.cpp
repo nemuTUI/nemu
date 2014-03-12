@@ -31,18 +31,19 @@ int main() {
   noecho();
   curs_set(0);
 
-  MainWindow main_window(10, 30);
-  main_window.Init();
+  MainWindow *main_window = new MainWindow(10, 30);
+  main_window->Init();
 
   std::string vmdir = get_param(cfg, vmdir_regex);
 
   for (;;) {
     u_int choice(0);
-    main_window.Print();
-    MenuList main_menu(main_window.window, highlight, choices);
-    main_menu.Print();
 
-    while((ch = wgetch(main_window.window))) {
+    main_window->Print();
+    MenuList *main_menu = new MenuList(main_window->window, highlight, choices);
+    main_menu->Print();
+
+    while((ch = wgetch(main_window->window))) {
       switch(ch) {
         case KEY_UP:
           if (highlight == 1)
@@ -60,6 +61,8 @@ int main() {
           choice = highlight;
           break;
         case KEY_F(10):
+          delete main_menu;
+          delete main_window;
           clear();
           refresh();
           endwin();
@@ -67,30 +70,39 @@ int main() {
           break;
       }
 
-      MenuList main_menu(main_window.window, highlight, choices);
-      main_menu.Print();
+      MenuList *main_menu = new MenuList(main_window->window, highlight, choices);
+      main_menu->Print();
 
       if(choice != 0)
         break;
     }
     if(choice == 1) {
+
       QemuDb *db = new QemuDb(dbf);
       std::vector<std::string> res = db->SelectQuery(sql_list_vm);
       delete db;
 
       if(res.empty()) {
-        // print warn
+        PopupWarning Warn("No guests here.", 3, 20, 7, 31);
+        Warn.Init();
+        Warn.Print(Warn.window);
       } else {
-        // do list guests
+
+        std::string listmax_s = get_param(cfg, lmax_regex);
+        int listmax;
+
+        if(listmax_s.empty()) {
+          listmax = 10;
+        } else {
+          listmax = std::stoi(listmax_s);
+        }
       }
 
-      PopupWarning Warn("choice 1", 3, 15, 7, 31);
-      Warn.Init();
-      Warn.Print(Warn.window);
     } else if(choice == 2) {
       PopupWarning Warn("choice 2", 3, 15, 7, 31);
       Warn.Init();
       Warn.Print(Warn.window);
+
     } else if(choice == 3) {
       PopupWarning Warn("choice 3", 3, 15, 7, 31);
       Warn.Init();

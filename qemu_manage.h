@@ -13,6 +13,7 @@ class TemplateWindow {
     TemplateWindow(int height, int width, int starty = 7, int startx = 25);
     void Init();
     WINDOW *window;
+    ~TemplateWindow() { delwin(window); }
 
   private:
     int height_, width_;

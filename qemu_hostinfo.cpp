@@ -18,5 +18,5 @@ std::string get_param(const std::string &cfg, const std::string &regex) {
       }
     }
   }
-  return "none";
+  return std::string();
 }

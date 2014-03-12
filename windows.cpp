@@ -34,7 +34,7 @@ int PopupWarning::Print(WINDOW *window) {
   mvwprintw(window_, 1, 1, "%s", msg_.c_str());
   wrefresh(window_);
   ch_ = wgetch(window_);
-  delwin(window_);
+  //delwin(window_);
 
   return ch_;
 }
