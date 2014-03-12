@@ -83,13 +83,13 @@ int main() {
       delete db;
 
       if(res.empty()) {
-        PopupWarning Warn("No guests here.", 3, 20, 7, 31);
-        Warn.Init();
-        Warn.Print(Warn.window);
+        PopupWarning *Warn = new PopupWarning("No guests here.", 3, 20, 7, 31);
+        Warn->Init();
+        Warn->Print(Warn->window);
       } else {
 
         std::string listmax_s = get_param(cfg, lmax_regex);
-        int listmax;
+        u_int listmax;
 
         if(listmax_s.empty()) {
           listmax = 10;
@@ -99,14 +99,10 @@ int main() {
       }
 
     } else if(choice == 2) {
-      PopupWarning Warn("choice 2", 3, 15, 7, 31);
-      Warn.Init();
-      Warn.Print(Warn.window);
+      // do some stuff...
 
     } else if(choice == 3) {
-      PopupWarning Warn("choice 3", 3, 15, 7, 31);
-      Warn.Init();
-      Warn.Print(Warn.window);
+      // do some stuff...
     }
   }
 
