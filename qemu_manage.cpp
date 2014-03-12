@@ -16,10 +16,9 @@ static const std::string cfg = "test.cfg";
 static const std::string dbf = "/var/db/qemu_manage2.db";
 static const std::string sql_list_vm = "select name from vms order by name asc";
 
-std::vector<std::string> choices;
-
 int main() {
 
+  std::vector<std::string> choices;
   choices.push_back("Manage qemu VM");
   choices.push_back("Add qemu VM");
   choices.push_back("Show network map");
@@ -75,8 +74,9 @@ int main() {
         break;
     }
     if(choice == 1) {
-      QemuDb db(dbf);
-      std::vector<std::string> res = db.SelectQuery(sql_list_vm);
+      QemuDb *db = new QemuDb(dbf);
+      std::vector<std::string> res = db->SelectQuery(sql_list_vm);
+      delete db;
 
       if(res.empty()) {
         // print warn

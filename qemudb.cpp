@@ -59,14 +59,23 @@ QemuDb::QemuDb(const std::string &dbf) {
 }
 
 std::vector<std::string> QemuDb::SelectQuery(const std::string &query) {
+
   query_ = query;
-  dbexec = sqlite3_exec(qdb, query_.c_str(), callback_s, 0, &zErrMsg);
+  try {
+    dbexec = sqlite3_exec(qdb, query_.c_str(), callback_s, 0, &zErrMsg);
 
-  if(dbexec != SQLITE_OK) {
-    throw QMException(zErrMsg);
+    if(dbexec != SQLITE_OK) {
+      throw QMException(zErrMsg);
+    }
   }
-
-  sqlite3_close(qdb);
+  catch (QMException &err) {
+    PopupWarning Warn(err.what(), 3, 30, 4, 30);
+    Warn.Init();
+    Warn.Print(Warn.window);
+    refresh();
+    endwin();
+    exit(10);
+  }
 
   return result;
 }
