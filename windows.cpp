@@ -34,12 +34,11 @@ int QManager::PopupWarning::Print(WINDOW *window) {
   mvwprintw(window_, 1, 1, "%s", msg_.c_str());
   wrefresh(window_);
   ch_ = wgetch(window_);
-  //delwin(window_);
 
   return ch_;
 }
 
-QManager::MenuList::MenuList(WINDOW *window, u_int &highlight, const std::vector<std::string> &list) {
+QManager::MenuList::MenuList(WINDOW *window, uint32_t &highlight, const std::vector<std::string> &list) {
   window_ = window;
   highlight_ = highlight;
   list_ = list;
@@ -48,7 +47,7 @@ QManager::MenuList::MenuList(WINDOW *window, u_int &highlight, const std::vector
 void QManager::MenuList::Print() {
   x = 2; y = 2;
   box(window_, 0, 0);
-  for(u_int i(0); i < list_.size(); i++) {
+  for(uint32_t i(0); i < list_.size(); i++) {
     if (highlight_ == i + 1) {
       wattron(window_, A_REVERSE);
       mvwprintw(window_, y, x, "%s", list_[i].c_str());

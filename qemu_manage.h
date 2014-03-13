@@ -44,11 +44,11 @@ namespace QManager {
 
   class MenuList {
     public:
-      MenuList(WINDOW *menu_window, u_int &highlight, const std::vector<std::string> &list);
+      MenuList(WINDOW *menu_window, uint32_t &highlight, const std::vector<std::string> &list);
       void Print();
 
     private:
-      u_int highlight_;
+      uint32_t highlight_;
       WINDOW *window_;
       std::vector<std::string> list_;
       int x, y;

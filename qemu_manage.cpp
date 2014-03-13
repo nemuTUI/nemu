@@ -8,8 +8,6 @@
 // end debug
 #include "qemu_manage.h"
 
-typedef unsigned int u_int;
-
 static const std::string vmdir_regex = "^vmdir\\s*=\\s*\"(.*)\"";
 static const std::string lmax_regex = "^list_max\\s*=\\s*\"(.*)\"";
 static const std::string cfg = "test.cfg";
@@ -27,8 +25,8 @@ int main() {
   choices.push_back("Show network map");
 #endif
 
-  u_int highlight(1);
-  u_int ch;
+  uint32_t highlight(1);
+  uint32_t ch;
 
   initscr();
   raw();
@@ -41,7 +39,7 @@ int main() {
   std::string vmdir = get_param(cfg, vmdir_regex);
 
   for (;;) {
-    u_int choice(0);
+    uint32_t choice(0);
 
     main_window->Print();
     MenuList *main_menu = new MenuList(main_window->window, highlight, choices);
@@ -93,7 +91,7 @@ int main() {
       } else {
 
         std::string listmax_s = get_param(cfg, lmax_regex);
-        u_int listmax;
+        uint32_t listmax;
 
         if(listmax_s.empty()) {
           listmax = 10;
