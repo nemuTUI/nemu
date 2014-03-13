@@ -18,7 +18,7 @@ int main() {
 
   using namespace QManager;
 
-  std::vector<std::string> choices;
+  VectorString choices;
   choices.push_back("Manage qemu VM");
   choices.push_back("Add qemu VM");
 #ifdef ENABLE_OPENVSWITCH
@@ -81,7 +81,7 @@ int main() {
     if(choice == 1) {
 
       QemuDb *db = new QemuDb(dbf);
-      std::vector<std::string> res = db->SelectQuery(sql_list_vm);
+      VectorString res = db->SelectQuery(sql_list_vm);
       delete db;
 
       if(res.empty()) {

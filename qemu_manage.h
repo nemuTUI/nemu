@@ -9,6 +9,8 @@
 
 namespace QManager {
 
+  typedef std::vector<std::string> VectorString;
+
   std::string get_param(const std::string &cfg, const std::string &regex);
 
   class TemplateWindow {
@@ -44,27 +46,27 @@ namespace QManager {
 
   class MenuList {
     public:
-      MenuList(WINDOW *menu_window, uint32_t &highlight, const std::vector<std::string> &list);
+      MenuList(WINDOW *menu_window, uint32_t &highlight, const VectorString &list);
       void Print();
 
     private:
       uint32_t highlight_;
       WINDOW *window_;
-      std::vector<std::string> list_;
+      VectorString list_;
       int x, y;
   };
 
   class QemuDb {
     public:
       QemuDb(const std::string &dbf);
-      std::vector<std::string> SelectQuery(const std::string &query);
+      VectorString SelectQuery(const std::string &query);
       void ActionQuery(const std::string &query);
       ~QemuDb() { sqlite3_close(qdb); }
 
     private:
       sqlite3 *qdb;
       std::string dbf_, query_;
-      std::vector<std::string> sql;
+      VectorString sql;
       int dbexec;
       char *zErrMsg;
   };

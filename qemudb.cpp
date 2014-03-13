@@ -2,7 +2,7 @@
 
 #include "qemu_manage.h"
 
-static std::vector<std::string> result;
+static QManager::VectorString result;
 
 static int callback_c(void *NotUsed, int argc, char **argv, char **azColName) {
   return 0;
@@ -58,7 +58,7 @@ QManager::QemuDb::QemuDb(const std::string &dbf) {
   }
 }
 
-std::vector<std::string> QManager::QemuDb::SelectQuery(const std::string &query) {
+QManager::VectorString QManager::QemuDb::SelectQuery(const std::string &query) {
 
   query_ = query;
   try {

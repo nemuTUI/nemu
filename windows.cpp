@@ -9,7 +9,6 @@ QManager::TemplateWindow::TemplateWindow(int height, int width, int starty, int 
 }
 
 void QManager::TemplateWindow::Init() {
-  //clear();
   start_color();
   use_default_colors();
   window = newwin(height_, width_, starty_, startx_);
@@ -38,7 +37,7 @@ int QManager::PopupWarning::Print(WINDOW *window) {
   return ch_;
 }
 
-QManager::MenuList::MenuList(WINDOW *window, uint32_t &highlight, const std::vector<std::string> &list) {
+QManager::MenuList::MenuList(WINDOW *window, uint32_t &highlight, const VectorString &list) {
   window_ = window;
   highlight_ = highlight;
   list_ = list;
