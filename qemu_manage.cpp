@@ -86,7 +86,7 @@ int main() {
       if(choice != 0)
         break;
     }
-    if(choice == 1) {
+    if(choice == MenuVmlist) {
 
       QemuDb *db = new QemuDb(dbf);
       VectorString res = db->SelectQuery(sql_list_vm);
@@ -96,24 +96,29 @@ int main() {
         PopupWarning *Warn = new PopupWarning("No guests here.", 3, 20, 7, 31);
         Warn->Init();
         Warn->Print(Warn->window);
-      } else {
+      }
+      else {
 
         std::string listmax_s = get_param(cfg, lmax_regex);
         uint32_t listmax;
 
         if(listmax_s.empty()) {
           listmax = 10;
-        } else {
+        }
+        else {
           listmax = std::stoi(listmax_s);
         }
       }
 
-    } else if(choice == 2) {
-      // do some stuff...
-
-    } else if(choice == 3) {
+    }
+    else if(choice == MenuAddVm) {
       // do some stuff...
     }
+#ifdef ENABLE_OPENVSWITCH
+    else if(choice == MenuOvsMap) {
+      // do some stuff...
+    }
+#endif
   }
 
   return 0;

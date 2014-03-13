@@ -11,6 +11,14 @@ namespace QManager {
 
   typedef std::vector<std::string> VectorString;
 
+  enum input_choices {
+    MenuVmlist = 1,
+    MenuAddVm = 2,
+#ifdef ENABLE_OPENVSWITCH
+    MenuOvsMap = 3
+#endif
+  };
+
   std::string get_param(const std::string &cfg, const std::string &regex);
 
   class TemplateWindow {
@@ -48,10 +56,10 @@ namespace QManager {
     public:
       MenuList(WINDOW *menu_window, uint32_t &highlight);
       template <typename Iterator>
-      void Print(Iterator begin, Iterator End) {
+      void Print(Iterator begin, Iterator end) {
         x = 2; y = 2; i = 0;
         box(window_, 0, 0);
-        for(Iterator list = begin; list != End; ++list) {
+        for(Iterator list = begin; list != end; ++list) {
           if (highlight_ ==  i + 1) {
             wattron(window_, A_REVERSE);
             mvwprintw(window_, y, x, "%s", list->c_str());
