@@ -21,7 +21,9 @@ int main() {
   std::vector<std::string> choices;
   choices.push_back("Manage qemu VM");
   choices.push_back("Add qemu VM");
+#ifdef ENABLE_OPENVSWITCH
   choices.push_back("Show network map");
+#endif
 
   u_int highlight(1);
   u_int ch;
