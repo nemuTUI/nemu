@@ -3,7 +3,7 @@
 
 #include "qemu_manage.h"
 
-std::string get_param(const std::string &cfg, const std::string &regex) {
+std::string QManager::get_param(const std::string &cfg, const std::string &regex) {
   std::ifstream ifs(cfg.c_str());
   if (ifs.is_open()) {
 

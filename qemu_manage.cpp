@@ -18,6 +18,8 @@ static const std::string sql_list_vm = "select name from vms order by name asc";
 
 int main() {
 
+  using namespace QManager;
+
   std::vector<std::string> choices;
   choices.push_back("Manage qemu VM");
   choices.push_back("Add qemu VM");

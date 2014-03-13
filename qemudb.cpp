@@ -18,7 +18,7 @@ static int callback_s(void *NotUsed, int argc, char **argv, char **azColName) {
   return 0;
 }
 
-QemuDb::QemuDb(const std::string &dbf) {
+QManager::QemuDb::QemuDb(const std::string &dbf) {
   dbf_ = dbf;
   zErrMsg = 0;
   std::ifstream db(dbf_);
@@ -58,7 +58,7 @@ QemuDb::QemuDb(const std::string &dbf) {
   }
 }
 
-std::vector<std::string> QemuDb::SelectQuery(const std::string &query) {
+std::vector<std::string> QManager::QemuDb::SelectQuery(const std::string &query) {
 
   query_ = query;
   try {
