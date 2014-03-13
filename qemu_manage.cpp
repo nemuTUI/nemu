@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <string>
+#include <array>
 #include <vector>
 #include <ncurses.h>
 // debug
@@ -14,16 +15,30 @@ static const std::string cfg = "test.cfg";
 static const std::string dbf = "/var/db/qemu_manage2.db";
 static const std::string sql_list_vm = "select name from vms order by name asc";
 
+#ifdef ENABLE_OPENVSWITCH
+#define CHOICES_NUM 3
+#else
+#define CHOICES_NUM 2
+#endif
+const std::array<std::string, CHOICES_NUM> choices = {
+  "Manage qemu VM",
+  "Add qemu VM",
+#ifdef ENABLE_OPENVSWITCH
+  "Show network map"
+#endif
+};
+#undef CHOICES_NUM
+
 int main() {
 
   using namespace QManager;
 
-  VectorString choices;
+/*  VectorString choices;
   choices.push_back("Manage qemu VM");
   choices.push_back("Add qemu VM");
 #ifdef ENABLE_OPENVSWITCH
   choices.push_back("Show network map");
-#endif
+#endif */
 
   uint32_t highlight(1);
   uint32_t ch;
@@ -42,8 +57,8 @@ int main() {
     uint32_t choice(0);
 
     main_window->Print();
-    MenuList *main_menu = new MenuList(main_window->window, highlight, choices);
-    main_menu->Print();
+    MenuList *main_menu = new MenuList(main_window->window, highlight);
+    main_menu->Print(choices.begin(), choices.end());
 
     while((ch = wgetch(main_window->window))) {
       switch(ch) {
@@ -72,8 +87,8 @@ int main() {
           break;
       }
 
-      MenuList *main_menu = new MenuList(main_window->window, highlight, choices);
-      main_menu->Print();
+      MenuList *main_menu = new MenuList(main_window->window, highlight);
+      main_menu->Print(choices.begin(), choices.end());
 
       if(choice != 0)
         break;
