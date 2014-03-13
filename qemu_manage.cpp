@@ -33,13 +33,6 @@ int main() {
 
   using namespace QManager;
 
-/*  VectorString choices;
-  choices.push_back("Manage qemu VM");
-  choices.push_back("Add qemu VM");
-#ifdef ENABLE_OPENVSWITCH
-  choices.push_back("Show network map");
-#endif */
-
   uint32_t highlight(1);
   uint32_t ch;
 
