@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdint>
 #include <vector>
+#include <map>
 #include <ncurses.h>
 #include <sqlite3.h>
 
@@ -40,6 +41,13 @@ namespace QManager {
       void Print();
   };
 
+  class VmWindow : public TemplateWindow {
+    public:
+      VmWindow(int height, int width, int starty = 7, int startx = 25)
+        : TemplateWindow(height, width, starty, startx) {}
+      void Print();
+  };
+
   class PopupWarning : public TemplateWindow {
     public:
       PopupWarning(const std::string &msg, int height,
@@ -59,6 +67,7 @@ namespace QManager {
       void Print(Iterator begin, Iterator end) {
         x = 2; y = 2; i = 0;
         box(window_, 0, 0);
+
         for(Iterator list = begin; list != end; ++list) {
           if (highlight_ ==  i + 1) {
             wattron(window_, A_REVERSE);
@@ -68,15 +77,56 @@ namespace QManager {
             mvwprintw(window_, y, x, "%s", list->c_str());
           }
           y++; i++;
-
         }
+
         wrefresh(window_);
       }
 
-    private:
+    protected:
       uint32_t highlight_;
       WINDOW *window_;
       uint32_t x, y, i;
+  };
+
+  class VmList : public MenuList {
+    public:
+      VmList(WINDOW *menu_window, uint32_t &highlight, const std::string &vmdir);
+      template <typename Iterator>
+      void Print(Iterator begin, Iterator end) {
+        wattroff(window_, COLOR_PAIR(1));
+        wattroff(window_, COLOR_PAIR(2));
+        x = 2; y = 2; i = 0;
+        box(window_, 0, 0);
+
+        for(Iterator list = begin; list != end; ++list) {
+          lock_ = vmdir_ + "/" + *list + "/" + *list + ".lock";
+          std::ifstream lock_f(lock_);
+
+          if (lock_f) {
+            vm_status.insert(std::pair<std::string, std::string>(*list, "running"));
+            wattron(window_, COLOR_PAIR(2));
+          }
+          else {
+            vm_status.insert(std::pair<std::string, std::string>(*list, "stopped"));
+            wattron(window_, COLOR_PAIR(1));
+          }
+
+          if (highlight_ ==  i + 1) {
+            wattron(window_, A_REVERSE);
+            mvwprintw(window_, y, x, "%-20s%s", list->c_str(), vm_status.at(*list).c_str());
+            wattroff(window_, A_REVERSE);
+          }
+          else {
+            mvwprintw(window_, y, x, "%-20s%s", list->c_str(), vm_status.at(*list).c_str());
+          }
+          y++; i++;
+          wrefresh(window_);
+        }
+      }
+      std::map<std::string, std::string> vm_status;
+
+    private:
+      std::string vmdir_, lock_;
   };
 
   class QemuDb {

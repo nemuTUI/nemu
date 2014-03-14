@@ -59,8 +59,10 @@ QManager::QemuDb::QemuDb(const std::string &dbf) {
 }
 
 QManager::VectorString QManager::QemuDb::SelectQuery(const std::string &query) {
-
   query_ = query;
+
+  result.clear();
+
   try {
     dbexec = sqlite3_exec(qdb, query_.c_str(), callback_s, 0, &zErrMsg);
 

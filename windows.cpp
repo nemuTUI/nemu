@@ -22,6 +22,13 @@ void QManager::MainWindow::Print() {
   refresh();
 }
 
+void QManager::VmWindow::Print() {
+  clear();
+  border(0,0,0,0,0,0,0,0);
+  mvprintw(1, 1, "F1 - help, F10 - main menu");
+  refresh();
+}
+
 QManager::PopupWarning::PopupWarning(const std::string &msg, int height,
  int width, int starty, int startx) : TemplateWindow(height, width, starty, startx) {
     msg_ = msg;
@@ -40,4 +47,11 @@ int QManager::PopupWarning::Print(WINDOW *window) {
 QManager::MenuList::MenuList(WINDOW *window, uint32_t &highlight) {
   window_ = window;
   highlight_ = highlight;
+}
+
+QManager::VmList::VmList(WINDOW *menu_window, uint32_t &highlight, const std::string &vmdir)
+        : MenuList(menu_window, highlight) {
+  vmdir_ = vmdir;
+  init_pair(1, COLOR_WHITE, COLOR_BLACK);
+  init_pair(2, COLOR_GREEN, COLOR_BLACK);
 }

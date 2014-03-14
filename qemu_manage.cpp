@@ -89,10 +89,10 @@ int main() {
     if(choice == MenuVmlist) {
 
       QemuDb *db = new QemuDb(dbf);
-      VectorString res = db->SelectQuery(sql_list_vm);
+      VectorString guests = db->SelectQuery(sql_list_vm);
       delete db;
 
-      if(res.empty()) {
+      if(guests.empty()) {
         PopupWarning *Warn = new PopupWarning("No guests here.", 3, 20, 7, 31);
         Warn->Init();
         Warn->Print(Warn->window);
@@ -103,10 +103,60 @@ int main() {
         uint32_t listmax;
 
         if(listmax_s.empty()) {
-          listmax = 10;
+          listmax = guests.size();
         }
         else {
           listmax = std::stoi(listmax_s);
+          if(listmax > guests.size())
+            listmax = guests.size();
+        }
+
+        VmWindow *vm_window = new VmWindow(listmax + 4, 32);
+        vm_window->Init();
+        vm_window->Print();
+
+        uint32_t guest_first(0);
+        uint32_t guest_last(listmax);
+
+        uint32_t q_choice(0);
+        uint32_t q_highlight(1);
+
+        VmList *vm_list = new VmList(vm_window->window, q_highlight, vmdir);
+        vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
+
+        for(;;) {
+          ch = wgetch(vm_window->window);
+
+          if((ch == KEY_UP) && (q_highlight == 1) && (guest_first == 0)
+            && (listmax < guests.size())) {
+            q_highlight = listmax;
+            guest_first = guests.size() - listmax;
+            guest_last = guests.size();
+          }
+
+          else if(ch == KEY_UP) {
+            if((q_highlight == 1) && (guests.size() <= listmax))
+              q_highlight = guests.size();
+            else if((q_highlight == 1) && (guest_first != 0)) {
+              guest_first--;
+              guest_last--;
+            }
+            else
+              q_highlight--;
+          }
+
+          else if(ch == KEY_F(10)) {
+            delete vm_list;
+            delete vm_window;
+            refresh();
+            endwin();
+            break;
+          }
+
+          delete vm_list;
+          //vm_window->Print();
+          VmList *vm_list = new VmList(vm_window->window, q_highlight, vmdir);
+          vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
         }
       }
 
