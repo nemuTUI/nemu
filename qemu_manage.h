@@ -16,8 +16,9 @@ namespace QManager {
     MenuVmlist = 1,
     MenuAddVm = 2,
 #ifdef ENABLE_OPENVSWITCH
-    MenuOvsMap = 3
+    MenuOvsMap = 3,
 #endif
+    MenuKeyEnter = 10,
   };
 
   std::string get_param(const std::string &cfg, const std::string &regex);

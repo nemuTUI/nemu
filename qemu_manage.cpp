@@ -118,7 +118,7 @@ int main() {
         uint32_t guest_first(0);
         uint32_t guest_last(listmax);
 
-        uint32_t q_highlight(1); // TODO: try to replace it by highlight and delete.
+        uint32_t q_highlight(1);
 
         VmList *vm_list = new VmList(vm_window->window, q_highlight, vmdir);
         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
@@ -142,6 +142,28 @@ int main() {
             }
             else
               q_highlight--;
+          }
+
+          else if((ch == KEY_DOWN) && (q_highlight == listmax)
+            && (guest_last == guests.size())) {
+            q_highlight = 1;
+            guest_first = 0;
+            guest_last = listmax;
+          }
+
+          else if(ch == KEY_DOWN) {
+            if((q_highlight == guests.size()) && (guests.size() <= listmax))
+              q_highlight = 1;
+            else if((q_highlight == listmax) && (guest_last < guests.size())) {
+              guest_first++;
+              guest_last++;
+            }
+            else
+              q_highlight++;
+          }
+
+          else if(ch == MenuKeyEnter) {
+            std::string guest = guests.at((guest_first + q_highlight) - 1);
           }
 
           else if(ch == KEY_F(10)) {
