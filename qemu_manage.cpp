@@ -106,7 +106,7 @@ int main() {
           listmax = guests.size();
         }
         else {
-          listmax = std::stoi(listmax_s);
+          listmax = std::stoi(listmax_s); // TODO: fix parse cfg, check types.
           if(listmax > guests.size())
             listmax = guests.size();
         }
@@ -118,8 +118,7 @@ int main() {
         uint32_t guest_first(0);
         uint32_t guest_last(listmax);
 
-        uint32_t q_choice(0);
-        uint32_t q_highlight(1);
+        uint32_t q_highlight(1); // TODO: try to replace it by highlight and delete.
 
         VmList *vm_list = new VmList(vm_window->window, q_highlight, vmdir);
         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
