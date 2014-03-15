@@ -170,6 +170,11 @@ int main() {
             delete vminfo_window;
           }
 
+          else if(ch == KEY_F(1)) {
+            HelpWindow *help_window = new HelpWindow(8, 40);
+            help_window->Print();
+          }
+
           else if(ch == KEY_F(10)) {
             delete vm_list;
             delete vm_window;

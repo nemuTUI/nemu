@@ -45,6 +45,20 @@ void QManager::VmInfoWindow::Print() {
   clear();
 }
 
+void QManager::HelpWindow::Print() {
+  window_ = newwin(height_, width_, starty_, startx_);
+  keypad(window_, TRUE);
+  box(window_, 0, 0);
+  mvwprintw(window_, 1, 1, "%s", "\"r\" - start guest" );
+  mvwprintw(window_, 2, 1, "%s", "\"c\" - connect to guest via vnc");
+  mvwprintw(window_, 3, 1, "%s", "\"f\" - force stop guest");
+  mvwprintw(window_, 4, 1, "%s", "\"d\" - delete guest");
+  mvwprintw(window_, 5, 1, "%s", "\"e\" - edit guest settings");
+  mvwprintw(window_, 6, 1, "%s", "\"l\" - clone guest");
+  wrefresh(window_);
+  wgetch(window_);
+}
+
 QManager::PopupWarning::PopupWarning(const std::string &msg, int height,
  int width, int starty, int startx) : TemplateWindow(height, width, starty, startx) {
     msg_ = msg;

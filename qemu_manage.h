@@ -32,8 +32,6 @@ namespace QManager {
 
     protected:
       int row, col;
-
-    private:
       int height_, width_;
       int startx_, starty_;
   };
@@ -65,7 +63,7 @@ namespace QManager {
     public:
       HelpWindow(int height, int width, int starty = 1, int startx = 1)
         : TemplateWindow(height, width, starty, startx) {}
-      void Print(WINDOW *window);
+      void Print();
 
     private:
       WINDOW *window_;
