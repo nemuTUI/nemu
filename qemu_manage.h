@@ -30,6 +30,9 @@ namespace QManager {
       WINDOW *window;
       ~TemplateWindow() { delwin(window); }
 
+    protected:
+      int row, col;
+
     private:
       int height_, width_;
       int startx_, starty_;
@@ -47,6 +50,25 @@ namespace QManager {
       VmWindow(int height, int width, int starty = 7, int startx = 25)
         : TemplateWindow(height, width, starty, startx) {}
       void Print();
+  };
+
+  class VmInfoWindow : public TemplateWindow {
+    public:
+      VmInfoWindow(const std::string &guest, int height, int width, int starty = 7, int startx = 25);
+      void Print();
+
+    private:
+      std::string guest_, title_;
+  };
+
+  class HelpWindow : public TemplateWindow {
+    public:
+      HelpWindow(int height, int width, int starty = 1, int startx = 1)
+        : TemplateWindow(height, width, starty, startx) {}
+      void Print(WINDOW *window);
+
+    private:
+      WINDOW *window_;
   };
 
   class PopupWarning : public TemplateWindow {

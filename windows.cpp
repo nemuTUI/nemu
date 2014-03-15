@@ -6,6 +6,8 @@ QManager::TemplateWindow::TemplateWindow(int height, int width, int starty, int 
   width_ = width;
   starty_ = starty;
   startx_ = startx;
+
+  getmaxyx(stdscr, row, col);
 }
 
 void QManager::TemplateWindow::Init() {
@@ -23,10 +25,24 @@ void QManager::MainWindow::Print() {
 }
 
 void QManager::VmWindow::Print() {
-  clear();
   border(0,0,0,0,0,0,0,0);
   mvprintw(1, 1, "F1 - help, F10 - main menu");
   refresh();
+}
+
+QManager::VmInfoWindow::VmInfoWindow(const std::string &guest, int height, int width,
+  int starty, int startx) : TemplateWindow(height, width, starty, startx) {
+    guest_ = guest;
+    title_ = guest_ + " info";
+}
+
+void QManager::VmInfoWindow::Print() {
+  clear();
+  border(0,0,0,0,0,0,0,0);
+  mvprintw(1, (col - title_.size())/2, title_.c_str());
+  getch();
+  refresh();
+  clear();
 }
 
 QManager::PopupWarning::PopupWarning(const std::string &msg, int height,

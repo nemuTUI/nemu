@@ -111,6 +111,7 @@ int main() {
             listmax = guests.size();
         }
 
+        clear();
         VmWindow *vm_window = new VmWindow(listmax + 4, 32);
         vm_window->Init();
         vm_window->Print();
@@ -164,6 +165,9 @@ int main() {
 
           else if(ch == MenuKeyEnter) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
+            VmInfoWindow *vminfo_window = new VmInfoWindow(guest, 10, 30);
+            vminfo_window->Print();
+            delete vminfo_window;
           }
 
           else if(ch == KEY_F(10)) {
@@ -175,7 +179,7 @@ int main() {
           }
 
           delete vm_list;
-          //vm_window->Print();
+          vm_window->Print();
           VmList *vm_list = new VmList(vm_window->window, q_highlight, vmdir);
           vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
         }
