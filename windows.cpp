@@ -46,15 +46,23 @@ void QManager::VmInfoWindow::Print() {
 }
 
 void QManager::HelpWindow::Print() {
+  line = 1;
   window_ = newwin(height_, width_, starty_, startx_);
   keypad(window_, TRUE);
   box(window_, 0, 0);
-  mvwprintw(window_, 1, 1, "%s", "\"r\" - start guest" );
-  mvwprintw(window_, 2, 1, "%s", "\"c\" - connect to guest via vnc");
-  mvwprintw(window_, 3, 1, "%s", "\"f\" - force stop guest");
-  mvwprintw(window_, 4, 1, "%s", "\"d\" - delete guest");
-  mvwprintw(window_, 5, 1, "%s", "\"e\" - edit guest settings");
-  mvwprintw(window_, 6, 1, "%s", "\"l\" - clone guest");
+
+  msg_.push_back("\"r\" - start guest");
+  msg_.push_back("\"c\" - connect to guest via vnc");
+  msg_.push_back("\"f\" - force stop guest");
+  msg_.push_back("\"d\" - delete guest");
+  msg_.push_back("\"e\" - edit guest settings");
+  msg_.push_back("\"l\" - clone guest");
+
+  for(auto &msg : msg_) {
+    mvwprintw(window_, line, 1, "%s", msg.c_str());
+    line++;
+  }
+
   wrefresh(window_);
   wgetch(window_);
 }

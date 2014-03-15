@@ -67,6 +67,8 @@ namespace QManager {
 
     private:
       WINDOW *window_;
+      std::vector<std::string> msg_;
+      uint32_t line;
   };
 
   class PopupWarning : public TemplateWindow {
