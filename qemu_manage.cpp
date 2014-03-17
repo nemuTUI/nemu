@@ -3,6 +3,7 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <memory>
 #include <ncurses.h>
 // debug
 #include <fstream>
@@ -41,7 +42,7 @@ int main() {
   noecho();
   curs_set(0);
 
-  MainWindow *main_window = new MainWindow(10, 30);
+  std::unique_ptr<MainWindow> main_window(new MainWindow(10, 30));
   main_window->Init();
 
   std::string vmdir = get_param(cfg, vmdir_regex);
@@ -50,7 +51,7 @@ int main() {
     uint32_t choice(0);
 
     main_window->Print();
-    MenuList *main_menu = new MenuList(main_window->window, highlight);
+    std::unique_ptr<MenuList> main_menu(new MenuList(main_window->window, highlight));
     main_menu->Print(choices.begin(), choices.end());
 
     while((ch = wgetch(main_window->window))) {
@@ -71,8 +72,6 @@ int main() {
           choice = highlight;
           break;
         case KEY_F(10):
-          delete main_menu;
-          delete main_window;
           clear();
           refresh();
           endwin();
@@ -80,7 +79,7 @@ int main() {
           break;
       }
 
-      MenuList *main_menu = new MenuList(main_window->window, highlight);
+      std::unique_ptr<MenuList> main_menu(new MenuList(main_window->window, highlight));
       main_menu->Print(choices.begin(), choices.end());
 
       if(choice != 0)
@@ -88,12 +87,11 @@ int main() {
     }
     if(choice == MenuVmlist) {
 
-      QemuDb *db = new QemuDb(dbf);
+      std::unique_ptr<QemuDb> db(new QemuDb(dbf));
       VectorString guests = db->SelectQuery(sql_list_vm);
-      delete db;
 
       if(guests.empty()) {
-        PopupWarning *Warn = new PopupWarning("No guests here.", 3, 20, 7, 31);
+        std::unique_ptr<PopupWarning> Warn(new PopupWarning("No guests here.", 3, 20, 7, 31));
         Warn->Init();
         Warn->Print(Warn->window);
       }
@@ -112,7 +110,7 @@ int main() {
         }
 
         clear();
-        VmWindow *vm_window = new VmWindow(listmax + 4, 32);
+        std::unique_ptr<VmWindow> vm_window(new VmWindow(listmax + 4, 32));
         vm_window->Init();
         vm_window->Print();
 
@@ -121,7 +119,7 @@ int main() {
 
         uint32_t q_highlight(1);
 
-        VmList *vm_list = new VmList(vm_window->window, q_highlight, vmdir);
+        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
         for(;;) {
@@ -165,27 +163,23 @@ int main() {
 
           else if(ch == MenuKeyEnter) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
-            VmInfoWindow *vminfo_window = new VmInfoWindow(guest, 10, 30);
+            std::unique_ptr<VmInfoWindow> vminfo_window(new VmInfoWindow(guest, 10, 30));
             vminfo_window->Print();
-            delete vminfo_window;
           }
 
           else if(ch == KEY_F(1)) {
-            HelpWindow *help_window = new HelpWindow(8, 40);
+            std::unique_ptr<HelpWindow> help_window(new HelpWindow(8, 40));
             help_window->Print();
           }
 
           else if(ch == KEY_F(10)) {
-            delete vm_list;
-            delete vm_window;
             refresh();
             endwin();
             break;
           }
 
-          delete vm_list;
           vm_window->Print();
-          VmList *vm_list = new VmList(vm_window->window, q_highlight, vmdir);
+          std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
           vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
         }
       }
