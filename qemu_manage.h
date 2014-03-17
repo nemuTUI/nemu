@@ -23,6 +23,7 @@ namespace QManager {
 
   std::string get_param(const std::string &cfg, const std::string &regex);
   uint32_t total_memory();
+  uint32_t disk_free(const std::string &vmdir);
 
   class TemplateWindow {
     public:

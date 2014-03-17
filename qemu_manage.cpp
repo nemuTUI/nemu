@@ -45,7 +45,7 @@ int main() {
   std::unique_ptr<MainWindow> main_window(new MainWindow(10, 30));
   main_window->Init();
 
-  std::string vmdir = get_param(cfg, vmdir_regex);
+  const std::string vmdir = get_param(cfg, vmdir_regex);
 
   for (;;) {
     uint32_t choice(0);
