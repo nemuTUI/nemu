@@ -43,6 +43,16 @@ uint32_t QManager::cpu_count() {
 }
 
 QManager::MapString QManager::list_usb() {
-  //...
+  MapString u_list;
+  char line[1024];
+
+  FILE *lsusb = popen("lsusb", "r");
+  if(!lsusb)
+    exit(1);
+
+  while(fgets(line, sizeof(line), lsusb)) {
+    //...
+  }
+
   return MapString();
 }
