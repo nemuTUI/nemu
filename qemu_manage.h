@@ -11,6 +11,7 @@
 namespace QManager {
 
   typedef std::vector<std::string> VectorString;
+  typedef std::map<std::string, std::string> MapString;
 
   enum input_choices {
     MenuVmlist = 1,
@@ -22,6 +23,7 @@ namespace QManager {
   };
 
   std::string get_param(const std::string &cfg, const std::string &regex);
+  MapString list_usb();
   uint32_t total_memory();
   uint32_t disk_free(const std::string &vmdir);
   uint32_t cpu_count();
@@ -149,7 +151,7 @@ namespace QManager {
           wrefresh(window_);
         }
       }
-      std::map<std::string, std::string> vm_status;
+      MapString vm_status;
 
     private:
       std::string vmdir_, lock_;

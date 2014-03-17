@@ -41,3 +41,8 @@ uint32_t QManager::cpu_count() {
 
   return cores;
 }
+
+QManager::MapString QManager::list_usb() {
+  //...
+  return MapString();
+}

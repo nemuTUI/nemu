@@ -2,7 +2,7 @@ CXX=g++
 CXXFLAGS=-c -g -Wall -std=c++11 -DENABLE_OPENVSWITCH
 EXECUTABLE=qemu_manage
 LDFLAGS=-lboost_regex -lncurses -lsqlite3 -lprocps
-SOURCES=qemu_manage.cpp qemu_hostinfo.cpp windows.cpp \
+SOURCES=qemu_manage.cpp hostinfo.cpp windows.cpp \
 	qemudb.cpp
 OBJECTS=$(SOURCES:.cpp=.o) 
 
