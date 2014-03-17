@@ -1,4 +1,5 @@
 #include <fstream>
+#include <proc/sysinfo.h>
 #include <boost/regex.hpp>
 
 #include "qemu_manage.h"
@@ -19,4 +20,9 @@ std::string QManager::get_param(const std::string &cfg, const std::string &regex
     }
   }
   return std::string();
+}
+
+uint32_t QManager::total_memory() {
+  meminfo();
+  return kb_main_total / 1024;
 }
