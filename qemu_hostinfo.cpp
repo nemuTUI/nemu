@@ -1,4 +1,5 @@
 #include <fstream>
+#include <thread>
 #include <proc/sysinfo.h>
 #include <sys/statvfs.h>
 #include <boost/regex.hpp>
@@ -33,4 +34,10 @@ uint32_t QManager::disk_free(const std::string &vmdir) {
   statvfs(vmdir.c_str(), &df);
 
   return (df.f_bsize * df.f_bavail) / 1024 / 1024 / 1024;
+}
+
+uint32_t QManager::cpu_count() {
+  uint32_t cores = std::thread::hardware_concurrency();
+
+  return cores;
 }
