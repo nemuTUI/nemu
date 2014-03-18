@@ -48,7 +48,7 @@ void QManager::VmInfoWindow::Print() {
 void QManager::AddVmWindow::Print() {
   clear();
   border(0,0,0,0,0,0,0,0);
-  mvprintw(1, 1, "Use arrow keys to go up and down, F10 - finish, F2 - save.");
+  mvprintw(1, 1, "F10 - finish, F2 - save");
   refresh();
   curs_set(1);
 
