@@ -63,3 +63,22 @@ QManager::MapString QManager::list_usb() {
 
   return MapString();
 }
+
+QManager::VectorString QManager::list_arch() {
+  VectorString a_list;
+  char buff[1024];
+
+  FILE *cmd = popen(
+    "ls -1 $(dirname $(which qemu-img))/qemu-system-* | sed -re 's/.*qemu-system-//'",
+    "r"
+  );
+  if(cmd) {
+    while(char *line = fgets(buff, sizeof(buff), cmd)) {
+      strtok(line, "\n");
+      a_list.push_back(line);
+    }
+    return a_list;
+  }
+
+  return VectorString();
+}
