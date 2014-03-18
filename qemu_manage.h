@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 #include <map>
+#include <form.h>
 #include <ncurses.h>
 #include <sqlite3.h>
 
@@ -79,9 +80,15 @@ namespace QManager {
 
   class AddVmWindow : public TemplateWindow {
     public:
-      AddVmWindow(int height, int width, int starty = 1, int startx = 1)
-        : TemplateWindow(height, width, starty, startx) {}
+      AddVmWindow(const std::string &dbf, int height, int width, int starty = 3, int startx = 3);
       void Print();
+
+    private:
+      std::string sql_last_vnc, sql_last_mac, dbf_,;
+      uint32_t last_vnc;
+      VectorString v_last_vnc, v_last_mac;
+      FIELD *field[10];
+      FORM *form;
   };
 
   class PopupWarning : public TemplateWindow {

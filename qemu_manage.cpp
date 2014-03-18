@@ -186,7 +186,8 @@ int main() {
 
     }
     else if(choice == MenuAddVm) {
-      std::unique_ptr<AddVmWindow> add_window(new AddVmWindow(20, 30));
+      std::unique_ptr<AddVmWindow> add_window(new AddVmWindow(dbf, 25, 60));
+      add_window->Init();
       add_window->Print();
     }
 #ifdef ENABLE_OPENVSWITCH

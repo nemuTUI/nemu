@@ -1,4 +1,4 @@
-#include <ncurses.h>
+#include <memory>
 #include "qemu_manage.h"
 
 QManager::TemplateWindow::TemplateWindow(int height, int width, int starty, int startx) {
@@ -45,16 +45,41 @@ void QManager::VmInfoWindow::Print() {
   clear();
 }
 
+QManager::AddVmWindow::AddVmWindow(const std::string &dbf, int height, int width,
+  int starty, int startx) : TemplateWindow(height, width, starty, startx) {
+    dbf_ = dbf;
+}
+
 void QManager::AddVmWindow::Print() {
-  clear();
-  border(0,0,0,0,0,0,0,0);
-  mvprintw(1, 1, "F10 - finish, F2 - save");
-  refresh();
-  curs_set(1);
+  sql_last_vnc = "select vnc from lastval";
+  sql_last_mac = "select mac from lastval";
 
   VectorString q_arch(list_arch());
   MapString u_dev(list_usb());
 
+  clear();
+  border(0,0,0,0,0,0,0,0);
+  mvprintw(1, 1, "F10 - finish, F2 - save");
+  curs_set(1);
+
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+  v_last_vnc = db->SelectQuery(sql_last_vnc);
+  v_last_mac = db->SelectQuery(sql_last_mac);
+
+  last_vnc = std::stoi(v_last_vnc[0]);
+  last_vnc++;
+
+  for(int i(0); i<=10; i++) {
+    field[i] = new_field(1, 35, i*2, 1, 0, 0);
+    set_field_back(field[i], A_UNDERLINE); 
+  }
+
+  init_pair(1, COLOR_BLACK, COLOR_WHITE);
+  wbkgd(window, COLOR_PAIR(1));
+
+  set_field_type(field[0], TYPE_ALNUM, 0);
+  //set_field_type(field[1], TYPE_ENUM, q_arch, false, false);
+  
   getch();
   curs_set(0);
 }
