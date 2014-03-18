@@ -77,6 +77,13 @@ namespace QManager {
       uint32_t line;
   };
 
+  class AddVmWindow : public TemplateWindow {
+    public:
+      AddVmWindow(int height, int width, int starty = 1, int startx = 1)
+        : TemplateWindow(height, width, starty, startx) {}
+      void Print();
+  };
+
   class PopupWarning : public TemplateWindow {
     public:
       PopupWarning(const std::string &msg, int height,

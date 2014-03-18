@@ -186,7 +186,8 @@ int main() {
 
     }
     else if(choice == MenuAddVm) {
-      // do some stuff...
+      std::unique_ptr<AddVmWindow> add_window(new AddVmWindow(20, 30));
+      add_window->Print();
     }
 #ifdef ENABLE_OPENVSWITCH
     else if(choice == MenuOvsMap) {

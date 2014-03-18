@@ -45,6 +45,20 @@ void QManager::VmInfoWindow::Print() {
   clear();
 }
 
+void QManager::AddVmWindow::Print() {
+  clear();
+  border(0,0,0,0,0,0,0,0);
+  mvprintw(1, 1, "Use arrow keys to go up and down, F10 - finish, F2 - save.");
+  refresh();
+  curs_set(1);
+
+  VectorString q_arch(list_arch());
+  MapString u_dev(list_usb());
+
+  getch();
+  curs_set(0);
+}
+
 void QManager::HelpWindow::Print() {
   line = 1;
   window_ = newwin(height_, width_, starty_, startx_);
