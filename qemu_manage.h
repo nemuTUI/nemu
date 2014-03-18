@@ -131,11 +131,11 @@ namespace QManager {
           std::ifstream lock_f(lock_);
 
           if (lock_f) {
-            vm_status.insert(std::pair<std::string, std::string>(*list, "running"));
+            vm_status.insert(std::make_pair(*list, "running"));
             wattron(window_, COLOR_PAIR(2));
           }
           else {
-            vm_status.insert(std::pair<std::string, std::string>(*list, "stopped"));
+            vm_status.insert(std::make_pair(*list, "stopped"));
             wattron(window_, COLOR_PAIR(1));
           }
 

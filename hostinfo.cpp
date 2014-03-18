@@ -44,14 +44,21 @@ uint32_t QManager::cpu_count() {
 
 QManager::MapString QManager::list_usb() {
   MapString u_list;
-  char line[1024];
+  char buff[1024];
+  std::string regex(".*\\s+ID\\s+([A-Fa-f0-9]{4}:[A-Fa-f0-9]{4})\\s+(.*)\n");
 
-  FILE *lsusb = popen("lsusb", "r");
-  if(!lsusb)
-    exit(1);
-
-  while(fgets(line, sizeof(line), lsusb)) {
-    //...
+  FILE *cmd = popen("lsusb", "r");
+  if(cmd) {
+    while(char *line = fgets(buff, sizeof(buff), cmd)) {
+      boost::regex re(regex, boost::regex_constants::extended);
+      boost::smatch m;
+      if (boost::regex_match(std::string(line), m, re)) {
+        std::string usb_id = m[1].str();
+        std::string usb_name = m[2].str();
+        u_list.insert(std::make_pair(usb_id, usb_name));
+      }
+    }
+    return u_list;
   }
 
   return MapString();
