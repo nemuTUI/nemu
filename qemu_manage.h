@@ -87,14 +87,18 @@ namespace QManager {
       void Print();
 
     private:
-      std::string sql_last_vnc, sql_last_mac, dbf_, vmdir_,
+      void delete_form();
+      std::string sql_last_vnc, sql_last_mac, sql_check_name,
+      dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd,
       vm_name, vm_arch, vm_cpus, vm_memo, vm_disk, vm_vncp,
       vm_kvmf, vm_path, vm_ints, vm_usbp, vm_usbd;
       uint32_t last_vnc;
-      VectorString v_last_vnc, v_last_mac;
+      VectorString v_last_vnc, v_last_mac,
+      v_name;
       FIELD *field[12];
       FORM *form;
-      int ch;
+      int ch, cmd_exit_status;
+      FILE *cmd;
   };
 
   class PopupWarning : public TemplateWindow {
