@@ -30,6 +30,8 @@ namespace QManager {
   uint32_t disk_free(const std::string &vmdir);
   uint32_t cpu_count();
 
+  std::string trim_field_buffer(char *buff);
+
   class TemplateWindow {
     public:
       TemplateWindow(int height, int width, int starty = 7, int startx = 25);
@@ -80,15 +82,19 @@ namespace QManager {
 
   class AddVmWindow : public TemplateWindow {
     public:
-      AddVmWindow(const std::string &dbf, int height, int width, int starty = 3, int startx = 3);
+      AddVmWindow(const std::string &dbf, const std::string &vmdir,
+        int height, int width, int starty = 3, int startx = 3);
       void Print();
 
     private:
-      std::string sql_last_vnc, sql_last_mac, dbf_,;
+      std::string sql_last_vnc, sql_last_mac, dbf_, vmdir_,
+      vm_name, vm_arch, vm_cpus, vm_memo, vm_disk, vm_vncp,
+      vm_kvmf, vm_path, vm_ints, vm_usbp, vm_usbd;
       uint32_t last_vnc;
       VectorString v_last_vnc, v_last_mac;
-      FIELD *field[10];
+      FIELD *field[12];
       FORM *form;
+      int ch;
   };
 
   class PopupWarning : public TemplateWindow {
