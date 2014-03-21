@@ -31,6 +31,7 @@ namespace QManager {
   uint32_t cpu_count();
 
   std::string trim_field_buffer(char *buff);
+  MapString gen_mac_addr(uint64_t &mac, uint32_t &int_num, std::string &vm_name);
 
   class TemplateWindow {
     public:
@@ -92,7 +93,8 @@ namespace QManager {
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd,
       vm_name, vm_arch, vm_cpus, vm_memo, vm_disk, vm_vncp,
       vm_kvmf, vm_path, vm_ints, vm_usbp, vm_usbd;
-      uint32_t last_vnc;
+      uint32_t last_vnc, ui_vm_ints;
+      uint64_t last_mac;
       VectorString v_last_vnc, v_last_mac,
       v_name;
       FIELD *field[12];

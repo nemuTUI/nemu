@@ -86,6 +86,7 @@ void QManager::AddVmWindow::Print() {
     v_last_vnc = db->SelectQuery(sql_last_vnc);
     v_last_mac = db->SelectQuery(sql_last_mac);
 
+    last_mac = std::stol(v_last_mac[0]);
     last_vnc = std::stoi(v_last_vnc[0]);
     last_vnc++;
 
@@ -279,6 +280,10 @@ void QManager::AddVmWindow::Print() {
       throw QMException("Can't create img file");
     }
 
+    // Generate mac address for interfaces
+    ui_vm_ints = std::stoi(vm_ints);
+    gen_mac_addr(last_mac, ui_vm_ints, vm_name);
+
     // debug
     std::ofstream debug;
     debug.open("/tmp/ddd");
@@ -293,6 +298,7 @@ void QManager::AddVmWindow::Print() {
     debug << vm_usbp << std::endl;
     debug << vm_usbd << std::endl;
     debug << std::endl << guest_dir << std::endl;
+    debug << last_mac << std::endl;
     debug.close();
     // debug end
 
