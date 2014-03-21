@@ -265,24 +265,18 @@ void QManager::AddVmWindow::Print() {
     create_img_cmd = "qemu-img create -f qcow2 " + guest_dir
     + "/" + vm_name + ".img " + vm_disk + "G > /dev/null 2>&1";
 
-    cmd = popen(create_guest_dir_cmd.c_str(), "r");
+    cmd_exit_status = system(create_guest_dir_cmd.c_str());
 
-    if(cmd) {
-      cmd_exit_status = pclose(cmd);
-      if(cmd_exit_status != 0) {
-        delete_form();
-        throw QMException("Can't create guest dir");
-      }
+    if(cmd_exit_status != 0) {
+      delete_form();
+      throw QMException("Can't create guest dir");
     }
 
-    cmd = popen(create_img_cmd.c_str(), "r");
+    cmd_exit_status = system(create_img_cmd.c_str());
 
-    if(cmd) {
-      cmd_exit_status = pclose(cmd);
-      if(cmd_exit_status != 0) {
-        delete_form();
-        throw QMException("Can't create img file");
-      }
+    if(cmd_exit_status != 0) {
+      delete_form();
+      throw QMException("Can't create img file");
     }
 
     // debug

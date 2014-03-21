@@ -98,7 +98,6 @@ namespace QManager {
       FIELD *field[12];
       FORM *form;
       int ch, cmd_exit_status;
-      FILE *cmd;
   };
 
   class PopupWarning : public TemplateWindow {
