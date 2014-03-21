@@ -1,6 +1,7 @@
 #include <fstream> // debug
 #include <iostream> // debug
 #include <cstring>
+#include <algorithm>
 #include <memory>
 #include "qemu_manage.h"
 
@@ -63,8 +64,8 @@ void QManager::AddVmWindow::delete_form() {
 }
 
 void QManager::AddVmWindow::Print() {
-  sql_last_vnc = "select vnc from lastval";
-  sql_last_mac = "select mac from lastval";
+  sql_s_last_vnc = "select vnc from lastval";
+  sql_s_last_mac = "select mac from lastval";
 
   char clvnc[128], ccpu[128], cmem[128], cfree[128];
 
@@ -83,8 +84,8 @@ void QManager::AddVmWindow::Print() {
     curs_set(1);
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
-    v_last_vnc = db->SelectQuery(sql_last_vnc);
-    v_last_mac = db->SelectQuery(sql_last_mac);
+    v_last_vnc = db->SelectQuery(sql_s_last_vnc); // TODO: add check if null exeption
+    v_last_mac = db->SelectQuery(sql_s_last_mac); // TODO: add check if null exeption
 
     last_mac = std::stol(v_last_mac[0]);
     last_vnc = std::stoi(v_last_vnc[0]);
@@ -282,7 +283,23 @@ void QManager::AddVmWindow::Print() {
 
     // Generate mac address for interfaces
     ui_vm_ints = std::stoi(vm_ints);
-    gen_mac_addr(last_mac, ui_vm_ints, vm_name);
+    ifaces = gen_mac_addr(last_mac, ui_vm_ints, vm_name);
+
+    //Get last mac address and put it into database
+    itm = ifaces.end();
+    --itm;
+    s_last_mac = itm->second;
+
+    its = std::remove(s_last_mac.begin(), s_last_mac.end(), ':');
+    s_last_mac.erase(its, s_last_mac.end());
+
+    last_mac = std::stol(s_last_mac, 0, 16);
+
+    sql_u_last_mac = "update lastval set mac='" + std::to_string(last_mac) + "'";
+    db->ActionQuery(sql_u_last_mac);
+
+    // Update last vnc port in database
+    // ...
 
     // debug
     std::ofstream debug;
@@ -298,6 +315,10 @@ void QManager::AddVmWindow::Print() {
     debug << vm_usbp << std::endl;
     debug << vm_usbd << std::endl;
     debug << std::endl << guest_dir << std::endl;
+    for(auto &x : ifaces) {
+      debug << x.first << " " << x.second << std::endl;
+    }
+    debug << s_last_mac << std::endl;
     debug << last_mac << std::endl;
     debug.close();
     // debug end

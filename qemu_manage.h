@@ -89,16 +89,26 @@ namespace QManager {
 
     private:
       void delete_form();
-      std::string sql_last_vnc, sql_last_mac, sql_check_name,
+
+      std::string sql_s_last_vnc, sql_s_last_mac, sql_check_name,
+      sql_u_last_mac,
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd,
       vm_name, vm_arch, vm_cpus, vm_memo, vm_disk, vm_vncp,
-      vm_kvmf, vm_path, vm_ints, vm_usbp, vm_usbd;
+      vm_kvmf, vm_path, vm_ints, vm_usbp, vm_usbd, s_last_mac;
+
       uint32_t last_vnc, ui_vm_ints;
       uint64_t last_mac;
+
       VectorString v_last_vnc, v_last_mac,
       v_name;
+      MapString ifaces;
+
+      MapString::iterator itm;
+      std::string::iterator its;
+
       FIELD *field[12];
       FORM *form;
+
       int ch, cmd_exit_status;
   };
 

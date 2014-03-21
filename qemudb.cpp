@@ -81,3 +81,24 @@ QManager::VectorString QManager::QemuDb::SelectQuery(const std::string &query) {
 
   return result;
 }
+
+void QManager::QemuDb::ActionQuery(const std::string &query) {
+  query_ = query;
+
+  try {
+    dbexec = sqlite3_exec(qdb, query_.c_str(), callback_c, 0, &zErrMsg);
+
+    if(dbexec != SQLITE_OK) {
+      throw QMException(zErrMsg);
+    }
+  }
+  catch (QMException &err) {
+    PopupWarning Warn(err.what(), 3, 30, 4, 30);
+    Warn.Init();
+    Warn.Print(Warn.window);
+    refresh();
+    endwin();
+    exit(10);
+  }
+
+}
