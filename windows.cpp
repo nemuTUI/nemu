@@ -115,8 +115,8 @@ void QManager::AddVmWindow::Print() {
     {
       int i(0);
       for(auto &UList : u_dev) {
-        UdevList[i] = new char[UList.second.size() +1];
-        memcpy(UdevList[i], UList.second.c_str(), UList.second.size() + 1);
+        UdevList[i] = new char[UList.first.size() +1];
+        memcpy(UdevList[i], UList.first.c_str(), UList.first.size() + 1);
         i++;
       }
     }
@@ -299,7 +299,21 @@ void QManager::AddVmWindow::Print() {
     db->ActionQuery(sql_u_last_mac);
 
     // Update last vnc port in database
-    // ...
+    sql_u_last_vnc = "update lastval set vnc='" + std::to_string(last_vnc) + "'";
+    db->ActionQuery(sql_u_last_vnc);
+
+    // Get usb dev ID from user choice
+    if(vm_usbp == "yes") {
+      enable_usb = "1";
+      usb_id = u_dev.at(vm_usbd);
+    }
+    else {
+      enable_usb = "0";
+      usb_id = "none";
+    }
+
+    // Gen qemu img name
+    vm_disk = vm_name + ".img," + vm_disk;
 
     // debug
     std::ofstream debug;
@@ -319,7 +333,11 @@ void QManager::AddVmWindow::Print() {
       debug << x.first << " " << x.second << std::endl;
     }
     debug << s_last_mac << std::endl;
+    for(auto &x : u_dev) {
+      debug << x.first << std::endl;
+    }
     debug << last_mac << std::endl;
+    debug << usb_id << std::endl;
     debug.close();
     // debug end
 

@@ -91,10 +91,11 @@ namespace QManager {
       void delete_form();
 
       std::string sql_s_last_vnc, sql_s_last_mac, sql_check_name,
-      sql_u_last_mac,
+      sql_u_last_mac, sql_u_last_vnc,
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd,
       vm_name, vm_arch, vm_cpus, vm_memo, vm_disk, vm_vncp,
-      vm_kvmf, vm_path, vm_ints, vm_usbp, vm_usbd, s_last_mac;
+      vm_kvmf, vm_path, vm_ints, vm_usbp, vm_usbd, s_last_mac,
+      usb_id, enable_usb;
 
       uint32_t last_vnc, ui_vm_ints;
       uint64_t last_mac;
