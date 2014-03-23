@@ -304,43 +304,37 @@ void QManager::AddVmWindow::Print() {
 
     // Get usb dev ID from user choice
     if(vm_usbp == "yes") {
-      enable_usb = "1";
-      usb_id = u_dev.at(vm_usbd);
+      vm_usbp = "1";
+      vm_usbd = u_dev.at(vm_usbd);
     }
     else {
-      enable_usb = "0";
-      usb_id = "none";
+      vm_usbp = "0";
+      vm_usbd = "none";
     }
 
-    // Gen qemu img name
-    vm_disk = vm_name + ".img," + vm_disk;
+    // Gen qemu img name and kvm status
+    vm_disk = vm_name + ".img," + vm_disk + ";";
+    vm_kvmf == "yes" ? vm_kvmf = "1" : vm_kvmf = "0";
 
-    // debug
-    std::ofstream debug;
-    debug.open("/tmp/ddd");
-    debug << vm_name << std::endl;
-    debug << vm_arch << std::endl;
-    debug << vm_cpus << std::endl;
-    debug << vm_memo << std::endl;
-    debug << vm_disk << std::endl;
-    debug << vm_vncp << std::endl;
-    debug << vm_kvmf << std::endl;
-    debug << vm_path << std::endl;
-    debug << vm_usbp << std::endl;
-    debug << vm_usbd << std::endl;
-    debug << std::endl << guest_dir << std::endl;
-    for(auto &x : ifaces) {
-      debug << x.first << " " << x.second << std::endl;
+    // Convert interfaces from MapString to string
+    vm_ints.clear();
+    for(auto &ifs : ifaces) {
+      vm_ints += ifs.first + "," + ifs.second + ";";
     }
-    debug << s_last_mac << std::endl;
-    for(auto &x : u_dev) {
-      debug << x.first << std::endl;
-    }
-    debug << last_mac << std::endl;
-    debug << usb_id << std::endl;
-    debug.close();
-    // debug end
 
+    // Add guest to database
+    std::string sql_add_guest;
+    sql_add_guest = "insert into vms("
+    "name, mem, smp, hdd, kvm, vnc, mac, arch, iso, install, usb, usbid"
+    ") values('"
+    + vm_name + "', '" + vm_memo + "', '" + vm_cpus + "', '"
+    + vm_disk + "', '" + vm_kvmf + "', '" + vm_vncp + "', '"
+    + vm_ints + "', '" + vm_arch + "', '" + vm_path + "', '1', '"
+    + vm_usbp + "', '" + vm_usbd + "')";
+
+    db->ActionQuery(sql_add_guest);
+
+    // End
     delete_form();
   }
   catch (QMException &err) {
