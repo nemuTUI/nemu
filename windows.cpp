@@ -64,9 +64,6 @@ void QManager::AddVmWindow::delete_form() {
 }
 
 void QManager::AddVmWindow::Print() {
-  sql_s_last_vnc = "select vnc from lastval";
-  sql_s_last_mac = "select mac from lastval";
-
   char clvnc[128], ccpu[128], cmem[128], cfree[128];
 
   const char *YesNo[] = {
@@ -84,8 +81,10 @@ void QManager::AddVmWindow::Print() {
     curs_set(1);
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
-    v_last_vnc = db->SelectQuery(sql_s_last_vnc); // TODO: add check if null exeption
-    v_last_mac = db->SelectQuery(sql_s_last_mac); // TODO: add check if null exeption
+    sql_query = "select vnc from lastval";
+    v_last_vnc = db->SelectQuery(sql_query); // TODO: add check if null exeption
+    sql_query = "select mac from lastval";
+    v_last_mac = db->SelectQuery(sql_query); // TODO: add check if null exeption
 
     last_mac = std::stol(v_last_mac[0]);
     last_vnc = std::stoi(v_last_vnc[0]);
@@ -254,8 +253,8 @@ void QManager::AddVmWindow::Print() {
     }
 
     // Check if guest name is already taken
-    sql_check_name = "select id from vms where name='" + vm_name + "'";
-    v_name = db->SelectQuery(sql_check_name);
+    sql_query = "select id from vms where name='" + vm_name + "'";
+    v_name = db->SelectQuery(sql_query);
     if(! v_name.empty()) {
       delete_form();
       throw QMException("This name is already used");
@@ -295,12 +294,12 @@ void QManager::AddVmWindow::Print() {
 
     last_mac = std::stol(s_last_mac, 0, 16);
 
-    sql_u_last_mac = "update lastval set mac='" + std::to_string(last_mac) + "'";
-    db->ActionQuery(sql_u_last_mac);
+    sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
+    db->ActionQuery(sql_query);
 
     // Update last vnc port in database
-    sql_u_last_vnc = "update lastval set vnc='" + std::to_string(last_vnc) + "'";
-    db->ActionQuery(sql_u_last_vnc);
+    sql_query = "update lastval set vnc='" + std::to_string(last_vnc) + "'";
+    db->ActionQuery(sql_query);
 
     // Get usb dev ID from user choice
     if(vm_usbp == "yes") {
@@ -323,8 +322,7 @@ void QManager::AddVmWindow::Print() {
     }
 
     // Add guest to database
-    std::string sql_add_guest;
-    sql_add_guest = "insert into vms("
+    sql_query = "insert into vms("
     "name, mem, smp, hdd, kvm, vnc, mac, arch, iso, install, usb, usbid"
     ") values('"
     + vm_name + "', '" + vm_memo + "', '" + vm_cpus + "', '"
@@ -332,7 +330,7 @@ void QManager::AddVmWindow::Print() {
     + vm_ints + "', '" + vm_arch + "', '" + vm_path + "', '1', '"
     + vm_usbp + "', '" + vm_usbd + "')";
 
-    db->ActionQuery(sql_add_guest);
+    db->ActionQuery(sql_query);
 
     // End
     delete_form();
