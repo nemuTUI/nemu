@@ -1,6 +1,5 @@
 #include "qemu_manage.h"
 
-
 void QManager::start_guest(const std::string &vm_name, const std::string &dbf) {
   guest_t<VectorString> guest;
 
