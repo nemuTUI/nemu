@@ -44,7 +44,9 @@ namespace QManager {
   MapString Gen_map_from_str(const std::string &str);
   bool check_root();
 
-  void start_guest(const std::string &vm_name, const std::string &dbf);
+  void start_guest(
+    const std::string &vm_name, const std::string &dbf, const std::string &vmdir
+  );
 
   class TemplateWindow {
     public:

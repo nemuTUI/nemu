@@ -183,7 +183,7 @@ int main() {
                 Warn->Print(Warn->window);
               }
               else {
-                start_guest(guest, dbf);
+                start_guest(guest, dbf, vmdir);
               }
             }
           }
