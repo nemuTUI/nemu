@@ -1,4 +1,6 @@
 #include <sstream>
+#include <boost/tokenizer.hpp>
+
 #include "qemu_manage.h"
 
 std::string QManager::trim_field_buffer(char *buff) {
@@ -32,4 +34,22 @@ QManager::MapString QManager::gen_mac_addr(uint64_t &mac, uint32_t &int_num, std
   }
 
   return ifaces;
+}
+
+QManager::MapString QManager::Gen_map_from_str(const std::string &str) {
+  MapString result;
+  typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+
+  boost::char_separator<char> sep("=;");
+  tokenizer tokens(str, sep);
+
+  for(tokenizer::iterator tok_iter = tokens.begin(); tok_iter != tokens.end();) {
+    std::string key = *tok_iter++;
+    if (tok_iter == tokens.end()) return MapString();
+    std::string val = *tok_iter++;
+
+    result.insert(std::make_pair(key, val));
+  }
+
+  return result;
 }

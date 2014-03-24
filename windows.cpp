@@ -3,7 +3,6 @@
 #include <cstring>
 #include <algorithm>
 #include <memory>
-#include <boost/tokenizer.hpp>
 
 #include "qemu_manage.h"
 
@@ -14,24 +13,6 @@ QManager::TemplateWindow::TemplateWindow(int height, int width, int starty, int 
   startx_ = startx;
 
   getmaxyx(stdscr, row, col);
-}
-
-QManager::MapString QManager::TemplateWindow::Gen_map_from_str(const std::string &str) {
-  MapString result;
-  typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
-
-  boost::char_separator<char> sep("=;");
-  tokenizer tokens(str, sep);
-
-  for(tokenizer::iterator tok_iter = tokens.begin(); tok_iter != tokens.end();) {
-    std::string key = *tok_iter++;
-    if (tok_iter == tokens.end()) return MapString();
-    std::string val = *tok_iter++;
-
-    result.insert(std::make_pair(key, val));
-  }
-
-  return result;
 }
 
 void QManager::TemplateWindow::Init() {
