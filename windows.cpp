@@ -53,18 +53,27 @@ void QManager::VmInfoWindow::Print() {
   guest.arch = db->SelectQuery(sql_query);
   mvprintw(4, col/6, "%-12s%s", "arch: ", guest.arch[0].c_str());
 
+  sql_query = "select smp from vms where name='" + guest_ + "'";
+  guest.cpus = db->SelectQuery(sql_query);
+  mvprintw(5, col/6, "%-12s%s", "cores: ", guest.cpus[0].c_str());
+
   sql_query = "select mem from vms where name='" + guest_ + "'";
   guest.memo = db->SelectQuery(sql_query);
-  mvprintw(5, col/6, "%-12s%s%s", "memory: ", guest.memo[0].c_str(), "mb");
+  mvprintw(6, col/6, "%-12s%s %s", "memory: ", guest.memo[0].c_str(), "Mb");
 
   sql_query = "select kvm from vms where name='" + guest_ + "'";
   guest.kvmf = db->SelectQuery(sql_query);
   guest.kvmf[0] == "1" ? guest.kvmf[0] = "enabled" : guest.kvmf[0] = "disabled";
-  mvprintw(6, col/6, "%-12s%s", "kvm: ", guest.kvmf[0].c_str());
+  mvprintw(7, col/6, "%-12s%s", "kvm: ", guest.kvmf[0].c_str());
+
+  sql_query = "select usb from vms where name='" + guest_ + "'";
+  guest.usbp = db->SelectQuery(sql_query);
+  guest.usbp[0] == "1" ? guest.usbp[0] = "enabled" : guest.usbp[0] = "disabled";
+  mvprintw(8, col/6, "%-12s%s", "usb: ", guest.usbp[0].c_str());
 
   sql_query = "select vnc from vms where name='" + guest_ + "'";
   guest.vncp = db->SelectQuery(sql_query);
-  mvprintw(7, col/6, "%-12s%s", "vnc port: ", guest.vncp[0].c_str());
+  mvprintw(9, col/6, "%-12s%s", "vnc port: ", guest.vncp[0].c_str());
 
   sql_query = "select mac from vms where name='" + guest_ + "'";
   guest.ints = db->SelectQuery(sql_query);
@@ -72,7 +81,7 @@ void QManager::VmInfoWindow::Print() {
 
   // Generate guest inerfaces info
   uint32_t i = 0;
-  uint32_t y = 7;
+  uint32_t y = 9;
   for(auto &ifs : ints) {
     mvprintw(
       ++y, col/6, "%s%u%-8s%s %s%s%s", "eth", i++, ":", ifs.first.c_str(),
