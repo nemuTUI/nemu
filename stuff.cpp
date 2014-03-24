@@ -53,3 +53,11 @@ QManager::MapString QManager::Gen_map_from_str(const std::string &str) {
 
   return result;
 }
+
+bool QManager::check_root() {
+  uid_t uid = getuid();
+  if(uid != 0)
+    return false;
+
+  return true;
+}

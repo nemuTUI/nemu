@@ -33,6 +33,7 @@ namespace QManager {
   std::string trim_field_buffer(char *buff);
   MapString gen_mac_addr(uint64_t &mac, uint32_t &int_num, std::string &vm_name);
   MapString Gen_map_from_str(const std::string &str);
+  bool check_root();
 
   class TemplateWindow {
     public:
