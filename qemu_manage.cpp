@@ -183,7 +183,7 @@ int main() {
                 Warn->Print(Warn->window);
               }
               else {
-                // start guest...
+                start_guest(guest, dbf);
               }
             }
           }

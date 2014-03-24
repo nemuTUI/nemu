@@ -23,6 +23,13 @@ namespace QManager {
     MenuKeyR = 114, MenuKeyC = 99,
     MenuKeyF = 102, MenuKeyD = 100,
     MenuKeyE = 101, MenuKeyL = 108,
+    MenuKeyY = 121,
+  };
+
+  template <typename T>
+  struct guest_t {
+    T name, arch, cpus, memo, disk, vncp,
+    kvmf, path, ints, usbp, usbd, install;
   };
 
   std::string get_param(const std::string &cfg, const std::string &regex);
@@ -36,6 +43,8 @@ namespace QManager {
   MapString gen_mac_addr(uint64_t &mac, uint32_t &int_num, std::string &vm_name);
   MapString Gen_map_from_str(const std::string &str);
   bool check_root();
+
+  void start_guest(const std::string &vm_name, const std::string &dbf);
 
   class TemplateWindow {
     public:
@@ -74,10 +83,7 @@ namespace QManager {
 
     private:
       std::string guest_, title_, dbf_, sql_query;
-      struct guest_t {
-        VectorString arch, memo, disk,
-        ints, cpus, vncp, kvmf;
-      } guest;
+      guest_t<VectorString> guest;
   };
 
   class HelpWindow : public TemplateWindow {
@@ -104,10 +110,7 @@ namespace QManager {
       std::string sql_query, s_last_mac,
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd;
 
-      struct guest_t {
-        std::string name, arch, cpus, memo, disk, vncp,
-        kvmf, path, ints, usbp, usbd;
-      } guest;
+      guest_t<std::string> guest;
 
       uint32_t last_vnc, ui_vm_ints;
       uint64_t last_mac;
