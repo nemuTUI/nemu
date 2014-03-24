@@ -15,12 +15,14 @@ namespace QManager {
   typedef std::map<std::string, std::string> MapString;
 
   enum input_choices {
-    MenuVmlist = 1,
-    MenuAddVm = 2,
+    MenuVmlist = 1, MenuAddVm = 2,
 #ifdef ENABLE_OPENVSWITCH
     MenuOvsMap = 3,
 #endif
     MenuKeyEnter = 10,
+    MenuKeyR = 114, MenuKeyC = 99,
+    MenuKeyF = 102, MenuKeyD = 100,
+    MenuKeyE = 101, MenuKeyL = 108,
   };
 
   std::string get_param(const std::string &cfg, const std::string &regex);
