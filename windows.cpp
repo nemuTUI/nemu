@@ -3,6 +3,8 @@
 #include <cstring>
 #include <algorithm>
 #include <memory>
+#include <boost/tokenizer.hpp>
+
 #include "qemu_manage.h"
 
 QManager::TemplateWindow::TemplateWindow(int height, int width, int starty, int startx) {
@@ -12,6 +14,24 @@ QManager::TemplateWindow::TemplateWindow(int height, int width, int starty, int 
   startx_ = startx;
 
   getmaxyx(stdscr, row, col);
+}
+
+QManager::MapString QManager::TemplateWindow::Gen_map_from_str(const std::string &str) {
+  MapString result;
+  typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+
+  boost::char_separator<char> sep("=;");
+  tokenizer tokens(str, sep);
+
+  for(tokenizer::iterator tok_iter = tokens.begin(); tok_iter != tokens.end();) {
+    std::string key = *tok_iter++;
+    if (tok_iter == tokens.end()) return MapString();
+    std::string val = *tok_iter++;
+
+    result.insert(std::make_pair(key, val));
+  }
+
+  return result;
 }
 
 void QManager::TemplateWindow::Init() {
@@ -34,9 +54,10 @@ void QManager::VmWindow::Print() {
   refresh();
 }
 
-QManager::VmInfoWindow::VmInfoWindow(const std::string &guest, int height, int width,
+QManager::VmInfoWindow::VmInfoWindow(const std::string &guest, const std::string &dbf, int height, int width,
   int starty, int startx) : TemplateWindow(height, width, starty, startx) {
     guest_ = guest;
+    dbf_ = dbf;
     title_ = guest_ + " info";
 }
 
@@ -44,6 +65,53 @@ void QManager::VmInfoWindow::Print() {
   clear();
   border(0,0,0,0,0,0,0,0);
   mvprintw(1, (col - title_.size())/2, title_.c_str());
+
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  sql_query = "select arch from vms where name='" + guest_ + "'";
+  guest.arch = db->SelectQuery(sql_query);
+  mvprintw(4, col/6, "%-12s%s", "arch: ", guest.arch[0].c_str());
+
+  sql_query = "select mem from vms where name='" + guest_ + "'";
+  guest.memo = db->SelectQuery(sql_query);
+  mvprintw(5, col/6, "%-12s%s%s", "memory: ", guest.memo[0].c_str(), "mb");
+
+  sql_query = "select kvm from vms where name='" + guest_ + "'";
+  guest.kvmf = db->SelectQuery(sql_query);
+  guest.kvmf[0] == "1" ? guest.kvmf[0] = "enabled" : guest.kvmf[0] = "disabled";
+  mvprintw(6, col/6, "%-12s%s", "kvm: ", guest.kvmf[0].c_str());
+
+  sql_query = "select vnc from vms where name='" + guest_ + "'";
+  guest.vncp = db->SelectQuery(sql_query);
+  mvprintw(7, col/6, "%-12s%s", "vnc port: ", guest.vncp[0].c_str());
+
+  sql_query = "select mac from vms where name='" + guest_ + "'";
+  guest.ints = db->SelectQuery(sql_query);
+  MapString ints = Gen_map_from_str(guest.ints[0]);
+
+  // Generate guest inerfaces info
+  uint32_t i = 0;
+  uint32_t y = 7;
+  for(auto &ifs : ints) {
+    mvprintw(
+      ++y, col/6, "%s%u%-8s%s %s%s%s", "eth", i++, ":", ifs.first.c_str(),
+      "[", ifs.second.c_str(), "]"
+    );
+  }
+
+  // Generate guest hd images info
+  sql_query = "select hdd from vms where name='" + guest_ + "'";
+  guest.disk = db->SelectQuery(sql_query);
+  MapString disk = Gen_map_from_str(guest.disk[0]);
+
+  char hdx = 'a';
+  for(auto &hd : disk) {
+    mvprintw(
+      ++y, col/6, "%s%c%-9s%s %s%s%s", "hd", hdx++, ":", hd.first.c_str(),
+      "[", hd.second.c_str(), "Gb]"
+    );
+  }
+
   getch();
   refresh();
   clear();
@@ -222,20 +290,20 @@ void QManager::AddVmWindow::Print() {
     }
 
     // Get variables from form buffer
-    vm_name.assign(trim_field_buffer(field_buffer(field[0], 0)));
-    vm_arch.assign(trim_field_buffer(field_buffer(field[1], 0)));
-    vm_cpus.assign(trim_field_buffer(field_buffer(field[2], 0)));
-    vm_memo.assign(trim_field_buffer(field_buffer(field[3], 0)));
-    vm_disk.assign(trim_field_buffer(field_buffer(field[4], 0)));
-    vm_vncp.assign(trim_field_buffer(field_buffer(field[5], 0)));
-    vm_kvmf.assign(trim_field_buffer(field_buffer(field[6], 0)));
-    vm_path.assign(trim_field_buffer(field_buffer(field[7], 0)));
-    vm_ints.assign(trim_field_buffer(field_buffer(field[8], 0)));
-    vm_usbp.assign(trim_field_buffer(field_buffer(field[9], 0)));
-    vm_usbd.assign(trim_field_buffer(field_buffer(field[10], 0)));
+    guest.name.assign(trim_field_buffer(field_buffer(field[0], 0)));
+    guest.arch.assign(trim_field_buffer(field_buffer(field[1], 0)));
+    guest.cpus.assign(trim_field_buffer(field_buffer(field[2], 0)));
+    guest.memo.assign(trim_field_buffer(field_buffer(field[3], 0)));
+    guest.disk.assign(trim_field_buffer(field_buffer(field[4], 0)));
+    guest.vncp.assign(trim_field_buffer(field_buffer(field[5], 0)));
+    guest.kvmf.assign(trim_field_buffer(field_buffer(field[6], 0)));
+    guest.path.assign(trim_field_buffer(field_buffer(field[7], 0)));
+    guest.ints.assign(trim_field_buffer(field_buffer(field[8], 0)));
+    guest.usbp.assign(trim_field_buffer(field_buffer(field[9], 0)));
+    guest.usbd.assign(trim_field_buffer(field_buffer(field[10], 0)));
 
     // Check all the necessary parametrs are filled.
-    if(vm_usbp == "yes") {
+    if(guest.usbp == "yes") {
       for(int i(0); i<11; ++i) {
         if(! field_status(field[i])) {
           delete_form();
@@ -253,7 +321,7 @@ void QManager::AddVmWindow::Print() {
     }
 
     // Check if guest name is already taken
-    sql_query = "select id from vms where name='" + vm_name + "'";
+    sql_query = "select id from vms where name='" + guest.name + "'";
     v_name = db->SelectQuery(sql_query);
     if(! v_name.empty()) {
       delete_form();
@@ -261,10 +329,10 @@ void QManager::AddVmWindow::Print() {
     }
 
     // Create img file for guest
-    guest_dir = vmdir_ + "/" + vm_name;
+    guest_dir = vmdir_ + "/" + guest.name;
     create_guest_dir_cmd = "mkdir " + guest_dir + " >/dev/null 2>&1";
     create_img_cmd = "qemu-img create -f qcow2 " + guest_dir
-    + "/" + vm_name + ".img " + vm_disk + "G > /dev/null 2>&1";
+    + "/" + guest.name + ".img " + guest.disk + "G > /dev/null 2>&1";
 
     cmd_exit_status = system(create_guest_dir_cmd.c_str());
 
@@ -281,8 +349,8 @@ void QManager::AddVmWindow::Print() {
     }
 
     // Generate mac address for interfaces
-    ui_vm_ints = std::stoi(vm_ints);
-    ifaces = gen_mac_addr(last_mac, ui_vm_ints, vm_name);
+    ui_vm_ints = std::stoi(guest.ints);
+    ifaces = gen_mac_addr(last_mac, ui_vm_ints, guest.name);
 
     //Get last mac address and put it into database
     itm = ifaces.end();
@@ -302,33 +370,33 @@ void QManager::AddVmWindow::Print() {
     db->ActionQuery(sql_query);
 
     // Get usb dev ID from user choice
-    if(vm_usbp == "yes") {
-      vm_usbp = "1";
-      vm_usbd = u_dev.at(vm_usbd);
+    if(guest.usbp == "yes") {
+      guest.usbp = "1";
+      guest.usbd = u_dev.at(guest.usbd);
     }
     else {
-      vm_usbp = "0";
-      vm_usbd = "none";
+      guest.usbp = "0";
+      guest.usbd = "none";
     }
 
     // Gen qemu img name and kvm status
-    vm_disk = vm_name + ".img," + vm_disk + ";";
-    vm_kvmf == "yes" ? vm_kvmf = "1" : vm_kvmf = "0";
+    guest.disk = guest.name + ".img=" + guest.disk + ";";
+    guest.kvmf == "yes" ? guest.kvmf = "1" : guest.kvmf = "0";
 
     // Convert interfaces from MapString to string
-    vm_ints.clear();
+    guest.ints.clear();
     for(auto &ifs : ifaces) {
-      vm_ints += ifs.first + "," + ifs.second + ";";
+      guest.ints += ifs.first + "=" + ifs.second + ";";
     }
 
     // Add guest to database
     sql_query = "insert into vms("
     "name, mem, smp, hdd, kvm, vnc, mac, arch, iso, install, usb, usbid"
     ") values('"
-    + vm_name + "', '" + vm_memo + "', '" + vm_cpus + "', '"
-    + vm_disk + "', '" + vm_kvmf + "', '" + vm_vncp + "', '"
-    + vm_ints + "', '" + vm_arch + "', '" + vm_path + "', '1', '"
-    + vm_usbp + "', '" + vm_usbd + "')";
+    + guest.name + "', '" + guest.memo + "', '" + guest.cpus + "', '"
+    + guest.disk + "', '" + guest.kvmf + "', '" + guest.vncp + "', '"
+    + guest.ints + "', '" + guest.arch + "', '" + guest.path + "', '1', '"
+    + guest.usbp + "', '" + guest.usbd + "')";
 
     db->ActionQuery(sql_query);
 

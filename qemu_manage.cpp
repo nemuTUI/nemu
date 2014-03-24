@@ -163,7 +163,7 @@ int main() {
 
           else if(ch == MenuKeyEnter) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
-            std::unique_ptr<VmInfoWindow> vminfo_window(new VmInfoWindow(guest, 10, 30));
+            std::unique_ptr<VmInfoWindow> vminfo_window(new VmInfoWindow(guest, dbf, 10, 30));
             vminfo_window->Print();
           }
 

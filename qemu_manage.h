@@ -41,6 +41,8 @@ namespace QManager {
       ~TemplateWindow() { delwin(window); }
 
     protected:
+      MapString Gen_map_from_str(const std::string &str);
+
       int row, col;
       int height_, width_;
       int startx_, starty_;
@@ -62,11 +64,18 @@ namespace QManager {
 
   class VmInfoWindow : public TemplateWindow {
     public:
-      VmInfoWindow(const std::string &guest, int height, int width, int starty = 7, int startx = 25);
+      VmInfoWindow(
+        const std::string &guest, const std::string &dbf,
+        int height, int width, int starty = 7, int startx = 25
+      );
       void Print();
 
     private:
-      std::string guest_, title_;
+      std::string guest_, title_, dbf_, sql_query;
+      struct guest_t {
+        VectorString arch, memo, disk,
+        ints, cpus, vncp, kvmf;
+      } guest;
   };
 
   class HelpWindow : public TemplateWindow {
@@ -90,16 +99,18 @@ namespace QManager {
     private:
       void delete_form();
 
-      std::string sql_query,
-      dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd,
-      vm_name, vm_arch, vm_cpus, vm_memo, vm_disk, vm_vncp,
-      vm_kvmf, vm_path, vm_ints, vm_usbp, vm_usbd, s_last_mac;
+      std::string sql_query, s_last_mac,
+      dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd;
+
+      struct guest_t {
+        std::string name, arch, cpus, memo, disk, vncp,
+        kvmf, path, ints, usbp, usbd;
+      } guest;
 
       uint32_t last_vnc, ui_vm_ints;
       uint64_t last_mac;
 
-      VectorString v_last_vnc, v_last_mac,
-      v_name;
+      VectorString v_last_vnc, v_last_mac, v_name;
       MapString ifaces;
 
       MapString::iterator itm;
