@@ -95,7 +95,7 @@ namespace QManager {
         int height, int width, int starty = 3, int startx = 3);
       void Print();
 
-    private:
+    protected:
       void delete_form();
 
       std::string sql_query, s_last_mac,
