@@ -28,7 +28,7 @@ QManager::MapString QManager::gen_mac_addr(uint64_t &mac, uint32_t &int_num, std
 
     buff[--pos] = '\0';
 
-    if_name = vm_name + "_eth" + std::to_string(i);
+    if_name = vm_name + "_eth" + std::to_string(i); //TODO cut guest name to 9 characters if > 9 !!!
 
     ifaces.insert(std::make_pair(if_name, buff));
   }
