@@ -9,6 +9,9 @@
 #include <ncurses.h>
 #include <sqlite3.h>
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+
 namespace QManager {
 
   typedef std::vector<std::string> VectorString;
@@ -32,7 +35,17 @@ namespace QManager {
     kvmf, path, ints, usbp, usbd, install;
   };
 
-  std::string get_param(const std::string &cfg, const std::string &regex);
+  template <typename T>
+  T read_cfg(const std::string &cfg, const char *param) {
+    T value;
+
+    boost::property_tree::ptree ptr;
+    boost::property_tree::ini_parser::read_ini(cfg, ptr);
+    value = ptr.get<T>(param);
+
+    return value;
+  }
+
   MapString list_usb();
   VectorString list_arch();
   uint32_t total_memory();

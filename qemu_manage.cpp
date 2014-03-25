@@ -10,9 +10,6 @@
 // end debug
 #include "qemu_manage.h"
 
-static const std::string vmdir_regex = "^vmdir\\s*=\\s*\"(.*)\"";
-static const std::string lmax_regex = "^list_max\\s*=\\s*\"(.*)\"";
-static const std::string dbf_regex = "^db\\s*=\\s*\"(.*)\"";
 static const std::string cfg = "/etc/qemu_manage.cfg";
 static const std::string sql_list_vm = "select name from vms order by name asc";
 
@@ -45,8 +42,8 @@ int main() {
   std::unique_ptr<MainWindow> main_window(new MainWindow(10, 30));
   main_window->Init();
 
-  const std::string vmdir = get_param(cfg, vmdir_regex);
-  const std::string dbf = get_param(cfg, dbf_regex);
+  const std::string vmdir = read_cfg<std::string>(cfg, "main.vmdir");
+  const std::string dbf = read_cfg<std::string>(cfg, "main.db");
 
   for (;;) {
     uint32_t choice(0);
@@ -98,17 +95,10 @@ int main() {
       }
       else {
 
-        std::string listmax_s = get_param(cfg, lmax_regex);
-        uint32_t listmax;
+        uint32_t listmax = read_cfg<uint32_t>(cfg, "main.list_max");
 
-        if(listmax_s.empty()) {
+        if(listmax > guests.size())
           listmax = guests.size();
-        }
-        else {
-          listmax = std::stoi(listmax_s); // TODO: fix parse cfg, check types.
-          if(listmax > guests.size())
-            listmax = guests.size();
-        }
 
         clear();
         std::unique_ptr<VmWindow> vm_window(new VmWindow(listmax + 4, 32));
