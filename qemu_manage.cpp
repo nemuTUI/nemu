@@ -12,7 +12,7 @@
 
 static const std::string vmdir_regex = "^vmdir\\s*=\\s*\"(.*)\"";
 static const std::string lmax_regex = "^list_max\\s*=\\s*\"(.*)\"";
-static const std::string cfg = "test.cfg";
+static const std::string cfg = "/etc/qemu_manage.cfg";
 static const std::string dbf = "/var/db/qemu_manage2.db";
 static const std::string sql_list_vm = "select name from vms order by name asc";
 
