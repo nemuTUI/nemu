@@ -1,0 +1,9 @@
+[main]
+# virtual machine dir
+vmdir = /usr/local/vm
+
+# database file
+db = /var/db/qemu_manage2.db
+
+# maximum quests numbers in list
+list_max = 10
