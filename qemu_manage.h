@@ -47,6 +47,7 @@ namespace QManager {
   void start_guest(
     const std::string &vm_name, const std::string &dbf, const std::string &vmdir
   );
+  void connect_guest(const std::string &vm_name, const std::string &dbf);
 
   class TemplateWindow {
     public:

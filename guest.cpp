@@ -95,3 +95,15 @@ void QManager::start_guest(
   debug << guest_cmd << std::endl;
   debug.close();
 }
+
+void QManager::connect_guest(const std::string &vm_name, const std::string &dbf) {
+  guest_t<VectorString> guest;
+
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf));
+  std::string sql_query = "select vnc from vms where name='" + vm_name + "'";
+  guest.vncp = db->SelectQuery(sql_query);
+
+  std::string connect_cmd = "vncviewer 127.0.0.1:" + guest.vncp[0] + " > /dev/null 2>&1 &";
+
+  system(connect_cmd.c_str());
+}
