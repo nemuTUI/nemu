@@ -27,7 +27,7 @@ static const std::array<std::string, CHOICES_NUM> choices = {
 };
 #undef CHOICES_NUM
 
-int main() {
+int main(int argc, char **argv) {
 
   using namespace QManager;
 
