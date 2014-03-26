@@ -35,13 +35,24 @@ namespace QManager {
     kvmf, path, ints, usbp, usbd, install;
   };
 
+  void err_exit(const char *msg, const std::string &err);
+
   template <typename T>
   T read_cfg(const std::string &cfg, const char *param) {
     T value;
-
-    boost::property_tree::ptree ptr;
-    boost::property_tree::ini_parser::read_ini(cfg, ptr);
-    value = ptr.get<T>(param);
+    try {
+      boost::property_tree::ptree ptr;
+      boost::property_tree::ini_parser::read_ini(cfg, ptr);
+      value = ptr.get<T>(param);
+    }
+    catch(boost::property_tree::ptree_bad_path &err) {
+      const std::string err_m = err.what();
+      err_exit("Error parsing config file! missing parameter.", err_m);
+    }
+    catch(boost::property_tree::ptree_bad_data &err) {
+      const std::string err_m = err.what();
+      err_exit("Error parsing config file! bad value.", err_m);
+    }
 
     return value;
   }

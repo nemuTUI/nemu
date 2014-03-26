@@ -61,3 +61,13 @@ bool QManager::check_root() {
 
   return true;
 }
+
+void QManager::err_exit(const char *msg, const std::string &err) {
+  clear();
+  mvprintw(2, 3, "%s", msg);
+  mvprintw(3, 3, "%s", err.c_str());
+  getch();
+  refresh();
+  endwin();
+  exit(1);
+}
