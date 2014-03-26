@@ -35,7 +35,7 @@ namespace QManager {
     kvmf, path, ints, usbp, usbd, install;
   };
 
-  void err_exit(const char *msg, const std::string &err);
+  void err_exit(const char *msg, const std::string &err = "");
 
   template <typename T>
   T read_cfg(const std::string &cfg, const char *param) {
@@ -69,6 +69,9 @@ namespace QManager {
   bool check_root();
 
   void start_guest(
+    const std::string &vm_name, const std::string &dbf, const std::string &vmdir
+  );
+  void delete_guest(
     const std::string &vm_name, const std::string &dbf, const std::string &vmdir
   );
   void connect_guest(const std::string &vm_name, const std::string &dbf);

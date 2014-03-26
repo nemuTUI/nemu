@@ -1,5 +1,5 @@
-#include <fstream> //debug
 #include <memory>
+#include <limits.h>
 
 #include "qemu_manage.h"
 
@@ -106,4 +106,22 @@ void QManager::connect_guest(const std::string &vm_name, const std::string &dbf)
   std::string connect_cmd = "vncviewer 127.0.0.1:" + guest.vncp[0] + " > /dev/null 2>&1 &";
 
   system(connect_cmd.c_str());
+}
+
+void QManager::delete_guest(
+  const std::string &vm_name, const std::string &dbf, const std::string &vmdir
+) {
+  std::string guest_dir = vmdir + "/" + vm_name;
+  std::string guest_dir_rm_cmd = "rm -rf " + guest_dir;
+
+  char path[PATH_MAX + 1] = {};
+  realpath(guest_dir.c_str(), path);
+  if(strcmp(path, "/") == 0)
+    err_exit("Something goes wrong. Delete root partition prevented.");
+
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf));
+  std::string sql_query = "delete from vms where name='" + vm_name + "'";
+
+  db->ActionQuery(sql_query);
+  system(guest_dir_rm_cmd.c_str());
 }
