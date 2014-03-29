@@ -217,6 +217,17 @@ int main(int argc, char **argv) {
             }
           }
 
+          else if(ch == MenuKeyF) {
+            std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
+            vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
+
+            std::string guest = guests.at((guest_first + q_highlight) - 1);
+
+            if(vm_list->vm_status.at(guest) == "running") {
+              kill_guest(guest);
+            }
+          }
+
           else if(ch == KEY_F(1)) {
             std::unique_ptr<HelpWindow> help_window(new HelpWindow(8, 40));
             help_window->Print();

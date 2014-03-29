@@ -125,3 +125,10 @@ void QManager::delete_guest(
   db->ActionQuery(sql_query);
   system(guest_dir_rm_cmd.c_str());
 }
+
+void QManager::kill_guest(const std::string &vm_name) {
+  std::string stop_cmd = "pgrep -nf \"[q]emu.*/" + vm_name +
+    "/" + vm_name + ".img\" | xargs kill";
+
+  system(stop_cmd.c_str());
+}
