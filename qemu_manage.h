@@ -136,12 +136,11 @@ namespace QManager {
       void Print();
 
     protected:
-      void delete_form();
+      void Delete_form(uint32_t count);
+      void Draw_form();
 
       std::string sql_query, s_last_mac,
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd;
-
-      guest_t<std::string> guest;
 
       uint32_t last_vnc, ui_vm_ints;
       uint64_t last_mac;
@@ -152,10 +151,29 @@ namespace QManager {
       MapString::iterator itm;
       std::string::iterator its;
 
-      FIELD *field[12];
       FORM *form;
 
       int ch, cmd_exit_status;
+
+    private:
+      FIELD *field[12];
+      guest_t<std::string> guest;
+  };
+
+  class EditVmWindow : public AddVmWindow {
+    public:
+      EditVmWindow(
+        const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
+        int height, int width, int starty = 3, int startx = 3
+      );
+      void Print();
+
+    private:
+      FIELD *field[7];
+      guest_t<VectorString> guest_old;
+      guest_t<std::string> guest_new;
+      std::string vm_name_;
+      uint32_t ints_count;
   };
 
   class PopupWarning : public TemplateWindow {

@@ -227,6 +227,14 @@ int main(int argc, char **argv) {
               kill_guest(guest);
             }
           }
+          
+          else if(ch == MenuKeyE) {
+            std::string guest = guests.at((guest_first + q_highlight) - 1);
+
+            std::unique_ptr<EditVmWindow> edit_window(new EditVmWindow(dbf, vmdir, guest, 17, 60));
+            edit_window->Init();
+            edit_window->Print();
+          }
 
           else if(ch == KEY_F(1)) {
             std::unique_ptr<HelpWindow> help_window(new HelpWindow(8, 40));

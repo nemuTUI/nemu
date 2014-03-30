@@ -113,11 +113,55 @@ QManager::AddVmWindow::AddVmWindow(const std::string &dbf, const std::string &vm
     vmdir_ = vmdir;
 }
 
-void QManager::AddVmWindow::delete_form() {
+void QManager::AddVmWindow::Delete_form(uint32_t count) {
   unpost_form(form);
   free_form(form);
-  for(int i(0); i<11; ++i) {
+  for(uint32_t i=0; i<count; ++i) {
     free_field(field[i]);
+  }
+}
+
+void QManager::AddVmWindow::Draw_form() {
+  while((ch = wgetch(window)) != KEY_F(10)) {
+    switch(ch) {
+      case KEY_DOWN:
+        form_driver(form, REQ_VALIDATION);
+        form_driver(form, REQ_NEXT_FIELD);
+        form_driver(form, REQ_END_LINE);
+        break;
+
+      case KEY_UP:
+        form_driver(form, REQ_VALIDATION);
+        form_driver(form, REQ_PREV_FIELD);
+        form_driver(form, REQ_END_LINE);
+        break;
+
+      case KEY_LEFT:
+        if(field_type(current_field(form)) == TYPE_ENUM)
+          form_driver(form, REQ_PREV_CHOICE);
+        else
+          form_driver(form, REQ_PREV_CHAR);
+        break;
+
+      case KEY_RIGHT:
+        if(field_type(current_field(form)) == TYPE_ENUM)
+          form_driver(form, REQ_NEXT_CHOICE);
+        else
+          form_driver(form, REQ_NEXT_CHAR);
+        break;
+
+      case KEY_BACKSPACE:
+        form_driver(form, REQ_DEL_PREV);
+        break;
+
+      case KEY_F(2):
+        form_driver(form, REQ_VALIDATION);
+        break;
+
+      default:
+        form_driver(form, ch);
+        break;
+    }
   }
 }
 
@@ -237,47 +281,7 @@ void QManager::AddVmWindow::Print() {
     mvwaddstr(window, 20, 2, "USB [yes/no]");
     mvwaddstr(window, 22, 2, "USB device");
 
-    while((ch = wgetch(window)) != KEY_F(10)) {
-      switch(ch) {
-        case KEY_DOWN:
-          form_driver(form, REQ_VALIDATION);
-          form_driver(form, REQ_NEXT_FIELD);
-          form_driver(form, REQ_END_LINE);
-          break;
-
-        case KEY_UP:
-          form_driver(form, REQ_VALIDATION);
-          form_driver(form, REQ_PREV_FIELD);
-          form_driver(form, REQ_END_LINE);
-          break;
-
-        case KEY_LEFT:
-          if(field_type(current_field(form)) == TYPE_ENUM)
-            form_driver(form, REQ_PREV_CHOICE);
-          else
-            form_driver(form, REQ_PREV_CHAR);
-          break;
-
-        case KEY_RIGHT:
-          if(field_type(current_field(form)) == TYPE_ENUM)
-            form_driver(form, REQ_NEXT_CHOICE);
-          else
-            form_driver(form, REQ_NEXT_CHAR);
-          break;
-
-        case KEY_BACKSPACE:
-          form_driver(form, REQ_DEL_PREV);
-          break;
-
-        case KEY_F(2):
-          form_driver(form, REQ_VALIDATION);
-          break;
-
-        default:
-          form_driver(form, ch);
-          break;
-      }
-    }
+    Draw_form();
 
     // Get variables from form buffer
     guest.name.assign(trim_field_buffer(field_buffer(field[0], 0)));
@@ -296,7 +300,7 @@ void QManager::AddVmWindow::Print() {
     if(guest.usbp == "yes") {
       for(int i(0); i<11; ++i) {
         if(! field_status(field[i])) {
-          delete_form();
+          Delete_form(11);
           throw QMException("Must fill all params");
         }
       }
@@ -304,7 +308,7 @@ void QManager::AddVmWindow::Print() {
     else {
       for(int i(0); i<9; ++i) {
         if(! field_status(field[i])) {
-          delete_form();
+          Delete_form(11);
           throw QMException("Must fill all params");
         }
       }
@@ -314,7 +318,7 @@ void QManager::AddVmWindow::Print() {
     sql_query = "select id from vms where name='" + guest.name + "'";
     v_name = db->SelectQuery(sql_query);
     if(! v_name.empty()) {
-      delete_form();
+      Delete_form(11);
       throw QMException("This name is already used");
     }
 
@@ -327,14 +331,14 @@ void QManager::AddVmWindow::Print() {
     cmd_exit_status = system(create_guest_dir_cmd.c_str());
 
     if(cmd_exit_status != 0) {
-      delete_form();
+      Delete_form(11);
       throw QMException("Can't create guest dir");
     }
 
     cmd_exit_status = system(create_img_cmd.c_str());
 
     if(cmd_exit_status != 0) {
-      delete_form();
+      Delete_form(11);
       throw QMException("Can't create img file");
     }
 
@@ -391,7 +395,7 @@ void QManager::AddVmWindow::Print() {
     db->ActionQuery(sql_query);
 
     // End
-    delete_form();
+    Delete_form(11);
   }
   catch (QMException &err) {
   curs_set(0);
@@ -401,6 +405,246 @@ void QManager::AddVmWindow::Print() {
     refresh();
   }
   curs_set(0);
+}
+
+QManager::EditVmWindow::EditVmWindow(
+  const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
+  int height, int width, int starty, int startx
+) : AddVmWindow(dbf, vmdir, height, width, starty, startx) {
+    vm_name_ = vm_name;
+}
+
+void QManager::EditVmWindow::Print() {
+  char ccpu[128], cmem[128], cints[64]; 
+
+  const char *YesNo[] = {
+    "yes","no", NULL
+  };
+
+  try {
+    MapString u_dev(list_usb());
+
+    clear();
+    border(0,0,0,0,0,0,0,0);
+    mvprintw(1, 1, "F10 - finish, F2 - save");
+    refresh();
+    curs_set(1);
+
+    // Get guest parametrs
+    std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+   
+    sql_query = "select smp from vms where name='" + vm_name_ + "'";
+    guest_old.cpus = db->SelectQuery(sql_query);
+
+    sql_query = "select mem from vms where name='" + vm_name_ + "'";
+    guest_old.memo = db->SelectQuery(sql_query);
+
+    sql_query = "select kvm from vms where name='" + vm_name_ + "'";
+    guest_old.kvmf = db->SelectQuery(sql_query);
+
+    sql_query = "select usb from vms where name='" + vm_name_ + "'";
+    guest_old.usbp = db->SelectQuery(sql_query);
+
+    sql_query = "select mac from vms where name='" + vm_name_ + "'";
+    guest_old.ints = db->SelectQuery(sql_query);
+    
+    // Get interface count
+    ifaces = Gen_map_from_str(guest_old.ints[0]);
+    ints_count = ifaces.size();
+
+    // Create fields
+    for(int i(0); i<6; ++i) {
+      field[i] = new_field(1, 35, (i+1)*2, 1, 0, 0);
+      set_field_back(field[i], A_UNDERLINE);
+    }
+
+    field[6] = NULL;
+
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    wbkgd(window, COLOR_PAIR(1));
+
+    char **UdevList = new char *[u_dev.size() + 1];
+
+    // Convert MapString to *char
+    {
+      int i(0);
+      for(auto &UList : u_dev) {
+        UdevList[i] = new char[UList.first.size() +1];
+        memcpy(UdevList[i], UList.first.c_str(), UList.first.size() + 1);
+        i++;
+      }
+    }
+
+    UdevList[u_dev.size()] = NULL;
+
+    set_field_type(field[0], TYPE_INTEGER, 0, 1, cpu_count());
+    set_field_type(field[1], TYPE_INTEGER, 0, 64, total_memory());
+    set_field_type(field[2], TYPE_ENUM, (char **)YesNo, false, false);
+    set_field_type(field[3], TYPE_INTEGER, 0, 0, 64);
+    set_field_type(field[4], TYPE_ENUM, (char **)YesNo, false, false);
+    set_field_type(field[5], TYPE_ENUM, UdevList, false, false);
+
+    for(uint32_t i(0); i < u_dev.size(); ++i) {
+      delete [] UdevList[i];
+    }
+
+    delete [] UdevList;
+
+    snprintf(cints, sizeof(cints), "%u", ints_count);
+    snprintf(ccpu, sizeof(ccpu), "%s%u%s", "CPU cores [1-", cpu_count(), "]");
+    snprintf(cmem, sizeof(cmem), "%s%u%s", "Memory [64-", total_memory(), "]Mb");
+
+    set_field_buffer(field[0], 0, guest_old.cpus[0].c_str());
+    set_field_buffer(field[1], 0, guest_old.memo[0].c_str());
+    set_field_buffer(field[3], 0, cints);
+
+    if(guest_old.kvmf[0] == "1")
+      set_field_buffer(field[2], 0, YesNo[0]);
+    else
+      set_field_buffer(field[2], 0, YesNo[1]);
+
+    if(guest_old.usbp[0] == "1")
+      set_field_buffer(field[4], 0, YesNo[0]);
+    else
+      set_field_buffer(field[4], 0, YesNo[1]);
+       
+    field_opts_off(field[5], O_STATIC);
+
+    form = new_form(field);
+    scale_form(form, &row, &col);
+    set_form_win(form, window);
+    set_form_sub(form, derwin(window, row, col, 2, 21));
+    box(window, 0, 0);
+    post_form(form);
+
+    mvwaddstr(window, 2, 22, (vm_name_ + " settings:").c_str());
+    mvwaddstr(window, 4, 2, ccpu);
+    mvwaddstr(window, 6, 2, cmem);
+    mvwaddstr(window, 8, 2, "KVM [yes/no]");
+    mvwaddstr(window, 10, 2, "Interfaces");
+    mvwaddstr(window, 12, 2, "USB [yes/no]");
+    mvwaddstr(window, 14, 2, "USB device");
+
+    Draw_form();
+
+    // Get variables from form buffer
+    guest_new.cpus.assign(trim_field_buffer(field_buffer(field[0], 0)));
+    guest_new.memo.assign(trim_field_buffer(field_buffer(field[1], 0)));
+    guest_new.kvmf.assign(trim_field_buffer(field_buffer(field[2], 0)));
+    guest_new.ints.assign(trim_field_buffer(field_buffer(field[3], 0)));
+    guest_new.usbp.assign(trim_field_buffer(field_buffer(field[4], 0)));
+    guest_new.usbd.assign(trim_field_buffer(field_buffer(field[5], 0)));
+/*
+    // Check all the necessary parametrs are filled.
+    if(guest.usbp == "yes") {
+      for(int i(0); i<11; ++i) {
+        if(! field_status(field[i])) {
+          Delete_form();
+          throw QMException("Must fill all params");
+        }
+      }
+    }
+    else {
+      for(int i(0); i<9; ++i) {
+        if(! field_status(field[i])) {
+          Delete_form();
+          throw QMException("Must fill all params");
+        }
+      }
+    }
+
+    // Check if guest name is already taken
+    sql_query = "select id from vms where name='" + guest.name + "'";
+    v_name = db->SelectQuery(sql_query);
+    if(! v_name.empty()) {
+      Delete_form();
+      throw QMException("This name is already used");
+    }
+
+    // Create img file for guest
+    guest_dir = vmdir_ + "/" + guest.name;
+    create_guest_dir_cmd = "mkdir " + guest_dir + " >/dev/null 2>&1";
+    create_img_cmd = "qemu-img create -f qcow2 " + guest_dir
+    + "/" + guest.name + ".img " + guest.disk + "G > /dev/null 2>&1";
+
+    cmd_exit_status = system(create_guest_dir_cmd.c_str());
+
+    if(cmd_exit_status != 0) {
+      Delete_form();
+      throw QMException("Can't create guest dir");
+    }
+
+    cmd_exit_status = system(create_img_cmd.c_str());
+
+    if(cmd_exit_status != 0) {
+      Delete_form();
+      throw QMException("Can't create img file");
+    }
+
+    // Generate mac address for interfaces
+    ui_vm_ints = std::stoi(guest.ints);
+    ifaces = gen_mac_addr(last_mac, ui_vm_ints, guest.name);
+
+    //Get last mac address and put it into database
+    itm = ifaces.end();
+    --itm;
+    s_last_mac = itm->second;
+
+    its = std::remove(s_last_mac.begin(), s_last_mac.end(), ':');
+    s_last_mac.erase(its, s_last_mac.end());
+
+    last_mac = std::stol(s_last_mac, 0, 16);
+
+    sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
+    db->ActionQuery(sql_query);
+
+    // Update last vnc port in database
+    sql_query = "update lastval set vnc='" + std::to_string(last_vnc) + "'";
+    db->ActionQuery(sql_query);
+
+    // Get usb dev ID from user choice
+    if(guest.usbp == "yes") {
+      guest.usbp = "1";
+      guest.usbd = u_dev.at(guest.usbd);
+    }
+    else {
+      guest.usbp = "0";
+      guest.usbd = "none";
+    }
+
+    // Gen qemu img name and kvm status
+    guest.disk = guest.name + ".img=" + guest.disk + ";";
+    guest.kvmf == "yes" ? guest.kvmf = "1" : guest.kvmf = "0";
+
+    // Convert interfaces from MapString to string
+    guest.ints.clear();
+    for(auto &ifs : ifaces) {
+      guest.ints += ifs.first + "=" + ifs.second + ";";
+    }
+
+    // Add guest to database
+    sql_query = "insert into vms("
+    "name, mem, smp, hdd, kvm, vnc, mac, arch, iso, install, usb, usbid"
+    ") values('"
+    + guest.name + "', '" + guest.memo + "', '" + guest.cpus + "', '"
+    + guest.disk + "', '" + guest.kvmf + "', '" + guest.vncp + "', '"
+    + guest.ints + "', '" + guest.arch + "', '" + guest.path + "', '1', '"
+    + guest.usbp + "', '" + guest.usbd + "')";
+
+    db->ActionQuery(sql_query);
+*/
+    // End
+    Delete_form(5);
+  }
+  catch (QMException &err) {
+  curs_set(0);
+    PopupWarning Warn(err.what(), 3, 30, 4, 20);
+    Warn.Init();
+    Warn.Print(Warn.window);
+    refresh();
+  }
+  curs_set(0);
+
 }
 
 void QManager::HelpWindow::Print() {
