@@ -136,7 +136,7 @@ namespace QManager {
       void Print();
 
     protected:
-      virtual void Delete_form();
+      void Delete_form();
       void Draw_form();
 
       std::string sql_query, s_last_mac,
@@ -152,11 +152,11 @@ namespace QManager {
       std::string::iterator its;
 
       FORM *form;
+      std::vector<FIELD*> field;
 
       int ch, cmd_exit_status;
 
     private:
-      FIELD *field[12];
       guest_t<std::string> guest;
   };
 
@@ -169,10 +169,6 @@ namespace QManager {
       void Print();
 
     private:
-      void Delete_form();
-
-      FIELD *field[7];
-
       guest_t<VectorString> guest_old;
       guest_t<std::string> guest_new;
 

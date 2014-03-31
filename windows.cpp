@@ -111,12 +111,14 @@ QManager::AddVmWindow::AddVmWindow(const std::string &dbf, const std::string &vm
   int height, int width, int starty, int startx) : TemplateWindow(height, width, starty, startx) {
     dbf_ = dbf;
     vmdir_ = vmdir;
+
+    field.resize(12);
 }
 
 void QManager::AddVmWindow::Delete_form() {
   unpost_form(form);
   free_form(form);
-  for(uint32_t i=0; i<11; ++i) {
+  for(size_t i = 0; i < field.size() - 1; ++i) {
     free_field(field[i]);
   }
 }
@@ -193,12 +195,12 @@ void QManager::AddVmWindow::Print() {
     last_vnc++;
 
     // Create fields
-    for(int i(0); i<11; ++i) {
+    for(size_t i = 0; i < field.size() - 1; ++i) {
       field[i] = new_field(1, 35, i*2, 1, 0, 0);
       set_field_back(field[i], A_UNDERLINE);
     }
 
-    field[11] = NULL;
+    field[field.size() - 1] = NULL;
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
@@ -207,14 +209,14 @@ void QManager::AddVmWindow::Print() {
     char **UdevList = new char *[u_dev.size() + 1];
 
     // Convert VectorString to *char
-    for(uint32_t i(0); i < q_arch.size(); ++i) {
+    for(size_t i = 0; i < q_arch.size(); ++i) {
       ArchList[i] = new char[q_arch[i].size() + 1];
       memcpy(ArchList[i], q_arch[i].c_str(), q_arch[i].size() + 1);
     }
 
     // Convert MapString to *char
     {
-      int i(0);
+      int i = 0;
       for(auto &UList : u_dev) {
         UdevList[i] = new char[UList.first.size() +1];
         memcpy(UdevList[i], UList.first.c_str(), UList.first.size() + 1);
@@ -237,11 +239,11 @@ void QManager::AddVmWindow::Print() {
     set_field_type(field[9], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[10], TYPE_ENUM, UdevList, false, false);
 
-    for(uint32_t i(0); i < q_arch.size(); ++i) {
+    for(size_t i = 0; i < q_arch.size(); ++i) {
       delete [] ArchList[i];
     }
 
-    for(uint32_t i(0); i < u_dev.size(); ++i) {
+    for(size_t i = 0; i < u_dev.size(); ++i) {
       delete [] UdevList[i];
     }
 
@@ -262,7 +264,7 @@ void QManager::AddVmWindow::Print() {
     field_opts_off(field[5], O_EDIT);
     set_max_field(field[0], 30);
 
-    form = new_form(field);
+    form = new_form(&field[0]);
     scale_form(form, &row, &col);
     set_form_win(form, window);
     set_form_sub(form, derwin(window, row, col, 2, 21));
@@ -298,7 +300,7 @@ void QManager::AddVmWindow::Print() {
 
     // Check all the necessary parametrs are filled.
     if(guest.usbp == "yes") {
-      for(int i(0); i<11; ++i) {
+      for(size_t i = 0; i < 11; ++i) {
         if(! field_status(field[i])) {
           Delete_form();
           throw QMException("Must fill all params");
@@ -306,7 +308,7 @@ void QManager::AddVmWindow::Print() {
       }
     }
     else {
-      for(int i(0); i<9; ++i) {
+      for(size_t i = 0; i < 9; ++i) {
         if(! field_status(field[i])) {
           Delete_form();
           throw QMException("Must fill all params");
@@ -412,14 +414,8 @@ QManager::EditVmWindow::EditVmWindow(
   int height, int width, int starty, int startx
 ) : AddVmWindow(dbf, vmdir, height, width, starty, startx) {
     vm_name_ = vm_name;
-}
 
-void QManager::EditVmWindow::Delete_form() {
-  unpost_form(form);
-  free_form(form);
-  for(uint32_t i=0; i<6; ++i) {
-    free_field(field[i]);
-  }
+    field.resize(7);
 }
 
 void QManager::EditVmWindow::Print() {
@@ -461,12 +457,12 @@ void QManager::EditVmWindow::Print() {
     ints_count = ifaces.size();
 
     // Create fields
-    for(int i(0); i<6; ++i) {
+    for(size_t i = 0; i < field.size() - 1; ++i) {
       field[i] = new_field(1, 35, (i+1)*2, 1, 0, 0);
       set_field_back(field[i], A_UNDERLINE);
     }
 
-    field[6] = NULL;
+    field[field.size() - 1] = NULL;
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
@@ -475,7 +471,7 @@ void QManager::EditVmWindow::Print() {
 
     // Convert MapString to *char
     {
-      int i(0);
+      int i = 0;
       for(auto &UList : u_dev) {
         UdevList[i] = new char[UList.first.size() +1];
         memcpy(UdevList[i], UList.first.c_str(), UList.first.size() + 1);
@@ -492,7 +488,7 @@ void QManager::EditVmWindow::Print() {
     set_field_type(field[4], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[5], TYPE_ENUM, UdevList, false, false);
 
-    for(uint32_t i(0); i < u_dev.size(); ++i) {
+    for(size_t i = 0; i < u_dev.size(); ++i) {
       delete [] UdevList[i];
     }
 
@@ -518,7 +514,7 @@ void QManager::EditVmWindow::Print() {
        
     field_opts_off(field[5], O_STATIC);
 
-    form = new_form(field);
+    form = new_form(&field[0]);
     scale_form(form, &row, &col);
     set_form_win(form, window);
     set_form_sub(form, derwin(window, row, col, 2, 21));
