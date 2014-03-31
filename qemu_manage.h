@@ -136,7 +136,7 @@ namespace QManager {
       void Print();
 
     protected:
-      void Delete_form(uint32_t count);
+      virtual void Delete_form();
       void Draw_form();
 
       std::string sql_query, s_last_mac,
@@ -169,9 +169,13 @@ namespace QManager {
       void Print();
 
     private:
+      void Delete_form();
+
       FIELD *field[7];
+
       guest_t<VectorString> guest_old;
       guest_t<std::string> guest_new;
+
       std::string vm_name_;
       uint32_t ints_count;
   };

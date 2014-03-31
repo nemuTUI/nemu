@@ -113,10 +113,10 @@ QManager::AddVmWindow::AddVmWindow(const std::string &dbf, const std::string &vm
     vmdir_ = vmdir;
 }
 
-void QManager::AddVmWindow::Delete_form(uint32_t count) {
+void QManager::AddVmWindow::Delete_form() {
   unpost_form(form);
   free_form(form);
-  for(uint32_t i=0; i<count; ++i) {
+  for(uint32_t i=0; i<11; ++i) {
     free_field(field[i]);
   }
 }
@@ -300,7 +300,7 @@ void QManager::AddVmWindow::Print() {
     if(guest.usbp == "yes") {
       for(int i(0); i<11; ++i) {
         if(! field_status(field[i])) {
-          Delete_form(11);
+          Delete_form();
           throw QMException("Must fill all params");
         }
       }
@@ -308,7 +308,7 @@ void QManager::AddVmWindow::Print() {
     else {
       for(int i(0); i<9; ++i) {
         if(! field_status(field[i])) {
-          Delete_form(11);
+          Delete_form();
           throw QMException("Must fill all params");
         }
       }
@@ -318,7 +318,7 @@ void QManager::AddVmWindow::Print() {
     sql_query = "select id from vms where name='" + guest.name + "'";
     v_name = db->SelectQuery(sql_query);
     if(! v_name.empty()) {
-      Delete_form(11);
+      Delete_form();
       throw QMException("This name is already used");
     }
 
@@ -331,14 +331,14 @@ void QManager::AddVmWindow::Print() {
     cmd_exit_status = system(create_guest_dir_cmd.c_str());
 
     if(cmd_exit_status != 0) {
-      Delete_form(11);
+      Delete_form();
       throw QMException("Can't create guest dir");
     }
 
     cmd_exit_status = system(create_img_cmd.c_str());
 
     if(cmd_exit_status != 0) {
-      Delete_form(11);
+      Delete_form();
       throw QMException("Can't create img file");
     }
 
@@ -395,7 +395,7 @@ void QManager::AddVmWindow::Print() {
     db->ActionQuery(sql_query);
 
     // End
-    Delete_form(11);
+    Delete_form();
   }
   catch (QMException &err) {
   curs_set(0);
@@ -412,6 +412,14 @@ QManager::EditVmWindow::EditVmWindow(
   int height, int width, int starty, int startx
 ) : AddVmWindow(dbf, vmdir, height, width, starty, startx) {
     vm_name_ = vm_name;
+}
+
+void QManager::EditVmWindow::Delete_form() {
+  unpost_form(form);
+  free_form(form);
+  for(uint32_t i=0; i<6; ++i) {
+    free_field(field[i]);
+  }
 }
 
 void QManager::EditVmWindow::Print() {
@@ -534,6 +542,7 @@ void QManager::EditVmWindow::Print() {
     guest_new.ints.assign(trim_field_buffer(field_buffer(field[3], 0)));
     guest_new.usbp.assign(trim_field_buffer(field_buffer(field[4], 0)));
     guest_new.usbd.assign(trim_field_buffer(field_buffer(field[5], 0)));
+
 /*
     // Check all the necessary parametrs are filled.
     if(guest.usbp == "yes") {
@@ -634,7 +643,7 @@ void QManager::EditVmWindow::Print() {
     db->ActionQuery(sql_query);
 */
     // End
-    Delete_form(5);
+    Delete_form();
   }
   catch (QMException &err) {
   curs_set(0);
