@@ -10,6 +10,8 @@
 // end debug
 #include "qemu_manage.h"
 
+#define _(str) gettext(str)
+
 static const std::string cfg = "/etc/qemu_manage.cfg";
 static const std::string sql_list_vm = "select name from vms order by name asc";
 
@@ -30,6 +32,9 @@ static const std::array<std::string, CHOICES_NUM> choices = {
 int main(int argc, char **argv) {
 
   using namespace QManager;
+
+  // localization
+  setlocale(LC_ALL,"");
 
   uint32_t highlight(1);
   uint32_t ch;
