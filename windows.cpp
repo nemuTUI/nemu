@@ -539,52 +539,15 @@ void QManager::EditVmWindow::Print() {
     guest_new.usbp.assign(trim_field_buffer(field_buffer(field[4], 0)));
     guest_new.usbd.assign(trim_field_buffer(field_buffer(field[5], 0)));
 
-/*
+
     // Check all the necessary parametrs are filled.
-    if(guest.usbp == "yes") {
-      for(int i(0); i<11; ++i) {
-        if(! field_status(field[i])) {
-          Delete_form();
-          throw QMException("Must fill all params");
-        }
+    if(guest_new.usbp == "yes") {
+      if(! field_status(field[5])) {
+        Delete_form();
+        throw QMException(_("Usb device was not selected."));
       }
     }
-    else {
-      for(int i(0); i<9; ++i) {
-        if(! field_status(field[i])) {
-          Delete_form();
-          throw QMException("Must fill all params");
-        }
-      }
-    }
-
-    // Check if guest name is already taken
-    sql_query = "select id from vms where name='" + guest.name + "'";
-    v_name = db->SelectQuery(sql_query);
-    if(! v_name.empty()) {
-      Delete_form();
-      throw QMException("This name is already used");
-    }
-
-    // Create img file for guest
-    guest_dir = vmdir_ + "/" + guest.name;
-    create_guest_dir_cmd = "mkdir " + guest_dir + " >/dev/null 2>&1";
-    create_img_cmd = "qemu-img create -f qcow2 " + guest_dir
-    + "/" + guest.name + ".img " + guest.disk + "G > /dev/null 2>&1";
-
-    cmd_exit_status = system(create_guest_dir_cmd.c_str());
-
-    if(cmd_exit_status != 0) {
-      Delete_form();
-      throw QMException("Can't create guest dir");
-    }
-
-    cmd_exit_status = system(create_img_cmd.c_str());
-
-    if(cmd_exit_status != 0) {
-      Delete_form();
-      throw QMException("Can't create img file");
-    }
+/*
 
     // Generate mac address for interfaces
     ui_vm_ints = std::stoi(guest.ints);
