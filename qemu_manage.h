@@ -6,11 +6,13 @@
 #include <vector>
 #include <map>
 #include <form.h>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <sqlite3.h>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+
+#define _(str) gettext(str)
 
 namespace QManager {
 
