@@ -10,8 +10,6 @@
 // end debug
 #include "qemu_manage.h"
 
-#define _(str) gettext(str)
-
 static const std::string cfg = "/etc/qemu_manage.cfg";
 static const std::string sql_list_vm = "select name from vms order by name asc";
 
@@ -35,6 +33,8 @@ int main(int argc, char **argv) {
 
   // localization
   setlocale(LC_ALL,"");
+  bindtextdomain("qemu-manager","/usr/share/locale");
+  textdomain("qemu-manager");
 
   uint32_t highlight(1);
   uint32_t ch;
