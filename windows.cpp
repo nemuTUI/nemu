@@ -547,29 +547,31 @@ void QManager::EditVmWindow::Print() {
         throw QMException(_("Usb device was not selected."));
       }
     }
+
+    // If changed generate mac address for interfaces
+    ui_vm_ints = std::stoi(guest_new.ints);
+
+    if(ui_vm_ints != ints_count) {
+      sql_query = "select mac from lastval";
+      v_last_mac = db->SelectQuery(sql_query);
+
+      last_mac = std::stol(v_last_mac[0]);
+      ifaces = gen_mac_addr(last_mac, ui_vm_ints, vm_name_);
+
+      //Get last mac address and put it into database
+      itm = ifaces.end();
+      --itm;
+      s_last_mac = itm->second;
+
+      its = std::remove(s_last_mac.begin(), s_last_mac.end(), ':');
+      s_last_mac.erase(its, s_last_mac.end());
+
+      last_mac = std::stol(s_last_mac, 0, 16);
+
+      sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
+      db->ActionQuery(sql_query);
+    }
 /*
-
-    // Generate mac address for interfaces
-    ui_vm_ints = std::stoi(guest.ints);
-    ifaces = gen_mac_addr(last_mac, ui_vm_ints, guest.name);
-
-    //Get last mac address and put it into database
-    itm = ifaces.end();
-    --itm;
-    s_last_mac = itm->second;
-
-    its = std::remove(s_last_mac.begin(), s_last_mac.end(), ':');
-    s_last_mac.erase(its, s_last_mac.end());
-
-    last_mac = std::stol(s_last_mac, 0, 16);
-
-    sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
-    db->ActionQuery(sql_query);
-
-    // Update last vnc port in database
-    sql_query = "update lastval set vnc='" + std::to_string(last_vnc) + "'";
-    db->ActionQuery(sql_query);
-
     // Get usb dev ID from user choice
     if(guest.usbp == "yes") {
       guest.usbp = "1";
