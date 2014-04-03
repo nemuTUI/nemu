@@ -514,6 +514,9 @@ void QManager::EditVmWindow::Print() {
        
     field_opts_off(field[5], O_STATIC);
 
+    for(size_t i = 0; i < 5; ++i)
+      set_field_status(field[i], false);
+
     form = new_form(&field[0]);
     scale_form(form, &row, &col);
     set_form_win(form, window);
@@ -539,75 +542,75 @@ void QManager::EditVmWindow::Print() {
     guest_new.usbp.assign(trim_field_buffer(field_buffer(field[4], 0)));
     guest_new.usbd.assign(trim_field_buffer(field_buffer(field[5], 0)));
 
-
+    /* Update USB settings */
     // Check all the necessary parametrs are filled.
-    if(guest_new.usbp == "yes") {
-      if(! field_status(field[5])) {
-        Delete_form();
-        throw QMException(_("Usb device was not selected."));
+    if(field_status(field[4])) {
+      if(guest_new.usbp == "yes") {
+        if(! field_status(field[5])) {
+          Delete_form();
+          throw QMException(_("Usb device was not selected."));
+        }
+
+        guest_new.usbp = "1";
+        guest_new.usbd = u_dev.at(guest_new.usbd);
       }
+      else {
+        guest_new.usbp = "0";
+        guest_new.usbd = "none";
+      }
+
+      // Update settings
+      sql_query = "update vms set usbid='" + guest_new.usbd +
+        "' where name='" + vm_name_ + "'";
+      db->ActionQuery(sql_query);
+
+      sql_query = "update vms set usb='" + guest_new.usbp +
+        "' where name='" + vm_name_ + "'";
+      db->ActionQuery(sql_query);
     }
 
     // If changed generate mac address for interfaces
-    ui_vm_ints = std::stoi(guest_new.ints);
+    if(field_status(field[3])) {
+      ui_vm_ints = std::stoi(guest_new.ints);
 
-    if(ui_vm_ints != ints_count) {
-      sql_query = "select mac from lastval";
-      v_last_mac = db->SelectQuery(sql_query);
+      if(ui_vm_ints != ints_count) {
+        sql_query = "select mac from lastval";
+        v_last_mac = db->SelectQuery(sql_query);
 
-      last_mac = std::stol(v_last_mac[0]);
-      ifaces = gen_mac_addr(last_mac, ui_vm_ints, vm_name_);
+        last_mac = std::stol(v_last_mac[0]);
+        ifaces = gen_mac_addr(last_mac, ui_vm_ints, vm_name_);
 
-      //Get last mac address and put it into database
-      itm = ifaces.end();
-      --itm;
-      s_last_mac = itm->second;
+        // Get last mac address and put it into database
+        itm = ifaces.end();
+        --itm;
+        s_last_mac = itm->second;
 
-      its = std::remove(s_last_mac.begin(), s_last_mac.end(), ':');
-      s_last_mac.erase(its, s_last_mac.end());
+        its = std::remove(s_last_mac.begin(), s_last_mac.end(), ':');
+        s_last_mac.erase(its, s_last_mac.end());
 
-      last_mac = std::stol(s_last_mac, 0, 16);
+        last_mac = std::stol(s_last_mac, 0, 16);
 
-      sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
-      db->ActionQuery(sql_query);
-    }
-/*
-    // Get usb dev ID from user choice
-    if(guest.usbp == "yes") {
-      guest.usbp = "1";
-      guest.usbd = u_dev.at(guest.usbd);
-    }
-    else {
-      guest.usbp = "0";
-      guest.usbd = "none";
-    }
+        sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
+        db->ActionQuery(sql_query);
 
-    // Gen qemu img name and kvm status
-    guest.disk = guest.name + ".img=" + guest.disk + ";";
-    guest.kvmf == "yes" ? guest.kvmf = "1" : guest.kvmf = "0";
+        /* Update interface settings */
+        guest_new.ints.clear();
+        for(auto &ifs : ifaces) {
+          guest_new.ints += ifs.first + "=" + ifs.second + ";";
+        }
 
-    // Convert interfaces from MapString to string
-    guest.ints.clear();
-    for(auto &ifs : ifaces) {
-      guest.ints += ifs.first + "=" + ifs.second + ";";
+        sql_query = "update vms set mac='" + guest_new.ints +
+          "' where name='" + vm_name_ + "'";
+
+        db->ActionQuery(sql_query);
+      }
     }
 
-    // Add guest to database
-    sql_query = "insert into vms("
-    "name, mem, smp, hdd, kvm, vnc, mac, arch, iso, install, usb, usbid"
-    ") values('"
-    + guest.name + "', '" + guest.memo + "', '" + guest.cpus + "', '"
-    + guest.disk + "', '" + guest.kvmf + "', '" + guest.vncp + "', '"
-    + guest.ints + "', '" + guest.arch + "', '" + guest.path + "', '1', '"
-    + guest.usbp + "', '" + guest.usbd + "')";
-
-    db->ActionQuery(sql_query);
-*/
     // End
     Delete_form();
   }
   catch (QMException &err) {
-  curs_set(0);
+    curs_set(0);
     PopupWarning Warn(err.what(), 3, 30, 4, 20);
     Warn.Init();
     Warn.Print(Warn.window);
