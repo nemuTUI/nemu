@@ -542,6 +542,32 @@ void QManager::EditVmWindow::Print() {
     guest_new.usbp.assign(trim_field_buffer(field_buffer(field[4], 0)));
     guest_new.usbd.assign(trim_field_buffer(field_buffer(field[5], 0)));
 
+    /* Update cpu settings */
+    if(field_status(field[0])) {
+      sql_query = "update vms set smp='" + guest_new.cpus +
+        "' where name='" + vm_name_ + "'";
+      db->ActionQuery(sql_query);
+    }
+
+    /* Update memory settings */
+    if(field_status(field[1])) {
+      sql_query = "update vms set mem='" + guest_new.memo +
+        "' where name='" + vm_name_ + "'";
+      db->ActionQuery(sql_query);
+    }
+
+    /* Update kvm settings */
+    if(field_status(field[2])) {
+      if(guest_new.kvmf == "yes")
+        guest_new.kvmf = "1";
+      else
+        guest_new.kvmf = "0";
+
+      sql_query = "update vms set kvm='" + guest_new.kvmf +
+        "' where name='" + vm_name_ + "'";
+      db->ActionQuery(sql_query);
+    }
+
     /* Update USB settings */
     // Check all the necessary parametrs are filled.
     if(field_status(field[4])) {
