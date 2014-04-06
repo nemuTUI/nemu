@@ -132,9 +132,3 @@ void QManager::kill_guest(const std::string &vm_name) {
 
   system(stop_cmd.c_str());
 }
-
-void QManager::clone_guest(
-  const std::string &vm_name, const std::string &dbf, const std::string &vmdir
-) {
-  //...
-}

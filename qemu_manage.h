@@ -78,9 +78,6 @@ namespace QManager {
   );
   void connect_guest(const std::string &vm_name, const std::string &dbf);
   void kill_guest(const std::string &vm_name);
-  void clone_guest(
-    const std::string &vm_name, const std::string &dbf, const std::string &vmdir
-  );
 
   class TemplateWindow {
     public:
