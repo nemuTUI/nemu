@@ -241,6 +241,24 @@ int main(int argc, char **argv) {
             edit_window->Print();
           }
 
+          else if(ch == MenuKeyL) {
+            std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
+            vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
+
+            std::string guest = guests.at((guest_first + q_highlight) - 1);
+
+            if(vm_list->vm_status.at(guest) == "running") {
+              std::unique_ptr<PopupWarning> Warn(new PopupWarning("Stop quest before!", 3, 20, 7, 31));
+              Warn->Init();
+              Warn->Print(Warn->window);
+            }
+            else {
+              std::unique_ptr<CloneVmWindow> clone_window(new CloneVmWindow(dbf, vmdir, guest, 7, 35));
+              clone_window->Init();
+              clone_window->Print();
+            }
+          }
+
           else if(ch == KEY_F(1)) {
             std::unique_ptr<HelpWindow> help_window(new HelpWindow(8, 40));
             help_window->Print();

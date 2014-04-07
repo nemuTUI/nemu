@@ -123,6 +123,36 @@ void QManager::AddVmWindow::Delete_form() {
   }
 }
 
+void QManager::AddVmWindow::Draw_title() {
+  clear();
+  border(0,0,0,0,0,0,0,0);
+  mvprintw(1, 1, "F10 - finish, F2 - save");
+  refresh();
+  curs_set(1);
+}
+
+void QManager::AddVmWindow::Post_form(uint32_t size) {
+  form = new_form(&field[0]);
+  scale_form(form, &row, &col);
+  set_form_win(form, window);
+  set_form_sub(form, derwin(window, row, col, 2, size));
+  box(window, 0, 0);
+  post_form(form);
+}
+
+void QManager::AddVmWindow::ExeptionExit(QMException &err) {
+  curs_set(0);
+  PopupWarning Warn(err.what(), 3, 30, 4, 20);
+  Warn.Init();
+  Warn.Print(Warn.window);
+  refresh();
+}
+
+void QManager::AddVmWindow::Enable_color() {
+  init_pair(1, COLOR_BLACK, COLOR_WHITE);
+  wbkgd(window, COLOR_PAIR(1));
+}
+
 void QManager::AddVmWindow::Draw_form() {
   while((ch = wgetch(window)) != KEY_F(10)) {
     switch(ch) {
@@ -650,9 +680,43 @@ QManager::CloneVmWindow::CloneVmWindow(
   const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
   int height, int width, int starty, int startx
 ) : AddVmWindow(dbf, vmdir, height, width, starty, startx) {
-    this->vm_name = vm_name;
+    vm_name_ = vm_name;
 
-    //field.resize(7);
+    field.resize(2);
+}
+
+void QManager::CloneVmWindow::Create_fields() {
+  field[0] = new_field(1, 20, 2, 1, 0, 0);
+  field[field.size() - 1] = NULL;
+}
+
+void QManager::CloneVmWindow::Config_fields() {
+  char cname[64];
+  snprintf(cname, sizeof(cname), "%s%s", vm_name_.c_str(), "_");
+  set_field_type(field[0], TYPE_ALNUM, 0);
+  set_field_buffer(field[0], 0, cname);
+}
+
+void QManager::CloneVmWindow::Print_fields_names() {
+    mvwaddstr(window, 2, 12, ("Clone " + vm_name_).c_str());
+    mvwaddstr(window, 4, 2, "Name");
+}
+
+void QManager::CloneVmWindow::Print() {
+  try {
+    Draw_title();
+    Create_fields();
+    Enable_color();
+    Config_fields();
+    Post_form(10);
+    Print_fields_names();
+    Draw_form();
+    Delete_form();
+  }
+  catch (QMException &err) {
+    ExeptionExit(err);
+  }
+  curs_set(0);
 }
 
 void QManager::HelpWindow::Print() {

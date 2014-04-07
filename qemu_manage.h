@@ -79,6 +79,16 @@ namespace QManager {
   void connect_guest(const std::string &vm_name, const std::string &dbf);
   void kill_guest(const std::string &vm_name);
 
+  class QMException : public std::exception {
+    public:
+      QMException(const std::string &m) : msg(m) {}
+      ~QMException() throw() {}
+      const char* what() const throw() { return msg.c_str(); }
+
+    private:
+      std::string msg;
+  };
+
   class TemplateWindow {
     public:
       TemplateWindow(int height, int width, int starty = 7, int startx = 25);
@@ -140,6 +150,10 @@ namespace QManager {
     protected:
       void Delete_form();
       void Draw_form();
+      void Draw_title();
+      void Enable_color();
+      void Post_form(uint32_t size);
+      void ExeptionExit(QMException &err);
 
       std::string sql_query, s_last_mac,
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd;
@@ -199,7 +213,11 @@ namespace QManager {
       void Print();
 
     private:
-      std::string vm_name;
+      void Create_fields();
+      void Config_fields();
+      void Print_fields_names();
+
+      std::string vm_name_;
   };
 
   class MenuList {
@@ -284,16 +302,6 @@ namespace QManager {
       VectorString sql;
       int dbexec;
       char *zErrMsg;
-  };
-
-  class QMException : public std::exception {
-    public:
-      QMException(const std::string &m) : msg(m) {}
-      ~QMException() throw() {}
-      const char* what() const throw() { return msg.c_str(); }
-
-    private:
-      std::string msg;
   };
 
 } // namespace QManager
