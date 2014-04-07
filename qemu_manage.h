@@ -221,6 +221,7 @@ namespace QManager {
       void Print_fields_names();
       void Get_data_from_form();
       void Get_data_from_db();
+      void Update_db_data();
 
       std::string vm_name_;
       guest_t<VectorString> guest_old;

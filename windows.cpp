@@ -3,6 +3,7 @@
 #include <cstring>
 #include <algorithm>
 #include <memory>
+#include <array>
 
 #include "qemu_manage.h"
 
@@ -736,6 +737,45 @@ void QManager::CloneVmWindow::Get_data_from_db() {
 
   sql_query = "select mac from lastval";
   v_last_mac = db->SelectQuery(sql_query);
+
+  sql_query = "select vnc from lastval";
+  v_last_vnc = db->SelectQuery(sql_query);
+
+  last_vnc = std::stoi(v_last_vnc[0]);
+  last_vnc++;
+}
+
+void QManager::CloneVmWindow::Update_db_data() {
+  const std::array<std::string, 9> columns = {
+    "mem", "smp", "hdd", "kvm",
+    "arch", "iso", "install",
+    "usb", "usbid"
+  };
+
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  sql_query = "insert into vms(name) values('" + guest_new.name + "')";
+  db->ActionQuery(sql_query);
+
+  sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
+  db->ActionQuery(sql_query);
+
+  sql_query = "update lastval set vnc='" + std::to_string(last_vnc) + "'";
+  db->ActionQuery(sql_query);
+
+  for(auto &c : columns) {
+    sql_query = "update vms set " + c + "=(select " + c + " from vms where name='" +
+    vm_name_ + "') where name='" + guest_new.name + "'";
+    db->ActionQuery(sql_query);
+  }
+
+  sql_query = "update vms set mac='" + guest_new.ints +
+    "' where name='" + guest_new.name + "'";
+  db->ActionQuery(sql_query);
+
+  sql_query = "update vms set vnc='" + std::to_string(last_vnc) +
+    "' where name='" + guest_new.name + "'";
+  db->ActionQuery(sql_query);
 }
 
 void QManager::CloneVmWindow::Print() {
@@ -756,7 +796,9 @@ void QManager::CloneVmWindow::Print() {
     }
 
     Get_data_from_db();
-    Gen_mac_address(guest_new, guest_old.ints.size(), guest_new.name);
+    Gen_mac_address(guest_new, Gen_map_from_str(guest_old.ints[0]).size(), guest_new.name);
+
+    Update_db_data();
 
     Delete_form();
   }
