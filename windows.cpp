@@ -646,6 +646,15 @@ void QManager::EditVmWindow::Print() {
 
 }
 
+QManager::CloneVmWindow::CloneVmWindow(
+  const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
+  int height, int width, int starty, int startx
+) : AddVmWindow(dbf, vmdir, height, width, starty, startx) {
+    this->vm_name = vm_name;
+
+    //field.resize(7);
+}
+
 void QManager::HelpWindow::Print() {
   line = 1;
   window_ = newwin(height_, width_, starty_, startx_);

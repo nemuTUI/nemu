@@ -190,6 +190,18 @@ namespace QManager {
       int ch_;
   };
 
+  class CloneVmWindow : public AddVmWindow {
+    public:
+      CloneVmWindow(
+        const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
+        int height, int width, int starty = 3, int startx = 3
+      );
+      void Print();
+
+    private:
+      std::string vm_name;
+  };
+
   class MenuList {
     public:
       MenuList(WINDOW *menu_window, uint32_t &highlight);
