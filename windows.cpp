@@ -153,6 +153,27 @@ void QManager::AddVmWindow::Enable_color() {
   wbkgd(window, COLOR_PAIR(1));
 }
 
+void QManager::AddVmWindow::Gen_mac_address(
+  struct guest_t<std::string> &guest, uint32_t int_count, std::string vm_name
+) {
+  last_mac = std::stol(v_last_mac[0]);
+  ifaces = gen_mac_addr(last_mac, int_count, vm_name);
+
+  itm = ifaces.end();
+  --itm;
+  s_last_mac = itm->second;
+
+  its = std::remove(s_last_mac.begin(), s_last_mac.end(), ':');
+  s_last_mac.erase(its, s_last_mac.end());
+
+  last_mac = std::stol(s_last_mac, 0, 16);
+
+  guest.ints.clear();
+  for(auto &ifs : ifaces) {
+    guest.ints += ifs.first + "=" + ifs.second + ";";
+  }
+}
+
 void QManager::AddVmWindow::Draw_form() {
   while((ch = wgetch(window)) != KEY_F(10)) {
     switch(ch) {
@@ -695,11 +716,26 @@ void QManager::CloneVmWindow::Config_fields() {
   snprintf(cname, sizeof(cname), "%s%s", vm_name_.c_str(), "_");
   set_field_type(field[0], TYPE_ALNUM, 0);
   set_field_buffer(field[0], 0, cname);
+  set_field_status(field[0], false);
 }
 
 void QManager::CloneVmWindow::Print_fields_names() {
-    mvwaddstr(window, 2, 12, ("Clone " + vm_name_).c_str());
-    mvwaddstr(window, 4, 2, "Name");
+  mvwaddstr(window, 2, 12, (_("Clone ") + vm_name_).c_str());
+  mvwaddstr(window, 4, 2, _("Name"));
+}
+
+void QManager::CloneVmWindow::Get_data_from_form() {
+  guest_new.name.assign(trim_field_buffer(field_buffer(field[0], 0)));
+}
+
+void QManager::CloneVmWindow::Get_data_from_db() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  sql_query = "select mac from vms where name='" + vm_name_ + "'";
+  guest_old.ints = db->SelectQuery(sql_query);
+
+  sql_query = "select mac from lastval";
+  v_last_mac = db->SelectQuery(sql_query);
 }
 
 void QManager::CloneVmWindow::Print() {
@@ -711,6 +747,17 @@ void QManager::CloneVmWindow::Print() {
     Post_form(10);
     Print_fields_names();
     Draw_form();
+
+    Get_data_from_form();
+
+    if(field_status(field[0])) {
+      if(guest_new.name == vm_name_)
+        throw QMException(_("This name is already used"));
+    }
+
+    Get_data_from_db();
+    Gen_mac_address(guest_new, guest_old.ints.size(), guest_new.name);
+
     Delete_form();
   }
   catch (QMException &err) {

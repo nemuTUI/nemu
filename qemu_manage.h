@@ -154,6 +154,9 @@ namespace QManager {
       void Enable_color();
       void Post_form(uint32_t size);
       void ExeptionExit(QMException &err);
+      void Gen_mac_address(
+        struct guest_t<std::string> &guest, uint32_t int_count, std::string vm_name
+      );
 
       std::string sql_query, s_last_mac,
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd;
@@ -216,8 +219,12 @@ namespace QManager {
       void Create_fields();
       void Config_fields();
       void Print_fields_names();
+      void Get_data_from_form();
+      void Get_data_from_db();
 
       std::string vm_name_;
+      guest_t<VectorString> guest_old;
+      guest_t<std::string> guest_new;
   };
 
   class MenuList {
