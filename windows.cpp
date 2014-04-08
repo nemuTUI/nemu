@@ -791,8 +791,19 @@ void QManager::CloneVmWindow::Update_db_data() {
 
 void QManager::CloneVmWindow::Gen_hdd() {
   MapString disk = Gen_map_from_str(guest_old.disk[0]);
+
+  guest_dir = vmdir_ + "/" + guest_new.name;
+  create_guest_dir_cmd = "mkdir " + guest_dir;
+
+  system(create_guest_dir_cmd.c_str());
+
   for(auto &hd : disk) {
     guest_new.disk += guest_new.name + ".img=" + hd.second + ";";
+    create_img_cmd = "cp " + vmdir_ + "/" + vm_name_ +
+      "/" + hd.first + " " + vmdir_ + "/" + guest_new.name +
+      + "/" + guest_new.name + ".img";
+
+    system(create_img_cmd.c_str());
   }
 }
 
