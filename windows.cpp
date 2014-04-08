@@ -220,6 +220,15 @@ void QManager::AddVmWindow::Draw_form() {
   }
 }
 
+void QManager::AddVmWindow::Create_fields() {
+  for(size_t i = 0; i < field.size() - 1; ++i) {
+    field[i] = new_field(1, 35, i*2, 1, 0, 0);
+    set_field_back(field[i], A_UNDERLINE);
+  }
+
+  field[field.size() - 1] = NULL;
+}
+
 void QManager::AddVmWindow::Print() {
   char clvnc[128], ccpu[128], cmem[128], cfree[128];
 
@@ -243,16 +252,8 @@ void QManager::AddVmWindow::Print() {
     last_vnc = std::stoi(v_last_vnc[0]);
     last_vnc++;
 
-    // Create fields
-    for(size_t i = 0; i < field.size() - 1; ++i) {
-      field[i] = new_field(1, 35, i*2, 1, 0, 0);
-      set_field_back(field[i], A_UNDERLINE);
-    }
-
-    field[field.size() - 1] = NULL;
-
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
+    Enable_color();
+    Create_fields();
 
     char **ArchList = new char *[q_arch.size() + 1];
     char **UdevList = new char *[u_dev.size() + 1];
@@ -449,11 +450,7 @@ void QManager::AddVmWindow::Print() {
     Delete_form();
   }
   catch (QMException &err) {
-  curs_set(0);
-    PopupWarning Warn(err.what(), 3, 30, 4, 20);
-    Warn.Init();
-    Warn.Print(Warn.window);
-    refresh();
+    ExeptionExit(err);
   }
   curs_set(0);
 }

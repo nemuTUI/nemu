@@ -179,6 +179,12 @@ namespace QManager {
       int ch, cmd_exit_status;
 
     private:
+      void Create_fields();
+      void Config_fields();
+      void Print_fields_names();
+      void Get_data_from_form();
+      void Get_data_from_db();
+
       guest_t<std::string> guest;
   };
 
