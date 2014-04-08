@@ -182,6 +182,7 @@ namespace QManager {
       void Create_fields();
       void Config_fields();
       void Print_fields_names();
+      void Get_data_from_form();
 
       guest_t<std::string> guest;
   };

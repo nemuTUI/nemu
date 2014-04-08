@@ -243,9 +243,40 @@ void QManager::AddVmWindow::Config_fields() {
   set_max_field(field[0], 30);
 }
 
-void QManager::AddVmWindow::Print() {
+void QManager::AddVmWindow::Print_fields_names() {
   char ccpu[128], cmem[128], cfree[128];
+  snprintf(ccpu, sizeof(ccpu), "%s%u%s", "CPU cores [1-", cpu_count(), "]");
+  snprintf(cmem, sizeof(cmem), "%s%u%s", "Memory [64-", total_memory(), "]Mb");
+  snprintf(cfree, sizeof(cfree), "%s%u%s", "Disk [1-", disk_free(vmdir_), "]Gb");
 
+  mvwaddstr(window, 2, 2, "Name");
+  mvwaddstr(window, 4, 2, "Architecture");
+  mvwaddstr(window, 6, 2, ccpu);
+  mvwaddstr(window, 8, 2, cmem);
+  mvwaddstr(window, 10, 2, cfree);
+  mvwaddstr(window, 12, 2, "VNC port [ro]");
+  mvwaddstr(window, 14, 2, "KVM [yes/no]");
+  mvwaddstr(window, 16, 2, "Path to ISO");
+  mvwaddstr(window, 18, 2, "Interfaces");
+  mvwaddstr(window, 20, 2, "USB [yes/no]");
+  mvwaddstr(window, 22, 2, "USB device");
+}
+
+void QManager::AddVmWindow::Get_data_from_form() {
+  guest.name.assign(trim_field_buffer(field_buffer(field[0], 0)));
+  guest.arch.assign(trim_field_buffer(field_buffer(field[1], 0)));
+  guest.cpus.assign(trim_field_buffer(field_buffer(field[2], 0)));
+  guest.memo.assign(trim_field_buffer(field_buffer(field[3], 0)));
+  guest.disk.assign(trim_field_buffer(field_buffer(field[4], 0)));
+  guest.vncp.assign(trim_field_buffer(field_buffer(field[5], 0)));
+  guest.kvmf.assign(trim_field_buffer(field_buffer(field[6], 0)));
+  guest.path.assign(trim_field_buffer(field_buffer(field[7], 0)));
+  guest.ints.assign(trim_field_buffer(field_buffer(field[8], 0)));
+  guest.usbp.assign(trim_field_buffer(field_buffer(field[9], 0)));
+  guest.usbd.assign(trim_field_buffer(field_buffer(field[10], 0)));
+}
+
+void QManager::AddVmWindow::Print() {
   const char *YesNo[] = {
     "yes","no", NULL
   };
@@ -314,39 +345,11 @@ void QManager::AddVmWindow::Print() {
     delete [] ArchList;
     delete [] UdevList;
 
-    snprintf(ccpu, sizeof(ccpu), "%s%u%s", "CPU cores [1-", cpu_count(), "]");
-    snprintf(cmem, sizeof(cmem), "%s%u%s", "Memory [64-", total_memory(), "]Mb");
-    snprintf(cfree, sizeof(cfree), "%s%u%s", "Disk [1-", disk_free(vmdir_), "]Gb");
-
     Config_fields();
     Post_form(21);
-
-    mvwaddstr(window, 2, 2, "Name");
-    mvwaddstr(window, 4, 2, "Architecture");
-    mvwaddstr(window, 6, 2, ccpu);
-    mvwaddstr(window, 8, 2, cmem);
-    mvwaddstr(window, 10, 2, cfree);
-    mvwaddstr(window, 12, 2, "VNC port [ro]");
-    mvwaddstr(window, 14, 2, "KVM [yes/no]");
-    mvwaddstr(window, 16, 2, "Path to ISO");
-    mvwaddstr(window, 18, 2, "Interfaces");
-    mvwaddstr(window, 20, 2, "USB [yes/no]");
-    mvwaddstr(window, 22, 2, "USB device");
-
+    Print_fields_names();
     Draw_form();
-
-    // Get variables from form buffer
-    guest.name.assign(trim_field_buffer(field_buffer(field[0], 0)));
-    guest.arch.assign(trim_field_buffer(field_buffer(field[1], 0)));
-    guest.cpus.assign(trim_field_buffer(field_buffer(field[2], 0)));
-    guest.memo.assign(trim_field_buffer(field_buffer(field[3], 0)));
-    guest.disk.assign(trim_field_buffer(field_buffer(field[4], 0)));
-    guest.vncp.assign(trim_field_buffer(field_buffer(field[5], 0)));
-    guest.kvmf.assign(trim_field_buffer(field_buffer(field[6], 0)));
-    guest.path.assign(trim_field_buffer(field_buffer(field[7], 0)));
-    guest.ints.assign(trim_field_buffer(field_buffer(field[8], 0)));
-    guest.usbp.assign(trim_field_buffer(field_buffer(field[9], 0)));
-    guest.usbd.assign(trim_field_buffer(field_buffer(field[10], 0)));
+    Get_data_from_form();
 
     // Check all the necessary parametrs are filled.
     if(guest.usbp == "yes") {
