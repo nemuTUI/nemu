@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-c -g -Wall -std=c++11 -DENABLE_OPENVSWITCH
+CXXFLAGS=-c -g -Wall -std=c++11 -pthread -DENABLE_OPENVSWITCH
 EXECUTABLE=qemu_manage
 LDFLAGS=-lboost_regex -lform -lncursesw -lsqlite3 -lprocps
 SOURCES=qemu_manage.cpp hostinfo.cpp windows.cpp \

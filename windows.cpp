@@ -3,6 +3,8 @@
 #include <cstring>
 #include <algorithm>
 #include <memory>
+#include <array>
+#include <thread>
 
 #include "qemu_manage.h"
 
@@ -120,6 +122,57 @@ void QManager::AddVmWindow::Delete_form() {
   free_form(form);
   for(size_t i = 0; i < field.size() - 1; ++i) {
     free_field(field[i]);
+  }
+}
+
+void QManager::AddVmWindow::Draw_title() {
+  clear();
+  border(0,0,0,0,0,0,0,0);
+  mvprintw(1, 1, "F10 - finish, F2 - save");
+  refresh();
+  curs_set(1);
+}
+
+void QManager::AddVmWindow::Post_form(uint32_t size) {
+  form = new_form(&field[0]);
+  scale_form(form, &row, &col);
+  set_form_win(form, window);
+  set_form_sub(form, derwin(window, row, col, 2, size));
+  box(window, 0, 0);
+  post_form(form);
+}
+
+void QManager::AddVmWindow::ExeptionExit(QMException &err) {
+  curs_set(0);
+  PopupWarning Warn(err.what(), 3, 30, 4, 20);
+  Warn.Init();
+  Warn.Print(Warn.window);
+  refresh();
+}
+
+void QManager::AddVmWindow::Enable_color() {
+  init_pair(1, COLOR_BLACK, COLOR_WHITE);
+  wbkgd(window, COLOR_PAIR(1));
+}
+
+void QManager::AddVmWindow::Gen_mac_address(
+  struct guest_t<std::string> &guest, uint32_t int_count, std::string vm_name
+) {
+  last_mac = std::stol(v_last_mac[0]);
+  ifaces = gen_mac_addr(last_mac, int_count, vm_name);
+
+  itm = ifaces.end();
+  --itm;
+  s_last_mac = itm->second;
+
+  its = std::remove(s_last_mac.begin(), s_last_mac.end(), ':');
+  s_last_mac.erase(its, s_last_mac.end());
+
+  last_mac = std::stol(s_last_mac, 0, 16);
+
+  guest.ints.clear();
+  for(auto &ifs : ifaces) {
+    guest.ints += ifs.first + "=" + ifs.second + ";";
   }
 }
 
@@ -644,6 +697,148 @@ void QManager::EditVmWindow::Print() {
   }
   curs_set(0);
 
+}
+
+QManager::CloneVmWindow::CloneVmWindow(
+  const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
+  int height, int width, int starty, int startx
+) : AddVmWindow(dbf, vmdir, height, width, starty, startx) {
+    vm_name_ = vm_name;
+
+    field.resize(2);
+}
+
+void QManager::CloneVmWindow::Create_fields() {
+  field[0] = new_field(1, 20, 2, 1, 0, 0);
+  field[field.size() - 1] = NULL;
+}
+
+void QManager::CloneVmWindow::Config_fields() {
+  char cname[64];
+  snprintf(cname, sizeof(cname), "%s%s", vm_name_.c_str(), "_");
+  set_field_type(field[0], TYPE_ALNUM, 0);
+  set_field_buffer(field[0], 0, cname);
+  set_field_status(field[0], false);
+}
+
+void QManager::CloneVmWindow::Print_fields_names() {
+  mvwaddstr(window, 2, 12, (_("Clone ") + vm_name_).c_str());
+  mvwaddstr(window, 4, 2, _("Name"));
+}
+
+void QManager::CloneVmWindow::Get_data_from_form() {
+  guest_new.name.assign(trim_field_buffer(field_buffer(field[0], 0)));
+}
+
+void QManager::CloneVmWindow::Get_data_from_db() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  sql_query = "select mac from vms where name='" + vm_name_ + "'";
+  guest_old.ints = db->SelectQuery(sql_query);
+
+  sql_query = "select mac from lastval";
+  v_last_mac = db->SelectQuery(sql_query);
+
+  sql_query = "select vnc from lastval";
+  v_last_vnc = db->SelectQuery(sql_query);
+
+  sql_query = "select id from vms where name='" + guest_new.name + "'";
+  v_name = db->SelectQuery(sql_query);
+
+  sql_query = "select hdd from vms where name='" + vm_name_ + "'";
+  guest_old.disk = db->SelectQuery(sql_query);
+
+  last_vnc = std::stoi(v_last_vnc[0]);
+  last_vnc++;
+}
+
+void QManager::CloneVmWindow::Update_db_data() {
+  const std::array<std::string, 8> columns = {
+    "mem", "smp", "kvm",
+    "arch", "iso", "install",
+    "usb", "usbid"
+  };
+
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  sql_query = "insert into vms(name) values('" + guest_new.name + "')";
+  db->ActionQuery(sql_query);
+
+  sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
+  db->ActionQuery(sql_query);
+
+  sql_query = "update lastval set vnc='" + std::to_string(last_vnc) + "'";
+  db->ActionQuery(sql_query);
+
+  for(auto &c : columns) {
+    sql_query = "update vms set " + c + "=(select " + c + " from vms where name='" +
+    vm_name_ + "') where name='" + guest_new.name + "'";
+    db->ActionQuery(sql_query);
+  }
+
+  sql_query = "update vms set mac='" + guest_new.ints +
+    "' where name='" + guest_new.name + "'";
+  db->ActionQuery(sql_query);
+
+  sql_query = "update vms set vnc='" + std::to_string(last_vnc) +
+    "' where name='" + guest_new.name + "'";
+  db->ActionQuery(sql_query);
+
+  sql_query = "update vms set hdd='" + guest_new.disk +
+    "' where name='" + guest_new.name + "'";
+  db->ActionQuery(sql_query);
+}
+
+void QManager::CloneVmWindow::Gen_hdd() {
+  MapString disk = Gen_map_from_str(guest_old.disk[0]);
+
+  guest_dir = vmdir_ + "/" + guest_new.name;
+  create_guest_dir_cmd = "mkdir " + guest_dir;
+
+  system(create_guest_dir_cmd.c_str());
+
+  for(auto &hd : disk) {
+    guest_new.disk += guest_new.name + ".img=" + hd.second + ";";
+    create_img_cmd = "cp " + vmdir_ + "/" + vm_name_ +
+      "/" + hd.first + " " + vmdir_ + "/" + guest_new.name +
+      + "/" + guest_new.name + ".img";
+
+    system(create_img_cmd.c_str());
+  }
+}
+
+void QManager::CloneVmWindow::Print() {
+  finish.store(false);
+
+  try {
+    Draw_title();
+    Create_fields();
+    Enable_color();
+    Config_fields();
+    Post_form(10);
+    Print_fields_names();
+    Draw_form();
+
+    Get_data_from_form();
+    Get_data_from_db();
+
+    if(! v_name.empty())
+      throw QMException(_("This name is already used"));
+
+    std::thread spin_thr(spinner, 7, 35);
+
+    Gen_mac_address(guest_new, Gen_map_from_str(guest_old.ints[0]).size(), guest_new.name);
+
+    Gen_hdd();
+    Update_db_data();
+    finish.store(true);
+    spin_thr.join();
+
+    Delete_form();
+  }
+  catch (QMException &err) {
+    ExeptionExit(err);
+  }
 }
 
 void QManager::HelpWindow::Print() {

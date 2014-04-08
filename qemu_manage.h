@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 #include <map>
+#include <atomic>
 #include <form.h>
 #include <ncursesw/ncurses.h>
 #include <sqlite3.h>
@@ -15,6 +16,7 @@
 #define _(str) gettext(str)
 
 namespace QManager {
+  extern std::atomic<bool> finish;
 
   typedef std::vector<std::string> VectorString;
   typedef std::map<std::string, std::string> MapString;
@@ -69,6 +71,7 @@ namespace QManager {
   MapString gen_mac_addr(uint64_t &mac, uint32_t &int_num, std::string &vm_name);
   MapString Gen_map_from_str(const std::string &str);
   bool check_root();
+  void spinner(uint32_t, uint32_t);
 
   void start_guest(
     const std::string &vm_name, const std::string &dbf, const std::string &vmdir
@@ -78,6 +81,16 @@ namespace QManager {
   );
   void connect_guest(const std::string &vm_name, const std::string &dbf);
   void kill_guest(const std::string &vm_name);
+
+  class QMException : public std::exception {
+    public:
+      QMException(const std::string &m) : msg(m) {}
+      ~QMException() throw() {}
+      const char* what() const throw() { return msg.c_str(); }
+
+    private:
+      std::string msg;
+  };
 
   class TemplateWindow {
     public:
@@ -140,6 +153,13 @@ namespace QManager {
     protected:
       void Delete_form();
       void Draw_form();
+      void Draw_title();
+      void Enable_color();
+      void Post_form(uint32_t size);
+      void ExeptionExit(QMException &err);
+      void Gen_mac_address(
+        struct guest_t<std::string> &guest, uint32_t int_count, std::string vm_name
+      );
 
       std::string sql_query, s_last_mac,
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd;
@@ -188,6 +208,28 @@ namespace QManager {
       std::string msg_;
       WINDOW *window_;
       int ch_;
+  };
+
+  class CloneVmWindow : public AddVmWindow {
+    public:
+      CloneVmWindow(
+        const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
+        int height, int width, int starty = 3, int startx = 3
+      );
+      void Print();
+
+    private:
+      void Create_fields();
+      void Config_fields();
+      void Print_fields_names();
+      void Get_data_from_form();
+      void Get_data_from_db();
+      void Gen_hdd();
+      void Update_db_data();
+
+      std::string vm_name_;
+      guest_t<VectorString> guest_old;
+      guest_t<std::string> guest_new;
   };
 
   class MenuList {
@@ -272,16 +314,6 @@ namespace QManager {
       VectorString sql;
       int dbexec;
       char *zErrMsg;
-  };
-
-  class QMException : public std::exception {
-    public:
-      QMException(const std::string &m) : msg(m) {}
-      ~QMException() throw() {}
-      const char* what() const throw() { return msg.c_str(); }
-
-    private:
-      std::string msg;
   };
 
 } // namespace QManager
