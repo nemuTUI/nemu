@@ -81,6 +81,7 @@ namespace QManager {
       if(finish)
         break;
 
+      curs_set(0);
       mvaddch(pos_x, pos_y, spin_chars[i & 3]);
       refresh();
       usleep(100000);
