@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 #include <map>
+#include <atomic>
 #include <form.h>
 #include <ncursesw/ncurses.h>
 #include <sqlite3.h>
@@ -15,6 +16,7 @@
 #define _(str) gettext(str)
 
 namespace QManager {
+  extern std::atomic<bool> finish;
 
   typedef std::vector<std::string> VectorString;
   typedef std::map<std::string, std::string> MapString;
@@ -69,6 +71,7 @@ namespace QManager {
   MapString gen_mac_addr(uint64_t &mac, uint32_t &int_num, std::string &vm_name);
   MapString Gen_map_from_str(const std::string &str);
   bool check_root();
+  void spinner(uint32_t, uint32_t);
 
   void start_guest(
     const std::string &vm_name, const std::string &dbf, const std::string &vmdir

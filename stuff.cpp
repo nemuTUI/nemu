@@ -71,3 +71,19 @@ void QManager::err_exit(const char *msg, const std::string &err) {
   endwin();
   exit(1);
 }
+
+namespace QManager {
+  std::atomic<bool> finish(false);
+
+  void spinner(uint32_t pos_x, uint32_t pos_y) {
+    static char const spin_chars[] ="/-\\|";
+    for(uint32_t i = 0 ;; i++) {
+      if(finish)
+        break;
+
+      mvaddch(pos_x, pos_y, spin_chars[i & 3]);
+      refresh();
+      usleep(100000);
+    }
+  }
+}

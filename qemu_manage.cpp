@@ -256,6 +256,9 @@ int main(int argc, char **argv) {
               std::unique_ptr<CloneVmWindow> clone_window(new CloneVmWindow(dbf, vmdir, guest, 7, 35));
               clone_window->Init();
               clone_window->Print();
+
+              // Exit from loop to reread guests
+              break;
             }
           }
 

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <memory>
 #include <array>
+#include <thread>
 
 #include "qemu_manage.h"
 
@@ -741,6 +742,9 @@ void QManager::CloneVmWindow::Get_data_from_db() {
   sql_query = "select vnc from lastval";
   v_last_vnc = db->SelectQuery(sql_query);
 
+  sql_query = "select id from vms where name='" + guest_new.name + "'";
+  v_name = db->SelectQuery(sql_query);
+
   last_vnc = std::stoi(v_last_vnc[0]);
   last_vnc++;
 }
@@ -779,6 +783,8 @@ void QManager::CloneVmWindow::Update_db_data() {
 }
 
 void QManager::CloneVmWindow::Print() {
+  finish.store(false);
+
   try {
     Draw_title();
     Create_fields();
@@ -789,16 +795,18 @@ void QManager::CloneVmWindow::Print() {
     Draw_form();
 
     Get_data_from_form();
-
-    if(field_status(field[0])) {
-      if(guest_new.name == vm_name_)
-        throw QMException(_("This name is already used"));
-    }
-
     Get_data_from_db();
+
+    if(! v_name.empty())
+      throw QMException(_("This name is already used"));
+
+    std::thread spin_thr(spinner, 7, 35);
+
     Gen_mac_address(guest_new, Gen_map_from_str(guest_old.ints[0]).size(), guest_new.name);
 
     Update_db_data();
+    finish.store(true);
+    spin_thr.join();
 
     Delete_form();
   }
