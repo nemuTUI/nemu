@@ -229,8 +229,22 @@ void QManager::AddVmWindow::Create_fields() {
   field[field.size() - 1] = NULL;
 }
 
+void QManager::AddVmWindow::Config_fields() {
+  char clvnc[128];
+  snprintf(clvnc, sizeof(clvnc), "%u", last_vnc);
+
+  set_field_buffer(field[2], 0, "1");
+  set_field_buffer(field[5], 0, clvnc);
+  set_field_buffer(field[8], 0, "1");
+  field_opts_off(field[0], O_STATIC);
+  field_opts_off(field[7], O_STATIC);
+  field_opts_off(field[10], O_STATIC);
+  field_opts_off(field[5], O_EDIT);
+  set_max_field(field[0], 30);
+}
+
 void QManager::AddVmWindow::Print() {
-  char clvnc[128], ccpu[128], cmem[128], cfree[128];
+  char ccpu[128], cmem[128], cfree[128];
 
   const char *YesNo[] = {
     "yes","no", NULL
@@ -300,26 +314,12 @@ void QManager::AddVmWindow::Print() {
     delete [] ArchList;
     delete [] UdevList;
 
-    snprintf(clvnc, sizeof(clvnc), "%u", last_vnc);
     snprintf(ccpu, sizeof(ccpu), "%s%u%s", "CPU cores [1-", cpu_count(), "]");
     snprintf(cmem, sizeof(cmem), "%s%u%s", "Memory [64-", total_memory(), "]Mb");
     snprintf(cfree, sizeof(cfree), "%s%u%s", "Disk [1-", disk_free(vmdir_), "]Gb");
 
-    set_field_buffer(field[2], 0, "1");
-    set_field_buffer(field[5], 0, clvnc);
-    set_field_buffer(field[8], 0, "1");
-    field_opts_off(field[0], O_STATIC);
-    field_opts_off(field[7], O_STATIC);
-    field_opts_off(field[10], O_STATIC);
-    field_opts_off(field[5], O_EDIT);
-    set_max_field(field[0], 30);
-
-    form = new_form(&field[0]);
-    scale_form(form, &row, &col);
-    set_form_win(form, window);
-    set_form_sub(form, derwin(window, row, col, 2, 21));
-    box(window, 0, 0);
-    post_form(form);
+    Config_fields();
+    Post_form(21);
 
     mvwaddstr(window, 2, 2, "Name");
     mvwaddstr(window, 4, 2, "Architecture");
