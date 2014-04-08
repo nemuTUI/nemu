@@ -745,13 +745,16 @@ void QManager::CloneVmWindow::Get_data_from_db() {
   sql_query = "select id from vms where name='" + guest_new.name + "'";
   v_name = db->SelectQuery(sql_query);
 
+  sql_query = "select hdd from vms where name='" + vm_name_ + "'";
+  guest_old.disk = db->SelectQuery(sql_query);
+
   last_vnc = std::stoi(v_last_vnc[0]);
   last_vnc++;
 }
 
 void QManager::CloneVmWindow::Update_db_data() {
-  const std::array<std::string, 9> columns = {
-    "mem", "smp", "hdd", "kvm",
+  const std::array<std::string, 8> columns = {
+    "mem", "smp", "kvm",
     "arch", "iso", "install",
     "usb", "usbid"
   };
@@ -780,6 +783,17 @@ void QManager::CloneVmWindow::Update_db_data() {
   sql_query = "update vms set vnc='" + std::to_string(last_vnc) +
     "' where name='" + guest_new.name + "'";
   db->ActionQuery(sql_query);
+
+  sql_query = "update vms set hdd='" + guest_new.disk +
+    "' where name='" + guest_new.name + "'";
+  db->ActionQuery(sql_query);
+}
+
+void QManager::CloneVmWindow::Gen_hdd() {
+  MapString disk = Gen_map_from_str(guest_old.disk[0]);
+  for(auto &hd : disk) {
+    guest_new.disk += guest_new.name + ".img=" + hd.second + ";";
+  }
 }
 
 void QManager::CloneVmWindow::Print() {
@@ -804,6 +818,7 @@ void QManager::CloneVmWindow::Print() {
 
     Gen_mac_address(guest_new, Gen_map_from_str(guest_old.ints[0]).size(), guest_new.name);
 
+    Gen_hdd();
     Update_db_data();
     finish.store(true);
     spin_thr.join();

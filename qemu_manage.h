@@ -224,6 +224,7 @@ namespace QManager {
       void Print_fields_names();
       void Get_data_from_form();
       void Get_data_from_db();
+      void Gen_hdd();
       void Update_db_data();
 
       std::string vm_name_;
