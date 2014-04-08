@@ -231,11 +231,7 @@ void QManager::AddVmWindow::Print() {
     VectorString q_arch(list_arch());
     MapString u_dev(list_usb());
 
-    clear();
-    border(0,0,0,0,0,0,0,0);
-    mvprintw(1, 1, "F10 - finish, F2 - save");
-    refresh();
-    curs_set(1);
+    Draw_title();
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
     sql_query = "select vnc from lastval";
