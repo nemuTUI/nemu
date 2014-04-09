@@ -163,19 +163,14 @@ namespace QManager {
 
       std::string sql_query, s_last_mac,
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd;
-
       uint32_t last_vnc, ui_vm_ints;
       uint64_t last_mac;
-
       VectorString v_last_vnc, v_last_mac, v_name;
       MapString ifaces;
-
       MapString::iterator itm;
       std::string::iterator its;
-
       FORM *form;
       std::vector<FIELD*> field;
-
       int ch, cmd_exit_status;
 
     private:
@@ -183,6 +178,10 @@ namespace QManager {
       void Config_fields();
       void Print_fields_names();
       void Get_data_from_form();
+      void Get_data_from_db();
+      void Update_db_data();
+      void Gen_hdd();
+      void Check_input_data();
 
       guest_t<std::string> guest;
   };

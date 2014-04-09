@@ -276,6 +276,86 @@ void QManager::AddVmWindow::Get_data_from_form() {
   guest.usbd.assign(trim_field_buffer(field_buffer(field[10], 0)));
 }
 
+void QManager::AddVmWindow::Get_data_from_db() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+  sql_query = "select vnc from lastval";
+  v_last_vnc = db->SelectQuery(sql_query); // TODO: add check if null exeption
+
+  sql_query = "select mac from lastval";
+  v_last_mac = db->SelectQuery(sql_query); // TODO: add check if null exeption
+
+  sql_query = "select id from vms where name='" + guest.name + "'";
+  v_name = db->SelectQuery(sql_query);
+
+  last_mac = std::stol(v_last_mac[0]);
+  last_vnc = std::stoi(v_last_vnc[0]);
+  last_vnc++;
+}
+
+void QManager::AddVmWindow::Update_db_data() {
+  guest.disk = guest.name + ".img=" + guest.disk + ";";
+  guest.kvmf == "yes" ? guest.kvmf = "1" : guest.kvmf = "0";
+
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
+  db->ActionQuery(sql_query);
+
+  sql_query = "update lastval set vnc='" + std::to_string(last_vnc) + "'";
+  db->ActionQuery(sql_query);
+
+  // Add guest to database
+  sql_query = "insert into vms("
+  "name, mem, smp, hdd, kvm, vnc, mac, arch, iso, install, usb, usbid"
+  ") values('"
+  + guest.name + "', '" + guest.memo + "', '" + guest.cpus + "', '"
+  + guest.disk + "', '" + guest.kvmf + "', '" + guest.vncp + "', '"
+  + guest.ints + "', '" + guest.arch + "', '" + guest.path + "', '1', '"
+  + guest.usbp + "', '" + guest.usbd + "')";
+
+  db->ActionQuery(sql_query);
+}
+
+void QManager::AddVmWindow::Gen_hdd() {
+  guest_dir = vmdir_ + "/" + guest.name;
+  create_guest_dir_cmd = "mkdir " + guest_dir + " >/dev/null 2>&1";
+  create_img_cmd = "qemu-img create -f qcow2 " + guest_dir
+  + "/" + guest.name + ".img " + guest.disk + "G > /dev/null 2>&1";
+
+  cmd_exit_status = system(create_guest_dir_cmd.c_str());
+
+  if(cmd_exit_status != 0) {
+    Delete_form();
+    throw QMException("Can't create guest dir");
+  }
+
+  cmd_exit_status = system(create_img_cmd.c_str());
+
+  if(cmd_exit_status != 0) {
+    Delete_form();
+    throw QMException("Can't create img file");
+  }
+}
+
+void QManager::AddVmWindow::Check_input_data() {
+  if(guest.usbp == "yes") {
+    for(size_t i = 0; i < 11; ++i) {
+      if(! field_status(field[i])) {
+        Delete_form();
+        throw QMException("Must fill all params");
+      }
+    }
+  }
+  else {
+    for(size_t i = 0; i < 9; ++i) {
+      if(! field_status(field[i])) {
+        Delete_form();
+        throw QMException("Must fill all params");
+      }
+    }
+  }
+}
+
 void QManager::AddVmWindow::Print() {
   const char *YesNo[] = {
     "yes","no", NULL
@@ -286,16 +366,7 @@ void QManager::AddVmWindow::Print() {
     MapString u_dev(list_usb());
 
     Draw_title();
-
-    std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
-    sql_query = "select vnc from lastval";
-    v_last_vnc = db->SelectQuery(sql_query); // TODO: add check if null exeption
-    sql_query = "select mac from lastval";
-    v_last_mac = db->SelectQuery(sql_query); // TODO: add check if null exeption
-
-    last_mac = std::stol(v_last_mac[0]);
-    last_vnc = std::stoi(v_last_vnc[0]);
-    last_vnc++;
+    Get_data_from_db();
 
     Enable_color();
     Create_fields();
@@ -351,72 +422,16 @@ void QManager::AddVmWindow::Print() {
     Draw_form();
     Get_data_from_form();
 
-    // Check all the necessary parametrs are filled.
-    if(guest.usbp == "yes") {
-      for(size_t i = 0; i < 11; ++i) {
-        if(! field_status(field[i])) {
-          Delete_form();
-          throw QMException("Must fill all params");
-        }
-      }
-    }
-    else {
-      for(size_t i = 0; i < 9; ++i) {
-        if(! field_status(field[i])) {
-          Delete_form();
-          throw QMException("Must fill all params");
-        }
-      }
-    }
+    Check_input_data();
+    Get_data_from_db();
 
-    // Check if guest name is already taken
-    sql_query = "select id from vms where name='" + guest.name + "'";
-    v_name = db->SelectQuery(sql_query);
     if(! v_name.empty()) {
       Delete_form();
       throw QMException("This name is already used");
     }
 
-    // Create img file for guest
-    guest_dir = vmdir_ + "/" + guest.name;
-    create_guest_dir_cmd = "mkdir " + guest_dir + " >/dev/null 2>&1";
-    create_img_cmd = "qemu-img create -f qcow2 " + guest_dir
-    + "/" + guest.name + ".img " + guest.disk + "G > /dev/null 2>&1";
-
-    cmd_exit_status = system(create_guest_dir_cmd.c_str());
-
-    if(cmd_exit_status != 0) {
-      Delete_form();
-      throw QMException("Can't create guest dir");
-    }
-
-    cmd_exit_status = system(create_img_cmd.c_str());
-
-    if(cmd_exit_status != 0) {
-      Delete_form();
-      throw QMException("Can't create img file");
-    }
-
-    // Generate mac address for interfaces
-    ui_vm_ints = std::stoi(guest.ints);
-    ifaces = gen_mac_addr(last_mac, ui_vm_ints, guest.name);
-
-    //Get last mac address and put it into database
-    itm = ifaces.end();
-    --itm;
-    s_last_mac = itm->second;
-
-    its = std::remove(s_last_mac.begin(), s_last_mac.end(), ':');
-    s_last_mac.erase(its, s_last_mac.end());
-
-    last_mac = std::stol(s_last_mac, 0, 16);
-
-    sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
-    db->ActionQuery(sql_query);
-
-    // Update last vnc port in database
-    sql_query = "update lastval set vnc='" + std::to_string(last_vnc) + "'";
-    db->ActionQuery(sql_query);
+    Gen_hdd();
+    Gen_mac_address(guest, std::stoi(guest.ints), guest.name);
 
     // Get usb dev ID from user choice
     if(guest.usbp == "yes") {
@@ -428,28 +443,7 @@ void QManager::AddVmWindow::Print() {
       guest.usbd = "none";
     }
 
-    // Gen qemu img name and kvm status
-    guest.disk = guest.name + ".img=" + guest.disk + ";";
-    guest.kvmf == "yes" ? guest.kvmf = "1" : guest.kvmf = "0";
-
-    // Convert interfaces from MapString to string
-    guest.ints.clear();
-    for(auto &ifs : ifaces) {
-      guest.ints += ifs.first + "=" + ifs.second + ";";
-    }
-
-    // Add guest to database
-    sql_query = "insert into vms("
-    "name, mem, smp, hdd, kvm, vnc, mac, arch, iso, install, usb, usbid"
-    ") values('"
-    + guest.name + "', '" + guest.memo + "', '" + guest.cpus + "', '"
-    + guest.disk + "', '" + guest.kvmf + "', '" + guest.vncp + "', '"
-    + guest.ints + "', '" + guest.arch + "', '" + guest.path + "', '1', '"
-    + guest.usbp + "', '" + guest.usbd + "')";
-
-    db->ActionQuery(sql_query);
-
-    // End
+    Update_db_data();
     Delete_form();
   }
   catch (QMException &err) {
