@@ -195,9 +195,17 @@ namespace QManager {
       void Print();
 
     private:
+      void Create_fields();
+      void Config_fields(const char **);
+      void Print_fields_names();
+      void Get_data_from_form();
+      void Get_data_from_db();
+      void Update_db_data();
+      void Gen_hdd();
+      void Check_input_data();
+
       guest_t<VectorString> guest_old;
       guest_t<std::string> guest_new;
-
       std::string vm_name_;
       uint32_t ints_count;
   };

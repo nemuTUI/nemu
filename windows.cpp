@@ -461,8 +461,41 @@ QManager::EditVmWindow::EditVmWindow(
     field.resize(7);
 }
 
+void QManager::EditVmWindow::Create_fields() {
+  for(size_t i = 0; i < field.size() - 1; ++i) {
+    field[i] = new_field(1, 35, (i+1)*2, 1, 0, 0);
+    set_field_back(field[i], A_UNDERLINE);
+  }
+
+  field[field.size() - 1] = NULL;
+}
+
+void QManager::EditVmWindow::Config_fields(const char **YesNo) {
+  char cints[64];
+  snprintf(cints, sizeof(cints), "%u", ints_count);
+
+  set_field_buffer(field[0], 0, guest_old.cpus[0].c_str());
+  set_field_buffer(field[1], 0, guest_old.memo[0].c_str());
+  set_field_buffer(field[3], 0, cints);
+
+  if(guest_old.kvmf[0] == "1")
+    set_field_buffer(field[2], 0, YesNo[0]);
+  else
+    set_field_buffer(field[2], 0, YesNo[1]);
+
+  if(guest_old.usbp[0] == "1")
+    set_field_buffer(field[4], 0, YesNo[0]);
+  else
+    set_field_buffer(field[4], 0, YesNo[1]);
+
+  field_opts_off(field[5], O_STATIC);
+
+  for(size_t i = 0; i < 5; ++i)
+    set_field_status(field[i], false);
+}
+
 void QManager::EditVmWindow::Print() {
-  char ccpu[128], cmem[128], cints[64]; 
+  char ccpu[128], cmem[128];
 
   const char *YesNo[] = {
     "yes","no", NULL
@@ -471,15 +504,11 @@ void QManager::EditVmWindow::Print() {
   try {
     MapString u_dev(list_usb());
 
-    clear();
-    border(0,0,0,0,0,0,0,0);
-    mvprintw(1, 1, "F10 - finish, F2 - save");
-    refresh();
-    curs_set(1);
+    Draw_title();
 
     // Get guest parametrs
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
-   
+
     sql_query = "select smp from vms where name='" + vm_name_ + "'";
     guest_old.cpus = db->SelectQuery(sql_query);
 
@@ -494,21 +523,13 @@ void QManager::EditVmWindow::Print() {
 
     sql_query = "select mac from vms where name='" + vm_name_ + "'";
     guest_old.ints = db->SelectQuery(sql_query);
-    
+
     // Get interface count
     ifaces = Gen_map_from_str(guest_old.ints[0]);
     ints_count = ifaces.size();
 
-    // Create fields
-    for(size_t i = 0; i < field.size() - 1; ++i) {
-      field[i] = new_field(1, 35, (i+1)*2, 1, 0, 0);
-      set_field_back(field[i], A_UNDERLINE);
-    }
-
-    field[field.size() - 1] = NULL;
-
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
+    Enable_color();
+    Create_fields();
 
     char **UdevList = new char *[u_dev.size() + 1];
 
@@ -537,11 +558,12 @@ void QManager::EditVmWindow::Print() {
 
     delete [] UdevList;
 
-    snprintf(cints, sizeof(cints), "%u", ints_count);
+    //snprintf(cints, sizeof(cints), "%u", ints_count);
     snprintf(ccpu, sizeof(ccpu), "%s%u%s", "CPU cores [1-", cpu_count(), "]");
     snprintf(cmem, sizeof(cmem), "%s%u%s", "Memory [64-", total_memory(), "]Mb");
 
-    set_field_buffer(field[0], 0, guest_old.cpus[0].c_str());
+    Config_fields(YesNo);
+    /*set_field_buffer(field[0], 0, guest_old.cpus[0].c_str());
     set_field_buffer(field[1], 0, guest_old.memo[0].c_str());
     set_field_buffer(field[3], 0, cints);
 
@@ -558,7 +580,7 @@ void QManager::EditVmWindow::Print() {
     field_opts_off(field[5], O_STATIC);
 
     for(size_t i = 0; i < 5; ++i)
-      set_field_status(field[i], false);
+      set_field_status(field[i], false);*/
 
     form = new_form(&field[0]);
     scale_form(form, &row, &col);
