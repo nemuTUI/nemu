@@ -494,9 +494,31 @@ void QManager::EditVmWindow::Config_fields(const char **YesNo) {
     set_field_status(field[i], false);
 }
 
-void QManager::EditVmWindow::Print() {
+void QManager::EditVmWindow::Get_data_from_form() {
+  guest_new.cpus.assign(trim_field_buffer(field_buffer(field[0], 0)));
+  guest_new.memo.assign(trim_field_buffer(field_buffer(field[1], 0)));
+  guest_new.kvmf.assign(trim_field_buffer(field_buffer(field[2], 0)));
+  guest_new.ints.assign(trim_field_buffer(field_buffer(field[3], 0)));
+  guest_new.usbp.assign(trim_field_buffer(field_buffer(field[4], 0)));
+  guest_new.usbd.assign(trim_field_buffer(field_buffer(field[5], 0)));
+}
+
+void QManager::EditVmWindow::Print_fields_names() {
   char ccpu[128], cmem[128];
 
+  snprintf(ccpu, sizeof(ccpu), "%s%u%s", "CPU cores [1-", cpu_count(), "]");
+  snprintf(cmem, sizeof(cmem), "%s%u%s", "Memory [64-", total_memory(), "]Mb");
+
+  mvwaddstr(window, 2, 22, (vm_name_ + " settings:").c_str());
+  mvwaddstr(window, 4, 2, ccpu);
+  mvwaddstr(window, 6, 2, cmem);
+  mvwaddstr(window, 8, 2, "KVM [yes/no]");
+  mvwaddstr(window, 10, 2, "Interfaces");
+  mvwaddstr(window, 12, 2, "USB [yes/no]");
+  mvwaddstr(window, 14, 2, "USB device");
+}
+
+void QManager::EditVmWindow::Print() {
   const char *YesNo[] = {
     "yes","no", NULL
   };
@@ -558,55 +580,20 @@ void QManager::EditVmWindow::Print() {
 
     delete [] UdevList;
 
-    //snprintf(cints, sizeof(cints), "%u", ints_count);
-    snprintf(ccpu, sizeof(ccpu), "%s%u%s", "CPU cores [1-", cpu_count(), "]");
-    snprintf(cmem, sizeof(cmem), "%s%u%s", "Memory [64-", total_memory(), "]Mb");
-
     Config_fields(YesNo);
-    /*set_field_buffer(field[0], 0, guest_old.cpus[0].c_str());
-    set_field_buffer(field[1], 0, guest_old.memo[0].c_str());
-    set_field_buffer(field[3], 0, cints);
-
-    if(guest_old.kvmf[0] == "1")
-      set_field_buffer(field[2], 0, YesNo[0]);
-    else
-      set_field_buffer(field[2], 0, YesNo[1]);
-
-    if(guest_old.usbp[0] == "1")
-      set_field_buffer(field[4], 0, YesNo[0]);
-    else
-      set_field_buffer(field[4], 0, YesNo[1]);
-       
-    field_opts_off(field[5], O_STATIC);
-
-    for(size_t i = 0; i < 5; ++i)
-      set_field_status(field[i], false);*/
-
-    form = new_form(&field[0]);
-    scale_form(form, &row, &col);
-    set_form_win(form, window);
-    set_form_sub(form, derwin(window, row, col, 2, 21));
-    box(window, 0, 0);
-    post_form(form);
-
-    mvwaddstr(window, 2, 22, (vm_name_ + " settings:").c_str());
-    mvwaddstr(window, 4, 2, ccpu);
-    mvwaddstr(window, 6, 2, cmem);
-    mvwaddstr(window, 8, 2, "KVM [yes/no]");
-    mvwaddstr(window, 10, 2, "Interfaces");
-    mvwaddstr(window, 12, 2, "USB [yes/no]");
-    mvwaddstr(window, 14, 2, "USB device");
-
+    Post_form(21);
+    Print_fields_names();
     Draw_form();
+    Get_data_from_form();
 
     // Get variables from form buffer
-    guest_new.cpus.assign(trim_field_buffer(field_buffer(field[0], 0)));
+/*    guest_new.cpus.assign(trim_field_buffer(field_buffer(field[0], 0)));
     guest_new.memo.assign(trim_field_buffer(field_buffer(field[1], 0)));
     guest_new.kvmf.assign(trim_field_buffer(field_buffer(field[2], 0)));
     guest_new.ints.assign(trim_field_buffer(field_buffer(field[3], 0)));
     guest_new.usbp.assign(trim_field_buffer(field_buffer(field[4], 0)));
     guest_new.usbd.assign(trim_field_buffer(field_buffer(field[5], 0)));
-
+*/
     /* Update cpu settings */
     if(field_status(field[0])) {
       sql_query = "update vms set smp='" + guest_new.cpus +
@@ -697,15 +684,10 @@ void QManager::EditVmWindow::Print() {
       }
     }
 
-    // End
     Delete_form();
   }
   catch (QMException &err) {
-    curs_set(0);
-    PopupWarning Warn(err.what(), 3, 30, 4, 20);
-    Warn.Init();
-    Warn.Print(Warn.window);
-    refresh();
+    ExeptionExit(err);
   }
   curs_set(0);
 
