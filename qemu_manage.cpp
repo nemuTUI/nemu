@@ -19,10 +19,10 @@ static const std::string sql_list_vm = "select name from vms order by name asc";
 #define CHOICES_NUM 2
 #endif
 static const std::array<std::string, CHOICES_NUM> choices = {
-  _("Manage qemu VM"),
-  _("Add qemu VM"),
+  "Manage qemu VM",
+  "Add qemu VM",
 #ifdef ENABLE_OPENVSWITCH
-  _("Show network map")
+  "Show network map"
 #endif
 };
 #undef CHOICES_NUM
