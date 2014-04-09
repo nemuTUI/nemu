@@ -1,5 +1,3 @@
-#include <fstream> // debug
-#include <iostream> // debug
 #include <cstring>
 #include <algorithm>
 #include <memory>
@@ -7,6 +5,12 @@
 #include <thread>
 
 #include "qemu_manage.h"
+
+static const char *YesNo[3] = {
+  "yes","no", NULL
+};
+
+static const QManager::VectorString q_arch = QManager::list_arch();
 
 QManager::TemplateWindow::TemplateWindow(int height, int width, int starty, int startx) {
   height_ = height;
@@ -229,7 +233,54 @@ void QManager::AddVmWindow::Create_fields() {
   field[field.size() - 1] = NULL;
 }
 
-void QManager::AddVmWindow::Config_fields() {
+void QManager::AddVmWindow::Config_fields_type() {
+  ArchList = new char *[q_arch.size() + 1];
+  UdevList = new char *[u_dev.size() + 1];
+
+  // Convert VectorString to *char
+  for(size_t i = 0; i < q_arch.size(); ++i) {
+    ArchList[i] = new char[q_arch[i].size() + 1];
+    memcpy(ArchList[i], q_arch[i].c_str(), q_arch[i].size() + 1);
+  }
+
+  // Convert MapString to *char
+  {
+    int i = 0;
+    for(auto &UList : u_dev) {
+      UdevList[i] = new char[UList.first.size() +1];
+      memcpy(UdevList[i], UList.first.c_str(), UList.first.size() + 1);
+      i++;
+    }
+  }
+
+  ArchList[q_arch.size()] = NULL;
+  UdevList[u_dev.size()] = NULL;
+
+  set_field_type(field[0], TYPE_ALNUM, 0);
+  set_field_type(field[1], TYPE_ENUM, ArchList, false, false);
+  set_field_type(field[2], TYPE_INTEGER, 0, 1, cpu_count());
+  set_field_type(field[3], TYPE_INTEGER, 0, 64, total_memory());
+  set_field_type(field[4], TYPE_INTEGER, 0, 1, disk_free(vmdir_));
+  set_field_type(field[5], TYPE_INTEGER, 0, 0, 65535);
+  set_field_type(field[6], TYPE_ENUM, (char **)YesNo, false, false);
+  set_field_type(field[7], TYPE_REGEXP, "^/.*");
+  set_field_type(field[8], TYPE_INTEGER, 0, 0, 64);
+  set_field_type(field[9], TYPE_ENUM, (char **)YesNo, false, false);
+  set_field_type(field[10], TYPE_ENUM, UdevList, false, false);
+
+  for(size_t i = 0; i < q_arch.size(); ++i) {
+    delete [] ArchList[i];
+  }
+
+  for(size_t i = 0; i < u_dev.size(); ++i) {
+    delete [] UdevList[i];
+  }
+
+  delete [] ArchList;
+  delete [] UdevList;
+}
+
+void QManager::AddVmWindow::Config_fields_buffer() {
   char clvnc[128];
   snprintf(clvnc, sizeof(clvnc), "%u", last_vnc);
 
@@ -293,6 +344,15 @@ void QManager::AddVmWindow::Get_data_from_db() {
 }
 
 void QManager::AddVmWindow::Update_db_data() {
+  if(guest.usbp == "yes") {
+    guest.usbp = "1";
+    guest.usbd = u_dev.at(guest.usbd);
+  }
+  else {
+    guest.usbp = "0";
+    guest.usbd = "none";
+  }
+
   guest.disk = guest.name + ".img=" + guest.disk + ";";
   guest.kvmf == "yes" ? guest.kvmf = "1" : guest.kvmf = "0";
 
@@ -357,71 +417,22 @@ void QManager::AddVmWindow::Check_input_data() {
 }
 
 void QManager::AddVmWindow::Print() {
-  const char *YesNo[] = {
-    "yes","no", NULL
-  };
+  finish.store(false);
 
   try {
-    VectorString q_arch(list_arch());
-    MapString u_dev(list_usb());
-
-    Draw_title();
-    Get_data_from_db();
+    u_dev = list_usb();
 
     Enable_color();
+    Draw_title();
+    Get_data_from_db();
     Create_fields();
-
-    char **ArchList = new char *[q_arch.size() + 1];
-    char **UdevList = new char *[u_dev.size() + 1];
-
-    // Convert VectorString to *char
-    for(size_t i = 0; i < q_arch.size(); ++i) {
-      ArchList[i] = new char[q_arch[i].size() + 1];
-      memcpy(ArchList[i], q_arch[i].c_str(), q_arch[i].size() + 1);
-    }
-
-    // Convert MapString to *char
-    {
-      int i = 0;
-      for(auto &UList : u_dev) {
-        UdevList[i] = new char[UList.first.size() +1];
-        memcpy(UdevList[i], UList.first.c_str(), UList.first.size() + 1);
-        i++;
-      }
-    }
-
-    ArchList[q_arch.size()] = NULL;
-    UdevList[u_dev.size()] = NULL;
-
-    set_field_type(field[0], TYPE_ALNUM, 0);
-    set_field_type(field[1], TYPE_ENUM, ArchList, false, false);
-    set_field_type(field[2], TYPE_INTEGER, 0, 1, cpu_count());
-    set_field_type(field[3], TYPE_INTEGER, 0, 64, total_memory());
-    set_field_type(field[4], TYPE_INTEGER, 0, 1, disk_free(vmdir_));
-    set_field_type(field[5], TYPE_INTEGER, 0, 0, 65535);
-    set_field_type(field[6], TYPE_ENUM, (char **)YesNo, false, false);
-    set_field_type(field[7], TYPE_REGEXP, "^/.*");
-    set_field_type(field[8], TYPE_INTEGER, 0, 0, 64);
-    set_field_type(field[9], TYPE_ENUM, (char **)YesNo, false, false);
-    set_field_type(field[10], TYPE_ENUM, UdevList, false, false);
-
-    for(size_t i = 0; i < q_arch.size(); ++i) {
-      delete [] ArchList[i];
-    }
-
-    for(size_t i = 0; i < u_dev.size(); ++i) {
-      delete [] UdevList[i];
-    }
-
-    delete [] ArchList;
-    delete [] UdevList;
-
-    Config_fields();
+    Config_fields_type();
+    Config_fields_buffer();
     Post_form(21);
     Print_fields_names();
     Draw_form();
-    Get_data_from_form();
 
+    Get_data_from_form();
     Check_input_data();
     Get_data_from_db();
 
@@ -430,20 +441,21 @@ void QManager::AddVmWindow::Print() {
       throw QMException("This name is already used");
     }
 
-    Gen_hdd();
-    Gen_mac_address(guest, std::stoi(guest.ints), guest.name);
+    std::thread spin_thr(spinner, 1, 25);
 
-    // Get usb dev ID from user choice
-    if(guest.usbp == "yes") {
-      guest.usbp = "1";
-      guest.usbd = u_dev.at(guest.usbd);
+    try {
+      Gen_hdd();
+      Gen_mac_address(guest, std::stoi(guest.ints), guest.name);
+      Update_db_data();
     }
-    else {
-      guest.usbp = "0";
-      guest.usbd = "none";
+    catch (...) {
+      finish.store(true);
+      spin_thr.join();
+      throw;
     }
 
-    Update_db_data();
+    finish.store(true);
+    spin_thr.join();
     Delete_form();
   }
   catch (QMException &err) {
@@ -470,7 +482,39 @@ void QManager::EditVmWindow::Create_fields() {
   field[field.size() - 1] = NULL;
 }
 
-void QManager::EditVmWindow::Config_fields(const char **YesNo) {
+void QManager::EditVmWindow::Config_fields_type() {
+  UdevList = new char *[u_dev.size() + 1];
+
+  // Convert MapString to *char
+  {
+    int i = 0;
+    for(auto &UList : u_dev) {
+      UdevList[i] = new char[UList.first.size() +1];
+      memcpy(UdevList[i], UList.first.c_str(), UList.first.size() + 1);
+      i++;
+    }
+  }
+
+  UdevList[u_dev.size()] = NULL;
+
+  set_field_type(field[0], TYPE_INTEGER, 0, 1, cpu_count());
+  set_field_type(field[1], TYPE_INTEGER, 0, 64, total_memory());
+  set_field_type(field[2], TYPE_ENUM, (char **)YesNo, false, false);
+  set_field_type(field[3], TYPE_INTEGER, 0, 0, 64);
+  set_field_type(field[4], TYPE_ENUM, (char **)YesNo, false, false);
+  set_field_type(field[5], TYPE_ENUM, UdevList, false, false);
+
+  for(size_t i = 0; i < u_dev.size(); ++i) {
+    delete [] UdevList[i];
+  }
+
+  delete [] UdevList;
+}
+
+void QManager::EditVmWindow::Config_fields_buffer() {
+  ifaces = Gen_map_from_str(guest_old.ints[0]);
+  ints_count = ifaces.size();
+
   char cints[64];
   snprintf(cints, sizeof(cints), "%u", ints_count);
 
@@ -518,179 +562,144 @@ void QManager::EditVmWindow::Print_fields_names() {
   mvwaddstr(window, 14, 2, "USB device");
 }
 
+void QManager::EditVmWindow::Get_data_from_db() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  sql_query = "select smp from vms where name='" + vm_name_ + "'";
+  guest_old.cpus = db->SelectQuery(sql_query);
+
+  sql_query = "select mem from vms where name='" + vm_name_ + "'";
+  guest_old.memo = db->SelectQuery(sql_query);
+
+  sql_query = "select kvm from vms where name='" + vm_name_ + "'";
+  guest_old.kvmf = db->SelectQuery(sql_query);
+
+  sql_query = "select usb from vms where name='" + vm_name_ + "'";
+  guest_old.usbp = db->SelectQuery(sql_query);
+
+  sql_query = "select mac from vms where name='" + vm_name_ + "'";
+  guest_old.ints = db->SelectQuery(sql_query);
+
+  sql_query = "select mac from lastval";
+  v_last_mac = db->SelectQuery(sql_query);
+}
+
+void QManager::EditVmWindow::Update_db_cpu_data() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  if(field_status(field[0])) {
+    sql_query = "update vms set smp='" + guest_new.cpus +
+      "' where name='" + vm_name_ + "'";
+    db->ActionQuery(sql_query);
+  }
+}
+
+void QManager::EditVmWindow::Update_db_mem_data() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  if(field_status(field[1])) {
+    sql_query = "update vms set mem='" + guest_new.memo +
+      "' where name='" + vm_name_ + "'";
+    db->ActionQuery(sql_query);
+  }
+}
+
+void QManager::EditVmWindow::Update_db_kvm_data() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  if(field_status(field[2])) {
+    if(guest_new.kvmf == "yes")
+      guest_new.kvmf = "1";
+    else
+      guest_new.kvmf = "0";
+
+    sql_query = "update vms set kvm='" + guest_new.kvmf +
+      "' where name='" + vm_name_ + "'";
+    db->ActionQuery(sql_query);
+  }
+}
+
+void QManager::EditVmWindow::Update_db_usb_data() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  if(field_status(field[4])) {
+    if(guest_new.usbp == "yes") {
+      if(! field_status(field[5])) {
+        Delete_form();
+        throw QMException(_("Usb device was not selected."));
+      }
+
+      guest_new.usbp = "1";
+      guest_new.usbd = u_dev.at(guest_new.usbd);
+    }
+    else {
+      guest_new.usbp = "0";
+      guest_new.usbd = "none";
+    }
+
+    sql_query = "update vms set usbid='" + guest_new.usbd +
+      "' where name='" + vm_name_ + "'";
+    db->ActionQuery(sql_query);
+
+    sql_query = "update vms set usb='" + guest_new.usbp +
+      "' where name='" + vm_name_ + "'";
+    db->ActionQuery(sql_query);
+  }
+}
+
+void QManager::EditVmWindow::Update_db_eth_data() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  if(field_status(field[3])) {
+    ui_vm_ints = std::stoi(guest_new.ints);
+
+    if(ui_vm_ints != ints_count) {
+      Gen_mac_address(guest_new, ui_vm_ints, vm_name_);
+
+      sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
+      db->ActionQuery(sql_query);
+
+      sql_query = "update vms set mac='" + guest_new.ints +
+        "' where name='" + vm_name_ + "'";
+      db->ActionQuery(sql_query);
+    }
+  }
+}
+
 void QManager::EditVmWindow::Print() {
-  const char *YesNo[] = {
-    "yes","no", NULL
-  };
+  finish.store(false);
 
   try {
-    MapString u_dev(list_usb());
-
-    Draw_title();
-
-    // Get guest parametrs
-    std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
-
-    sql_query = "select smp from vms where name='" + vm_name_ + "'";
-    guest_old.cpus = db->SelectQuery(sql_query);
-
-    sql_query = "select mem from vms where name='" + vm_name_ + "'";
-    guest_old.memo = db->SelectQuery(sql_query);
-
-    sql_query = "select kvm from vms where name='" + vm_name_ + "'";
-    guest_old.kvmf = db->SelectQuery(sql_query);
-
-    sql_query = "select usb from vms where name='" + vm_name_ + "'";
-    guest_old.usbp = db->SelectQuery(sql_query);
-
-    sql_query = "select mac from vms where name='" + vm_name_ + "'";
-    guest_old.ints = db->SelectQuery(sql_query);
-
-    // Get interface count
-    ifaces = Gen_map_from_str(guest_old.ints[0]);
-    ints_count = ifaces.size();
+    u_dev = list_usb();
 
     Enable_color();
+
+    Draw_title();
+    Get_data_from_db();
     Create_fields();
-
-    char **UdevList = new char *[u_dev.size() + 1];
-
-    // Convert MapString to *char
-    {
-      int i = 0;
-      for(auto &UList : u_dev) {
-        UdevList[i] = new char[UList.first.size() +1];
-        memcpy(UdevList[i], UList.first.c_str(), UList.first.size() + 1);
-        i++;
-      }
-    }
-
-    UdevList[u_dev.size()] = NULL;
-
-    set_field_type(field[0], TYPE_INTEGER, 0, 1, cpu_count());
-    set_field_type(field[1], TYPE_INTEGER, 0, 64, total_memory());
-    set_field_type(field[2], TYPE_ENUM, (char **)YesNo, false, false);
-    set_field_type(field[3], TYPE_INTEGER, 0, 0, 64);
-    set_field_type(field[4], TYPE_ENUM, (char **)YesNo, false, false);
-    set_field_type(field[5], TYPE_ENUM, UdevList, false, false);
-
-    for(size_t i = 0; i < u_dev.size(); ++i) {
-      delete [] UdevList[i];
-    }
-
-    delete [] UdevList;
-
-    Config_fields(YesNo);
+    Config_fields_type();
+    Config_fields_buffer();
     Post_form(21);
     Print_fields_names();
     Draw_form();
     Get_data_from_form();
 
-    // Get variables from form buffer
-/*    guest_new.cpus.assign(trim_field_buffer(field_buffer(field[0], 0)));
-    guest_new.memo.assign(trim_field_buffer(field_buffer(field[1], 0)));
-    guest_new.kvmf.assign(trim_field_buffer(field_buffer(field[2], 0)));
-    guest_new.ints.assign(trim_field_buffer(field_buffer(field[3], 0)));
-    guest_new.usbp.assign(trim_field_buffer(field_buffer(field[4], 0)));
-    guest_new.usbd.assign(trim_field_buffer(field_buffer(field[5], 0)));
-*/
-    /* Update cpu settings */
-    if(field_status(field[0])) {
-      sql_query = "update vms set smp='" + guest_new.cpus +
-        "' where name='" + vm_name_ + "'";
-      db->ActionQuery(sql_query);
-    }
+    std::thread spin_thr(spinner, 1, 25);
 
-    /* Update memory settings */
-    if(field_status(field[1])) {
-      sql_query = "update vms set mem='" + guest_new.memo +
-        "' where name='" + vm_name_ + "'";
-      db->ActionQuery(sql_query);
-    }
+    Update_db_cpu_data();
+    Update_db_mem_data();
+    Update_db_kvm_data();
+    Update_db_usb_data();
+    Update_db_eth_data();
 
-    /* Update kvm settings */
-    if(field_status(field[2])) {
-      if(guest_new.kvmf == "yes")
-        guest_new.kvmf = "1";
-      else
-        guest_new.kvmf = "0";
-
-      sql_query = "update vms set kvm='" + guest_new.kvmf +
-        "' where name='" + vm_name_ + "'";
-      db->ActionQuery(sql_query);
-    }
-
-    /* Update USB settings */
-    // Check all the necessary parametrs are filled.
-    if(field_status(field[4])) {
-      if(guest_new.usbp == "yes") {
-        if(! field_status(field[5])) {
-          Delete_form();
-          throw QMException(_("Usb device was not selected."));
-        }
-
-        guest_new.usbp = "1";
-        guest_new.usbd = u_dev.at(guest_new.usbd);
-      }
-      else {
-        guest_new.usbp = "0";
-        guest_new.usbd = "none";
-      }
-
-      // Update settings
-      sql_query = "update vms set usbid='" + guest_new.usbd +
-        "' where name='" + vm_name_ + "'";
-      db->ActionQuery(sql_query);
-
-      sql_query = "update vms set usb='" + guest_new.usbp +
-        "' where name='" + vm_name_ + "'";
-      db->ActionQuery(sql_query);
-    }
-
-    // If changed generate mac address for interfaces
-    if(field_status(field[3])) {
-      ui_vm_ints = std::stoi(guest_new.ints);
-
-      if(ui_vm_ints != ints_count) {
-        sql_query = "select mac from lastval";
-        v_last_mac = db->SelectQuery(sql_query);
-
-        last_mac = std::stol(v_last_mac[0]);
-        ifaces = gen_mac_addr(last_mac, ui_vm_ints, vm_name_);
-
-        // Get last mac address and put it into database
-        itm = ifaces.end();
-        --itm;
-        s_last_mac = itm->second;
-
-        its = std::remove(s_last_mac.begin(), s_last_mac.end(), ':');
-        s_last_mac.erase(its, s_last_mac.end());
-
-        last_mac = std::stol(s_last_mac, 0, 16);
-
-        sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
-        db->ActionQuery(sql_query);
-
-        /* Update interface settings */
-        guest_new.ints.clear();
-        for(auto &ifs : ifaces) {
-          guest_new.ints += ifs.first + "=" + ifs.second + ";";
-        }
-
-        sql_query = "update vms set mac='" + guest_new.ints +
-          "' where name='" + vm_name_ + "'";
-
-        db->ActionQuery(sql_query);
-      }
-    }
+    finish.store(true);
+    spin_thr.join();
 
     Delete_form();
   }
   catch (QMException &err) {
     ExeptionExit(err);
   }
-  curs_set(0);
-
 }
 
 QManager::CloneVmWindow::CloneVmWindow(
@@ -819,7 +828,7 @@ void QManager::CloneVmWindow::Print() {
     if(! v_name.empty())
       throw QMException(_("This name is already used"));
 
-    std::thread spin_thr(spinner, 7, 35);
+    std::thread spin_thr(spinner, 1, 25);
 
     Gen_mac_address(guest_new, Gen_map_from_str(guest_old.ints[0]).size(), guest_new.name);
 

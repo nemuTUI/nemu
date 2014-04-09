@@ -172,10 +172,13 @@ namespace QManager {
       FORM *form;
       std::vector<FIELD*> field;
       int ch, cmd_exit_status;
+      MapString u_dev;
+      char **UdevList, **ArchList;
 
     private:
       void Create_fields();
-      void Config_fields();
+      void Config_fields_buffer();
+      void Config_fields_type();
       void Print_fields_names();
       void Get_data_from_form();
       void Get_data_from_db();
@@ -196,11 +199,16 @@ namespace QManager {
 
     private:
       void Create_fields();
-      void Config_fields(const char **);
+      void Config_fields_type();
+      void Config_fields_buffer();
       void Print_fields_names();
       void Get_data_from_form();
       void Get_data_from_db();
-      void Update_db_data();
+      void Update_db_cpu_data();
+      void Update_db_mem_data();
+      void Update_db_kvm_data();
+      void Update_db_usb_data();
+      void Update_db_eth_data();
       void Gen_hdd();
       void Check_input_data();
 
