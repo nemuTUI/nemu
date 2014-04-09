@@ -1,0 +1,159 @@
+# Russian Qemu Manage lang file.
+# Copyright (C) 2014
+# This file is distributed under the same license as the Qemu Manage package.
+# PascalRD <pascal@unixadmins.su>, 2014.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-04-09 22:20+0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: guest.cpp:21
+msgid "Already installed (y/n)"
+msgstr "Уже установлен (y/n)"
+
+#: guest.cpp:120
+msgid "Something goes wrong. Delete root partition prevented."
+msgstr "Что-то пошло не так. Предотвращено удаление корня"
+
+#: qemu_manage.cpp:97
+msgid "No guests here."
+msgstr "Нет гостей."
+
+#: qemu_manage.cpp:173
+msgid "Already running!"
+msgstr "Уже запущен!"
+
+#: qemu_manage.cpp:180
+msgid "Must be root."
+msgstr "Требуется root"
+
+#: qemu_manage.cpp:208 qemu_manage.cpp:251
+msgid "Stop guest before!"
+msgstr "Требуется остановка!"
+
+#: qemu_manage.cpp:213
+msgid "Proceed? (y/n)"
+msgstr "Продолжить? (y/n)"
+
+#: windows.cpp:34
+msgid ""
+"Use arrow keys to go up and down, Press enter to select a choice, F10 - exit"
+msgstr "Для перемещения используйте стрелки, выбрать - ввод, выйти - F10"
+
+#: windows.cpp:40
+msgid "F1 - help, F10 - main menu"
+msgstr "F1-помощь, F10-главное меню"
+
+#: windows.cpp:48
+msgid " info"
+msgstr " инфо"
+
+#: windows.cpp:135
+msgid "F10 - finish, F2 - save"
+msgstr "F10-выйти, F2-сохранить"
+
+#: windows.cpp:299 windows.cpp:553
+msgid "CPU cores [1-"
+msgstr "CPU ядра [1-"
+
+#: windows.cpp:300 windows.cpp:554
+msgid "Memory [64-"
+msgstr "Память [64-"
+
+#: windows.cpp:301
+msgid "Disk [1-"
+msgstr "Диск [1-"
+
+#: windows.cpp:303 windows.cpp:729
+msgid "Name"
+msgstr "Имя"
+
+#: windows.cpp:304
+msgid "Architecture"
+msgstr "Архитектура"
+
+#: windows.cpp:308
+msgid "VNC port [ro]"
+msgstr "VNC порт [ro]"
+
+#: windows.cpp:309 windows.cpp:559
+msgid "KVM [yes/no]"
+msgstr "KVM [yes/no]"
+
+#: windows.cpp:310
+msgid "Path to ISO"
+msgstr "Путь до ISO"
+
+#: windows.cpp:311 windows.cpp:560
+msgid "Interfaces"
+msgstr "Интерфейсы"
+
+#: windows.cpp:312 windows.cpp:561
+msgid "USB [yes/no]"
+msgstr "USB [yes/no]"
+
+#: windows.cpp:313 windows.cpp:562
+msgid "USB device"
+msgstr "USB девайс"
+
+#: windows.cpp:389
+msgid "Can't create guest dir"
+msgstr "Не могу создать директорию"
+
+#: windows.cpp:396
+msgid "Can't create img file"
+msgstr "Не могу создать образ"
+
+#: windows.cpp:405 windows.cpp:413
+msgid "Must fill all params"
+msgstr "Заполните все параметры"
+
+#: windows.cpp:441 windows.cpp:829
+msgid "This name is already used"
+msgstr "Это имя уже используется"
+
+#: windows.cpp:556
+msgid " settings:"
+msgstr " настройки:"
+
+#: windows.cpp:629
+msgid "Usb device was not selected."
+msgstr "Не выбрано USB устройство."
+
+#: windows.cpp:728
+msgid "Clone "
+msgstr "Клон "
+
+#: windows.cpp:853
+msgid "\"r\" - start guest"
+msgstr "\"r\" - включить гостя"
+
+#: windows.cpp:854
+msgid "\"c\" - connect to guest via vnc"
+msgstr "\"c\" - подключиться по vnc"
+
+#: windows.cpp:855
+msgid "\"f\" - force stop guest"
+msgstr "\"f\" - принудительное выключение"
+
+#: windows.cpp:856
+msgid "\"d\" - delete guest"
+msgstr "\"d\" - удалить гостя"
+
+#: windows.cpp:857
+msgid "\"e\" - edit guest settings"
+msgstr "\"e\" - править натсройки гостя"
+
+#: windows.cpp:858
+msgid "\"l\" - clone guest"
+msgstr "\"l\" - клонировать гостя"
