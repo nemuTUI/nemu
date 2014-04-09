@@ -205,7 +205,7 @@ int main(int argc, char **argv) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
             if(vm_list->vm_status.at(guest) == "running") {
-              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Stop quest before!"), 3, 20, 7, 31));
+              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Stop guest before!"), 3, 20, 7, 31));
               Warn->Init();
               Warn->Print(Warn->window);
             }
@@ -248,7 +248,7 @@ int main(int argc, char **argv) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
             if(vm_list->vm_status.at(guest) == "running") {
-              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Stop quest before!"), 3, 20, 7, 31));
+              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Stop guest before!"), 3, 20, 7, 31));
               Warn->Init();
               Warn->Print(Warn->window);
             }
