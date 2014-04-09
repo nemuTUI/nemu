@@ -19,10 +19,10 @@ static const std::string sql_list_vm = "select name from vms order by name asc";
 #define CHOICES_NUM 2
 #endif
 static const std::array<std::string, CHOICES_NUM> choices = {
-  "Manage qemu VM",
-  "Add qemu VM",
+  _("Manage qemu VM"),
+  _("Add qemu VM"),
 #ifdef ENABLE_OPENVSWITCH
-  "Show network map"
+  _("Show network map")
 #endif
 };
 #undef CHOICES_NUM
@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
       VectorString guests = db->SelectQuery(sql_list_vm);
 
       if(guests.empty()) {
-        std::unique_ptr<PopupWarning> Warn(new PopupWarning("No guests here.", 3, 20, 7, 31));
+        std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("No guests here."), 3, 20, 7, 31));
         Warn->Init();
         Warn->Print(Warn->window);
       }
@@ -170,14 +170,14 @@ int main(int argc, char **argv) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
             if(vm_list->vm_status.at(guest) == "running") {
-              std::unique_ptr<PopupWarning> Warn(new PopupWarning("Already running!", 3, 20, 7, 31));
+              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Already running!"), 3, 20, 7, 31));
               Warn->Init();
               Warn->Print(Warn->window);
             }
             else {
 
               if(! check_root()) {
-                std::unique_ptr<PopupWarning> Warn(new PopupWarning("Must be root.", 3, 20, 7, 31));
+                std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Must be root."), 3, 20, 7, 31));
                 Warn->Init();
                 Warn->Print(Warn->window);
               }
@@ -205,12 +205,12 @@ int main(int argc, char **argv) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
             if(vm_list->vm_status.at(guest) == "running") {
-              std::unique_ptr<PopupWarning> Warn(new PopupWarning("Stop quest before!", 3, 20, 7, 31));
+              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Stop quest before!"), 3, 20, 7, 31));
               Warn->Init();
               Warn->Print(Warn->window);
             }
             else {
-              std::unique_ptr<PopupWarning> Warn(new PopupWarning("Proceed? (y/n)", 3, 20, 7, 31));
+              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Proceed? (y/n)"), 3, 20, 7, 31));
               Warn->Init();
               uint32_t ch = Warn->Print(Warn->window);
 
@@ -248,7 +248,7 @@ int main(int argc, char **argv) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
             if(vm_list->vm_status.at(guest) == "running") {
-              std::unique_ptr<PopupWarning> Warn(new PopupWarning("Stop quest before!", 3, 20, 7, 31));
+              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Stop quest before!"), 3, 20, 7, 31));
               Warn->Init();
               Warn->Print(Warn->window);
             }

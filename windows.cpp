@@ -31,13 +31,13 @@ void QManager::TemplateWindow::Init() {
 void QManager::MainWindow::Print() {
   clear();
   border(0,0,0,0,0,0,0,0);
-  mvprintw(1, 1, "Use arrow keys to go up and down, Press enter to select a choice, F10 - exit");
+  mvprintw(1, 1, _("Use arrow keys to go up and down, Press enter to select a choice, F10 - exit"));
   refresh();
 }
 
 void QManager::VmWindow::Print() {
   border(0,0,0,0,0,0,0,0);
-  mvprintw(1, 1, "F1 - help, F10 - main menu");
+  mvprintw(1, 1, _("F1 - help, F10 - main menu"));
   refresh();
 }
 
@@ -45,7 +45,7 @@ QManager::VmInfoWindow::VmInfoWindow(const std::string &guest, const std::string
   int starty, int startx) : TemplateWindow(height, width, starty, startx) {
     guest_ = guest;
     dbf_ = dbf;
-    title_ = guest_ + " info";
+    title_ = guest_ + _(" info");
 }
 
 void QManager::VmInfoWindow::Print() {
@@ -132,7 +132,7 @@ void QManager::AddVmWindow::Delete_form() {
 void QManager::AddVmWindow::Draw_title() {
   clear();
   border(0,0,0,0,0,0,0,0);
-  mvprintw(1, 1, "F10 - finish, F2 - save");
+  mvprintw(1, 1, _("F10 - finish, F2 - save"));
   refresh();
   curs_set(1);
 }
@@ -296,21 +296,21 @@ void QManager::AddVmWindow::Config_fields_buffer() {
 
 void QManager::AddVmWindow::Print_fields_names() {
   char ccpu[128], cmem[128], cfree[128];
-  snprintf(ccpu, sizeof(ccpu), "%s%u%s", "CPU cores [1-", cpu_count(), "]");
-  snprintf(cmem, sizeof(cmem), "%s%u%s", "Memory [64-", total_memory(), "]Mb");
-  snprintf(cfree, sizeof(cfree), "%s%u%s", "Disk [1-", disk_free(vmdir_), "]Gb");
+  snprintf(ccpu, sizeof(ccpu), "%s%u%s", _("CPU cores [1-"), cpu_count(), "]");
+  snprintf(cmem, sizeof(cmem), "%s%u%s", _("Memory [64-"), total_memory(), "]Mb");
+  snprintf(cfree, sizeof(cfree), "%s%u%s", _("Disk [1-"), disk_free(vmdir_), "]Gb");
 
-  mvwaddstr(window, 2, 2, "Name");
-  mvwaddstr(window, 4, 2, "Architecture");
+  mvwaddstr(window, 2, 2, _("Name"));
+  mvwaddstr(window, 4, 2, _("Architecture"));
   mvwaddstr(window, 6, 2, ccpu);
   mvwaddstr(window, 8, 2, cmem);
   mvwaddstr(window, 10, 2, cfree);
-  mvwaddstr(window, 12, 2, "VNC port [ro]");
-  mvwaddstr(window, 14, 2, "KVM [yes/no]");
-  mvwaddstr(window, 16, 2, "Path to ISO");
-  mvwaddstr(window, 18, 2, "Interfaces");
-  mvwaddstr(window, 20, 2, "USB [yes/no]");
-  mvwaddstr(window, 22, 2, "USB device");
+  mvwaddstr(window, 12, 2, _("VNC port [ro]"));
+  mvwaddstr(window, 14, 2, _("KVM [yes/no]"));
+  mvwaddstr(window, 16, 2, _("Path to ISO"));
+  mvwaddstr(window, 18, 2, _("Interfaces"));
+  mvwaddstr(window, 20, 2, _("USB [yes/no]"));
+  mvwaddstr(window, 22, 2, _("USB device"));
 }
 
 void QManager::AddVmWindow::Get_data_from_form() {
@@ -386,14 +386,14 @@ void QManager::AddVmWindow::Gen_hdd() {
 
   if(cmd_exit_status != 0) {
     Delete_form();
-    throw QMException("Can't create guest dir");
+    throw QMException(_("Can't create guest dir"));
   }
 
   cmd_exit_status = system(create_img_cmd.c_str());
 
   if(cmd_exit_status != 0) {
     Delete_form();
-    throw QMException("Can't create img file");
+    throw QMException(_("Can't create img file"));
   }
 }
 
@@ -402,7 +402,7 @@ void QManager::AddVmWindow::Check_input_data() {
     for(size_t i = 0; i < 11; ++i) {
       if(! field_status(field[i])) {
         Delete_form();
-        throw QMException("Must fill all params");
+        throw QMException(_("Must fill all params"));
       }
     }
   }
@@ -410,7 +410,7 @@ void QManager::AddVmWindow::Check_input_data() {
     for(size_t i = 0; i < 9; ++i) {
       if(! field_status(field[i])) {
         Delete_form();
-        throw QMException("Must fill all params");
+        throw QMException(_("Must fill all params"));
       }
     }
   }
@@ -438,7 +438,7 @@ void QManager::AddVmWindow::Print() {
 
     if(! v_name.empty()) {
       Delete_form();
-      throw QMException("This name is already used");
+      throw QMException(_("This name is already used"));
     }
 
     std::thread spin_thr(spinner, 1, 25);
@@ -550,16 +550,16 @@ void QManager::EditVmWindow::Get_data_from_form() {
 void QManager::EditVmWindow::Print_fields_names() {
   char ccpu[128], cmem[128];
 
-  snprintf(ccpu, sizeof(ccpu), "%s%u%s", "CPU cores [1-", cpu_count(), "]");
-  snprintf(cmem, sizeof(cmem), "%s%u%s", "Memory [64-", total_memory(), "]Mb");
+  snprintf(ccpu, sizeof(ccpu), "%s%u%s", _("CPU cores [1-"), cpu_count(), "]");
+  snprintf(cmem, sizeof(cmem), "%s%u%s", _("Memory [64-"), total_memory(), "]Mb");
 
-  mvwaddstr(window, 2, 22, (vm_name_ + " settings:").c_str());
+  mvwaddstr(window, 2, 22, (vm_name_ + _(" settings:")).c_str());
   mvwaddstr(window, 4, 2, ccpu);
   mvwaddstr(window, 6, 2, cmem);
-  mvwaddstr(window, 8, 2, "KVM [yes/no]");
-  mvwaddstr(window, 10, 2, "Interfaces");
-  mvwaddstr(window, 12, 2, "USB [yes/no]");
-  mvwaddstr(window, 14, 2, "USB device");
+  mvwaddstr(window, 8, 2, _("KVM [yes/no]"));
+  mvwaddstr(window, 10, 2, _("Interfaces"));
+  mvwaddstr(window, 12, 2, _("USB [yes/no]"));
+  mvwaddstr(window, 14, 2, _("USB device"));
 }
 
 void QManager::EditVmWindow::Get_data_from_db() {
@@ -850,12 +850,12 @@ void QManager::HelpWindow::Print() {
   keypad(window_, TRUE);
   box(window_, 0, 0);
 
-  msg_.push_back("\"r\" - start guest");
-  msg_.push_back("\"c\" - connect to guest via vnc");
-  msg_.push_back("\"f\" - force stop guest");
-  msg_.push_back("\"d\" - delete guest");
-  msg_.push_back("\"e\" - edit guest settings");
-  msg_.push_back("\"l\" - clone guest");
+  msg_.push_back(_("\"r\" - start guest"));
+  msg_.push_back(_("\"c\" - connect to guest via vnc"));
+  msg_.push_back(_("\"f\" - force stop guest"));
+  msg_.push_back(_("\"d\" - delete guest"));
+  msg_.push_back(_("\"e\" - edit guest settings"));
+  msg_.push_back(_("\"l\" - clone guest"));
 
   for(auto &msg : msg_) {
     mvwprintw(window_, line, 1, "%s", msg.c_str());

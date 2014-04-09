@@ -18,7 +18,7 @@ void QManager::start_guest(
   guest.install = db->SelectQuery(sql_query);
 
   if(guest.install[0] == "1") {
-    std::unique_ptr<PopupWarning> Warn(new PopupWarning("Already installed (y/n)", 3, 25, 7, 29));
+    std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Already installed (y/n)"), 3, 25, 7, 29));
     Warn->Init();
     uint32_t ch = Warn->Print(Warn->window);
 
@@ -117,7 +117,7 @@ void QManager::delete_guest(
   char path[PATH_MAX + 1] = {};
   realpath(guest_dir.c_str(), path);
   if(strcmp(path, "/") == 0)
-    err_exit("Something goes wrong. Delete root partition prevented.");
+    err_exit(_("Something goes wrong. Delete root partition prevented."));
 
   std::unique_ptr<QemuDb> db(new QemuDb(dbf));
   std::string sql_query = "delete from vms where name='" + vm_name + "'";
