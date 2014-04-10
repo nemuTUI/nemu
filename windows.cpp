@@ -12,13 +12,14 @@ static const char *YesNo[3] = {
 
 static const QManager::VectorString q_arch = QManager::list_arch();
 
-QManager::TemplateWindow::TemplateWindow(int height, int width, int starty, int startx) {
+QManager::TemplateWindow::TemplateWindow(int height, int width, int starty) {
+  getmaxyx(stdscr, row, col);
+
   height_ = height;
   width_ = width;
   starty_ = starty;
-  startx_ = startx;
-
   getmaxyx(stdscr, row, col);
+  startx_ = (col - width)/2;
 }
 
 void QManager::TemplateWindow::Init() {
@@ -42,7 +43,7 @@ void QManager::VmWindow::Print() {
 }
 
 QManager::VmInfoWindow::VmInfoWindow(const std::string &guest, const std::string &dbf, int height, int width,
-  int starty, int startx) : TemplateWindow(height, width, starty, startx) {
+  int starty) : TemplateWindow(height, width, starty) {
     guest_ = guest;
     dbf_ = dbf;
     title_ = guest_ + _(" info");
@@ -114,7 +115,7 @@ void QManager::VmInfoWindow::Print() {
 }
 
 QManager::AddVmWindow::AddVmWindow(const std::string &dbf, const std::string &vmdir,
-  int height, int width, int starty, int startx) : TemplateWindow(height, width, starty, startx) {
+  int height, int width, int starty) : TemplateWindow(height, width, starty) {
     dbf_ = dbf;
     vmdir_ = vmdir;
 
@@ -148,7 +149,7 @@ void QManager::AddVmWindow::Post_form(uint32_t size) {
 
 void QManager::AddVmWindow::ExeptionExit(QMException &err) {
   curs_set(0);
-  PopupWarning Warn(err.what(), 3, 30, 4, 20);
+  PopupWarning Warn(err.what(), 3, 30, 4);
   Warn.Init();
   Warn.Print(Warn.window);
   refresh();
@@ -466,8 +467,8 @@ void QManager::AddVmWindow::Print() {
 
 QManager::EditVmWindow::EditVmWindow(
   const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
-  int height, int width, int starty, int startx
-) : AddVmWindow(dbf, vmdir, height, width, starty, startx) {
+  int height, int width, int starty
+) : AddVmWindow(dbf, vmdir, height, width, starty) {
     vm_name_ = vm_name;
 
     field.resize(7);
@@ -710,8 +711,8 @@ void QManager::EditVmWindow::Print() {
 
 QManager::CloneVmWindow::CloneVmWindow(
   const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
-  int height, int width, int starty, int startx
-) : AddVmWindow(dbf, vmdir, height, width, starty, startx) {
+  int height, int width, int starty
+) : AddVmWindow(dbf, vmdir, height, width, starty) {
     vm_name_ = vm_name;
 
     field.resize(2);
@@ -875,7 +876,7 @@ void QManager::HelpWindow::Print() {
 }
 
 QManager::PopupWarning::PopupWarning(const std::string &msg, int height,
- int width, int starty, int startx) : TemplateWindow(height, width, starty, startx) {
+ int width, int starty) : TemplateWindow(height, width, starty) {
     msg_ = msg;
 }
 

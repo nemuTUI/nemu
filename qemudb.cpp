@@ -49,7 +49,7 @@ QManager::QemuDb::QemuDb(const std::string &dbf) {
     }
   }
   catch (QMException &err) {
-    PopupWarning Warn(err.what(), 3, 30, 4, 30);
+    PopupWarning Warn(err.what(), 3, 30, 4);
     Warn.Init();
     Warn.Print(Warn.window);
     refresh();
@@ -71,7 +71,7 @@ QManager::VectorString QManager::QemuDb::SelectQuery(const std::string &query) {
     }
   }
   catch (QMException &err) {
-    PopupWarning Warn(err.what(), 3, 30, 4, 30);
+    PopupWarning Warn(err.what(), 3, 30, 4);
     Warn.Init();
     Warn.Print(Warn.window);
     refresh();
@@ -93,7 +93,7 @@ void QManager::QemuDb::ActionQuery(const std::string &query) {
     }
   }
   catch (QMException &err) {
-    PopupWarning Warn(err.what(), 3, 30, 4, 30);
+    PopupWarning Warn(err.what(), 3, 30, 4);
     Warn.Init();
     Warn.Print(Warn.window);
     refresh();

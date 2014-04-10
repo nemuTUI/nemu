@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
       VectorString guests = db->SelectQuery(sql_list_vm);
 
       if(guests.empty()) {
-        std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("No guests here."), 3, 20, 7, 31));
+        std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("No guests here."), 3, 20, 7));
         Warn->Init();
         Warn->Print(Warn->window);
       }
@@ -167,14 +167,14 @@ int main(int argc, char **argv) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
             if(vm_list->vm_status.at(guest) == "running") {
-              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Already running!"), 3, 20, 7, 31));
+              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Already running!"), 3, 20, 7));
               Warn->Init();
               Warn->Print(Warn->window);
             }
             else {
 
               if(! check_root()) {
-                std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Must be root."), 3, 20, 7, 31));
+                std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Must be root."), 3, 20, 7));
                 Warn->Init();
                 Warn->Print(Warn->window);
               }
@@ -202,12 +202,12 @@ int main(int argc, char **argv) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
             if(vm_list->vm_status.at(guest) == "running") {
-              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Stop guest before!"), 3, 20, 7, 31));
+              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Stop guest before!"), 3, 20, 7));
               Warn->Init();
               Warn->Print(Warn->window);
             }
             else {
-              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Proceed? (y/n)"), 3, 20, 7, 31));
+              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Proceed? (y/n)"), 3, 20, 7));
               Warn->Init();
               uint32_t ch = Warn->Print(Warn->window);
 
@@ -245,7 +245,7 @@ int main(int argc, char **argv) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
             if(vm_list->vm_status.at(guest) == "running") {
-              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Stop guest before!"), 3, 20, 7, 31));
+              std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Stop guest before!"), 3, 20, 7));
               Warn->Init();
               Warn->Print(Warn->window);
             }

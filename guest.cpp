@@ -18,7 +18,7 @@ void QManager::start_guest(
   guest.install = db->SelectQuery(sql_query);
 
   if(guest.install[0] == "1") {
-    std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Already installed (y/n)"), 3, 25, 7, 29));
+    std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Already installed (y/n)"), 3, 25, 7));
     Warn->Init();
     uint32_t ch = Warn->Print(Warn->window);
 

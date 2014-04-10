@@ -96,7 +96,7 @@ namespace QManager {
 
   class TemplateWindow {
     public:
-      TemplateWindow(int height, int width, int starty = 7, int startx = 25);
+      TemplateWindow(int height, int width, int starty = 7);
       void Init();
       WINDOW *window;
       ~TemplateWindow() { delwin(window); }
@@ -109,15 +109,15 @@ namespace QManager {
 
   class MainWindow : public TemplateWindow {
     public:
-      MainWindow(int height, int width, int starty = 7, int startx = 25)
-        : TemplateWindow(height, width, starty, startx) {}
+      MainWindow(int height, int width, int starty = 7)
+        : TemplateWindow(height, width, starty) {}
       void Print();
   };
 
   class VmWindow : public TemplateWindow {
     public:
-      VmWindow(int height, int width, int starty = 7, int startx = 25)
-        : TemplateWindow(height, width, starty, startx) {}
+      VmWindow(int height, int width, int starty = 7)
+        : TemplateWindow(height, width, starty) {}
       void Print();
   };
 
@@ -125,7 +125,7 @@ namespace QManager {
     public:
       VmInfoWindow(
         const std::string &guest, const std::string &dbf,
-        int height, int width, int starty = 7, int startx = 25
+        int height, int width, int starty = 7
       );
       void Print();
 
@@ -136,8 +136,8 @@ namespace QManager {
 
   class HelpWindow : public TemplateWindow {
     public:
-      HelpWindow(int height, int width, int starty = 1, int startx = 1)
-        : TemplateWindow(height, width, starty, startx) {}
+      HelpWindow(int height, int width, int starty = 1)
+        : TemplateWindow(height, width, starty) {}
       void Print();
 
     private:
@@ -149,7 +149,7 @@ namespace QManager {
   class AddVmWindow : public TemplateWindow {
     public:
       AddVmWindow(const std::string &dbf, const std::string &vmdir,
-        int height, int width, int starty = 3, int startx = 3);
+        int height, int width, int starty = 3);
       void Print();
 
     protected:
@@ -195,7 +195,7 @@ namespace QManager {
     public:
       EditVmWindow(
         const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
-        int height, int width, int starty = 3, int startx = 3
+        int height, int width, int starty = 3
       );
       void Print();
 
@@ -223,7 +223,7 @@ namespace QManager {
   class PopupWarning : public TemplateWindow {
     public:
       PopupWarning(const std::string &msg, int height,
-        int width, int starty = 7, int startx = 25);
+        int width, int starty = 7);
         int Print(WINDOW *window);
 
     private:
@@ -236,7 +236,7 @@ namespace QManager {
     public:
       CloneVmWindow(
         const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
-        int height, int width, int starty = 3, int startx = 3
+        int height, int width, int starty = 3
       );
       void Print();
 
