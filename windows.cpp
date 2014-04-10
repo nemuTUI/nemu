@@ -685,12 +685,18 @@ void QManager::EditVmWindow::Print() {
     Get_data_from_form();
 
     std::thread spin_thr(spinner, 1, 25);
-
-    Update_db_cpu_data();
-    Update_db_mem_data();
-    Update_db_kvm_data();
-    Update_db_usb_data();
-    Update_db_eth_data();
+    try {
+      Update_db_cpu_data();
+      Update_db_mem_data();
+      Update_db_kvm_data();
+      Update_db_usb_data();
+      Update_db_eth_data();
+    }
+    catch (...) {
+      finish.store(true);
+      spin_thr.join();
+      throw;
+    }
 
     finish.store(true);
     spin_thr.join();
