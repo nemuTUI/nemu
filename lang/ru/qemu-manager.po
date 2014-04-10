@@ -51,7 +51,7 @@ msgstr "Требуется root"
 
 #: qemu_manage.cpp:208 qemu_manage.cpp:251
 msgid "Stop guest before!"
-msgstr "Требуется остановка!"
+msgstr "Надо выключить!"
 
 #: qemu_manage.cpp:213
 msgid "Proceed? (y/n)"
