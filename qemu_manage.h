@@ -50,12 +50,13 @@ namespace QManager {
       value = ptr.get<T>(param);
     }
     catch(boost::property_tree::ptree_bad_path &err) {
-      const std::string err_m = err.what();
-      err_exit("Error parsing config file! missing parameter.", err_m);
+      err_exit("Error parsing config file! missing parameter.", (std::string) err.what());
     }
     catch(boost::property_tree::ptree_bad_data &err) {
-      const std::string err_m = err.what();
-      err_exit("Error parsing config file! bad value.", err_m);
+      err_exit("Error parsing config file! bad value.", (std::string) err.what());
+    }
+    catch(boost::property_tree::ini_parser::ini_parser_error &err) {
+      err_exit("Config file not found!.", (std::string) err.what());
     }
 
     return value;
