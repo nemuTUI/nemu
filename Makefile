@@ -21,4 +21,7 @@ install:
 	msgfmt lang/ru/qemu-manager.po -o qemu-manager.mo
 	install -m 0644 qemu-manager.mo /usr/share/locale/ru/LC_MESSAGES/
 	test -f /etc/qemu_manage.cfg || install -m 0644 qemu_manage.cfg.sample /etc/qemu_manage.cfg
-	strip qemu_manage && install -m 0755 qemu_manage /usr/bin/
+	strip $(EXECUTABLE) && install -m 0755 $(EXECUTABLE) /usr/bin/
+
+uninstall:
+	rm -f /usr/share/locale/ru/LC_MESSAGES/qemu-manager.mo /usr/bin/$(EXECUTABLE)
