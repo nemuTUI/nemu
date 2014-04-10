@@ -10,20 +10,6 @@
 static const std::string cfg = "/etc/qemu_manage.cfg";
 static const std::string sql_list_vm = "select name from vms order by name asc";
 
-#ifdef ENABLE_OPENVSWITCH
-#define CHOICES_NUM 3
-#else
-#define CHOICES_NUM 2
-#endif
-static const std::array<std::string, CHOICES_NUM> choices = {
-  "Manage qemu VM",
-  "Add qemu VM",
-#ifdef ENABLE_OPENVSWITCH
-  "Show network map"
-#endif
-};
-#undef CHOICES_NUM
-
 int main(int argc, char **argv) {
 
   using namespace QManager;
@@ -32,6 +18,20 @@ int main(int argc, char **argv) {
   setlocale(LC_ALL,"");
   bindtextdomain("qemu-manager","/usr/share/locale");
   textdomain("qemu-manager");
+
+#ifdef ENABLE_OPENVSWITCH
+#define CHOICES_NUM 3
+#else
+#define CHOICES_NUM 2
+#endif
+  const std::array<std::string, CHOICES_NUM> choices = {
+    _("Manage qemu VM"),
+    _("Add qemu VM"),
+#ifdef ENABLE_OPENVSWITCH
+    _("Show network map")
+#endif
+  };
+#undef CHOICES_NUM
 
   uint32_t highlight(1);
   uint32_t ch;
