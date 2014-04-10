@@ -18,6 +18,4 @@ Qemu Manage System
 ## Environment Requirements
  * Linux host
  * app-emulation/qemu
- * sys-libs/ncurses
- * dev-db/sqlite
  * net-misc/openvswitch [optional]
