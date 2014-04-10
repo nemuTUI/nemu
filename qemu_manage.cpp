@@ -4,10 +4,7 @@
 #include <array>
 #include <vector>
 #include <memory>
-#include <ncurses.h>
-// debug
-#include <fstream>
-// end debug
+
 #include "qemu_manage.h"
 
 static const std::string cfg = "/etc/qemu_manage.cfg";
