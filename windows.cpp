@@ -856,6 +856,8 @@ void QManager::HelpWindow::Print() {
   keypad(window_, TRUE);
   box(window_, 0, 0);
 
+  msg_.push_back("Qemu Manage v" + std::string(VERSION));
+  msg_.push_back("");
   msg_.push_back(_("\"r\" - start guest"));
   msg_.push_back(_("\"c\" - connect to guest via vnc"));
   msg_.push_back(_("\"f\" - force stop guest"));
