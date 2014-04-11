@@ -76,7 +76,8 @@ namespace QManager {
   void spinner(uint32_t, uint32_t);
 
   void start_guest(
-    const std::string &vm_name, const std::string &dbf, const std::string &vmdir
+    const std::string &vm_name, const std::string &dbf,
+    const std::string &vmdir, const std::string &cfg
   );
   void delete_guest(
     const std::string &vm_name, const std::string &dbf, const std::string &vmdir

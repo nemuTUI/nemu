@@ -4,7 +4,8 @@
 #include "qemu_manage.h"
 
 void QManager::start_guest(
-  const std::string &vm_name, const std::string &dbf, const std::string &vmdir
+  const std::string &vm_name, const std::string &dbf,
+  const std::string &vmdir, const std::string &cfg
 ) {
   guest_t<VectorString> guest;
 
@@ -79,7 +80,12 @@ void QManager::start_guest(
   guest.install[0] == "1" ?  install_arg = " -boot d -cdrom " + guest.path[0] : install_arg = "";
   guest.usbp[0] == "1" ?  usb_arg = " -usb -usbdevice host:" + guest.usbd[0] : usb_arg = "";
   mem_arg = " -m " + guest.memo[0];
-  vnc_arg = " -vnc 127.0.0.1:" + guest.vncp[0];
+
+  const std::string vnc_bind = read_cfg<std::string>(cfg, "main.vnc_localhost");
+  if(vnc_bind == "yes")
+    vnc_arg = " -vnc 127.0.0.1:" + guest.vncp[0];
+  else
+    vnc_arg = " -vnc :" + guest.vncp[0];
 
   // Generate and execute complete command
   std::string guest_cmd =
@@ -106,7 +112,7 @@ void QManager::connect_guest(const std::string &vm_name, const std::string &dbf)
 
   port = 5900 + std::stoi(guest.vncp[0]);
 
-  std::string connect_cmd = "vncviewer 127.0.0.1:" + std::to_string(port) + " > /dev/null 2>&1 &";
+  std::string connect_cmd = "vncviewer :" + std::to_string(port) + " > /dev/null 2>&1 &";
 
   system(connect_cmd.c_str());
 }

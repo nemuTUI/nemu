@@ -7,3 +7,6 @@ db = /var/db/qemu_manage2.db
 
 # maximum guests numbers in list
 list_max = 10
+
+# listen vnc connections (yes = localhost, no = any)
+vnc_localhost = yes

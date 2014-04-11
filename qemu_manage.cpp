@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
                 Warn->Print(Warn->window);
               }
               else {
-                start_guest(guest, dbf, vmdir);
+                start_guest(guest, dbf, vmdir, cfg);
               }
             }
           }
