@@ -19,7 +19,7 @@ QManager::TemplateWindow::TemplateWindow(int height, int width, int starty) {
   width_ = width;
   starty_ = starty;
   getmaxyx(stdscr, row, col);
-  startx_ = (col - width)/2;
+  startx_ = (col - width) / 2;
 }
 
 void QManager::TemplateWindow::Init() {
@@ -30,15 +30,21 @@ void QManager::TemplateWindow::Init() {
 }
 
 void QManager::MainWindow::Print() {
+  help_msg = _("Use arrow keys to go up and down, Press enter to select a choice, F10 - exit");
+  str_size = mbstowcs(NULL, help_msg.c_str(), help_msg.size());
+
   clear();
   border(0,0,0,0,0,0,0,0);
-  mvprintw(1, 1, _("Use arrow keys to go up and down, Press enter to select a choice, F10 - exit"));
+  mvprintw(1, (col - str_size) / 2, help_msg.c_str());
   refresh();
 }
 
 void QManager::VmWindow::Print() {
+  help_msg = _("F1 - help, F10 - main menu");
+  str_size = mbstowcs(NULL, help_msg.c_str(), help_msg.size());
+
   border(0,0,0,0,0,0,0,0);
-  mvprintw(1, 1, _("F1 - help, F10 - main menu"));
+  mvprintw(1, (col - str_size) / 2, help_msg.c_str());
   refresh();
 }
 
@@ -53,34 +59,34 @@ void QManager::VmInfoWindow::Print() {
   clear();
   border(0,0,0,0,0,0,0,0);
   mvprintw(1, (col - title_.size())/2, title_.c_str());
-
+  // TODO Draw guest info in window.
   std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
   sql_query = "select arch from vms where name='" + guest_ + "'";
   guest.arch = db->SelectQuery(sql_query);
-  mvprintw(4, col/6, "%-12s%s", "arch: ", guest.arch[0].c_str());
+  mvprintw(4, col/4, "%-12s%s", "arch: ", guest.arch[0].c_str());
 
   sql_query = "select smp from vms where name='" + guest_ + "'";
   guest.cpus = db->SelectQuery(sql_query);
-  mvprintw(5, col/6, "%-12s%s", "cores: ", guest.cpus[0].c_str());
+  mvprintw(5, col/4, "%-12s%s", "cores: ", guest.cpus[0].c_str());
 
   sql_query = "select mem from vms where name='" + guest_ + "'";
   guest.memo = db->SelectQuery(sql_query);
-  mvprintw(6, col/6, "%-12s%s %s", "memory: ", guest.memo[0].c_str(), "Mb");
+  mvprintw(6, col/4, "%-12s%s %s", "memory: ", guest.memo[0].c_str(), "Mb");
 
   sql_query = "select kvm from vms where name='" + guest_ + "'";
   guest.kvmf = db->SelectQuery(sql_query);
   guest.kvmf[0] == "1" ? guest.kvmf[0] = "enabled" : guest.kvmf[0] = "disabled";
-  mvprintw(7, col/6, "%-12s%s", "kvm: ", guest.kvmf[0].c_str());
+  mvprintw(7, col/4, "%-12s%s", "kvm: ", guest.kvmf[0].c_str());
 
   sql_query = "select usb from vms where name='" + guest_ + "'";
   guest.usbp = db->SelectQuery(sql_query);
   guest.usbp[0] == "1" ? guest.usbp[0] = "enabled" : guest.usbp[0] = "disabled";
-  mvprintw(8, col/6, "%-12s%s", "usb: ", guest.usbp[0].c_str());
+  mvprintw(8, col/4, "%-12s%s", "usb: ", guest.usbp[0].c_str());
 
   sql_query = "select vnc from vms where name='" + guest_ + "'";
   guest.vncp = db->SelectQuery(sql_query);
-  mvprintw(9, col/6, "%-12s%s", "vnc port: ", guest.vncp[0].c_str());
+  mvprintw(9, col/4, "%-12s%s", "vnc port: ", guest.vncp[0].c_str());
 
   sql_query = "select mac from vms where name='" + guest_ + "'";
   guest.ints = db->SelectQuery(sql_query);
@@ -91,7 +97,7 @@ void QManager::VmInfoWindow::Print() {
   uint32_t y = 9;
   for(auto &ifs : ints) {
     mvprintw(
-      ++y, col/6, "%s%u%-8s%s %s%s%s", "eth", i++, ":", ifs.first.c_str(),
+      ++y, col/4, "%s%u%-8s%s %s%s%s", "eth", i++, ":", ifs.first.c_str(),
       "[", ifs.second.c_str(), "]"
     );
   }
@@ -104,7 +110,7 @@ void QManager::VmInfoWindow::Print() {
   char hdx = 'a';
   for(auto &hd : disk) {
     mvprintw(
-      ++y, col/6, "%s%c%-9s%s %s%s%s", "hd", hdx++, ":", hd.first.c_str(),
+      ++y, col/4, "%s%c%-9s%s %s%s%s", "hd", hdx++, ":", hd.first.c_str(),
       "[", hd.second.c_str(), "Gb]"
     );
   }
@@ -131,9 +137,12 @@ void QManager::AddVmWindow::Delete_form() {
 }
 
 void QManager::AddVmWindow::Draw_title() {
+  help_msg = _("F10 - finish, F2 - save");
+  str_size = mbstowcs(NULL, help_msg.c_str(), help_msg.size());
+
   clear();
   border(0,0,0,0,0,0,0,0);
-  mvprintw(1, 1, _("F10 - finish, F2 - save"));
+  mvprintw(1, (col - str_size) / 2, help_msg.c_str());
   refresh();
   curs_set(1);
 }
@@ -442,7 +451,8 @@ void QManager::AddVmWindow::Print() {
       throw QMException(_("This name is already used"));
     }
 
-    std::thread spin_thr(spinner, 1, 25);
+    getmaxyx(stdscr, row, col);
+    std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
 
     try {
       Gen_hdd();
@@ -685,7 +695,9 @@ void QManager::EditVmWindow::Print() {
     Draw_form();
     Get_data_from_form();
 
-    std::thread spin_thr(spinner, 1, 25);
+    getmaxyx(stdscr, row, col);
+    std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
+
     try {
       Update_db_cpu_data();
       Update_db_mem_data();
@@ -835,7 +847,8 @@ void QManager::CloneVmWindow::Print() {
     if(! v_name.empty())
       throw QMException(_("This name is already used"));
 
-    std::thread spin_thr(spinner, 1, 25);
+    getmaxyx(stdscr, row, col);
+    std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
 
     Gen_mac_address(guest_new, Gen_map_from_str(guest_old.ints[0]).size(), guest_new.name);
 

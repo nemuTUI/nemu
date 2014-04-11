@@ -105,6 +105,8 @@ namespace QManager {
       int row, col;
       int height_, width_;
       int startx_, starty_;
+      std::string help_msg;
+      int str_size;
   };
 
   class MainWindow : public TemplateWindow {
