@@ -2,6 +2,7 @@ v0.1.1 - 11 April 2014
 ----------------------
     - Fix vnc connect bug
     - Centered view
+    - Add ability to bind vnc to any interfaces or only to localhost
 
 v0.1.0 - 10 April 2014
 ----------------------
