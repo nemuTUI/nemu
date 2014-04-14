@@ -901,6 +901,44 @@ void QManager::AddDiskWindow::Get_data_from_form() {
   guest_new.disk.assign(trim_field_buffer(field_buffer(field[0], 0)));
 }
 
+void QManager::AddDiskWindow::Get_data_from_db() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  sql_query = "select hdd from vms where name='" + vm_name_ + "'";
+  guest_old.disk = db->SelectQuery(sql_query);
+}
+
+void QManager::AddDiskWindow::Update_db_data() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  sql_query = "update vms set hdd='" + guest_old.disk[0] +
+    "' where name='" + vm_name_ + "'";
+  db->ActionQuery(sql_query);
+}
+
+void QManager::AddDiskWindow::Gen_hdd() {
+  hdd_ch = 'a';
+  MapString disk = Gen_map_from_str(guest_old.disk[0]);
+
+  if(disk.size() == 26)
+    throw QMException(_("26 disks limit reached :("));
+
+  hdd_ch += disk.size();
+
+  guest_dir = vmdir_ + "/" + vm_name_;
+  create_img_cmd = "qemu-img create -f qcow2 " + guest_dir
+  + "/" + vm_name_ + "_" + hdd_ch + ".img " + guest_new.disk + "G > /dev/null 2>&1";
+
+  cmd_exit_status = system(create_img_cmd.c_str());
+
+  if(cmd_exit_status != 0) {
+    Delete_form();
+    throw QMException(_("Can't create img file"));
+  }
+
+  guest_old.disk[0] += vm_name_ + "_" + hdd_ch + ".img=" + guest_new.disk + ";";
+}
+
 void QManager::AddDiskWindow::Print() {
   finish.store(false);
 
@@ -914,6 +952,7 @@ void QManager::AddDiskWindow::Print() {
     Draw_form();
 
     Get_data_from_form();
+    Get_data_from_db();
 
     if(guest_new.disk.empty())
       throw QMException(_("Null disk size"));
@@ -921,6 +960,21 @@ void QManager::AddDiskWindow::Print() {
     if(std::stol(guest_new.disk) <= 0 || std::stoul(guest_new.disk) >= disk_free(vmdir_))
       throw QMException(_("Wrong disk size"));
 
+    getmaxyx(stdscr, row, col);
+    std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
+
+    try {
+      Gen_hdd();
+      Update_db_data();
+    }
+    catch (...) {
+      finish.store(true);
+      spin_thr.join();
+      throw;
+    }
+
+    finish.store(true);
+    spin_thr.join();
     Delete_form();
   }
   catch (QMException &err) {
