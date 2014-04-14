@@ -260,7 +260,7 @@ int main(int argc, char **argv) {
           }
 
           else if(ch == KEY_F(1)) {
-            std::unique_ptr<HelpWindow> help_window(new HelpWindow(10, 40));
+            std::unique_ptr<HelpWindow> help_window(new HelpWindow(11, 40));
             help_window->Print();
           }
 
