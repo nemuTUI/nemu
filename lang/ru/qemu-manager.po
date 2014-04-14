@@ -172,3 +172,18 @@ msgstr "\"e\" - править натсройки гостя"
 #: windows.cpp:858
 msgid "\"l\" - clone guest"
 msgstr "\"l\" - клонировать гостя"
+
+msgid "Size [1-"
+msgstr "Размер [1-"
+
+msgid "26 disks limit reached :("
+msgstr "Достигнут лимит 26 дисков :("
+
+msgid "Add disk to "
+msgstr "Диск для "
+
+msgid "Null disk size"
+msgstr "Не задан размер диска"
+
+msgid "Wrong disk size"
+msgstr "Неверный размер диска"
