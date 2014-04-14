@@ -86,7 +86,10 @@ void QManager::VmInfoWindow::Print() {
 
   sql_query = "select vnc from vms where name='" + guest_ + "'";
   guest.vncp = db->SelectQuery(sql_query);
-  mvprintw(9, col/4, "%-12s%s", "vnc port: ", guest.vncp[0].c_str());
+  mvprintw(
+    9, col/4, "%-12s%s [%u]", "vnc port: ",
+    guest.vncp[0].c_str(), std::stoi(guest.vncp[0]) + 5900
+  );
 
   sql_query = "select mac from vms where name='" + guest_ + "'";
   guest.ints = db->SelectQuery(sql_query);
