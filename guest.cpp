@@ -137,7 +137,7 @@ void QManager::delete_guest(
 
 void QManager::kill_guest(const std::string &vm_name) {
   std::string stop_cmd = "pgrep -nf \"[q]emu.*/" + vm_name +
-    "/" + vm_name + ".img\" | xargs kill";
+    "/" + vm_name + "_a.img\" | xargs kill";
 
   system(stop_cmd.c_str());
 }

@@ -366,7 +366,7 @@ void QManager::AddVmWindow::Update_db_data() {
     guest.usbd = "none";
   }
 
-  guest.disk = guest.name + ".img=" + guest.disk + ";";
+  guest.disk = guest.name + "_a.img=" + guest.disk + ";";
   guest.kvmf == "yes" ? guest.kvmf = "1" : guest.kvmf = "0";
 
   std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
@@ -393,7 +393,7 @@ void QManager::AddVmWindow::Gen_hdd() {
   guest_dir = vmdir_ + "/" + guest.name;
   create_guest_dir_cmd = "mkdir " + guest_dir + " >/dev/null 2>&1";
   create_img_cmd = "qemu-img create -f qcow2 " + guest_dir
-  + "/" + guest.name + ".img " + guest.disk + "G > /dev/null 2>&1";
+  + "/" + guest.name + "_a.img " + guest.disk + "G > /dev/null 2>&1";
 
   cmd_exit_status = system(create_guest_dir_cmd.c_str());
 
