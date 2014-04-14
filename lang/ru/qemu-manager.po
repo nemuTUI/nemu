@@ -158,6 +158,9 @@ msgstr "\"c\" - подключиться по vnc"
 msgid "\"f\" - force stop guest"
 msgstr "\"f\" - принудительное выключение"
 
+msgid "\"a\" - add virtual disk"
+msgstr "\"a\" - добавить виртуальный диск"
+
 #: windows.cpp:856
 msgid "\"d\" - delete guest"
 msgstr "\"d\" - удалить гостя"
