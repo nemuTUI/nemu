@@ -871,6 +871,63 @@ void QManager::CloneVmWindow::Print() {
   }
 }
 
+QManager::AddDiskWindow::AddDiskWindow(
+  const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
+  int height, int width, int starty
+) : AddVmWindow(dbf, vmdir, height, width, starty) {
+    vm_name_ = vm_name;
+
+    field.resize(2);
+}
+
+void QManager::AddDiskWindow::Create_fields() {
+  field[0] = new_field(1, 8, 2, 1, 0, 0);
+  field[field.size() - 1] = NULL;
+}
+
+void QManager::AddDiskWindow::Config_fields() {
+  set_field_type(field[0], TYPE_INTEGER, 0, 1, disk_free(vmdir_));
+}
+
+void QManager::AddDiskWindow::Print_fields_names() {
+  char cfree[128];
+  snprintf(cfree, sizeof(cfree), "%s%u%s", _("Size [1-"), disk_free(vmdir_), "]Gb");
+
+  mvwaddstr(window, 2, 8, (_("Add disk to ") + vm_name_).c_str());
+  mvwaddstr(window, 4, 2, cfree);
+}
+
+void QManager::AddDiskWindow::Get_data_from_form() {
+  guest_new.disk.assign(trim_field_buffer(field_buffer(field[0], 0)));
+}
+
+void QManager::AddDiskWindow::Print() {
+  finish.store(false);
+
+  try {
+    Draw_title();
+    Create_fields();
+    Enable_color();
+    Config_fields();
+    Post_form(22);
+    Print_fields_names();
+    Draw_form();
+
+    Get_data_from_form();
+
+    if(guest_new.disk.empty())
+      throw QMException(_("Null disk size"));
+
+    if(std::stol(guest_new.disk) <= 0 || std::stoul(guest_new.disk) >= disk_free(vmdir_))
+      throw QMException(_("Wrong disk size"));
+
+    Delete_form();
+  }
+  catch (QMException &err) {
+    ExeptionExit(err);
+  }
+}
+
 void QManager::HelpWindow::Print() {
   line = 1;
   window_ = newwin(height_, width_, starty_, startx_);

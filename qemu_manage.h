@@ -31,7 +31,7 @@ namespace QManager {
     MenuKeyR = 114, MenuKeyC = 99,
     MenuKeyF = 102, MenuKeyD = 100,
     MenuKeyE = 101, MenuKeyL = 108,
-    MenuKeyY = 121,
+    MenuKeyY = 121, MenuKeyA = 97,
   };
 
   template <typename T>
@@ -238,6 +238,29 @@ namespace QManager {
   class CloneVmWindow : public AddVmWindow {
     public:
       CloneVmWindow(
+        const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
+        int height, int width, int starty = 3
+      );
+      void Print();
+
+    private:
+      void Create_fields();
+      void Config_fields();
+      void Print_fields_names();
+      void Get_data_from_form();
+      void Get_data_from_db();
+      void Gen_hdd();
+      void Update_db_data();
+
+      std::string vm_name_;
+      guest_t<VectorString> guest_old;
+      guest_t<std::string> guest_new;
+      char hdd_ch;
+  };
+
+  class AddDiskWindow : public AddVmWindow {
+    public:
+      AddDiskWindow(
         const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
         int height, int width, int starty = 3
       );

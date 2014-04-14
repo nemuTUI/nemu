@@ -238,6 +238,14 @@ int main(int argc, char **argv) {
             edit_window->Print();
           }
 
+          else if(ch == MenuKeyA) {
+            std::string guest = guests.at((guest_first + q_highlight) - 1);
+
+            std::unique_ptr<AddDiskWindow> add_disk_window(new AddDiskWindow(dbf, vmdir, guest, 7, 35));
+            add_disk_window->Init();
+            add_disk_window->Print();
+          }
+
           else if(ch == MenuKeyL) {
             std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
             vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
