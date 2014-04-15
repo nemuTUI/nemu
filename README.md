@@ -13,7 +13,7 @@ Qemu Manage System
  * Show OpenvSwitch map (TODO)
 
 ## Videos
-[![Alt Add VM example](http://img.youtube.com/vi/66DFeZJz8YM/0.jpg)](http://www.youtube.com/watch?v=66DFeZJz8YM)
+[![Alt Add VM example](http://img.youtube.com/vi/jOtCY--LEN8/1.jpg)](http://www.youtube.com/watch?v=jOtCY--LEN8)
 
 ## Environment Requirements
  * Linux host
