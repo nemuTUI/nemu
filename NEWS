@@ -1,3 +1,9 @@
+v0.1.2 - 15 April 2014
+----------------------
+    - Add virtual disk to guest feature
+    - Show real vnc port
+    - Fix bugs
+
 v0.1.1 - 11 April 2014
 ----------------------
     - Fix vnc connect bug
