@@ -851,6 +851,9 @@ void QManager::CloneVmWindow::Print() {
     Get_data_from_form();
     Get_data_from_db();
 
+    if(guest_new.name.empty())
+      throw QMException(_("Null guest name"));
+
     if(! v_name.empty())
       throw QMException(_("This name is already used"));
 
