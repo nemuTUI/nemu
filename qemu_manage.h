@@ -14,7 +14,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 
 #define _(str) gettext(str)
-#define VERSION "0.1.1"
+#define VERSION "0.1.2"
 
 namespace QManager {
   extern std::atomic<bool> finish;
