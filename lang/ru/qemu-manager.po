@@ -187,3 +187,6 @@ msgstr "Не задан размер диска"
 
 msgid "Wrong disk size"
 msgstr "Неверный размер диска"
+
+msgid "Null guest name"
+msgstr "Не задано имя клона"
