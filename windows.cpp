@@ -10,6 +10,10 @@ static const char *YesNo[3] = {
   "yes","no", NULL
 };
 
+static const char *NetDrv[4] = {
+  "virtio", "rtl8139", "e1000", NULL
+};
+
 static const QManager::VectorString q_arch = QManager::list_arch();
 
 QManager::TemplateWindow::TemplateWindow(int height, int width, int starty) {
