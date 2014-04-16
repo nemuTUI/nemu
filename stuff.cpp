@@ -1,5 +1,7 @@
 #include <sstream>
+
 #include <boost/tokenizer.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include "qemu_manage.h"
 
@@ -49,6 +51,24 @@ QManager::MapString QManager::Gen_map_from_str(const std::string &str) {
     std::string val = *tok_iter++;
 
     result.insert(std::make_pair(key, val));
+  }
+
+  return result;
+}
+
+QManager::MapStringVector QManager::Read_ifaces_from_json(const std::string &str) {
+  MapStringVector result;
+
+  std::istringstream ss(str);
+  boost::property_tree::ptree ptr;
+  boost::property_tree::json_parser::read_json(ss, ptr);
+
+  for(auto &i : ptr.get_child("ifaces")) {
+    std::vector<std::string> values;
+    std::string key = i.second.get<std::string>("name");
+    values.push_back(i.second.get<std::string>("mac"));
+    values.push_back(i.second.get<std::string>("drv"));
+    result.insert(std::make_pair(key, values));
   }
 
   return result;

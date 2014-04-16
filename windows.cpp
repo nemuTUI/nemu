@@ -97,7 +97,7 @@ void QManager::VmInfoWindow::Print() {
 
   sql_query = "select mac from vms where name='" + guest_ + "'";
   guest.ints = db->SelectQuery(sql_query);
-  MapString ints = Gen_map_from_str(guest.ints[0]);
+  MapStringVector ints = Read_ifaces_from_json(guest.ints[0]);
 
   // Generate guest inerfaces info
   uint32_t i = 0;
@@ -105,7 +105,7 @@ void QManager::VmInfoWindow::Print() {
   for(auto &ifs : ints) {
     mvprintw(
       ++y, col/4, "%s%u%-8s%s %s%s%s", "eth", i++, ":", ifs.first.c_str(),
-      "[", ifs.second.c_str(), "]"
+      "[", ifs.second[0].c_str(), "]"
     );
   }
 
@@ -132,7 +132,7 @@ QManager::AddVmWindow::AddVmWindow(const std::string &dbf, const std::string &vm
     dbf_ = dbf;
     vmdir_ = vmdir;
 
-    field.resize(12);
+    field.resize(13);
 }
 
 void QManager::AddVmWindow::Delete_form() {
@@ -193,8 +193,12 @@ void QManager::AddVmWindow::Gen_mac_address(
 
   guest.ints.clear();
   for(auto &ifs : ifaces) {
-    guest.ints += ifs.first + "=" + ifs.second + ";";
+    guest.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
+      ifs.second + "\",\"drv\":\"" + guest.ndrv + "\"},";
   }
+
+  guest.ints.erase(guest.ints.find_last_not_of(",") + 1);
+  guest.ints = "{\"ifaces\":[" + guest.ints + "]}";
 }
 
 void QManager::AddVmWindow::Draw_form() {
@@ -282,8 +286,9 @@ void QManager::AddVmWindow::Config_fields_type() {
   set_field_type(field[6], TYPE_ENUM, (char **)YesNo, false, false);
   set_field_type(field[7], TYPE_REGEXP, "^/.*");
   set_field_type(field[8], TYPE_INTEGER, 0, 0, 64);
-  set_field_type(field[9], TYPE_ENUM, (char **)YesNo, false, false);
-  set_field_type(field[10], TYPE_ENUM, UdevList, false, false);
+  set_field_type(field[9], TYPE_ENUM, (char **)NetDrv, false, false);
+  set_field_type(field[10], TYPE_ENUM, (char **)YesNo, false, false);
+  set_field_type(field[11], TYPE_ENUM, UdevList, false, false);
 
   for(size_t i = 0; i < q_arch.size(); ++i) {
     delete [] ArchList[i];
@@ -303,10 +308,13 @@ void QManager::AddVmWindow::Config_fields_buffer() {
 
   set_field_buffer(field[2], 0, "1");
   set_field_buffer(field[5], 0, clvnc);
+  set_field_buffer(field[6], 0, "yes");
   set_field_buffer(field[8], 0, "1");
+  set_field_buffer(field[9], 0, "virtio");
+  set_field_buffer(field[10], 0, "no");
   field_opts_off(field[0], O_STATIC);
   field_opts_off(field[7], O_STATIC);
-  field_opts_off(field[10], O_STATIC);
+  field_opts_off(field[11], O_STATIC);
   field_opts_off(field[5], O_EDIT);
   set_max_field(field[0], 30);
 }
@@ -326,8 +334,9 @@ void QManager::AddVmWindow::Print_fields_names() {
   mvwaddstr(window, 14, 2, _("KVM [yes/no]"));
   mvwaddstr(window, 16, 2, _("Path to ISO"));
   mvwaddstr(window, 18, 2, _("Interfaces"));
-  mvwaddstr(window, 20, 2, _("USB [yes/no]"));
-  mvwaddstr(window, 22, 2, _("USB device"));
+  mvwaddstr(window, 20, 2, _("Net driver"));
+  mvwaddstr(window, 22, 2, _("USB [yes/no]"));
+  mvwaddstr(window, 24, 2, _("USB device"));
 }
 
 void QManager::AddVmWindow::Get_data_from_form() {
@@ -340,8 +349,9 @@ void QManager::AddVmWindow::Get_data_from_form() {
   guest.kvmf.assign(trim_field_buffer(field_buffer(field[6], 0)));
   guest.path.assign(trim_field_buffer(field_buffer(field[7], 0)));
   guest.ints.assign(trim_field_buffer(field_buffer(field[8], 0)));
-  guest.usbp.assign(trim_field_buffer(field_buffer(field[9], 0)));
-  guest.usbd.assign(trim_field_buffer(field_buffer(field[10], 0)));
+  guest.ndrv.assign(trim_field_buffer(field_buffer(field[9], 0)));
+  guest.usbp.assign(trim_field_buffer(field_buffer(field[10], 0)));
+  guest.usbd.assign(trim_field_buffer(field_buffer(field[11], 0)));
 }
 
 void QManager::AddVmWindow::Get_data_from_db() {
@@ -416,7 +426,7 @@ void QManager::AddVmWindow::Gen_hdd() {
 
 void QManager::AddVmWindow::Check_input_data() {
   if(guest.usbp == "yes") {
-    for(size_t i = 0; i < 11; ++i) {
+    for(size_t i = 0; i < 12; ++i) {
       if(! field_status(field[i])) {
         Delete_form();
         throw QMException(_("Must fill all params"));
@@ -424,7 +434,7 @@ void QManager::AddVmWindow::Check_input_data() {
     }
   }
   else {
-    for(size_t i = 0; i < 9; ++i) {
+    for(size_t i = 0; i < 10; ++i) {
       if(! field_status(field[i])) {
         Delete_form();
         throw QMException(_("Must fill all params"));
