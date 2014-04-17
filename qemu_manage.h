@@ -167,6 +167,7 @@ namespace QManager {
       void Gen_mac_address(
         struct guest_t<std::string> &guest, uint32_t int_count, std::string vm_name
       );
+      void Gen_iface_json();
 
       std::string sql_query, s_last_mac,
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd;
@@ -253,6 +254,7 @@ namespace QManager {
       void Get_data_from_db();
       void Gen_hdd();
       void Update_db_data();
+      void Gen_iface_json();
 
       std::string vm_name_;
       guest_t<VectorString> guest_old;

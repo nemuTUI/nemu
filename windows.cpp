@@ -190,7 +190,9 @@ void QManager::AddVmWindow::Gen_mac_address(
   s_last_mac.erase(its, s_last_mac.end());
 
   last_mac = std::stol(s_last_mac, 0, 16);
+}
 
+void QManager::AddVmWindow::Gen_iface_json() {
   guest.ints.clear();
   for(auto &ifs : ifaces) {
     guest.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
@@ -474,6 +476,7 @@ void QManager::AddVmWindow::Print() {
     try {
       Gen_hdd();
       Gen_mac_address(guest, std::stoi(guest.ints), guest.name);
+      Gen_iface_json();
       Update_db_data();
     }
     catch (...) {
@@ -791,6 +794,26 @@ void QManager::CloneVmWindow::Get_data_from_db() {
   last_vnc++;
 }
 
+void QManager::CloneVmWindow::Gen_iface_json() {
+  MapStringVector old_ifaces = Read_ifaces_from_json(guest_old.ints[0]);
+
+  for(auto &old_ifs : old_ifaces)
+    guest_old.ndrv.push_back(old_ifs.second[1]);
+
+  guest_new.ints.clear();
+  for(auto &ifs : ifaces) {
+    size_t i = 0;
+
+    guest_new.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
+      ifs.second + "\",\"drv\":\"" + guest_old.ndrv[i] + "\"},";
+
+    i++;
+  }
+
+  guest_new.ints.erase(guest_new.ints.find_last_not_of(",") + 1);
+  guest_new.ints = "{\"ifaces\":[" + guest_new.ints + "]}";
+}
+
 void QManager::CloneVmWindow::Update_db_data() {
   const std::array<std::string, 8> columns = {
     "mem", "smp", "kvm",
@@ -874,7 +897,11 @@ void QManager::CloneVmWindow::Print() {
     getmaxyx(stdscr, row, col);
     std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
 
-    Gen_mac_address(guest_new, Gen_map_from_str(guest_old.ints[0]).size(), guest_new.name);
+    Gen_mac_address(
+      guest_new, Read_ifaces_from_json(guest_old.ints[0]).size(),
+      guest_new.name
+    );
+    Gen_iface_json();
 
     Gen_hdd();
     Update_db_data();
