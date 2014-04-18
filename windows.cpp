@@ -104,8 +104,8 @@ void QManager::VmInfoWindow::Print() {
   uint32_t y = 9;
   for(auto &ifs : ints) {
     mvprintw(
-      ++y, col/4, "%s%u%-8s%s %s%s%s", "eth", i++, ":", ifs.first.c_str(),
-      "[", ifs.second[0].c_str(), "]"
+      ++y, col/4, "%s%u%-8s%s [%s] [%s]", "eth", i++, ":", ifs.first.c_str(),
+        ifs.second[0].c_str(), ifs.second[1].c_str()
     );
   }
 
@@ -312,7 +312,7 @@ void QManager::AddVmWindow::Config_fields_buffer() {
   set_field_buffer(field[5], 0, clvnc);
   set_field_buffer(field[6], 0, "yes");
   set_field_buffer(field[8], 0, "1");
-  set_field_buffer(field[9], 0, "virtio");
+  set_field_buffer(field[9], 0, DEFAULT_NETDRV);
   set_field_buffer(field[10], 0, "no");
   field_opts_off(field[0], O_STATIC);
   field_opts_off(field[7], O_STATIC);
@@ -837,9 +837,8 @@ void QManager::CloneVmWindow::Gen_iface_json() {
     guest_old.ndrv.push_back(old_ifs.second[1]);
 
   guest_new.ints.clear();
+  size_t i = 0;
   for(auto &ifs : ifaces) {
-    size_t i = 0;
-
     guest_new.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
       ifs.second + "\",\"drv\":\"" + guest_old.ndrv[i] + "\"},";
 
