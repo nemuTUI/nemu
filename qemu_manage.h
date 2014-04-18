@@ -15,6 +15,7 @@
 
 #define _(str) gettext(str)
 #define VERSION "0.1.2"
+#define DEFAULT_NETDRV "virtio"
 
 namespace QManager {
   extern std::atomic<bool> finish;
@@ -219,6 +220,7 @@ namespace QManager {
       void Update_db_eth_data();
       void Gen_hdd();
       void Check_input_data();
+      void Gen_iface_json(uint32_t);
 
       guest_t<VectorString> guest_old;
       guest_t<std::string> guest_new;

@@ -543,8 +543,8 @@ void QManager::EditVmWindow::Config_fields_type() {
 }
 
 void QManager::EditVmWindow::Config_fields_buffer() {
-  ifaces = Gen_map_from_str(guest_old.ints[0]);
-  ints_count = ifaces.size();
+  MapStringVector old_ifaces = Read_ifaces_from_json(guest_old.ints[0]);
+  ints_count = old_ifaces.size();
 
   char cints[64];
   snprintf(cints, sizeof(cints), "%u", ints_count);
@@ -613,6 +613,41 @@ void QManager::EditVmWindow::Get_data_from_db() {
 
   sql_query = "select mac from lastval";
   v_last_mac = db->SelectQuery(sql_query);
+}
+
+void QManager::EditVmWindow::Gen_iface_json(uint32_t new_if_count) {
+  MapStringVector old_ifaces = Read_ifaces_from_json(guest_old.ints[0]);
+  size_t old_if_count = old_ifaces.size();
+
+  if(old_if_count > new_if_count) {
+    size_t n = 0;
+    for(auto it : old_ifaces) {
+      guest_old.ndrv.push_back(it.second[1]);
+      ++n;
+      if(n == new_if_count)
+        break;
+    }
+  }
+  else if(old_if_count < new_if_count) {
+    for(auto it : old_ifaces)
+      guest_old.ndrv.push_back(it.second[1]);
+
+    size_t count_diff = new_if_count - old_if_count;
+    for(size_t i = 0; i < count_diff; ++i)
+      guest_old.ndrv.push_back(DEFAULT_NETDRV);
+  }
+
+  guest_new.ints.clear();
+  size_t i = 0;
+  for(auto &ifs : ifaces) {
+    guest_new.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
+      ifs.second + "\",\"drv\":\"" + guest_old.ndrv[i] + "\"},";
+
+    i++;
+  }
+
+  guest_new.ints.erase(guest_new.ints.find_last_not_of(",") + 1);
+  guest_new.ints = "{\"ifaces\":[" + guest_new.ints + "]}";
 }
 
 void QManager::EditVmWindow::Update_db_cpu_data() {
@@ -686,6 +721,7 @@ void QManager::EditVmWindow::Update_db_eth_data() {
 
     if(ui_vm_ints != ints_count) {
       Gen_mac_address(guest_new, ui_vm_ints, vm_name_);
+      Gen_iface_json(ui_vm_ints);
 
       sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
       db->ActionQuery(sql_query);
