@@ -15,12 +15,14 @@
 
 #define _(str) gettext(str)
 #define VERSION "0.1.2"
+#define DEFAULT_NETDRV "virtio"
 
 namespace QManager {
   extern std::atomic<bool> finish;
 
   typedef std::vector<std::string> VectorString;
   typedef std::map<std::string, std::string> MapString;
+  typedef std::map<std::string, std::vector<std::string>> MapStringVector;
 
   enum input_choices {
     MenuVmlist = 1, MenuAddVm = 2,
@@ -37,7 +39,7 @@ namespace QManager {
   template <typename T>
   struct guest_t {
     T name, arch, cpus, memo, disk, vncp,
-    kvmf, path, ints, usbp, usbd, install;
+    kvmf, path, ints, usbp, usbd, ndrv, install;
   };
 
   void err_exit(const char *msg, const std::string &err = "");
@@ -72,6 +74,7 @@ namespace QManager {
   std::string trim_field_buffer(char *buff);
   MapString gen_mac_addr(uint64_t &mac, uint32_t &int_num, std::string &vm_name);
   MapString Gen_map_from_str(const std::string &str);
+  MapStringVector Read_ifaces_from_json(const std::string &str);
   bool check_root();
   void spinner(uint32_t, uint32_t);
 
@@ -165,6 +168,7 @@ namespace QManager {
       void Gen_mac_address(
         struct guest_t<std::string> &guest, uint32_t int_count, std::string vm_name
       );
+      void Gen_iface_json();
 
       std::string sql_query, s_last_mac,
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd;
@@ -216,6 +220,7 @@ namespace QManager {
       void Update_db_eth_data();
       void Gen_hdd();
       void Check_input_data();
+      void Gen_iface_json(uint32_t);
 
       guest_t<VectorString> guest_old;
       guest_t<std::string> guest_new;
@@ -251,6 +256,7 @@ namespace QManager {
       void Get_data_from_db();
       void Gen_hdd();
       void Update_db_data();
+      void Gen_iface_json();
 
       std::string vm_name_;
       guest_t<VectorString> guest_old;

@@ -58,7 +58,7 @@ void QManager::start_guest(
   std::string delete_lock = " > /dev/null 2>&1; rm " + lock_file + " )&";
   std::string qemu_bin = "qemu-system-" + guest.arch[0];
 
-  MapString ints = Gen_map_from_str(guest.ints[0]);
+  MapStringVector ints = Read_ifaces_from_json(guest.ints[0]);
   MapString disk = Gen_map_from_str(guest.disk[0]);
 
   std::string hdx_arg, ints_arg;
@@ -70,7 +70,7 @@ void QManager::start_guest(
   }
 
   for(auto &ifs : ints) {
-    ints_arg += " -net nic,macaddr=" + ifs.second + ",model=e1000";
+    ints_arg += " -net nic,macaddr=" + ifs.second[0] + ",model=" + ifs.second[1];
     ints_arg += " -net tap,ifname=" + ifs.first + ",script=no";
   }
 

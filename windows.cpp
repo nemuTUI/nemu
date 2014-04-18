@@ -10,6 +10,10 @@ static const char *YesNo[3] = {
   "yes","no", NULL
 };
 
+static const char *NetDrv[4] = {
+  "virtio", "rtl8139", "e1000", NULL
+};
+
 static const QManager::VectorString q_arch = QManager::list_arch();
 
 QManager::TemplateWindow::TemplateWindow(int height, int width, int starty) {
@@ -93,15 +97,15 @@ void QManager::VmInfoWindow::Print() {
 
   sql_query = "select mac from vms where name='" + guest_ + "'";
   guest.ints = db->SelectQuery(sql_query);
-  MapString ints = Gen_map_from_str(guest.ints[0]);
+  MapStringVector ints = Read_ifaces_from_json(guest.ints[0]);
 
   // Generate guest inerfaces info
   uint32_t i = 0;
   uint32_t y = 9;
   for(auto &ifs : ints) {
     mvprintw(
-      ++y, col/4, "%s%u%-8s%s %s%s%s", "eth", i++, ":", ifs.first.c_str(),
-      "[", ifs.second.c_str(), "]"
+      ++y, col/4, "%s%u%-8s%s [%s] [%s]", "eth", i++, ":", ifs.first.c_str(),
+        ifs.second[0].c_str(), ifs.second[1].c_str()
     );
   }
 
@@ -128,7 +132,7 @@ QManager::AddVmWindow::AddVmWindow(const std::string &dbf, const std::string &vm
     dbf_ = dbf;
     vmdir_ = vmdir;
 
-    field.resize(12);
+    field.resize(13);
 }
 
 void QManager::AddVmWindow::Delete_form() {
@@ -186,11 +190,17 @@ void QManager::AddVmWindow::Gen_mac_address(
   s_last_mac.erase(its, s_last_mac.end());
 
   last_mac = std::stol(s_last_mac, 0, 16);
+}
 
+void QManager::AddVmWindow::Gen_iface_json() {
   guest.ints.clear();
   for(auto &ifs : ifaces) {
-    guest.ints += ifs.first + "=" + ifs.second + ";";
+    guest.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
+      ifs.second + "\",\"drv\":\"" + guest.ndrv + "\"},";
   }
+
+  guest.ints.erase(guest.ints.find_last_not_of(",") + 1);
+  guest.ints = "{\"ifaces\":[" + guest.ints + "]}";
 }
 
 void QManager::AddVmWindow::Draw_form() {
@@ -278,8 +288,9 @@ void QManager::AddVmWindow::Config_fields_type() {
   set_field_type(field[6], TYPE_ENUM, (char **)YesNo, false, false);
   set_field_type(field[7], TYPE_REGEXP, "^/.*");
   set_field_type(field[8], TYPE_INTEGER, 0, 0, 64);
-  set_field_type(field[9], TYPE_ENUM, (char **)YesNo, false, false);
-  set_field_type(field[10], TYPE_ENUM, UdevList, false, false);
+  set_field_type(field[9], TYPE_ENUM, (char **)NetDrv, false, false);
+  set_field_type(field[10], TYPE_ENUM, (char **)YesNo, false, false);
+  set_field_type(field[11], TYPE_ENUM, UdevList, false, false);
 
   for(size_t i = 0; i < q_arch.size(); ++i) {
     delete [] ArchList[i];
@@ -299,10 +310,13 @@ void QManager::AddVmWindow::Config_fields_buffer() {
 
   set_field_buffer(field[2], 0, "1");
   set_field_buffer(field[5], 0, clvnc);
+  set_field_buffer(field[6], 0, "yes");
   set_field_buffer(field[8], 0, "1");
+  set_field_buffer(field[9], 0, DEFAULT_NETDRV);
+  set_field_buffer(field[10], 0, "no");
   field_opts_off(field[0], O_STATIC);
   field_opts_off(field[7], O_STATIC);
-  field_opts_off(field[10], O_STATIC);
+  field_opts_off(field[11], O_STATIC);
   field_opts_off(field[5], O_EDIT);
   set_max_field(field[0], 30);
 }
@@ -322,8 +336,9 @@ void QManager::AddVmWindow::Print_fields_names() {
   mvwaddstr(window, 14, 2, _("KVM [yes/no]"));
   mvwaddstr(window, 16, 2, _("Path to ISO"));
   mvwaddstr(window, 18, 2, _("Interfaces"));
-  mvwaddstr(window, 20, 2, _("USB [yes/no]"));
-  mvwaddstr(window, 22, 2, _("USB device"));
+  mvwaddstr(window, 20, 2, _("Net driver"));
+  mvwaddstr(window, 22, 2, _("USB [yes/no]"));
+  mvwaddstr(window, 24, 2, _("USB device"));
 }
 
 void QManager::AddVmWindow::Get_data_from_form() {
@@ -336,8 +351,9 @@ void QManager::AddVmWindow::Get_data_from_form() {
   guest.kvmf.assign(trim_field_buffer(field_buffer(field[6], 0)));
   guest.path.assign(trim_field_buffer(field_buffer(field[7], 0)));
   guest.ints.assign(trim_field_buffer(field_buffer(field[8], 0)));
-  guest.usbp.assign(trim_field_buffer(field_buffer(field[9], 0)));
-  guest.usbd.assign(trim_field_buffer(field_buffer(field[10], 0)));
+  guest.ndrv.assign(trim_field_buffer(field_buffer(field[9], 0)));
+  guest.usbp.assign(trim_field_buffer(field_buffer(field[10], 0)));
+  guest.usbd.assign(trim_field_buffer(field_buffer(field[11], 0)));
 }
 
 void QManager::AddVmWindow::Get_data_from_db() {
@@ -412,7 +428,7 @@ void QManager::AddVmWindow::Gen_hdd() {
 
 void QManager::AddVmWindow::Check_input_data() {
   if(guest.usbp == "yes") {
-    for(size_t i = 0; i < 11; ++i) {
+    for(size_t i = 0; i < 12; ++i) {
       if(! field_status(field[i])) {
         Delete_form();
         throw QMException(_("Must fill all params"));
@@ -420,7 +436,7 @@ void QManager::AddVmWindow::Check_input_data() {
     }
   }
   else {
-    for(size_t i = 0; i < 9; ++i) {
+    for(size_t i = 0; i < 10; ++i) {
       if(! field_status(field[i])) {
         Delete_form();
         throw QMException(_("Must fill all params"));
@@ -460,6 +476,7 @@ void QManager::AddVmWindow::Print() {
     try {
       Gen_hdd();
       Gen_mac_address(guest, std::stoi(guest.ints), guest.name);
+      Gen_iface_json();
       Update_db_data();
     }
     catch (...) {
@@ -526,8 +543,8 @@ void QManager::EditVmWindow::Config_fields_type() {
 }
 
 void QManager::EditVmWindow::Config_fields_buffer() {
-  ifaces = Gen_map_from_str(guest_old.ints[0]);
-  ints_count = ifaces.size();
+  MapStringVector old_ifaces = Read_ifaces_from_json(guest_old.ints[0]);
+  ints_count = old_ifaces.size();
 
   char cints[64];
   snprintf(cints, sizeof(cints), "%u", ints_count);
@@ -596,6 +613,41 @@ void QManager::EditVmWindow::Get_data_from_db() {
 
   sql_query = "select mac from lastval";
   v_last_mac = db->SelectQuery(sql_query);
+}
+
+void QManager::EditVmWindow::Gen_iface_json(uint32_t new_if_count) {
+  MapStringVector old_ifaces = Read_ifaces_from_json(guest_old.ints[0]);
+  size_t old_if_count = old_ifaces.size();
+
+  if(old_if_count > new_if_count) {
+    size_t n = 0;
+    for(auto it : old_ifaces) {
+      guest_old.ndrv.push_back(it.second[1]);
+      ++n;
+      if(n == new_if_count)
+        break;
+    }
+  }
+  else if(old_if_count < new_if_count) {
+    for(auto it : old_ifaces)
+      guest_old.ndrv.push_back(it.second[1]);
+
+    size_t count_diff = new_if_count - old_if_count;
+    for(size_t i = 0; i < count_diff; ++i)
+      guest_old.ndrv.push_back(DEFAULT_NETDRV);
+  }
+
+  guest_new.ints.clear();
+  size_t i = 0;
+  for(auto &ifs : ifaces) {
+    guest_new.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
+      ifs.second + "\",\"drv\":\"" + guest_old.ndrv[i] + "\"},";
+
+    i++;
+  }
+
+  guest_new.ints.erase(guest_new.ints.find_last_not_of(",") + 1);
+  guest_new.ints = "{\"ifaces\":[" + guest_new.ints + "]}";
 }
 
 void QManager::EditVmWindow::Update_db_cpu_data() {
@@ -669,6 +721,7 @@ void QManager::EditVmWindow::Update_db_eth_data() {
 
     if(ui_vm_ints != ints_count) {
       Gen_mac_address(guest_new, ui_vm_ints, vm_name_);
+      Gen_iface_json(ui_vm_ints);
 
       sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
       db->ActionQuery(sql_query);
@@ -777,6 +830,25 @@ void QManager::CloneVmWindow::Get_data_from_db() {
   last_vnc++;
 }
 
+void QManager::CloneVmWindow::Gen_iface_json() {
+  MapStringVector old_ifaces = Read_ifaces_from_json(guest_old.ints[0]);
+
+  for(auto &old_ifs : old_ifaces)
+    guest_old.ndrv.push_back(old_ifs.second[1]);
+
+  guest_new.ints.clear();
+  size_t i = 0;
+  for(auto &ifs : ifaces) {
+    guest_new.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
+      ifs.second + "\",\"drv\":\"" + guest_old.ndrv[i] + "\"},";
+
+    i++;
+  }
+
+  guest_new.ints.erase(guest_new.ints.find_last_not_of(",") + 1);
+  guest_new.ints = "{\"ifaces\":[" + guest_new.ints + "]}";
+}
+
 void QManager::CloneVmWindow::Update_db_data() {
   const std::array<std::string, 8> columns = {
     "mem", "smp", "kvm",
@@ -860,7 +932,11 @@ void QManager::CloneVmWindow::Print() {
     getmaxyx(stdscr, row, col);
     std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
 
-    Gen_mac_address(guest_new, Gen_map_from_str(guest_old.ints[0]).size(), guest_new.name);
+    Gen_mac_address(
+      guest_new, Read_ifaces_from_json(guest_old.ints[0]).size(),
+      guest_new.name
+    );
+    Gen_iface_json();
 
     Gen_hdd();
     Update_db_data();
