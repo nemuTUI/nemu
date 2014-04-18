@@ -44,7 +44,7 @@ void QManager::MainWindow::Print() {
 }
 
 void QManager::VmWindow::Print() {
-  help_msg = _("F1 - help, F10 - main menu");
+  help_msg = _("F1 - help, F10 - main menu ");
   str_size = mbstowcs(NULL, help_msg.c_str(), help_msg.size());
 
   border(0,0,0,0,0,0,0,0);

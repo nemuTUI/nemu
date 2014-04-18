@@ -63,7 +63,7 @@ msgid ""
 msgstr "Для перемещения используйте стрелки, выбрать - ввод, выйти - F10"
 
 #: windows.cpp:40
-msgid "F1 - help, F10 - main menu"
+msgid "F1 - help, F10 - main menu "
 msgstr "F1-помощь, F10-главное меню"
 
 #: windows.cpp:48
@@ -190,3 +190,6 @@ msgstr "Неверный размер диска"
 
 msgid "Null guest name"
 msgstr "Не задано имя клона"
+
+msgid "Net driver"
+msgstr "Сетевой драйвер"
