@@ -94,10 +94,6 @@ msgstr "Имя"
 msgid "Architecture"
 msgstr "Архитектура"
 
-#: windows.cpp:308
-msgid "VNC port [ro]"
-msgstr "VNC порт [ro]"
-
 #: windows.cpp:309 windows.cpp:559
 msgid "KVM [yes/no]"
 msgstr "KVM [yes/no]"
