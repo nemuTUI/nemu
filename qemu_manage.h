@@ -34,6 +34,7 @@ namespace QManager {
     MenuKeyF = 102, MenuKeyD = 100,
     MenuKeyE = 101, MenuKeyL = 108,
     MenuKeyY = 121, MenuKeyA = 97,
+    MenuKeyI = 105,
   };
 
   template <typename T>

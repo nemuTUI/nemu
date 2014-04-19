@@ -1066,6 +1066,7 @@ void QManager::HelpWindow::Print() {
   msg_.push_back(_("\"f\" - force stop guest"));
   msg_.push_back(_("\"d\" - delete guest"));
   msg_.push_back(_("\"e\" - edit guest settings"));
+  msg_.push_back(_("\"i\" - edit network settings"));
   msg_.push_back(_("\"a\" - add virtual disk"));
   msg_.push_back(_("\"l\" - clone guest"));
 

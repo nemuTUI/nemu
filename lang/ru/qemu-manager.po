@@ -165,6 +165,9 @@ msgstr "\"d\" - удалить гостя"
 msgid "\"e\" - edit guest settings"
 msgstr "\"e\" - править натсройки гостя"
 
+msgid "\"i\" - edit network settings"
+msgstr "\"i\" - править настройки сети"
+
 #: windows.cpp:858
 msgid "\"l\" - clone guest"
 msgstr "\"l\" - клонировать гостя"
