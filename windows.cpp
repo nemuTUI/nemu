@@ -1079,6 +1079,122 @@ void QManager::HelpWindow::Print() {
   wgetch(window_);
 }
 
+QManager::EditNetWindow::EditNetWindow(
+  const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
+  int height, int width, int starty
+) : AddVmWindow(dbf, vmdir, height, width, starty) {
+    vm_name_ = vm_name;
+
+    field.resize(4);
+}
+
+void QManager::EditNetWindow::Create_fields() {
+  for(size_t i = 0; i < field.size() - 1; ++i)
+    field[i] = new_field(1, 17, i*2, 1, 0, 0);
+
+  field[field.size() - 1] = NULL;
+}
+
+void QManager::EditNetWindow::Get_data_from_db() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  sql_query = "select mac from vms where name='" + vm_name_ + "'";
+  guest_old.ints = db->SelectQuery(sql_query);
+}
+
+void QManager::EditNetWindow::Config_fields() {
+  ifs = Read_ifaces_from_json(guest_old.ints[0]);
+
+  for(auto i : ifs)
+    iflist.push_back(i.first);
+
+  IfaceList = new char *[iflist.size() + 1];
+
+  for(size_t i = 0; i < iflist.size(); ++i) {
+    IfaceList[i] = new char[iflist[i].size() + 1];
+    memcpy(IfaceList[i], iflist[i].c_str(), iflist[i].size() + 1);
+  }
+
+  IfaceList[iflist.size()] = NULL;
+
+  set_field_type(field[0], TYPE_ENUM, (char **)IfaceList, false, false);
+  set_field_type(field[1], TYPE_ENUM, (char **)NetDrv, false, false);
+  set_field_type(field[2], TYPE_REGEXP, "([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}");
+
+  for(size_t i = 0; i < iflist.size(); ++i) {
+    delete [] IfaceList[i];
+  }
+
+  delete [] IfaceList;
+
+  for(size_t i = 0; i < field.size() - 1; ++i)
+    set_field_status(field[i], false);
+}
+
+void QManager::EditNetWindow::Print_fields_names() {
+  mvwaddstr(window, 2, 2, _("Interface "));
+  mvwaddstr(window, 4, 2, _("Net driver"));
+  mvwaddstr(window, 6, 2, _("Mac address"));
+}
+
+void QManager::EditNetWindow::Get_data_from_form() {
+  guest_new.name.assign(trim_field_buffer(field_buffer(field[0], 0)));
+  guest_new.ndrv.assign(trim_field_buffer(field_buffer(field[1], 0)));
+  guest_new.ints.assign(trim_field_buffer(field_buffer(field[2], 0)));
+}
+
+void QManager::EditNetWindow::Print() {
+  finish.store(false);
+
+  try {
+    Draw_title();
+    Create_fields();
+    Enable_color();
+    Get_data_from_db();
+    Config_fields();
+    Post_form(18);
+    Print_fields_names();
+    Draw_form();
+
+    Get_data_from_form();
+    std::ofstream debug;
+    debug.open("/tmp/ddd1");
+    debug << guest_new.name << std::endl;
+    debug << guest_new.ndrv << std::endl;
+    debug << guest_new.ints << std::endl;
+    debug.close();
+
+    if(! verify_mac(guest_new.ints))
+      throw QMException(_("Wrong mac address"));
+
+/*    if(guest_new.disk.empty())
+      throw QMException(_("Null disk size"));
+
+    if(std::stol(guest_new.disk) <= 0 || std::stoul(guest_new.disk) >= disk_free(vmdir_))
+      throw QMException(_("Wrong disk size")); */
+
+    getmaxyx(stdscr, row, col);
+    std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
+    
+    try {
+//      Update_db_data();
+    }
+    catch (...) {
+      finish.store(true);
+      spin_thr.join();
+      throw;
+    }
+
+    finish.store(true);
+    spin_thr.join();
+    Delete_form();
+  }
+  catch (QMException &err) {
+    ExeptionExit(err);
+  }
+  curs_set(0);
+}
+
 QManager::PopupWarning::PopupWarning(const std::string &msg, int height,
  int width, int starty) : TemplateWindow(height, width, starty) {
     msg_ = msg;
