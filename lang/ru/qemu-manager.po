@@ -165,6 +165,9 @@ msgstr "\"d\" - удалить гостя"
 msgid "\"e\" - edit guest settings"
 msgstr "\"e\" - править натсройки гостя"
 
+msgid "\"i\" - edit network settings"
+msgstr "\"i\" - править настройки сети"
+
 #: windows.cpp:858
 msgid "\"l\" - clone guest"
 msgstr "\"l\" - клонировать гостя"
@@ -189,3 +192,18 @@ msgstr "Не задано имя клона"
 
 msgid "Net driver"
 msgstr "Сетевой драйвер"
+
+msgid "Interface"
+msgstr "Интерфейс"
+
+msgid "Mac address"
+msgstr "Мак адрес"
+
+msgid "Null network interface"
+msgstr "Не выбран сетевой интерфейс"
+
+msgid "Something goes wrong"
+msgstr "Что-то пошло не так"
+
+msgid "Wrong mac address"
+msgstr "Неправильный мак адрес"

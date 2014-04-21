@@ -2,6 +2,7 @@
 
 #include <boost/tokenizer.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/regex.hpp>
 
 #include "qemu_manage.h"
 
@@ -90,6 +91,18 @@ void QManager::err_exit(const char *msg, const std::string &err) {
   refresh();
   endwin();
   exit(1);
+}
+
+bool QManager::verify_mac(const std::string &mac) {
+  std::string regex = ("^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$");
+
+  boost::regex re(regex, boost::regex_constants::extended);
+  boost::smatch m;
+
+  if (boost::regex_match(std::string(mac), m, re))
+    return true;
+  else
+    return false;
 }
 
 namespace QManager {

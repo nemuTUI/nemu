@@ -246,6 +246,14 @@ int main(int argc, char **argv) {
             add_disk_window->Print();
           }
 
+          else if(ch == MenuKeyI) {
+            std::string guest = guests.at((guest_first + q_highlight) - 1);
+
+            std::unique_ptr<EditNetWindow> edit_net_window(new EditNetWindow(dbf, vmdir, guest, 9, 39));
+            edit_net_window->Init();
+            edit_net_window->Print();
+          }
+
           else if(ch == MenuKeyL) {
             std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
             vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
@@ -268,7 +276,7 @@ int main(int argc, char **argv) {
           }
 
           else if(ch == KEY_F(1)) {
-            std::unique_ptr<HelpWindow> help_window(new HelpWindow(11, 40));
+            std::unique_ptr<HelpWindow> help_window(new HelpWindow(12, 40));
             help_window->Print();
           }
 

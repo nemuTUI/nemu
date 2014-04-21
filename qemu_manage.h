@@ -34,11 +34,12 @@ namespace QManager {
     MenuKeyF = 102, MenuKeyD = 100,
     MenuKeyE = 101, MenuKeyL = 108,
     MenuKeyY = 121, MenuKeyA = 97,
+    MenuKeyI = 105,
   };
 
   template <typename T>
   struct guest_t {
-    T name, arch, cpus, memo, disk, vncp,
+    T name, arch, cpus, memo, disk, vncp, imac,
     kvmf, path, ints, usbp, usbd, ndrv, install;
   };
 
@@ -76,6 +77,7 @@ namespace QManager {
   MapString Gen_map_from_str(const std::string &str);
   MapStringVector Read_ifaces_from_json(const std::string &str);
   bool check_root();
+  bool verify_mac(const std::string &mac);
   void spinner(uint32_t, uint32_t);
 
   void start_guest(
@@ -285,6 +287,33 @@ namespace QManager {
       guest_t<VectorString> guest_old;
       guest_t<std::string> guest_new;
       char hdd_ch;
+  };
+
+  class EditNetWindow : public AddVmWindow {
+    public:
+      EditNetWindow(
+        const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
+        int height, int width, int starty = 3
+      );
+      void Print();
+
+    private:
+      void Create_fields();
+      void Config_fields();
+      void Print_fields_names();
+      void Get_data_from_form();
+      void Get_data_from_db();
+      void Gen_hdd();
+      void Gen_iface_json();
+      void Update_db_eth_drv_data();
+      void Update_db_eth_mac_data();
+
+      std::string vm_name_;
+      guest_t<VectorString> guest_old;
+      guest_t<std::string> guest_new;
+      MapStringVector ifs;
+      VectorString iflist, all_ints;
+      char **IfaceList;
   };
 
   class MenuList {
