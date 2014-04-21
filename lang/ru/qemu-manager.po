@@ -192,3 +192,18 @@ msgstr "Не задано имя клона"
 
 msgid "Net driver"
 msgstr "Сетевой драйвер"
+
+msgid "Interface"
+msgstr "Интерфейс"
+
+msgid "Mac address"
+msgstr "Мак адрес"
+
+msgid "Null network interface"
+msgstr "Не выбран сетевой интерфейс"
+
+msgid "Something goes wrong"
+msgstr "Что-то пошло не так"
+
+msgid "Wrong mac address"
+msgstr "Неправильный мак адрес"
