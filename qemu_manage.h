@@ -39,7 +39,7 @@ namespace QManager {
 
   template <typename T>
   struct guest_t {
-    T name, arch, cpus, memo, disk, vncp,
+    T name, arch, cpus, memo, disk, vncp, imac,
     kvmf, path, ints, usbp, usbd, ndrv, install;
   };
 
@@ -304,13 +304,15 @@ namespace QManager {
       void Get_data_from_form();
       void Get_data_from_db();
       void Gen_hdd();
-      void Update_db_data();
+      void Gen_iface_json();
+      void Update_db_eth_drv_data();
+      void Update_db_eth_mac_data();
 
       std::string vm_name_;
       guest_t<VectorString> guest_old;
       guest_t<std::string> guest_new;
       MapStringVector ifs;
-      VectorString iflist;
+      VectorString iflist, all_ints;
       char **IfaceList;
   };
 

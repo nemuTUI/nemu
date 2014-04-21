@@ -3,6 +3,7 @@
 #include <memory>
 #include <array>
 #include <thread>
+#include <unordered_set>
 
 #include "qemu_manage.h"
 
@@ -1100,6 +1101,9 @@ void QManager::EditNetWindow::Get_data_from_db() {
 
   sql_query = "select mac from vms where name='" + vm_name_ + "'";
   guest_old.ints = db->SelectQuery(sql_query);
+
+  sql_query = "select mac from vms";
+  all_ints = db->SelectQuery(sql_query);
 }
 
 void QManager::EditNetWindow::Config_fields() {
@@ -1132,7 +1136,7 @@ void QManager::EditNetWindow::Config_fields() {
 }
 
 void QManager::EditNetWindow::Print_fields_names() {
-  mvwaddstr(window, 2, 2, _("Interface "));
+  mvwaddstr(window, 2, 2, _("Interface"));
   mvwaddstr(window, 4, 2, _("Net driver"));
   mvwaddstr(window, 6, 2, _("Mac address"));
 }
@@ -1140,7 +1144,78 @@ void QManager::EditNetWindow::Print_fields_names() {
 void QManager::EditNetWindow::Get_data_from_form() {
   guest_new.name.assign(trim_field_buffer(field_buffer(field[0], 0)));
   guest_new.ndrv.assign(trim_field_buffer(field_buffer(field[1], 0)));
-  guest_new.ints.assign(trim_field_buffer(field_buffer(field[2], 0)));
+  guest_new.imac.assign(trim_field_buffer(field_buffer(field[2], 0)));
+}
+
+void QManager::EditNetWindow::Gen_iface_json() {
+  guest_new.ints.clear();
+  for(auto &i : ifs) {
+    guest_new.ints += "{\"name\":\"" + i.first + "\",\"mac\":\"" +
+      i.second[0] + "\",\"drv\":\"" + i.second[1] + "\"},";
+  }
+
+  guest_new.ints.erase(guest_new.ints.find_last_not_of(",") + 1);
+  guest_new.ints = "{\"ifaces\":[" + guest_new.ints + "]}";
+}
+
+void QManager::EditNetWindow::Update_db_eth_drv_data() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  if(field_status(field[1])) {
+    if(! field_status(field[0]))
+      throw QMException(_("Null network interface"));
+
+    auto it = ifs.find(guest_new.name);
+
+    if(it == ifs.end())
+      throw QMException(_("Something goes wrong"));
+
+    it->second[1] = guest_new.ndrv;
+
+    Gen_iface_json();
+
+    sql_query = "update vms set mac='" + guest_new.ints +
+      "' where name='" + vm_name_ + "'";
+    db->ActionQuery(sql_query);
+  }
+}
+
+void QManager::EditNetWindow::Update_db_eth_mac_data() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+
+  if(field_status(field[2])) {
+    if(! field_status(field[0]))
+      throw QMException(_("Null network interface"));
+
+    if(! verify_mac(guest_new.imac))
+      throw QMException(_("Wrong mac address"));
+
+    auto it = ifs.find(guest_new.name);
+
+    if(it == ifs.end())
+      throw QMException(_("Something goes wrong"));
+
+    std::unordered_set<std::string> mac_db;
+
+    for(size_t i = 0; i < all_ints.size(); ++i) {
+      MapStringVector ints = Read_ifaces_from_json(all_ints[i]);
+      for(auto i : ints)
+        mac_db.insert(i.second[0]);
+    }
+
+    auto mac_it = mac_db.find(guest_new.imac);
+
+    if(mac_it != mac_db.end())
+      throw QMException(_("This mac is already used!"));
+
+    it->second[0] = guest_new.imac;
+
+    Gen_iface_json();
+
+    sql_query = "update vms set mac='" + guest_new.ints +
+      "' where name='" + vm_name_ + "'";
+    db->ActionQuery(sql_query);
+  }
 }
 
 void QManager::EditNetWindow::Print() {
@@ -1157,27 +1232,13 @@ void QManager::EditNetWindow::Print() {
     Draw_form();
 
     Get_data_from_form();
-    std::ofstream debug;
-    debug.open("/tmp/ddd1");
-    debug << guest_new.name << std::endl;
-    debug << guest_new.ndrv << std::endl;
-    debug << guest_new.ints << std::endl;
-    debug.close();
-
-    if(! verify_mac(guest_new.ints))
-      throw QMException(_("Wrong mac address"));
-
-/*    if(guest_new.disk.empty())
-      throw QMException(_("Null disk size"));
-
-    if(std::stol(guest_new.disk) <= 0 || std::stoul(guest_new.disk) >= disk_free(vmdir_))
-      throw QMException(_("Wrong disk size")); */
 
     getmaxyx(stdscr, row, col);
     std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
     
     try {
-//      Update_db_data();
+      Update_db_eth_drv_data();
+      Update_db_eth_mac_data();
     }
     catch (...) {
       finish.store(true);
@@ -1192,7 +1253,6 @@ void QManager::EditNetWindow::Print() {
   catch (QMException &err) {
     ExeptionExit(err);
   }
-  curs_set(0);
 }
 
 QManager::PopupWarning::PopupWarning(const std::string &msg, int height,
