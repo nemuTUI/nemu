@@ -7,7 +7,7 @@
 
 #include "qemu_manage.h"
 
-static const std::string cfg = "/etc/qemu_manage.cfg";
+static const std::string cfg = "/etc/qemu-manage.cfg";
 static const std::string sql_list_vm = "select name from vms order by name asc";
 
 int main(int argc, char **argv) {
@@ -16,8 +16,8 @@ int main(int argc, char **argv) {
 
   // localization
   setlocale(LC_ALL,"");
-  bindtextdomain("qemu-manager","/usr/share/locale");
-  textdomain("qemu-manager");
+  bindtextdomain("qemu-manage","/usr/share/locale");
+  textdomain("qemu-manage");
 
 #ifdef ENABLE_OPENVSWITCH
 #define CHOICES_NUM 3
