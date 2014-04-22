@@ -7,16 +7,21 @@
 
 #include "qemu_manage.h"
 
-static const std::string cfg = "/etc/qemu-manage.cfg";
-static const std::string sql_list_vm = "select name from vms order by name asc";
+#define STRINGIFY_LITERAL(x) # x
+#define STRINGIFY(x) STRINGIFY_LITERAL(x)
 
 int main(int argc, char **argv) {
+  std::string cfg = STRINGIFY(ETC_PREFIX);
+  cfg += "/qemu-manage.cfg";
 
   using namespace QManager;
 
   // localization
+  char usr_path[1024];
+  snprintf(usr_path, sizeof(usr_path), "%s%s", STRINGIFY(USR_PREFIX), "/share/locale");
+
   setlocale(LC_ALL,"");
-  bindtextdomain("qemu-manage","/usr/share/locale");
+  bindtextdomain("qemu-manage", usr_path);
   textdomain("qemu-manage");
 
 #ifdef ENABLE_OPENVSWITCH
@@ -86,6 +91,7 @@ int main(int argc, char **argv) {
         break;
     }
     if(choice == MenuVmlist) {
+      const std::string sql_list_vm = "select name from vms order by name asc";
 
       std::unique_ptr<QemuDb> db(new QemuDb(dbf));
       VectorString guests = db->SelectQuery(sql_list_vm);

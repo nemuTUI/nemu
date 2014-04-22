@@ -40,10 +40,20 @@ target_link_libraries(${PROJECT_NAME}
 
 add_subdirectory(lang)
 add_dependencies(${PROJECT_NAME} lang)
+
+#uncomment line below to enable Open vSwitch support
+#add_definitions(-DENABLE_OPENVSWITCH)
+
+#set path
+set(USR_PREFIX "/usr" CACHE PATH "Installation Directory")
+set(ETC_PREFIX "/etc" CACHE PATH "Installation Directory")
+add_definitions(-DUSR_PREFIX=${USR_PREFIX})
+add_definitions(-DETC_PREFIX=${ETC_PREFIX})
+
 #configure install
 set(QEMU_CONFIG_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cfg.sample")
-install(TARGETS ${PROJECT_NAME} DESTINATION bin)
-install(FILES ${QEMU_CONFIG_SOURCE} DESTINATION etc RENAME ${PROJECT_NAME}.cfg)
+install(TARGETS ${PROJECT_NAME} DESTINATION ${USR_PREFIX}/bin)
+install(FILES ${QEMU_CONFIG_SOURCE} DESTINATION ${ETC_PREFIX} RENAME ${PROJECT_NAME}.cfg)
 
 #x11 check and flags setup
 include(CheckCXXCompilerFlag)
