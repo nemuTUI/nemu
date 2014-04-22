@@ -46,4 +46,4 @@ Config file prefix (default "/etc")
   - % cmake -DETC_PREFIX=/usr/local/etc .
 
 Executable and lang files directory prefix (defailt is "/usr")
- - % cmake -DUSR_PREFIX=/usr/local/etc .
+ - % cmake -DUSR_PREFIX=/usr/local/ .
