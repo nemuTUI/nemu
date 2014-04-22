@@ -29,7 +29,7 @@ Building and Installing Open vSwitch for Linux
 
 % git clone https://bitbucket.org/PascalRD/qemu-manage
 
-2. Run cmake in the top source directory and build the progect
+2. Run cmake in the top source directory and build the project
 
 % cd qemu-manage
 % cmake .
