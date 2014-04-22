@@ -5,3 +5,11 @@ tags
 test.cfg
 qemu-manager.mo
 *.user
+CMakeCache.txt
+Makefile
+CMakeFiles/
+cmake_install.cmake
+cmake_uninstall.cmake
+lang/cmake_install.cmake
+lang/qemu-manage.mo
+qemu-manage
