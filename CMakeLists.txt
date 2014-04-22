@@ -38,9 +38,6 @@ target_link_libraries(${PROJECT_NAME}
                     ${CMAKE_THREAD_LIBS_INIT}
                     ${Boost_LIBRARIES})
 
-add_subdirectory(lang)
-add_dependencies(${PROJECT_NAME} lang)
-
 #uncomment line below to enable Open vSwitch support
 #add_definitions(-DENABLE_OPENVSWITCH)
 
@@ -49,6 +46,9 @@ set(USR_PREFIX "/usr" CACHE PATH "Installation Directory")
 set(ETC_PREFIX "/etc" CACHE PATH "Installation Directory")
 add_definitions(-DUSR_PREFIX=${USR_PREFIX})
 add_definitions(-DETC_PREFIX=${ETC_PREFIX})
+
+add_subdirectory(lang)
+add_dependencies(${PROJECT_NAME} lang)
 
 #configure install
 set(QEMU_CONFIG_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cfg.sample")
