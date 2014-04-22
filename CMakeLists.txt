@@ -42,8 +42,8 @@ target_link_libraries(${PROJECT_NAME}
 #add_definitions(-DENABLE_OPENVSWITCH)
 
 #set path
-set(USR_PREFIX "/usr" CACHE PATH "Installation Directory")
-set(ETC_PREFIX "/etc" CACHE PATH "Installation Directory")
+set(USR_PREFIX "/usr" CACHE PATH "Executable and lang files directory prefix")
+set(ETC_PREFIX "/etc" CACHE PATH "Config file Installation directory prefix")
 add_definitions(-DUSR_PREFIX=${USR_PREFIX})
 add_definitions(-DETC_PREFIX=${ETC_PREFIX})
 

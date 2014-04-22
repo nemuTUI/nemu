@@ -42,8 +42,8 @@ Building and Installing Open vSwitch for Linux
 Edit build parametrs
 ====================
 
-Config file prefix (default "/etc")
+Config file prefix (default: "/etc")
   - % cmake -DETC_PREFIX=/usr/local/etc .
 
-Executable and lang files directory prefix (defailt is "/usr")
- - % cmake -DUSR_PREFIX=/usr/local/ .
+Executable and lang files directory prefix (defailt: "/usr")
+  - % cmake -DUSR_PREFIX=/usr/local/ .
