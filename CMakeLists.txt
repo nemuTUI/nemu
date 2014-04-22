@@ -15,6 +15,8 @@ add_custom_target(uninstall
 
 
 #find packcages
+set(CURSES_NEED_NCURSES TRUE)
+set(CURSES_NEED_WIDE TRUE)
 find_package(Curses REQUIRED)
 find_package(Sqlite3 REQUIRED)
 find_package(Procps REQUIRED)
