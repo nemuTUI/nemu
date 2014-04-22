@@ -3,6 +3,7 @@ How to Install Qemu manage on Linux.
 
 Build Requirements
 ------------------
+  - cmake
   - GNU make
   - GCC 4.x
   - libncursesw5-dev
@@ -28,11 +29,21 @@ Building and Installing Open vSwitch for Linux
 
 % git clone https://bitbucket.org/PascalRD/qemu-manage
 
-2. Run GNU make in the top source directory
+2. Run cmake in the top source directory and build the progect
 
 % cd qemu-manage
+% cmake .
 % make
 
 3. Become root by running "su" or another program
 
 % make install
+
+Edit build parametrs
+====================
+
+Config file prefix (default "/etc")
+  - % cmake -DETC_PREFIX=/usr/local/etc .
+
+Executable and lang files directory prefix (defailt is "/usr")
+ - % cmake -DUSR_PREFIX=/usr/local/etc .
