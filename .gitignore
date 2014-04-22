@@ -4,3 +4,4 @@ qemu_manage
 tags
 test.cfg
 qemu-manager.mo
+*.user

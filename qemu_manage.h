@@ -7,7 +7,7 @@
 #include <map>
 #include <atomic>
 #include <form.h>
-#include <ncursesw/ncurses.h>
+#include <ncurses.h>
 #include <sqlite3.h>
 
 #include <boost/property_tree/ptree.hpp>
