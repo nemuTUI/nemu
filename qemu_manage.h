@@ -14,7 +14,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 
 #define _(str) gettext(str)
-#define VERSION "0.1.4"
+#define VERSION "0.1.5"
 #define DEFAULT_NETDRV "virtio"
 
 namespace QManager {

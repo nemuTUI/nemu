@@ -76,7 +76,7 @@ void QManager::start_guest(
 
   std::string cpu_arg, kvm_arg, install_arg, usb_arg, mem_arg, vnc_arg;
   std::stoi(guest.cpus[0]) > 1 ? cpu_arg = " -smp " + guest.cpus[0] : cpu_arg = "";
-  guest.kvmf[0] == "1" ?  kvm_arg = " -enable-kvm" : kvm_arg = "";
+  guest.kvmf[0] == "1" ?  kvm_arg = " -enable-kvm -cpu host" : kvm_arg = "";
   guest.install[0] == "1" ?  install_arg = " -boot d -cdrom " + guest.path[0] : install_arg = "";
   guest.usbp[0] == "1" ?  usb_arg = " -usb -usbdevice host:" + guest.usbd[0] : usb_arg = "";
   mem_arg = " -m " + guest.memo[0];
