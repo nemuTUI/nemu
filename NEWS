@@ -1,3 +1,7 @@
+v0.1.5 - 10 June 2014
+----------------------
+    - Add flag "-cpu host" if kvm is enabled
+
 v0.1.4 - 21 April 2014
 ----------------------
     - Add ability to edit interface mac address and driver
