@@ -121,6 +121,8 @@ int main(int argc, char **argv) {
         std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
+        wtimeout(vm_window->window, 1000);
+
         for(;;) {
           ch = wgetch(vm_window->window);
 
