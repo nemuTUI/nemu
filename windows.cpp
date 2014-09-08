@@ -358,9 +358,6 @@ void QManager::AddVmWindow::Get_data_from_db() {
   sql_query = "select mac from lastval";
   v_last_mac = db->SelectQuery(sql_query); // TODO: add check if null exeption
 
-  sql_query = "select id from vms where name='" + guest.name + "'";
-  v_name = db->SelectQuery(sql_query);
-
   last_mac = std::stol(v_last_mac[0]);
   last_vnc = std::stoi(v_last_vnc[0]);
   last_vnc++;
@@ -421,6 +418,15 @@ void QManager::AddVmWindow::Gen_hdd() {
 }
 
 void QManager::AddVmWindow::Check_input_data() {
+  std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
+  sql_query = "select id from vms where name='" + guest.name + "'";
+  v_name = db->SelectQuery(sql_query);
+
+  if(! v_name.empty()) {
+    Delete_form();
+    throw QMException(_("This name is already used"));
+  }
+
   if(guest.usbp == "yes") {
     for(size_t i = 0; i < 11; ++i) {
       if(! field_status(field[i])) {
@@ -457,11 +463,6 @@ void QManager::AddVmWindow::Print() {
 
     Get_data_from_form();
     Check_input_data();
-
-    if(! v_name.empty()) {
-      Delete_form();
-      throw QMException(_("This name is already used"));
-    }
 
     getmaxyx(stdscr, row, col);
     std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
