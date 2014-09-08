@@ -39,8 +39,10 @@ namespace QManager {
 
   template <typename T>
   struct guest_t {
-    T name, arch, cpus, memo, disk, vncp, imac,
-    kvmf, path, ints, usbp, usbd, ndrv, install;
+    T name, arch, cpus, memo,
+    disk, vncp, imac, kvmf,
+    hcpu, path, ints, usbp,
+    usbd, ndrv, install;
   };
 
   void err_exit(const char *msg, const std::string &err = "");

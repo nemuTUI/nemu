@@ -241,7 +241,7 @@ int main(int argc, char **argv) {
           else if(ch == MenuKeyE) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-            std::unique_ptr<EditVmWindow> edit_window(new EditVmWindow(dbf, vmdir, guest, 17, 60));
+            std::unique_ptr<EditVmWindow> edit_window(new EditVmWindow(dbf, vmdir, guest, 19, 60));
             edit_window->Init();
             edit_window->Print();
           }
@@ -302,7 +302,7 @@ int main(int argc, char **argv) {
 
     }
     else if(choice == MenuAddVm) {
-      std::unique_ptr<AddVmWindow> add_window(new AddVmWindow(dbf, vmdir, 25, 60));
+      std::unique_ptr<AddVmWindow> add_window(new AddVmWindow(dbf, vmdir, 23, 60));
       add_window->Init();
       add_window->Print();
     }

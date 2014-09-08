@@ -40,6 +40,8 @@ void QManager::start_guest(
   guest.disk = db->SelectQuery(sql_query);
   sql_query = "select kvm from vms where name='" + vm_name + "'";
   guest.kvmf = db->SelectQuery(sql_query);
+  sql_query = "select hcpu from vms where name='" + vm_name + "'";
+  guest.hcpu = db->SelectQuery(sql_query);
   sql_query = "select vnc from vms where name='" + vm_name + "'";
   guest.vncp = db->SelectQuery(sql_query);
   sql_query = "select mac from vms where name='" + vm_name + "'";
@@ -74,9 +76,10 @@ void QManager::start_guest(
     ints_arg += " -net tap,ifname=" + ifs.first + ",script=no";
   }
 
-  std::string cpu_arg, kvm_arg, install_arg, usb_arg, mem_arg, vnc_arg;
+  std::string cpu_arg, kvm_arg, hcpu_arg, install_arg, usb_arg, mem_arg, vnc_arg;
   std::stoi(guest.cpus[0]) > 1 ? cpu_arg = " -smp " + guest.cpus[0] : cpu_arg = "";
-  guest.kvmf[0] == "1" ?  kvm_arg = " -enable-kvm -cpu host" : kvm_arg = "";
+  guest.kvmf[0] == "1" ?  kvm_arg = " -enable-kvm" : kvm_arg = "";
+  (guest.kvmf[0] == "1" && guest.hcpu[0] == "1") ?  hcpu_arg = " -cpu host" : hcpu_arg = "";
   guest.install[0] == "1" ?  install_arg = " -boot d -cdrom " + guest.path[0] : install_arg = "";
   guest.usbp[0] == "1" ?  usb_arg = " -usb -usbdevice host:" + guest.usbd[0] : usb_arg = "";
   mem_arg = " -m " + guest.memo[0];
@@ -91,8 +94,8 @@ void QManager::start_guest(
   std::string guest_cmd =
     create_lock + qemu_bin + usb_arg +
     install_arg + hdx_arg + cpu_arg +
-    mem_arg + kvm_arg + ints_arg +
-    vnc_arg + delete_lock;
+    mem_arg + kvm_arg + hcpu_arg +
+    ints_arg + vnc_arg + delete_lock;
 
   system(guest_cmd.c_str());
 

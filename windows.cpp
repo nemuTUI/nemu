@@ -133,7 +133,7 @@ QManager::AddVmWindow::AddVmWindow(const std::string &dbf, const std::string &vm
     dbf_ = dbf;
     vmdir_ = vmdir;
 
-    field.resize(12);
+    field.resize(11);
 }
 
 void QManager::AddVmWindow::Delete_form() {
@@ -285,12 +285,11 @@ void QManager::AddVmWindow::Config_fields_type() {
   set_field_type(field[2], TYPE_INTEGER, 0, 1, cpu_count());
   set_field_type(field[3], TYPE_INTEGER, 0, 64, total_memory());
   set_field_type(field[4], TYPE_INTEGER, 0, 1, disk_free(vmdir_));
-  set_field_type(field[5], TYPE_ENUM, (char **)YesNo, false, false);
-  set_field_type(field[6], TYPE_REGEXP, "^/.*");
-  set_field_type(field[7], TYPE_INTEGER, 0, 0, 64);
-  set_field_type(field[8], TYPE_ENUM, (char **)NetDrv, false, false);
-  set_field_type(field[9], TYPE_ENUM, (char **)YesNo, false, false);
-  set_field_type(field[10], TYPE_ENUM, UdevList, false, false);
+  set_field_type(field[5], TYPE_REGEXP, "^/.*");
+  set_field_type(field[6], TYPE_INTEGER, 0, 0, 64);
+  set_field_type(field[7], TYPE_ENUM, (char **)NetDrv, false, false);
+  set_field_type(field[8], TYPE_ENUM, (char **)YesNo, false, false);
+  set_field_type(field[9], TYPE_ENUM, UdevList, false, false);
 
   for(size_t i = 0; i < q_arch.size(); ++i) {
     delete [] ArchList[i];
@@ -306,13 +305,12 @@ void QManager::AddVmWindow::Config_fields_type() {
 
 void QManager::AddVmWindow::Config_fields_buffer() {
   set_field_buffer(field[2], 0, "1");
-  set_field_buffer(field[5], 0, "yes");
-  set_field_buffer(field[7], 0, "1");
-  set_field_buffer(field[8], 0, DEFAULT_NETDRV);
-  set_field_buffer(field[9], 0, "no");
+  set_field_buffer(field[6], 0, "1");
+  set_field_buffer(field[7], 0, DEFAULT_NETDRV);
+  set_field_buffer(field[8], 0, "no");
   field_opts_off(field[0], O_STATIC);
-  field_opts_off(field[6], O_STATIC);
-  field_opts_off(field[10], O_STATIC);
+  field_opts_off(field[5], O_STATIC);
+  field_opts_off(field[9], O_STATIC);
   set_max_field(field[0], 30);
 }
 
@@ -327,12 +325,11 @@ void QManager::AddVmWindow::Print_fields_names() {
   mvwaddstr(window, 6, 2, ccpu);
   mvwaddstr(window, 8, 2, cmem);
   mvwaddstr(window, 10, 2, cfree);
-  mvwaddstr(window, 12, 2, _("KVM [yes/no]"));
-  mvwaddstr(window, 14, 2, _("Path to ISO"));
-  mvwaddstr(window, 16, 2, _("Interfaces"));
-  mvwaddstr(window, 18, 2, _("Net driver"));
-  mvwaddstr(window, 20, 2, _("USB [yes/no]"));
-  mvwaddstr(window, 22, 2, _("USB device"));
+  mvwaddstr(window, 12, 2, _("Path to ISO"));
+  mvwaddstr(window, 14, 2, _("Interfaces"));
+  mvwaddstr(window, 16, 2, _("Net driver"));
+  mvwaddstr(window, 18, 2, _("USB [yes/no]"));
+  mvwaddstr(window, 20, 2, _("USB device"));
 }
 
 void QManager::AddVmWindow::Get_data_from_form() {
@@ -342,12 +339,11 @@ void QManager::AddVmWindow::Get_data_from_form() {
   guest.memo.assign(trim_field_buffer(field_buffer(field[3], 0)));
   guest.disk.assign(trim_field_buffer(field_buffer(field[4], 0)));
   guest.vncp.assign(v_last_vnc[0]);
-  guest.kvmf.assign(trim_field_buffer(field_buffer(field[5], 0)));
-  guest.path.assign(trim_field_buffer(field_buffer(field[6], 0)));
-  guest.ints.assign(trim_field_buffer(field_buffer(field[7], 0)));
-  guest.ndrv.assign(trim_field_buffer(field_buffer(field[8], 0)));
-  guest.usbp.assign(trim_field_buffer(field_buffer(field[9], 0)));
-  guest.usbd.assign(trim_field_buffer(field_buffer(field[10], 0)));
+  guest.path.assign(trim_field_buffer(field_buffer(field[5], 0)));
+  guest.ints.assign(trim_field_buffer(field_buffer(field[6], 0)));
+  guest.ndrv.assign(trim_field_buffer(field_buffer(field[7], 0)));
+  guest.usbp.assign(trim_field_buffer(field_buffer(field[8], 0)));
+  guest.usbd.assign(trim_field_buffer(field_buffer(field[9], 0)));
 }
 
 void QManager::AddVmWindow::Get_data_from_db() {
@@ -374,7 +370,9 @@ void QManager::AddVmWindow::Update_db_data() {
   }
 
   guest.disk = guest.name + "_a.img=" + guest.disk + ";";
-  guest.kvmf == "yes" ? guest.kvmf = "1" : guest.kvmf = "0";
+  
+  guest.kvmf = "1"; //Enable KVM by default
+  guest.hcpu = "0"; //Disable Host CPU by default
 
   std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
@@ -386,12 +384,12 @@ void QManager::AddVmWindow::Update_db_data() {
 
   // Add guest to database
   sql_query = "insert into vms("
-  "name, mem, smp, hdd, kvm, vnc, mac, arch, iso, install, usb, usbid"
+  "name, mem, smp, hdd, kvm, hcpu, vnc, mac, arch, iso, install, usb, usbid"
   ") values('"
   + guest.name + "', '" + guest.memo + "', '" + guest.cpus + "', '"
-  + guest.disk + "', '" + guest.kvmf + "', '" + guest.vncp + "', '"
-  + guest.ints + "', '" + guest.arch + "', '" + guest.path + "', '1', '"
-  + guest.usbp + "', '" + guest.usbd + "')";
+  + guest.disk + "', '" + guest.kvmf + "', '" + guest.hcpu + "', '"
+  + guest.vncp + "', '" + guest.ints + "', '" + guest.arch + "', '"
+  + guest.path + "', '1', '" + guest.usbp + "', '" + guest.usbd + "')";
 
   db->ActionQuery(sql_query);
 }
@@ -421,14 +419,14 @@ void QManager::AddVmWindow::Check_input_data() {
   std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
   sql_query = "select id from vms where name='" + guest.name + "'";
   v_name = db->SelectQuery(sql_query);
-
+  
   if(! v_name.empty()) {
     Delete_form();
     throw QMException(_("This name is already used"));
   }
-
+  
   if(guest.usbp == "yes") {
-    for(size_t i = 0; i < 11; ++i) {
+    for(size_t i = 0; i < 10; ++i) {
       if(! field_status(field[i])) {
         Delete_form();
         throw QMException(_("Must fill all params"));
@@ -436,7 +434,7 @@ void QManager::AddVmWindow::Check_input_data() {
     }
   }
   else {
-    for(size_t i = 0; i < 9; ++i) {
+    for(size_t i = 0; i < 8; ++i) {
       if(! field_status(field[i])) {
         Delete_form();
         throw QMException(_("Must fill all params"));
@@ -495,7 +493,7 @@ QManager::EditVmWindow::EditVmWindow(
 ) : AddVmWindow(dbf, vmdir, height, width, starty) {
     vm_name_ = vm_name;
 
-    field.resize(7);
+    field.resize(8);
 }
 
 void QManager::EditVmWindow::Create_fields() {
@@ -525,9 +523,10 @@ void QManager::EditVmWindow::Config_fields_type() {
   set_field_type(field[0], TYPE_INTEGER, 0, 1, cpu_count());
   set_field_type(field[1], TYPE_INTEGER, 0, 64, total_memory());
   set_field_type(field[2], TYPE_ENUM, (char **)YesNo, false, false);
-  set_field_type(field[3], TYPE_INTEGER, 0, 0, 64);
-  set_field_type(field[4], TYPE_ENUM, (char **)YesNo, false, false);
-  set_field_type(field[5], TYPE_ENUM, UdevList, false, false);
+  set_field_type(field[3], TYPE_ENUM, (char **)YesNo, false, false);
+  set_field_type(field[4], TYPE_INTEGER, 0, 0, 64);
+  set_field_type(field[5], TYPE_ENUM, (char **)YesNo, false, false);
+  set_field_type(field[6], TYPE_ENUM, UdevList, false, false);
 
   for(size_t i = 0; i < u_dev.size(); ++i) {
     delete [] UdevList[i];
@@ -551,15 +550,20 @@ void QManager::EditVmWindow::Config_fields_buffer() {
     set_field_buffer(field[2], 0, YesNo[0]);
   else
     set_field_buffer(field[2], 0, YesNo[1]);
+  
+  if(guest_old.hcpu[0] == "1")
+    set_field_buffer(field[3], 0, YesNo[0]);
+  else
+    set_field_buffer(field[3], 0, YesNo[1]);
 
   if(guest_old.usbp[0] == "1")
-    set_field_buffer(field[4], 0, YesNo[0]);
+    set_field_buffer(field[5], 0, YesNo[0]);
   else
-    set_field_buffer(field[4], 0, YesNo[1]);
+    set_field_buffer(field[5], 0, YesNo[1]);
 
-  field_opts_off(field[5], O_STATIC);
+  field_opts_off(field[6], O_STATIC);
 
-  for(size_t i = 0; i < 5; ++i)
+  for(size_t i = 0; i < field.size() - 1; ++i)
     set_field_status(field[i], false);
 }
 
@@ -567,9 +571,10 @@ void QManager::EditVmWindow::Get_data_from_form() {
   guest_new.cpus.assign(trim_field_buffer(field_buffer(field[0], 0)));
   guest_new.memo.assign(trim_field_buffer(field_buffer(field[1], 0)));
   guest_new.kvmf.assign(trim_field_buffer(field_buffer(field[2], 0)));
-  guest_new.ints.assign(trim_field_buffer(field_buffer(field[3], 0)));
-  guest_new.usbp.assign(trim_field_buffer(field_buffer(field[4], 0)));
-  guest_new.usbd.assign(trim_field_buffer(field_buffer(field[5], 0)));
+  guest_new.hcpu.assign(trim_field_buffer(field_buffer(field[3], 0)));
+  guest_new.ints.assign(trim_field_buffer(field_buffer(field[4], 0)));
+  guest_new.usbp.assign(trim_field_buffer(field_buffer(field[5], 0)));
+  guest_new.usbd.assign(trim_field_buffer(field_buffer(field[6], 0)));
 }
 
 void QManager::EditVmWindow::Print_fields_names() {
@@ -582,9 +587,10 @@ void QManager::EditVmWindow::Print_fields_names() {
   mvwaddstr(window, 4, 2, ccpu);
   mvwaddstr(window, 6, 2, cmem);
   mvwaddstr(window, 8, 2, _("KVM [yes/no]"));
-  mvwaddstr(window, 10, 2, _("Interfaces"));
-  mvwaddstr(window, 12, 2, _("USB [yes/no]"));
-  mvwaddstr(window, 14, 2, _("USB device"));
+  mvwaddstr(window, 10, 2, _("Host CPU [yes/no]"));
+  mvwaddstr(window, 12, 2, _("Interfaces"));
+  mvwaddstr(window, 14, 2, _("USB [yes/no]"));
+  mvwaddstr(window, 16, 2, _("USB device"));
 }
 
 void QManager::EditVmWindow::Get_data_from_db() {
@@ -598,6 +604,9 @@ void QManager::EditVmWindow::Get_data_from_db() {
 
   sql_query = "select kvm from vms where name='" + vm_name_ + "'";
   guest_old.kvmf = db->SelectQuery(sql_query);
+  
+  sql_query = "select hcpu from vms where name='" + vm_name_ + "'";
+  guest_old.hcpu = db->SelectQuery(sql_query);
 
   sql_query = "select usb from vms where name='" + vm_name_ + "'";
   guest_old.usbp = db->SelectQuery(sql_query);
@@ -677,14 +686,25 @@ void QManager::EditVmWindow::Update_db_kvm_data() {
       "' where name='" + vm_name_ + "'";
     db->ActionQuery(sql_query);
   }
+  
+  if(field_status(field[3])) {
+    if(guest_new.hcpu == "yes")
+      guest_new.hcpu = "1";
+    else
+      guest_new.hcpu = "0";
+
+    sql_query = "update vms set hcpu='" + guest_new.hcpu +
+      "' where name='" + vm_name_ + "'";
+    db->ActionQuery(sql_query);
+  }
 }
 
 void QManager::EditVmWindow::Update_db_usb_data() {
   std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
-  if(field_status(field[4])) {
+  if(field_status(field[5])) {
     if(guest_new.usbp == "yes") {
-      if(! field_status(field[5])) {
+      if(! field_status(field[6])) {
         Delete_form();
         throw QMException(_("Usb device was not selected."));
       }
@@ -710,7 +730,7 @@ void QManager::EditVmWindow::Update_db_usb_data() {
 void QManager::EditVmWindow::Update_db_eth_data() {
   std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
-  if(field_status(field[3])) {
+  if(field_status(field[4])) {
     ui_vm_ints = std::stoi(guest_new.ints);
 
     if(ui_vm_ints != ints_count) {
