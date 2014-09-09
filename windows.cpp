@@ -544,7 +544,7 @@ void QManager::EditVmWindow::Config_fields_buffer() {
 
   set_field_buffer(field[0], 0, guest_old.cpus[0].c_str());
   set_field_buffer(field[1], 0, guest_old.memo[0].c_str());
-  set_field_buffer(field[3], 0, cints);
+  set_field_buffer(field[4], 0, cints);
 
   if(guest_old.kvmf[0] == "1")
     set_field_buffer(field[2], 0, YesNo[0]);
@@ -864,8 +864,8 @@ void QManager::CloneVmWindow::Gen_iface_json() {
 }
 
 void QManager::CloneVmWindow::Update_db_data() {
-  const std::array<std::string, 8> columns = {
-    "mem", "smp", "kvm",
+  const std::array<std::string, 9> columns = {
+    "mem", "smp", "kvm", "hcpu",
     "arch", "iso", "install",
     "usb", "usbid"
   };
