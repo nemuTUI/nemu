@@ -64,7 +64,7 @@ void QManager::VmInfoWindow::Print() {
   clear();
   border(0,0,0,0,0,0,0,0);
   mvprintw(1, (col - title_.size())/2, title_.c_str());
-  // TODO Draw guest info in window.
+
   std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
   sql_query = "select arch from vms where name='" + guest_ + "'";
@@ -81,7 +81,18 @@ void QManager::VmInfoWindow::Print() {
 
   sql_query = "select kvm from vms where name='" + guest_ + "'";
   guest.kvmf = db->SelectQuery(sql_query);
-  guest.kvmf[0] == "1" ? guest.kvmf[0] = "enabled" : guest.kvmf[0] = "disabled";
+  sql_query = "select hcpu from vms where name='" + guest_ + "'";
+  guest.hcpu = db->SelectQuery(sql_query);
+
+  if(guest.kvmf[0] == "1") {
+    if(guest.hcpu[0] == "1")
+      guest.kvmf[0] = "enabled [+hostcpu]";
+    else
+      guest.kvmf[0] = "enabled";
+  }
+  else
+      guest.kvmf[0] = "disabled";
+
   mvprintw(7, col/4, "%-12s%s", "kvm: ", guest.kvmf[0].c_str());
 
   sql_query = "select usb from vms where name='" + guest_ + "'";
