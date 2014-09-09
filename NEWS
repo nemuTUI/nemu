@@ -1,3 +1,10 @@
+v0.1.6 - 09 September 2014
+--------------------------
+    - Enable/Disable host CPU
+    - Realtime VM window refresh
+    - Bug fixes
+    ! Old database is not supported, must create new !
+
 v0.1.5 - 10 June 2014
 ----------------------
     - Add flag "-cpu host" if kvm is enabled
