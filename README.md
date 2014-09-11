@@ -20,4 +20,4 @@ Qemu Manage System
  * app-emulation/qemu
  * net-misc/openvswitch [optional]
 
-[Download last release](https://bitbucket.org/PascalRD/qemu-manage/downloads/qemu-manage-0.1.6-amd64.deb)
+[Download latest release](https://bitbucket.org/PascalRD/qemu-manage/downloads/qemu-manage-0.1.6-amd64.deb)
