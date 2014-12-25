@@ -14,7 +14,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 
 #define _(str) gettext(str)
-#define VERSION "0.1.6"
+#define VERSION "0.1.7"
 #define DEFAULT_NETDRV "virtio"
 
 namespace QManager {
@@ -34,7 +34,7 @@ namespace QManager {
     MenuKeyF = 102, MenuKeyD = 100,
     MenuKeyE = 101, MenuKeyL = 108,
     MenuKeyY = 121, MenuKeyA = 97,
-    MenuKeyI = 105,
+    MenuKeyI = 105, MenuKeyS = 39,
   };
 
   template <typename T>

@@ -262,6 +262,14 @@ int main(int argc, char **argv) {
             edit_net_window->Print();
           }
 
+          else if(ch == MenuKeyS) {
+            const std::string guest = guests.at((guest_first + q_highlight) - 1);
+
+            std::unique_ptr<EditInstallWindow> edit_install_window(new EditInstallWindow(dbf, vmdir, guest, 7, 39));
+            edit_install_window->Init();
+            edit_install_window->Print();
+          }
+
           else if(ch == MenuKeyL) {
             std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
             vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
