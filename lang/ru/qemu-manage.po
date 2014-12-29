@@ -207,3 +207,9 @@ msgstr "Что-то пошло не так"
 
 msgid "Wrong mac address"
 msgstr "Неправильный мак адрес"
+
+msgid "\"s\" - edit boot settings"
+msgstr "\"s\" - править настройки загрузки"
+
+msgid "OS Installed"
+msgstr "ОС Установлена"
