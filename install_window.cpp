@@ -16,7 +16,7 @@ namespace QManager
   void EditInstallWindow::Create_fields()
   {
     for(size_t i = 0; i < field.size() - 1; ++i) {
-      field[i] = new_field(1, 35, i*2, 1, 0, 0);
+      field[i] = new_field(1, 37, i*2, 1, 0, 0);
       set_field_back(field[i], A_UNDERLINE);
     }
 
@@ -42,7 +42,7 @@ namespace QManager
 
   void EditInstallWindow::Print_fields_names()
   {
-    mvwaddstr(window, 2, 2, _("Installed [yes/no]"));
+    mvwaddstr(window, 2, 2, _("OS Installed"));
     mvwaddstr(window, 4, 2, _("Path to ISO"));
   }
 
@@ -96,7 +96,7 @@ namespace QManager
       Enable_color();
       Get_data_from_db();
       Config_fields();
-      Post_form(22);
+      Post_form(18);
       Print_fields_names();
       Draw_form();
 
