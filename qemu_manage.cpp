@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "qemu_manage.h"
+#include "install_window.h"
 
 #define STRINGIFY_LITERAL(x) # x
 #define STRINGIFY(x) STRINGIFY_LITERAL(x)
@@ -262,6 +263,14 @@ int main(int argc, char **argv) {
             edit_net_window->Print();
           }
 
+          else if(ch == MenuKeyS) {
+            const std::string guest = guests.at((guest_first + q_highlight) - 1);
+
+            std::unique_ptr<EditInstallWindow> edit_install_window(new EditInstallWindow(dbf, vmdir, guest, 7, 60));
+            edit_install_window->Init();
+            edit_install_window->Print();
+          }
+
           else if(ch == MenuKeyL) {
             std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
             vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
@@ -284,7 +293,7 @@ int main(int argc, char **argv) {
           }
 
           else if(ch == KEY_F(1)) {
-            std::unique_ptr<HelpWindow> help_window(new HelpWindow(12, 40));
+            std::unique_ptr<HelpWindow> help_window(new HelpWindow(13, 40));
             help_window->Print();
           }
 

@@ -7,13 +7,15 @@
 
 #include "qemu_manage.h"
 
-static const char *YesNo[3] = {
-  "yes","no", NULL
-};
+namespace QManager {
+  const char *YesNo[3] = {
+    "yes","no", NULL
+  };
 
-static const char *NetDrv[4] = {
-  "virtio", "rtl8139", "e1000", NULL
-};
+  const char *NetDrv[4] = {
+    "virtio", "rtl8139", "e1000", NULL
+  };
+}
 
 static const QManager::VectorString q_arch = QManager::list_arch();
 
@@ -1102,6 +1104,7 @@ void QManager::HelpWindow::Print() {
   msg_.push_back(_("\"i\" - edit network settings"));
   msg_.push_back(_("\"a\" - add virtual disk"));
   msg_.push_back(_("\"l\" - clone guest"));
+  msg_.push_back(_("\"s\" - edit boot settings"));
 
   for(auto &msg : msg_) {
     mvwprintw(window_, line, 1, "%s", msg.c_str());
