@@ -121,6 +121,7 @@ namespace QManager
     catch (QMException &err) {
       ExeptionExit(err);
     }
+    curs_set(0);
   }
 } // namespace QManager
 
