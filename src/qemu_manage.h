@@ -17,7 +17,8 @@
 #define VERSION "0.1.7"
 #define DEFAULT_NETDRV "virtio"
 
-namespace QManager {
+namespace QManager 
+{
   extern const char *YesNo[3];
   extern const char *NetDrv[4];
   extern std::atomic<bool> finish;
@@ -104,12 +105,15 @@ namespace QManager {
       std::string msg;
   };
 
-  class TemplateWindow {
+  class QMWindow
+  {
     public:
-      TemplateWindow(int height, int width, int starty = 7);
+      QMWindow(int height, int width, int starty = 7);
       void Init();
+      virtual void Print() = 0;
+
+    public:
       WINDOW *window;
-      ~TemplateWindow() { delwin(window); }
 
     protected:
       int row, col;
@@ -119,50 +123,55 @@ namespace QManager {
       int str_size;
   };
 
-  class MainWindow : public TemplateWindow {
+  class MainWindow : public QMWindow
+  {
     public:
       MainWindow(int height, int width, int starty = 7)
-        : TemplateWindow(height, width, starty) {}
-      void Print();
+        : QMWindow(height, width, starty) {}
+      virtual void Print();
   };
 
-  class VmWindow : public TemplateWindow {
+  class VmWindow : public QMWindow
+  {
     public:
       VmWindow(int height, int width, int starty = 7)
-        : TemplateWindow(height, width, starty) {}
-      void Print();
+        : QMWindow(height, width, starty) {}
+      virtual void Print();
   };
 
-  class VmInfoWindow : public TemplateWindow {
+  class VmInfoWindow : public QMWindow
+  {
     public:
       VmInfoWindow(
         const std::string &guest, const std::string &dbf,
         int height, int width, int starty = 7
       );
-      void Print();
+      virtual void Print();
 
     private:
-      std::string guest_, title_, dbf_, sql_query;
-      guest_t<VectorString> guest;
+      std::string *guest_, *title_, *dbf_, *sql_query;
+      guest_t<VectorString> *guest_info;
   };
 
-  class HelpWindow : public TemplateWindow {
+  class HelpWindow : public QMWindow
+  {
     public:
       HelpWindow(int height, int width, int starty = 1)
-        : TemplateWindow(height, width, starty) {}
-      void Print();
+        : QMWindow(height, width, starty) {}
+      virtual void Print();
 
     private:
       WINDOW *window_;
-      std::vector<std::string> msg_;
+      VectorString *msg_;
       uint32_t line;
   };
 
-  class AddVmWindow : public TemplateWindow {
+  class QMFormWindow : public QMWindow
+  {  
     public:
-      AddVmWindow(const std::string &dbf, const std::string &vmdir,
-        int height, int width, int starty = 3);
-      void Print();
+      QMFormWindow(int height, int width, int starty = 1)
+        : QMWindow(height, width, starty) {}
+      virtual void Print() = 0;
 
     protected:
       void Delete_form();
@@ -174,8 +183,8 @@ namespace QManager {
       void Gen_mac_address(
         struct guest_t<std::string> &guest, uint32_t int_count, std::string vm_name
       );
-      void Gen_iface_json();
 
+    protected:
       std::string sql_query, s_last_mac,
       dbf_, vmdir_, guest_dir, create_guest_dir_cmd, create_img_cmd;
       uint32_t last_vnc, ui_vm_ints;
@@ -189,102 +198,44 @@ namespace QManager {
       int ch, cmd_exit_status;
       MapString u_dev;
       char **UdevList, **ArchList;
-
-    private:
-      void Create_fields();
-      void Config_fields_buffer();
-      void Config_fields_type();
-      void Print_fields_names();
-      void Get_data_from_form();
-      void Get_data_from_db();
-      void Update_db_data();
-      void Gen_hdd();
-      void Check_input_data();
-
       guest_t<std::string> guest;
   };
 
-  class EditVmWindow : public AddVmWindow {
-    public:
-      EditVmWindow(
-        const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
-        int height, int width, int starty = 3
-      );
-      void Print();
-
-    private:
-      void Create_fields();
-      void Config_fields_type();
-      void Config_fields_buffer();
-      void Print_fields_names();
-      void Get_data_from_form();
-      void Get_data_from_db();
-      void Update_db_cpu_data();
-      void Update_db_mem_data();
-      void Update_db_kvm_data();
-      void Update_db_usb_data();
-      void Update_db_eth_data();
-      void Gen_hdd();
-      void Check_input_data();
-      void Gen_iface_json(uint32_t);
-
-      guest_t<VectorString> guest_old;
-      guest_t<std::string> guest_new;
-      std::string vm_name_;
-      uint32_t ints_count;
-  };
-
-  class PopupWarning : public TemplateWindow {
+  class PopupWarning
+  {
     public:
       PopupWarning(const std::string &msg, int height,
         int width, int starty = 7);
-        int Print(WINDOW *window);
+      void Init();
+      int Print(WINDOW *window);
+      
+      WINDOW *window;
 
     private:
       std::string msg_;
       WINDOW *window_;
       int ch_;
+      int row, col;
+      int height_, width_;
+      int startx_, starty_;
   };
 
-  class CloneVmWindow : public AddVmWindow {
-    public:
-      CloneVmWindow(
-        const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
-        int height, int width, int starty = 3
-      );
-      void Print();
-
-    private:
-      void Create_fields();
-      void Config_fields();
-      void Print_fields_names();
-      void Get_data_from_form();
-      void Get_data_from_db();
-      void Gen_hdd();
-      void Update_db_data();
-      void Gen_iface_json();
-
-      std::string vm_name_;
-      guest_t<VectorString> guest_old;
-      guest_t<std::string> guest_new;
-      char hdd_ch;
-  };
-
-  class AddDiskWindow : public AddVmWindow {
+  class AddDiskWindow : public QMFormWindow
+  {
     public:
       AddDiskWindow(
         const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
         int height, int width, int starty = 3
       );
-      void Print();
+      virtual void Print();
 
     private:
+      void Gen_hdd();
       void Create_fields();
-      void Config_fields();
+      void Config_fields_type();
       void Print_fields_names();
       void Get_data_from_form();
       void Get_data_from_db();
-      void Gen_hdd();
       void Update_db_data();
 
       std::string vm_name_;
@@ -293,25 +244,26 @@ namespace QManager {
       char hdd_ch;
   };
 
-  class EditNetWindow : public AddVmWindow {
+  class EditNetWindow : public QMFormWindow
+  {
     public:
       EditNetWindow(
         const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
         int height, int width, int starty = 3
       );
-      void Print();
+      virtual void Print();
 
     private:
       void Create_fields();
-      void Config_fields();
+      void Config_fields_type();
       void Print_fields_names();
       void Get_data_from_form();
       void Get_data_from_db();
       void Gen_hdd();
       void Gen_iface_json();
-      void Update_db_eth_drv_data();
-      void Update_db_eth_mac_data();
+      void Update_db_data();
 
+    private:
       std::string vm_name_;
       guest_t<VectorString> guest_old;
       guest_t<std::string> guest_new;

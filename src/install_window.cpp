@@ -7,7 +7,10 @@ namespace QManager
   EditInstallWindow::EditInstallWindow(
     const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
     int height, int width, int starty
-  ) : AddVmWindow(dbf, vmdir, height, width, starty) {
+  ) : QMFormWindow(height, width, starty)
+  {
+      dbf_= dbf;
+      vmdir_ = vmdir;
       vm_name_ = vm_name;
 
       field.resize(3);
@@ -23,12 +26,15 @@ namespace QManager
     field[field.size() - 1] = NULL;
   }
 
-  void EditInstallWindow::Config_fields()
+  void EditInstallWindow::Config_fields_type()
   {
     field_opts_off(field[1], O_STATIC);
     set_field_type(field[0], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[1], TYPE_REGEXP, "^/.*");
-
+  }
+  
+  void EditInstallWindow::Config_fields_buffer()
+  {
     if(guest_old.install[0] == "1")
       set_field_buffer(field[0], 0, YesNo[1]);
     else
@@ -95,7 +101,8 @@ namespace QManager
       Create_fields();
       Enable_color();
       Get_data_from_db();
-      Config_fields();
+      Config_fields_type();
+      Config_fields_buffer();
       Post_form(18);
       Print_fields_names();
       Draw_form();

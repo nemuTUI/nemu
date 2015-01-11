@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "qemu_manage.h"
-#include "install_window.h"
+#include "qm_windows.h"
 
 #define STRINGIFY_LITERAL(x) # x
 #define STRINGIFY(x) STRINGIFY_LITERAL(x)
@@ -82,7 +82,6 @@ int main(int argc, char **argv) {
           refresh();
           endwin();
           exit(0);
-          break;
       }
 
       std::unique_ptr<MenuList> main_menu(new MenuList(main_window->window, highlight));
@@ -238,7 +237,7 @@ int main(int argc, char **argv) {
               kill_guest(guest);
             }
           }
-          
+ 
           else if(ch == MenuKeyE) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
@@ -294,6 +293,7 @@ int main(int argc, char **argv) {
 
           else if(ch == KEY_F(1)) {
             std::unique_ptr<HelpWindow> help_window(new HelpWindow(13, 40));
+            help_window->Init();
             help_window->Print();
           }
 
@@ -308,10 +308,9 @@ int main(int argc, char **argv) {
           vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
         }
       }
-
     }
     else if(choice == MenuAddVm) {
-      std::unique_ptr<AddVmWindow> add_window(new AddVmWindow(dbf, vmdir, 23, 60));
+      std::unique_ptr<QMFormWindow> add_window(new AddVmWindow(dbf, vmdir, 23, 60));
       add_window->Init();
       add_window->Print();
     }

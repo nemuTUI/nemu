@@ -29,7 +29,7 @@ include_directories(${CURSES_INCLUDE_DIR}
                     ${PROCPS_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS})
 
-aux_source_directory(. SRC_LIST)
+aux_source_directory(src SRC_LIST)
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 target_link_libraries(${PROJECT_NAME}
                     ${CURSES_LIBRARIES}
@@ -60,7 +60,7 @@ include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 if(COMPILER_SUPPORTS_CXX11)
-        set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS "-std=c++11 ")
+        set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS "-std=c++11")
 elseif(COMPILER_SUPPORTS_CXX0X)
         set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS "-std=c++0x")
 else()
