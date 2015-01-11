@@ -1,5 +1,3 @@
-#include <thread>
-
 #include "add_vm_window.h"
 
 namespace QManager
@@ -207,12 +205,12 @@ namespace QManager
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
     sql_query = "select id from vms where name='" + guest.name + "'";
     v_name = db->SelectQuery(sql_query);
-    
+
     if(! v_name.empty()) {
       Delete_form();
       throw QMException(_("This name is already used"));
     }
-    
+
     if(guest.usbp == "yes") {
       for(size_t i = 0; i < 10; ++i) {
         if(! field_status(field[i])) {

@@ -1,8 +1,8 @@
 #ifndef BASE_FORM_WINDOW_H_
 #define BASE_FORM_WINDOW_H_
 
-#include "qemu_manage.h"
-/*
+#include "window.h"
+
 namespace QManager
 {
   class QMFormWindow : public QMWindow
@@ -40,5 +40,5 @@ namespace QManager
       guest_t<std::string> guest;
   };
 }// namespace QManager
-*/
+
 #endif

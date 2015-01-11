@@ -1,5 +1,3 @@
-#include <thread>
-
 #include "install_window.h"
 
 namespace QManager
@@ -32,7 +30,7 @@ namespace QManager
     set_field_type(field[0], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[1], TYPE_REGEXP, "^/.*");
   }
-  
+
   void EditInstallWindow::Config_fields_buffer()
   {
     if(guest_old.install[0] == "1")

@@ -1,7 +1,7 @@
 #ifndef CLONE_WINDOW_H_
 #define CLONE_WINDOW_H_
 
-#include "qemu_manage.h"
+#include "base_form_window.h"
 
 namespace QManager
 {

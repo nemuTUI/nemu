@@ -1,5 +1,3 @@
-#include <thread>
-
 #include "edit_window.h"
 
 namespace QManager
@@ -73,7 +71,7 @@ namespace QManager
       set_field_buffer(field[2], 0, YesNo[0]);
     else
       set_field_buffer(field[2], 0, YesNo[1]);
-    
+
     if(guest_old.hcpu[0] == "1")
       set_field_buffer(field[3], 0, YesNo[0]);
     else
@@ -189,13 +187,13 @@ namespace QManager
         "' where name='" + vm_name_ + "'";
       db->ActionQuery(sql_query);
     }
-    
+
     if(field_status(field[1])) {
       sql_query = "update vms set mem='" + guest_new.memo +
         "' where name='" + vm_name_ + "'";
       db->ActionQuery(sql_query);
     }
-    
+
     if(field_status(field[2])) {
       if(guest_new.kvmf == "yes")
         guest_new.kvmf = "1";
@@ -206,7 +204,7 @@ namespace QManager
         "' where name='" + vm_name_ + "'";
       db->ActionQuery(sql_query);
     }
-    
+
     if(field_status(field[3])) {
       if(guest_new.hcpu == "yes")
         guest_new.hcpu = "1";
@@ -217,7 +215,7 @@ namespace QManager
         "' where name='" + vm_name_ + "'";
       db->ActionQuery(sql_query);
     }
-    
+
     if(field_status(field[4])) {
       ui_vm_ints = std::stoi(guest_new.ints);
 
@@ -233,7 +231,7 @@ namespace QManager
         db->ActionQuery(sql_query);
       }
     }
-    
+
     if(field_status(field[5])) {
       if(guest_new.usbp == "yes") {
         if(! field_status(field[6])) {

@@ -1,7 +1,7 @@
 #ifndef ADD_VM_WINDOW_H_
 #define ADD_VM_WINDOW_H_
 
-#include "qemu_manage.h"
+#include "base_form_window.h"
 
 namespace QManager
 {

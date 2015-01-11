@@ -1,10 +1,4 @@
-#include <fstream>
-#include <thread>
-#include <proc/sysinfo.h>
-#include <sys/statvfs.h>
-#include <boost/regex.hpp>
-
-#include "qemu_manage.h"
+#include "hostinfo.h"
 
 uint32_t QManager::total_memory() {
   meminfo();

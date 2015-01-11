@@ -7,19 +7,17 @@
 
 #include "qemu_manage.h"
 #include "qm_windows.h"
-
-#define STRINGIFY_LITERAL(x) # x
-#define STRINGIFY(x) STRINGIFY_LITERAL(x)
+#include "guest.h"
 
 int main(int argc, char **argv) {
-  std::string cfg = STRINGIFY(ETC_PREFIX);
+  std::string cfg = STRING(ETC_PREFIX);
   cfg += "/qemu-manage.cfg";
 
   using namespace QManager;
 
   // localization
   char usr_path[1024];
-  snprintf(usr_path, sizeof(usr_path), "%s%s", STRINGIFY(USR_PREFIX), "/share/locale");
+  snprintf(usr_path, sizeof(usr_path), "%s%s", STRING(USR_PREFIX), "/share/locale");
 
   setlocale(LC_ALL,"");
   bindtextdomain("qemu-manage", usr_path);

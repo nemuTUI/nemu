@@ -1,6 +1,4 @@
-#include <fstream>
-
-#include "qemu_manage.h"
+#include "qemudb.h"
 
 namespace QManager
 {

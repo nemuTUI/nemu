@@ -1,5 +1,5 @@
 #include "base_form_window.h"
-/*
+
 namespace QManager
 {
   void QMFormWindow::Delete_form() 
@@ -112,4 +112,3 @@ namespace QManager
     }
   }
 }// namespace QManager
-*/

@@ -6,5 +6,7 @@
 #include "edit_window.h"
 #include "add_vm_window.h"
 #include "clone_window.h"
+#include "add_disk_window.h"
+#include "edit_net_window.h"
 
 #endif

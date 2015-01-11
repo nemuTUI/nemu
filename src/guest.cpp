@@ -1,7 +1,4 @@
-#include <memory>
-#include <limits.h>
-
-#include "qemu_manage.h"
+#include "guest.h"
 
 namespace QManager
 {
@@ -103,7 +100,7 @@ namespace QManager
     system(guest_cmd.c_str());
 
     std::ofstream debug;
-    debug.open("/tmp/guest.log");
+    debug.open("/tmp/qemu_manage.log");
     debug << guest_cmd << std::endl;
     debug.close();
   }
