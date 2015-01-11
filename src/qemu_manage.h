@@ -20,7 +20,7 @@
 #define _(str) gettext(str)
 #define STRING_LITERAL(x) # x
 #define STRING(x) STRING_LITERAL(x)
-#define VERSION "0.1.7"
+#define VERSION "0.1.8"
 #define DEFAULT_NETDRV "virtio"
 
 namespace QManager
