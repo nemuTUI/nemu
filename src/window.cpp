@@ -137,7 +137,6 @@ namespace QManager {
     getch();
     refresh();
     clear();
-    //delete title_; delete guest_; delete dbf_;
   }
   
   void HelpWindow::Print()
