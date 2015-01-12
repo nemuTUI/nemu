@@ -55,63 +55,61 @@ namespace QManager {
   VmInfoWindow::VmInfoWindow(const std::string &guest, const std::string &dbf, int height, int width,
     int starty) : QMWindow(height, width, starty)
   {
-      guest_ = new std::string(guest);
-      title_ = new std::string(*guest_ + _(" info"));
-      dbf_ = new std::string(dbf);
+      guest_ = guest;
+      title_ = guest_ + _(" info");
+      dbf_ = dbf;
   }
 
   void VmInfoWindow::Print()
   {
     clear();
     border(0,0,0,0,0,0,0,0);
-    mvprintw(1, (col - title_->size())/2, title_->c_str());
-    std::unique_ptr<QemuDb> db(new QemuDb(*dbf_));
-    std::unique_ptr<guest_t<VectorString>> guest_info(new guest_t<VectorString>);
-    std::unique_ptr<std::string> sql_query(new std::string);
+    mvprintw(1, (col - title_.size())/2, title_.c_str());
+    std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
-    *sql_query = "select arch from vms where name='" + *guest_ + "'";
-    guest_info->arch = db->SelectQuery(*sql_query);
-    mvprintw(4, col/4, "%-12s%s", "arch: ", guest_info->arch[0].c_str());
+    sql_query = "select arch from vms where name='" + guest_ + "'";
+    guest_info.arch = db->SelectQuery(sql_query);
+    mvprintw(4, col/4, "%-12s%s", "arch: ", guest_info.arch[0].c_str());
     
-    *sql_query = "select smp from vms where name='" + *guest_ + "'";
-    guest_info->cpus = db->SelectQuery(*sql_query);
-    mvprintw(5, col/4, "%-12s%s", "cores: ", guest_info->cpus[0].c_str());
+    sql_query = "select smp from vms where name='" + guest_ + "'";
+    guest_info.cpus = db->SelectQuery(sql_query);
+    mvprintw(5, col/4, "%-12s%s", "cores: ", guest_info.cpus[0].c_str());
 
-    *sql_query = "select mem from vms where name='" + *guest_ + "'";
-    guest_info->memo = db->SelectQuery(*sql_query);
-    mvprintw(6, col/4, "%-12s%s %s", "memory: ", guest_info->memo[0].c_str(), "Mb");
+    sql_query = "select mem from vms where name='" + guest_ + "'";
+    guest_info.memo = db->SelectQuery(sql_query);
+    mvprintw(6, col/4, "%-12s%s %s", "memory: ", guest_info.memo[0].c_str(), "Mb");
 
-    *sql_query = "select kvm from vms where name='" + *guest_ + "'";
-    guest_info->kvmf = db->SelectQuery(*sql_query);
-    *sql_query = "select hcpu from vms where name='" + *guest_ + "'";
-    guest_info->hcpu = db->SelectQuery(*sql_query);
+    sql_query = "select kvm from vms where name='" + guest_ + "'";
+    guest_info.kvmf = db->SelectQuery(sql_query);
+    sql_query = "select hcpu from vms where name='" + guest_ + "'";
+    guest_info.hcpu = db->SelectQuery(sql_query);
 
-    if(guest_info->kvmf[0] == "1") {
-      if(guest_info->hcpu[0] == "1")
-        guest_info->kvmf[0] = "enabled [+hostcpu]";
+    if(guest_info.kvmf[0] == "1") {
+      if(guest_info.hcpu[0] == "1")
+        guest_info.kvmf[0] = "enabled [+hostcpu]";
       else
-        guest_info->kvmf[0] = "enabled";
+        guest_info.kvmf[0] = "enabled";
     }
     else
-      guest_info->kvmf[0] = "disabled";
+      guest_info.kvmf[0] = "disabled";
 
-    mvprintw(7, col/4, "%-12s%s", "kvm: ", guest_info->kvmf[0].c_str());
+    mvprintw(7, col/4, "%-12s%s", "kvm: ", guest_info.kvmf[0].c_str());
 
-    *sql_query = "select usb from vms where name='" + *guest_ + "'";
-    guest_info->usbp = db->SelectQuery(*sql_query);
-    guest_info->usbp[0] == "1" ? guest_info->usbp[0] = "enabled" : guest_info->usbp[0] = "disabled";
-    mvprintw(8, col/4, "%-12s%s", "usb: ", guest_info->usbp[0].c_str());
+    sql_query = "select usb from vms where name='" + guest_ + "'";
+    guest_info.usbp = db->SelectQuery(sql_query);
+    guest_info.usbp[0] == "1" ? guest_info.usbp[0] = "enabled" : guest_info.usbp[0] = "disabled";
+    mvprintw(8, col/4, "%-12s%s", "usb: ", guest_info.usbp[0].c_str());
 
-    *sql_query = "select vnc from vms where name='" + *guest_ + "'";
-    guest_info->vncp = db->SelectQuery(*sql_query);
+    sql_query = "select vnc from vms where name='" + guest_ + "'";
+    guest_info.vncp = db->SelectQuery(sql_query);
     mvprintw(
       9, col/4, "%-12s%s [%u]", "vnc port: ",
-      guest_info->vncp[0].c_str(), std::stoi(guest_info->vncp[0]) + 5900
+      guest_info.vncp[0].c_str(), std::stoi(guest_info.vncp[0]) + 5900
     );
 
-    *sql_query = "select mac from vms where name='" + *guest_ + "'";
-    guest_info->ints = db->SelectQuery(*sql_query);
-    MapStringVector ints = Read_ifaces_from_json(guest_info->ints[0]);
+    sql_query = "select mac from vms where name='" + guest_ + "'";
+    guest_info.ints = db->SelectQuery(sql_query);
+    MapStringVector ints = Read_ifaces_from_json(guest_info.ints[0]);
 
     // Generate guest inerfaces info
     uint32_t i = 0;
@@ -124,9 +122,9 @@ namespace QManager {
     }
 
     // Generate guest hd images info
-    *sql_query = "select hdd from vms where name='" + *guest_ + "'";
-    guest_info->disk = db->SelectQuery(*sql_query);
-    MapString disk = Gen_map_from_str(guest_info->disk[0]);
+    sql_query = "select hdd from vms where name='" + guest_ + "'";
+    guest_info.disk = db->SelectQuery(sql_query);
+    MapString disk = Gen_map_from_str(guest_info.disk[0]);
 
     char hdx = 'a';
     for(auto &hd : disk) {
@@ -139,7 +137,7 @@ namespace QManager {
     getch();
     refresh();
     clear();
-    delete title_; delete guest_; delete dbf_;
+    //delete title_; delete guest_; delete dbf_;
   }
   
   void HelpWindow::Print()
