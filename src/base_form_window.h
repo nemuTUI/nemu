@@ -11,6 +11,7 @@ namespace QManager
       QMFormWindow(int height, int width, int starty = 1)
         : QMWindow(height, width, starty) {}
       virtual void Print() = 0;
+      virtual ~QMFormWindow() {};
 
     protected:
       void Delete_form();
@@ -39,6 +40,6 @@ namespace QManager
       char **UdevList, **ArchList;
       guest_t<std::string> guest;
   };
-}// namespace QManager
+} //namespace QManager
 
 #endif

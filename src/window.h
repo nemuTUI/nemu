@@ -14,6 +14,7 @@ namespace QManager
       QMWindow(int height, int width, int starty = 7);
       void Init();
       virtual void Print() = 0;
+      virtual ~QMWindow() {};
 
     public:
       WINDOW *window;

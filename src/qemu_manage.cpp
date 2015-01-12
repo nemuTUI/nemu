@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   noecho();
   curs_set(0);
 
-  std::unique_ptr<MainWindow> main_window(new MainWindow(10, 30));
+  std::unique_ptr<QMWindow> main_window(new MainWindow(10, 30));
   main_window->Init();
 
   const std::string vmdir = read_cfg<std::string>(cfg, "main.vmdir");
@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
           listmax = guests.size();
 
         clear();
-        std::unique_ptr<VmWindow> vm_window(new VmWindow(listmax + 4, 32));
+        std::unique_ptr<QMWindow> vm_window(new VmWindow(listmax + 4, 32));
         vm_window->Init();
         vm_window->Print();
 
@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
 
           else if(ch == MenuKeyEnter) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
-            std::unique_ptr<VmInfoWindow> vminfo_window(new VmInfoWindow(guest, dbf, 10, 30));
+            std::unique_ptr<QMWindow> vminfo_window(new VmInfoWindow(guest, dbf, 10, 30));
             vminfo_window->Print();
           }
 
@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
           else if(ch == MenuKeyE) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-            std::unique_ptr<EditVmWindow> edit_window(new EditVmWindow(dbf, vmdir, guest, 19, 60));
+            std::unique_ptr<QMFormWindow> edit_window(new EditVmWindow(dbf, vmdir, guest, 19, 60));
             edit_window->Init();
             edit_window->Print();
           }
@@ -247,7 +247,7 @@ int main(int argc, char **argv) {
           else if(ch == MenuKeyA) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-            std::unique_ptr<AddDiskWindow> add_disk_window(new AddDiskWindow(dbf, vmdir, guest, 7, 35));
+            std::unique_ptr<QMFormWindow> add_disk_window(new AddDiskWindow(dbf, vmdir, guest, 7, 35));
             add_disk_window->Init();
             add_disk_window->Print();
           }
@@ -255,7 +255,7 @@ int main(int argc, char **argv) {
           else if(ch == MenuKeyI) {
             std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-            std::unique_ptr<EditNetWindow> edit_net_window(new EditNetWindow(dbf, vmdir, guest, 9, 39));
+            std::unique_ptr<QMFormWindow> edit_net_window(new EditNetWindow(dbf, vmdir, guest, 9, 39));
             edit_net_window->Init();
             edit_net_window->Print();
           }
@@ -263,7 +263,7 @@ int main(int argc, char **argv) {
           else if(ch == MenuKeyS) {
             const std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-            std::unique_ptr<EditInstallWindow> edit_install_window(new EditInstallWindow(dbf, vmdir, guest, 7, 60));
+            std::unique_ptr<QMFormWindow> edit_install_window(new EditInstallWindow(dbf, vmdir, guest, 7, 60));
             edit_install_window->Init();
             edit_install_window->Print();
           }
@@ -280,7 +280,7 @@ int main(int argc, char **argv) {
               Warn->Print(Warn->window);
             }
             else {
-              std::unique_ptr<CloneVmWindow> clone_window(new CloneVmWindow(dbf, vmdir, guest, 7, 35));
+              std::unique_ptr<QMFormWindow> clone_window(new CloneVmWindow(dbf, vmdir, guest, 7, 35));
               clone_window->Init();
               clone_window->Print();
 
@@ -290,7 +290,7 @@ int main(int argc, char **argv) {
           }
 
           else if(ch == KEY_F(1)) {
-            std::unique_ptr<HelpWindow> help_window(new HelpWindow(13, 40));
+            std::unique_ptr<QMWindow> help_window(new HelpWindow(13, 40));
             help_window->Init();
             help_window->Print();
           }
