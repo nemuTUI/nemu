@@ -1,4 +1,4 @@
-Qemu Manage System
+Qemu Manage [qemu ncurses interface]
 ===========
 
 ## Features
