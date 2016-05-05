@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 #include <memory>
+#include <libintl.h>
 
 #include "qemu_manage.h"
 #include "qm_windows.h"

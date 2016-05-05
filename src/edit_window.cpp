@@ -1,4 +1,5 @@
 #include "edit_window.h"
+#include <libintl.h>
 
 namespace QManager
 {
