@@ -1,4 +1,5 @@
 #include "base_form_window.h"
+#include <libintl.h>
 
 namespace QManager
 {

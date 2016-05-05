@@ -1,4 +1,5 @@
 #include "clone_window.h"
+#include <libintl.h>
 
 namespace QManager
 {

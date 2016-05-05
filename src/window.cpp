@@ -3,6 +3,7 @@
 #include <memory>
 #include <array>
 #include <thread>
+#include <libintl.h>
 
 #include "window.h"
 

@@ -1,4 +1,5 @@
 #include "guest.h"
+#include <libintl.h>
 
 namespace QManager
 {

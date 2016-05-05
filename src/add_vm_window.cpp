@@ -1,4 +1,5 @@
 #include "add_vm_window.h"
+#include <libintl.h>
 
 namespace QManager
 {
