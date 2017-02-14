@@ -17,6 +17,5 @@ Qemu Manage [qemu ncurses interface]
 ## Environment Requirements
  * Linux host
  * app-emulation/qemu
- * net-misc/openvswitch [optional]
 
 [Download latest release (0.1.7)](https://bitbucket.org/PascalRD/qemu-manage/downloads/qemu-manage-0.1.7-amd64.deb)
