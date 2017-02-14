@@ -24,9 +24,10 @@ int main(int argc, char **argv) {
   bindtextdomain("qemu-manage", usr_path);
   textdomain("qemu-manage");
 
-  const std::array<std::string, 2> choices = {
-    _("Manage qemu VM"),
-    _("Add qemu VM")
+  const std::array<std::string, 3> choices = {
+    _("Manage guests"),
+    _("Install guest"),
+    _("Add guest"),
   };
 
   uint32_t highlight(1);

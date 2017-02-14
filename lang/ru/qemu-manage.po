@@ -26,16 +26,16 @@ msgid "Something goes wrong. Delete root partition prevented."
 msgstr "Что-то пошло не так. Предотвращено удаление корня"
 
 #: qemu_manage.cpp:28
-msgid "Manage qemu VM"
-msgstr "Гости"
+msgid "Manage guests"
+msgstr "Управление гостями"
 
 #: qemu_manage.cpp:29
-msgid "Add qemu VM"
-msgstr "Добавить"
+msgid "Install guest"
+msgstr "Инсталлировать гостя"
 
 #: qemu_manage.cpp:31
-msgid "Show network map"
-msgstr "Карта сети"
+msgid "Add guest"
+msgstr "Добавить гостя"
 
 #: qemu_manage.cpp:97
 msgid "No guests here."
