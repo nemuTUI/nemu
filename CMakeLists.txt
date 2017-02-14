@@ -38,9 +38,6 @@ target_link_libraries(${PROJECT_NAME}
                     ${CMAKE_THREAD_LIBS_INIT}
                     ${Boost_LIBRARIES})
 
-#uncomment line below to enable Open vSwitch support
-#add_definitions(-DENABLE_OPENVSWITCH)
-
 #set path
 set(USR_PREFIX "/usr" CACHE PATH "Executable and lang files directory prefix")
 set(ETC_PREFIX "/etc" CACHE PATH "Config file Installation directory prefix")

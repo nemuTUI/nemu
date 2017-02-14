@@ -14,3 +14,4 @@ lang/cmake_install.cmake
 lang/qemu-manage.mo
 qemu-manage
 install_manifest.txt
+build

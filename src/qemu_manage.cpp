@@ -24,19 +24,10 @@ int main(int argc, char **argv) {
   bindtextdomain("qemu-manage", usr_path);
   textdomain("qemu-manage");
 
-#ifdef ENABLE_OPENVSWITCH
-#define CHOICES_NUM 3
-#else
-#define CHOICES_NUM 2
-#endif
-  const std::array<std::string, CHOICES_NUM> choices = {
+  const std::array<std::string, 2> choices = {
     _("Manage qemu VM"),
-    _("Add qemu VM"),
-#ifdef ENABLE_OPENVSWITCH
-    _("Show network map")
-#endif
+    _("Add qemu VM")
   };
-#undef CHOICES_NUM
 
   uint32_t highlight(1);
   uint32_t ch;
@@ -313,11 +304,6 @@ int main(int argc, char **argv) {
       add_window->Init();
       add_window->Print();
     }
-#ifdef ENABLE_OPENVSWITCH
-    else if(choice == MenuOvsMap) {
-      // do some stuff...
-    }
-#endif
   }
 
   return 0;
