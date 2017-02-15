@@ -36,17 +36,18 @@ QemuDb::QemuDb(const std::string &dbf)
 
             if (dbexec)
                 throw QMException(sqlite3_errmsg(qdb));
-        }
 
-        for (auto &query : sql)
-        {
-            dbexec = sqlite3_exec(qdb, query.c_str(), NULL, 0, &zErrMsg);
+            for (auto &query : sql)
+            {
+                dbexec = sqlite3_exec(qdb, query.c_str(), NULL, 0, &zErrMsg);
 
-            if (dbexec != SQLITE_OK)
-                throw QMException(zErrMsg);
+                if (dbexec != SQLITE_OK)
+                    throw QMException(zErrMsg);
+            }
 
             sql.clear();
         }
+
     }
     catch (QMException &err)
     {
