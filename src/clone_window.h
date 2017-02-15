@@ -3,34 +3,35 @@
 
 #include "base_form_window.h"
 
-namespace QManager
+namespace QManager {
+
+class CloneVmWindow : public QMFormWindow
 {
-  class CloneVmWindow : public QMFormWindow
-  {
-    public:
-      CloneVmWindow(
+public:
+    CloneVmWindow(
         const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
         int height, int width, int starty = 3
-      );
-      virtual void Print();
+    );
+    virtual void Print();
 
-    private:
-      void Gen_hdd();
-      void Create_fields();
-      void Config_fields_type();
-      void Config_fields_buffer();
-      void Print_fields_names();
-      void Get_data_from_form();
-      void Get_data_from_db();
-      void Update_db_data();
-      void Gen_iface_json();
+private:
+    void Gen_hdd();
+    void Create_fields();
+    void Config_fields_type();
+    void Config_fields_buffer();
+    void Print_fields_names();
+    void Get_data_from_form();
+    void Get_data_from_db();
+    void Update_db_data();
+    void Gen_iface_json();
 
-    private:
-      std::string vm_name_;
-      guest_t<VectorString> guest_old;
-      guest_t<std::string> guest_new;
-      char hdd_ch;
-  };
-}// namespace QManager
+private:
+    std::string vm_name_;
+    guest_t<VectorString> guest_old;
+    guest_t<std::string> guest_new;
+    char hdd_ch;
+};
+
+} // namespace QManager
 
 #endif

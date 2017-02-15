@@ -3,33 +3,34 @@
 
 #include "base_form_window.h"
 
-namespace QManager
+namespace QManager {
+
+class EditVmWindow : public QMFormWindow
 {
-  class EditVmWindow : public QMFormWindow
-  {
-    public:
-      EditVmWindow(
+public:
+    EditVmWindow(
         const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
         int height, int width, int starty = 3
-      );
-      virtual void Print();
+    );
+    virtual void Print();
 
-    private:
-      void Create_fields();
-      void Config_fields_type();
-      void Config_fields_buffer();
-      void Print_fields_names();
-      void Get_data_from_form();
-      void Get_data_from_db();
-      void Update_db_data();
-      void Gen_iface_json();
+private:
+    void Create_fields();
+    void Config_fields_type();
+    void Config_fields_buffer();
+    void Print_fields_names();
+    void Get_data_from_form();
+    void Get_data_from_db();
+    void Update_db_data();
+    void Gen_iface_json();
 
-    private:
-      guest_t<VectorString> guest_old;
-      guest_t<std::string> guest_new;
-      std::string vm_name_;
-      uint32_t ints_count;
-  };
-}// namespace QManager
+private:
+    guest_t<VectorString> guest_old;
+    guest_t<std::string> guest_new;
+    std::string vm_name_;
+    uint32_t ints_count;
+};
+
+} // namespace QManager
 
 #endif

@@ -1,133 +1,142 @@
-#include "install_window.h"
 #include <libintl.h>
 
-namespace QManager
+#include "install_window.h"
+
+namespace QManager {
+
+EditInstallWindow::EditInstallWindow(const std::string &dbf,
+     const std::string &vmdir, 
+     const std::string &vm_name,
+     int height, int width,
+     int starty) :
+     QMFormWindow(height, width, starty)
 {
-  EditInstallWindow::EditInstallWindow(
-    const std::string &dbf, const std::string &vmdir, const std::string &vm_name,
-    int height, int width, int starty
-  ) : QMFormWindow(height, width, starty)
-  {
-      dbf_= dbf;
-      vmdir_ = vmdir;
-      vm_name_ = vm_name;
+    dbf_= dbf;
+    vmdir_ = vmdir;
+    vm_name_ = vm_name;
 
-      field.resize(3);
-  }
+    field.resize(3);
+}
 
-  void EditInstallWindow::Create_fields()
-  {
-    for(size_t i = 0; i < field.size() - 1; ++i) {
-      field[i] = new_field(1, 37, i*2, 1, 0, 0);
-      set_field_back(field[i], A_UNDERLINE);
+void EditInstallWindow::Create_fields()
+{
+    for (size_t i = 0; i < field.size() - 1; ++i)
+    {
+        field[i] = new_field(1, 37, i*2, 1, 0, 0);
+        set_field_back(field[i], A_UNDERLINE);
     }
 
     field[field.size() - 1] = NULL;
-  }
+}
 
-  void EditInstallWindow::Config_fields_type()
-  {
+void EditInstallWindow::Config_fields_type()
+{
     field_opts_off(field[1], O_STATIC);
     set_field_type(field[0], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[1], TYPE_REGEXP, "^/.*");
-  }
+}
 
-  void EditInstallWindow::Config_fields_buffer()
-  {
-    if(guest_old.install[0] == "1")
-      set_field_buffer(field[0], 0, YesNo[1]);
+void EditInstallWindow::Config_fields_buffer()
+{
+    if (guest_old.install[0] == "1")
+        set_field_buffer(field[0], 0, YesNo[1]);
     else
-      set_field_buffer(field[0], 0, YesNo[0]);
+        set_field_buffer(field[0], 0, YesNo[0]);
 
     set_field_buffer(field[1], 0, guest_old.path[0].c_str());
 
-    for(size_t i = 0; i < field.size() - 1; ++i)
-      set_field_status(field[i], false);
-  }
+    for (size_t i = 0; i < field.size() - 1; ++i)
+        set_field_status(field[i], false);
+}
 
-  void EditInstallWindow::Print_fields_names()
-  {
+void EditInstallWindow::Print_fields_names()
+{
     mvwaddstr(window, 2, 2, _("OS Installed"));
     mvwaddstr(window, 4, 2, _("Path to ISO"));
-  }
+}
 
-  void EditInstallWindow::Get_data_from_form()
-  {
+void EditInstallWindow::Get_data_from_form()
+{
     guest_new.install.assign(trim_field_buffer(field_buffer(field[0], 0)));
     guest_new.path.assign(trim_field_buffer(field_buffer(field[1], 0)));
-  }
+}
 
-  void EditInstallWindow::Get_data_from_db()
-  {
+void EditInstallWindow::Get_data_from_db()
+{
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
     sql_query = "select install from vms where name='" + vm_name_ + "'";
     guest_old.install = db->SelectQuery(sql_query);
     sql_query = "select iso from vms where name='" + vm_name_ + "'";
     guest_old.path = db->SelectQuery(sql_query);
-  }
+}
 
-  void EditInstallWindow::Update_db_data()
-  {
+void EditInstallWindow::Update_db_data()
+{
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
-    if(field_status(field[0]))
+    if (field_status(field[0]))
     {
-      if(guest_new.install == "yes")
-        guest_new.install = "0";
-      else
-        guest_new.install = "1";
+        if (guest_new.install == "yes")
+            guest_new.install = "0";
+        else
+            guest_new.install = "1";
 
-      sql_query = "update vms set install='" + guest_new.install +
-        "' where name='" + vm_name_ + "'";
-      db->ActionQuery(sql_query);
+        sql_query = "update vms set install='" + guest_new.install +
+            "' where name='" + vm_name_ + "'";
+        db->ActionQuery(sql_query);
     }
 
-    if(field_status(field[1]))
+    if (field_status(field[1]))
     {
-      sql_query = "update vms set iso='" + guest_new.path +
-        "' where name='" + vm_name_ + "'";
-      db->ActionQuery(sql_query);
+        sql_query = "update vms set iso='" + guest_new.path +
+            "' where name='" + vm_name_ + "'";
+        db->ActionQuery(sql_query);
     }
-  }
+}
 
-  void EditInstallWindow::Print()
-  {
+void EditInstallWindow::Print()
+{
     finish.store(false);
 
-    try {
-      Draw_title();
-      Create_fields();
-      Enable_color();
-      Get_data_from_db();
-      Config_fields_type();
-      Config_fields_buffer();
-      Post_form(18);
-      Print_fields_names();
-      Draw_form();
+    try
+    {
+        Draw_title();
+        Create_fields();
+        Enable_color();
+        Get_data_from_db();
+        Config_fields_type();
+        Config_fields_buffer();
+        Post_form(18);
+        Print_fields_names();
+        Draw_form();
 
-      Get_data_from_form();
+        Get_data_from_form();
 
-      getmaxyx(stdscr, row, col);
-      std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
+        getmaxyx(stdscr, row, col);
+        std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
 
-      try {
-        Update_db_data();
-      }
-      catch (...) {
+        try
+        {
+            Update_db_data();
+        }
+        catch (...)
+        {
+            finish.store(true);
+            spin_thr.join();
+            throw;
+        }
+
         finish.store(true);
         spin_thr.join();
-        throw;
-      }
-
-      finish.store(true);
-      spin_thr.join();
-      Delete_form();
+        Delete_form();
     }
-    catch (QMException &err) {
-      ExeptionExit(err);
+    catch (QMException &err)
+    {
+        ExeptionExit(err);
     }
     curs_set(0);
-  }
+}
+
 } // namespace QManager
 

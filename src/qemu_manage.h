@@ -20,20 +20,20 @@
 #define _(str) gettext(str)
 #define STRING_LITERAL(x) # x
 #define STRING(x) STRING_LITERAL(x)
-#define VERSION "0.1.8"
+#define VERSION "0.2.0"
 #define DEFAULT_NETDRV "virtio"
 
-namespace QManager
-{
-  extern const char *YesNo[3];
-  extern const char *NetDrv[4];
-  extern std::atomic<bool> finish;
+namespace QManager {
 
-  typedef std::vector<std::string> VectorString;
-  typedef std::map<std::string, std::string> MapString;
-  typedef std::map<std::string, std::vector<std::string>> MapStringVector;
+extern const char *YesNo[3];
+extern const char *NetDrv[4];
+extern std::atomic<bool> finish;
 
-  enum input_choices {
+typedef std::vector<std::string> VectorString;
+typedef std::map<std::string, std::string> MapString;
+typedef std::map<std::string, std::vector<std::string>> MapStringVector;
+
+enum input_choices {
     MenuVmlist = 1, MenuAddVm = 2,
     MenuKeyEnter = 10,
     MenuKeyR = 114, MenuKeyC = 99,
@@ -41,25 +41,26 @@ namespace QManager
     MenuKeyE = 101, MenuKeyL = 108,
     MenuKeyY = 121, MenuKeyA = 97,
     MenuKeyI = 105, MenuKeyS = 115,
-  };
+};
 
-  template <typename T>
-  struct guest_t {
+template <typename T>
+struct guest_t {
     T name, arch, cpus, memo,
     disk, vncp, imac, kvmf,
     hcpu, path, ints, usbp,
     usbd, ndrv, install;
-  };
+};
 
-  class QMException : public std::exception {
-    public:
-      QMException(const std::string &m) : msg(m) {}
-      ~QMException() throw() {}
-      const char* what() const throw() { return msg.c_str(); }
+class QMException : public std::exception {
+public:
+    QMException(const std::string &m) : msg(m) {}
+    ~QMException() throw() {}
+    const char* what() const throw() { return msg.c_str(); }
 
-    private:
-      std::string msg;
-  };
+private:
+    std::string msg;
+};
+
 } // namespace QManager
 
 #endif
