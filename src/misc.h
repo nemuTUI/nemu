@@ -41,7 +41,7 @@ T read_cfg(const std::string &cfg, const char *param)
     }
     catch (boost::property_tree::ini_parser::ini_parser_error &err)
     {
-        err_exit("Config file not found!.", (std::string) err.what());
+        err_exit("Config file not found!", (std::string) err.what());
     }
 
     return value;

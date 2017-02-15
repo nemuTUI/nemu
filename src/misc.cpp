@@ -1,6 +1,7 @@
 #include "misc.h"
 
 namespace QManager {
+
 std::atomic<bool> finish(false);
 
 std::string trim_field_buffer(char *buff)

@@ -4,14 +4,13 @@
 
 namespace QManager {
 
-static const VectorString q_arch = list_arch();
-
 AddVmWindow::AddVmWindow(const std::string &dbf, const std::string &vmdir,
                          int height, int width, int starty) :
                          QMFormWindow(height, width, starty)
 {
     dbf_ = dbf;
     vmdir_ = vmdir;
+    q_arch = list_arch();
 
     field.resize(11);
 }
