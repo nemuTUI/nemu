@@ -4,8 +4,9 @@
 
 namespace QManager {
 
-void start_guest(const std::string &vm_name, const std::string &dbf,
-                 const std::string &vmdir, const std::string &cfg)
+void start_guest(const std::string &vm_name,
+                 const std::string &dbf,
+                 const std::string &vmdir)
 {
     guest_t<VectorString> guest;
 
@@ -90,8 +91,7 @@ void start_guest(const std::string &vm_name, const std::string &dbf,
     guest.usbp[0] == "1" ?  usb_arg = " -usb -usbdevice host:" + guest.usbd[0] : usb_arg = "";
     mem_arg = " -m " + guest.memo[0];
 
-    const std::string vnc_bind = read_cfg<std::string>(cfg, "main.vnc_localhost");
-    if (vnc_bind == "yes")
+    if (!get_cfg()->vnc_listen_any)
         vnc_arg = " -vnc 127.0.0.1:" + guest.vncp[0];
     else
         vnc_arg = " -vnc :" + guest.vncp[0];

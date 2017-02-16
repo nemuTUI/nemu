@@ -2,7 +2,44 @@
 
 namespace QManager {
 
+static struct config config;
+
 std::atomic<bool> finish(false);
+
+void init_cfg()
+{
+/*
+    struct passwd *pw = getpwuid(getuid());
+
+    if (!pw)
+        err_exit("Error get home directory", (std::string) strerror(errno));
+
+    std::string home_dir = pw->pw_dir;
+
+    try
+    {
+        boost::property_tree::ptree ptr;
+        boost::property_tree::ini_parser::read_ini(cfg, ptr);
+        value = ptr.get<T>(param);
+    }
+    catch (boost::property_tree::ptree_bad_path &err)
+    {
+        err_exit("Error parsing config file! missing parameter.", (std::string) err.what());
+    }
+    catch (boost::property_tree::ptree_bad_data &err)
+    {
+        err_exit("Error parsing config file! bad value.", (std::string) err.what());
+    }
+    catch (boost::property_tree::ini_parser::ini_parser_error &err)
+    {
+        err_exit("Config file not found!", (std::string) err.what());
+    }*/
+}
+
+const struct config *get_cfg()
+{
+    return &config;
+}
 
 std::string trim_field_buffer(char *buff)
 {

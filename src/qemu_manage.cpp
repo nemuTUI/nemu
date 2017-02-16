@@ -10,12 +10,12 @@
 #include "qm_windows.h"
 #include "guest.h"
 
+using namespace QManager;
+
 int main(void)
 {
-    using namespace QManager;
-
-    std::string cfg = STRING(ETC_PREFIX);
-    cfg += "/qemu-manage.cfg";
+    init_cfg();
+    const struct config *cfg = get_cfg();
 
     // localization
     char usr_path[1024] = {0};
@@ -41,9 +41,6 @@ int main(void)
 
     std::unique_ptr<QMWindow> main_window(new MainWindow(10, 30));
     main_window->Init();
-
-    const std::string vmdir = read_cfg<std::string>(cfg, "main.vmdir");
-    const std::string dbf = read_cfg<std::string>(cfg, "main.db");
 
     for (;;)
     {
@@ -92,7 +89,7 @@ int main(void)
         {
             const std::string sql_list_vm = "select name from vms order by name asc";
 
-            std::unique_ptr<QemuDb> db(new QemuDb(dbf));
+            std::unique_ptr<QemuDb> db(new QemuDb(cfg->db));
             VectorString guests = db->SelectQuery(sql_list_vm);
 
             if (guests.empty())
@@ -103,7 +100,7 @@ int main(void)
             }
             else
             {
-                uint32_t listmax = read_cfg<uint32_t>(cfg, "main.list_max");
+                uint32_t listmax = cfg->list_max;
                 uint32_t guest_first = 0;
                 uint32_t guest_last =listmax;
                 uint32_t q_highlight = 1;
@@ -117,7 +114,7 @@ int main(void)
                 vm_window->Print();
 
 
-                std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
+                std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
                 vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
                 wtimeout(vm_window->window, 1000);
@@ -171,13 +168,13 @@ int main(void)
                     else if (ch == MenuKeyEnter)
                     {
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
-                        std::unique_ptr<QMWindow> vminfo_window(new VmInfoWindow(guest, dbf, 10, 30));
+                        std::unique_ptr<QMWindow> vminfo_window(new VmInfoWindow(guest, cfg->db, 10, 30));
                         vminfo_window->Print();
                     }
 
                     else if (ch == MenuKeyR)
                     {
-                        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
+                        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
                         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
@@ -197,24 +194,24 @@ int main(void)
                                 Warn->Print(Warn->window);
                             }
                             else
-                                start_guest(guest, dbf, vmdir, cfg);
+                                start_guest(guest, cfg->db, cfg->vmdir);
                         }
                     }
 
                     else if (ch == MenuKeyC)
                     {
-                        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
+                        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
                         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
 
                         if (vm_list->vm_status.at(guest) == "running")
-                            connect_guest(guest, dbf);
+                            connect_guest(guest, cfg->db);
                     }
 
                     else if (ch == MenuKeyD)
                     {
-                        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
+                        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
                         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
@@ -233,7 +230,7 @@ int main(void)
 
                             if (ch == MenuKeyY)
                             {
-                                delete_guest(guest, dbf, vmdir);
+                                delete_guest(guest, cfg->db, cfg->vmdir);
                                 // Exit from loop to reread guests
                                 break;
                             }
@@ -242,7 +239,7 @@ int main(void)
 
                     else if (ch == MenuKeyF)
                     {
-                        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
+                        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
                         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
@@ -255,7 +252,7 @@ int main(void)
                     {
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-                        std::unique_ptr<QMFormWindow> edit_window(new EditVmWindow(dbf, vmdir, guest, 19, 60));
+                        std::unique_ptr<QMFormWindow> edit_window(new EditVmWindow(cfg->db, cfg->vmdir, guest, 19, 60));
                         edit_window->Init();
                         edit_window->Print();
                     }
@@ -264,7 +261,7 @@ int main(void)
                     {
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-                        std::unique_ptr<QMFormWindow> add_disk_window(new AddDiskWindow(dbf, vmdir, guest, 7, 35));
+                        std::unique_ptr<QMFormWindow> add_disk_window(new AddDiskWindow(cfg->db, cfg->vmdir, guest, 7, 35));
                         add_disk_window->Init();
                         add_disk_window->Print();
                     }
@@ -273,7 +270,7 @@ int main(void)
                     {
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-                        std::unique_ptr<QMFormWindow> edit_net_window(new EditNetWindow(dbf, vmdir, guest, 9, 39));
+                        std::unique_ptr<QMFormWindow> edit_net_window(new EditNetWindow(cfg->db, cfg->vmdir, guest, 9, 39));
                         edit_net_window->Init();
                         edit_net_window->Print();
                     }
@@ -282,14 +279,14 @@ int main(void)
                     {
                         const std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-                        std::unique_ptr<QMFormWindow> edit_install_window(new EditInstallWindow(dbf, vmdir, guest, 7, 60));
+                        std::unique_ptr<QMFormWindow> edit_install_window(new EditInstallWindow(cfg->db, cfg->vmdir, guest, 7, 60));
                         edit_install_window->Init();
                         edit_install_window->Print();
                     }
 
                     else if (ch == MenuKeyL)
                     {
-                        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
+                        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
                         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
@@ -302,7 +299,7 @@ int main(void)
                         }
                         else
                         {
-                            std::unique_ptr<QMFormWindow> clone_window(new CloneVmWindow(dbf, vmdir, guest, 7, 35));
+                            std::unique_ptr<QMFormWindow> clone_window(new CloneVmWindow(cfg->db, cfg->vmdir, guest, 7, 35));
                             clone_window->Init();
                             clone_window->Print();
 
@@ -326,14 +323,14 @@ int main(void)
                     }
 
                     vm_window->Print();
-                    std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, vmdir));
+                    std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
                     vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
                 }
             }
         }
         else if (choice == MenuAddVm)
         {
-            std::unique_ptr<QMFormWindow> add_window(new AddVmWindow(dbf, vmdir, 23, 60));
+            std::unique_ptr<QMFormWindow> add_window(new AddVmWindow(cfg->db, cfg->vmdir, 23, 60));
             add_window->Init();
             add_window->Print();
         }

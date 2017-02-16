@@ -20,32 +20,8 @@ bool verify_mac(const std::string &mac);
 void spinner(uint32_t, uint32_t);
 void err_exit(const char *msg, const std::string &err = "");
 
-template <typename T>
-T read_cfg(const std::string &cfg, const char *param)
-{
-    T value;
-    
-    try
-    {
-        boost::property_tree::ptree ptr;
-        boost::property_tree::ini_parser::read_ini(cfg, ptr);
-        value = ptr.get<T>(param);
-    }
-    catch (boost::property_tree::ptree_bad_path &err)
-    {
-        err_exit("Error parsing config file! missing parameter.", (std::string) err.what());
-    }
-    catch (boost::property_tree::ptree_bad_data &err)
-    {
-        err_exit("Error parsing config file! bad value.", (std::string) err.what());
-    }
-    catch (boost::property_tree::ini_parser::ini_parser_error &err)
-    {
-        err_exit("Config file not found!", (std::string) err.what());
-    }
-
-    return value;
-}
+const struct config *get_cfg();
+void init_cfg();
 
 } // namespace QManager
 

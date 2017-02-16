@@ -33,6 +33,16 @@ typedef std::vector<std::string> VectorString;
 typedef std::map<std::string, std::string> MapString;
 typedef std::map<std::string, std::vector<std::string>> MapStringVector;
 
+struct config {
+    std::string vmdir;
+    std::string db;
+    std::string vnc_bin;
+    std::string qemu_system_path;
+    VectorString qemu_targets;
+    uint32_t list_max;
+    bool vnc_listen_any;
+};
+
 enum input_choices {
     MenuVmlist = 1, MenuAddVm = 2,
     MenuKeyEnter = 10,
