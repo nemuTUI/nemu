@@ -1,3 +1,7 @@
+#include <pwd.h>
+#include <libgen.h>
+#include <sys/stat.h>
+
 #include "misc.h"
 
 namespace QManager {
@@ -8,32 +12,92 @@ std::atomic<bool> finish(false);
 
 void init_cfg()
 {
-/*
     struct passwd *pw = getpwuid(getuid());
+    std::string cfg_path;
+    struct stat file_info;
 
     if (!pw)
-        err_exit("Error get home directory", (std::string) strerror(errno));
+    {
+        fprintf(stderr, "Error get home directory: %s\n", strerror(errno));
+        exit(1);
+    }
 
-    std::string home_dir = pw->pw_dir;
+    cfg_path = pw->pw_dir + std::string("/.qemu-manage.cfg");
 
     try
     {
         boost::property_tree::ptree ptr;
-        boost::property_tree::ini_parser::read_ini(cfg, ptr);
-        value = ptr.get<T>(param);
+        boost::property_tree::ini_parser::read_ini(cfg_path, ptr);
+
+        config.vmdir = ptr.get<std::string>("main.vmdir");
+        if (config.vmdir.empty())
+            throw std::runtime_error("empty VM directory value");
+        if (stat(config.vmdir.c_str(), &file_info) == -1)
+            throw std::runtime_error(config.vnc_bin + " : " + strerror(errno));
+        if ((file_info.st_mode & S_IFMT) != S_IFDIR)
+            throw std::runtime_error("VM directory is not directory");
+        if (access(config.vmdir.c_str(), W_OK) != 0)
+            throw std::runtime_error("bad permitions on VM directory");
+
+        config.db = ptr.get<std::string>("main.db");
+        if (config.db.empty())
+            throw std::runtime_error("empty database file value");
+        std::vector<char> t_db(config.db.begin(), config.db.end());
+        if (access(dirname(const_cast<char *>(&t_db[0])), W_OK) != 0)
+            throw std::runtime_error("bad permitions on DB directory");
+
+        config.list_max = ptr.get<uint32_t>("main.list_max");
+        if ((config.list_max == 0) || (config.list_max > 100))
+            throw std::runtime_error("invalid list_max value");
+
+        config.vnc_bin = ptr.get<std::string>("vnc.binary");
+        if (config.vnc_bin.empty())
+            throw std::runtime_error("empty vnc viewer value");
+        if (stat(config.vnc_bin.c_str(), &file_info) == -1)
+            throw std::runtime_error(config.vnc_bin + " : " + strerror(errno));
+
+        config.vnc_listen_any = ptr.get<bool>("vnc.listen_any");
+
+        config.qemu_system_path = ptr.get<std::string>("qemu.qemu_system_path");
+        if (config.qemu_system_path.empty())
+            throw std::runtime_error("empty qemu_system_path value");
+
+        std::string q_targets = ptr.get<std::string>("qemu.targets");
+        if (q_targets.empty())
+            throw std::runtime_error("empty qemu targets value");
+
+        char *token;
+        char *saveptr = const_cast<char *>(q_targets.c_str());
+
+        while ((token = strtok_r(saveptr, ",", &saveptr)))
+        {
+            std::string qemu_sys_bin = config.qemu_system_path + "-" + token;
+            if (stat(qemu_sys_bin.c_str(), &file_info) == -1)
+                throw std::runtime_error(qemu_sys_bin + " : " + strerror(errno));
+
+            config.qemu_targets.push_back(token);
+        }
     }
     catch (boost::property_tree::ptree_bad_path &err)
     {
-        err_exit("Error parsing config file! missing parameter.", (std::string) err.what());
+        fprintf(stderr, "Error: %s\n", err.what());
+        exit(2);
     }
     catch (boost::property_tree::ptree_bad_data &err)
     {
-        err_exit("Error parsing config file! bad value.", (std::string) err.what());
+        fprintf(stderr, "Error: %s\n", err.what());
+        exit(3);
     }
     catch (boost::property_tree::ini_parser::ini_parser_error &err)
     {
-        err_exit("Config file not found!", (std::string) err.what());
-    }*/
+        fprintf(stderr, "Error: %s\n", err.what());
+        exit(4);
+    }
+    catch (const std::runtime_error &err)
+    {
+        fprintf(stderr, "Error: %s\n", err.what());
+        exit(5);
+    }
 }
 
 const struct config *get_cfg()
