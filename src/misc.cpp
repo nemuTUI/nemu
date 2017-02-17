@@ -33,7 +33,7 @@ void init_cfg()
         if (config.vmdir.empty())
             throw std::runtime_error("empty VM directory value");
         if (stat(config.vmdir.c_str(), &file_info) == -1)
-            throw std::runtime_error(config.vnc_bin + " : " + strerror(errno));
+            throw std::runtime_error(config.vmdir + " : " + strerror(errno));
         if ((file_info.st_mode & S_IFMT) != S_IFDIR)
             throw std::runtime_error("VM directory is not directory");
         if (access(config.vmdir.c_str(), W_OK) != 0)
