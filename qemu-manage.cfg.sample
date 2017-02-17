@@ -1,12 +1,23 @@
 [main]
-# virtual machine dir
-vmdir = /usr/local/vm
+# virtual machine dir.
+vmdir = /home/user/qemu_vm
 
-# database file
-db = /var/db/qemu_manage2.db
+# database file.
+db = /home/user/qemu_manage2.db
 
-# maximum guests numbers in list
+# maximum guests numbers in list.
 list_max = 10
 
-# listen vnc connections (yes = localhost, no = any)
-vnc_localhost = yes
+[vnc]
+# vnc binary path.
+binary = /usr/bin/vncviewer
+
+# listen for vnc connections (0 = only localhost, 1 = any address)
+listen_any = 0
+
+[qemu]
+# path to qemy system binary without arch prefix.
+qemu_system_path = /usr/bin/qemu-system
+
+# comma separated qemu system targets installed.
+targets = x86_64,i386
