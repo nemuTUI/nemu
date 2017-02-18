@@ -188,16 +188,7 @@ int main(void)
                             Warn->Print(Warn->window);
                         }
                         else
-                        {
-                            if (!check_root())
-                            {
-                                std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Must be root."), 3, 20, 7));
-                                Warn->Init();
-                                Warn->Print(Warn->window);
-                            }
-                            else
-                                start_guest(guest, cfg->db, cfg->vmdir);
-                        }
+                            start_guest(guest, cfg->db, cfg->vmdir);
                     }
 
                     else if (ch == MenuKeyC)
