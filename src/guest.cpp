@@ -80,7 +80,7 @@ void start_guest(const std::string &vm_name,
     for (auto &ifs : ints)
     {
         ints_arg += " -net nic,macaddr=" + ifs.second[0] + ",model=" + ifs.second[1];
-        ints_arg += " -net tap,ifname=" + ifs.first + ",script=no";
+        ints_arg += " -net tap,ifname=" + ifs.first + ",script=no,downscript=no";
     }
 
     std::string cpu_arg, kvm_arg, hcpu_arg, install_arg, usb_arg, mem_arg, vnc_arg;
