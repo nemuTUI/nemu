@@ -1,0 +1,4 @@
+chown root:kvm /dev/kvm
+chmod 660 /dev/kvm
+gpasswd -a user kvm
+setcap CAP_NET_ADMIN=ep /usr/bin/qemu-system-x86_64
