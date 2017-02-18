@@ -103,6 +103,24 @@ void QMFormWindow::Draw_form()
             form_driver(form, REQ_DEL_PREV);
             break;
 
+        case 0x9: /* TAB KEY */
+            if (field_type(current_field(form)) != TYPE_REGEXP)
+                break;
+            {
+                form_driver(form, REQ_NEXT_FIELD);
+                form_driver(form, REQ_PREV_FIELD);
+                form_driver(form, REQ_END_FIELD);
+                std::string input = trim_field_buffer(field_buffer(current_field(form), 0));
+                std::string result;
+
+                if (append_path(input, result))
+                {
+                    set_field_buffer(current_field(form), 0, result.c_str());
+                    form_driver(form, REQ_END_FIELD);
+                }
+            }
+            break;
+
         case KEY_F(2):
             form_driver(form, REQ_VALIDATION);
             break;
