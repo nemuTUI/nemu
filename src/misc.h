@@ -19,6 +19,7 @@ bool check_root();
 bool verify_mac(const std::string &mac);
 void spinner(uint32_t, uint32_t);
 void err_exit(const char *msg, const std::string &err = "");
+bool append_path(const std::string &input, std::string &result);
 
 const struct config *get_cfg();
 void init_cfg();

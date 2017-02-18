@@ -1,5 +1,7 @@
 #include <pwd.h>
 #include <libgen.h>
+#include <dirent.h>
+
 #include <sys/stat.h>
 
 #include "misc.h"
@@ -234,6 +236,45 @@ void spinner(uint32_t pos_x, uint32_t pos_y)
         refresh();
         usleep(100000);
     }
+}
+
+bool append_path(const std::string &input, std::string &result)
+{
+    DIR *dp;
+    struct dirent *dir_ent;
+    std::vector<char> input_dir(input.begin(), input.end());
+    std::vector<char> input_file(input.begin(), input.end());
+    char *tdir = dirname(const_cast<char *>(&input_dir[0]));
+    char *file = basename(const_cast<char *>(&input_file[0]));
+    size_t count = 0;
+    std::string matched, dir = tdir;
+
+    if ((dp = opendir(tdir)) == NULL)
+        return false;
+
+    while ((dir_ent = readdir(dp)) != NULL)
+    {
+        if (*dir_ent->d_name == *file)
+        {
+            matched = dir_ent->d_name;
+            count++;
+        }
+    }
+
+    if (count == 1)
+    {
+        if (dir == "/")
+            result = dir + matched;
+        else
+            result = dir + '/' + matched;
+
+        closedir(dp);
+        return true;
+    }
+
+    closedir(dp);
+
+    return false;
 }
 
 } // namespace QManager
