@@ -102,11 +102,13 @@ int main(void)
             {
                 uint32_t listmax = cfg->list_max;
                 uint32_t guest_first = 0;
-                uint32_t guest_last =listmax;
+                uint32_t guest_last;
                 uint32_t q_highlight = 1;
 
                 if (listmax > guests.size())
                     listmax = guests.size();
+
+                guest_last = listmax;
 
                 clear();
                 std::unique_ptr<QMWindow> vm_window(new VmWindow(listmax + 4, 32));
