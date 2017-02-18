@@ -23,8 +23,6 @@ private:
     void Get_data_from_db();
     void Update_db_data();
     void Gen_iface_json();
-
-    VectorString q_arch;
 };
 
 } // namespace QManager

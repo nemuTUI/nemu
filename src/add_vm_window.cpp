@@ -10,7 +10,6 @@ AddVmWindow::AddVmWindow(const std::string &dbf, const std::string &vmdir,
 {
     dbf_ = dbf;
     vmdir_ = vmdir;
-    q_arch = list_arch();
 
     field.resize(11);
 }
@@ -42,14 +41,15 @@ void AddVmWindow::Create_fields()
 
 void AddVmWindow::Config_fields_type()
 {
-    ArchList = new char *[q_arch.size() + 1];
+    const VectorString *q_arch = &get_cfg()->qemu_targets;
+    ArchList = new char *[q_arch->size() + 1];
     UdevList = new char *[u_dev.size() + 1];
 
     // Convert VectorString to *char
-    for (size_t i = 0; i < q_arch.size(); ++i)
+    for (size_t i = 0; i < q_arch->size(); ++i)
     {
         ArchList[i] = new char[q_arch[i].size() + 1];
-        memcpy(ArchList[i], q_arch[i].c_str(), q_arch[i].size() + 1);
+        memcpy(ArchList[i], (*q_arch)[i].c_str(), (*q_arch)[i].size() + 1);
     }
 
     // Convert MapString to *char
@@ -63,7 +63,7 @@ void AddVmWindow::Config_fields_type()
         }
     }
 
-    ArchList[q_arch.size()] = NULL;
+    ArchList[q_arch->size()] = NULL;
     UdevList[u_dev.size()] = NULL;
 
     set_field_type(field[0], TYPE_ALNUM, 0);
@@ -77,7 +77,7 @@ void AddVmWindow::Config_fields_type()
     set_field_type(field[8], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[9], TYPE_ENUM, UdevList, false, false);
 
-    for (size_t i = 0; i < q_arch.size(); ++i)
+    for (size_t i = 0; i < q_arch->size(); ++i)
         delete [] ArchList[i];
 
     for (size_t i = 0; i < u_dev.size(); ++i)
