@@ -242,39 +242,71 @@ bool append_path(const std::string &input, std::string &result)
 {
     DIR *dp;
     struct dirent *dir_ent;
-    std::vector<char> input_dir(input.begin(), input.end());
-    std::vector<char> input_file(input.begin(), input.end());
-    char *tdir = dirname(const_cast<char *>(&input_dir[0]));
-    char *file = basename(const_cast<char *>(&input_file[0]));
-    size_t count = 0;
-    std::string matched, dir = tdir;
+    std::string input_dir = input;
+    std::string input_file = input;
+    char *tdir = dirname(const_cast<char *>(input_dir.c_str()));
+    char *file = basename(const_cast<char *>(input_file.c_str()));
+    std::string dir = tdir, base;
+    VectorString matched;
 
     if ((dp = opendir(tdir)) == NULL)
         return false;
 
     while ((dir_ent = readdir(dp)) != NULL)
     {
-        if (*dir_ent->d_name == *file)
+        if (memcmp(dir_ent->d_name, file, strlen(file)) == 0)
         {
-            matched = dir_ent->d_name;
-            count++;
+            size_t path_len, arr_len;
+
+            matched.push_back(dir_ent->d_name);
+
+            if ((arr_len = matched.size()) > 1)
+            {
+                path_len = matched.at(arr_len - 2).size();
+                size_t eq_ch_num = 0;
+                size_t cur_path_len = strlen(dir_ent->d_name);
+
+                for (size_t n = 0; n < path_len; n++)
+                {
+                    if (n > cur_path_len)
+                        break;
+
+                    if (matched.at(arr_len - 2).at(n) == dir_ent->d_name[n])
+
+                        eq_ch_num++;
+                    else
+                        break;
+                }
+
+                base = matched.at(arr_len - 2).substr(0, eq_ch_num);
+            }
         }
     }
 
-    if (count == 1)
+    if (matched.size() == 0)
+    {
+        closedir(dp);
+        return false;
+    }
+
+    if (matched.size() == 1)
     {
         if (dir == "/")
-            result = dir + matched;
+            result = dir + matched.at(0);
         else
-            result = dir + '/' + matched;
-
-        closedir(dp);
-        return true;
+            result = dir + '/' + matched.at(0);
+    }
+    else
+    {
+        if (dir == "/")
+            result = dir + base;
+        else
+            result = dir + '/' + base;
     }
 
     closedir(dp);
 
-    return false;
+    return true;
 }
 
 } // namespace QManager
