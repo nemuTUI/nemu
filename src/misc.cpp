@@ -272,7 +272,6 @@ bool append_path(const std::string &input, std::string &result)
                         break;
 
                     if (matched.at(arr_len - 2).at(n) == dir_ent->d_name[n])
-
                         eq_ch_num++;
                     else
                         break;
