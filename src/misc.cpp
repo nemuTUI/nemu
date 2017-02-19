@@ -44,8 +44,8 @@ void init_cfg()
         config.db = ptr.get<std::string>("main.db");
         if (config.db.empty())
             throw std::runtime_error("empty database file value");
-        std::vector<char> t_db(config.db.begin(), config.db.end());
-        if (access(dirname(const_cast<char *>(&t_db[0])), W_OK) != 0)
+        std::string t_db = config.db;
+        if (access(dirname(const_cast<char *>(t_db.c_str())), W_OK) != 0)
             throw std::runtime_error("bad permitions on DB directory");
 
         config.list_max = ptr.get<uint32_t>("main.list_max");
@@ -248,6 +248,7 @@ bool append_path(const std::string &input, std::string &result)
     char *file = basename(const_cast<char *>(input_file.c_str()));
     std::string dir = tdir, base;
     VectorString matched;
+    struct stat file_info;
 
     if ((dp = opendir(tdir)) == NULL)
         return false;
@@ -301,6 +302,12 @@ bool append_path(const std::string &input, std::string &result)
             result = dir + base;
         else
             result = dir + '/' + base;
+    }
+
+    if (stat(result.c_str(), &file_info) != -1)
+    {
+        if ((file_info.st_mode & S_IFMT) == S_IFDIR)
+            result += '/';
     }
 
     closedir(dp);
