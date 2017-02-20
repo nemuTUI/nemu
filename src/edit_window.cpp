@@ -29,20 +29,24 @@ void EditVmWindow::Create_fields()
 
 void EditVmWindow::Config_fields_type()
 {
-    UdevList = new char *[u_dev.size() + 1];
+    UdevList = NULL;
 
     // Convert MapString to *char
+    if (u_dev)
     {
         int i = 0;
-        for (auto &UList : u_dev)
+        for (auto &UList : *u_dev)
         {
             UdevList[i] = new char[UList.first.size() +1];
             memcpy(UdevList[i], UList.first.c_str(), UList.first.size() + 1);
             i++;
+
         }
+
+        UdevList = new char *[u_dev->size() + 1];
+        UdevList[u_dev->size()] = NULL;
     }
 
-    UdevList[u_dev.size()] = NULL;
 
     set_field_type(field[0], TYPE_INTEGER, 0, 1, cpu_count());
     set_field_type(field[1], TYPE_INTEGER, 0, 64, total_memory());
@@ -52,10 +56,19 @@ void EditVmWindow::Config_fields_type()
     set_field_type(field[5], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[6], TYPE_ENUM, UdevList, false, false);
 
-    for (size_t i = 0; i < u_dev.size(); ++i)
-        delete [] UdevList[i];
+    if (!u_dev)
+    {
+        field_opts_off(field[5], O_ACTIVE);
+        field_opts_off(field[6], O_ACTIVE);
+    }
 
-    delete [] UdevList;
+    if (u_dev)
+    {
+        for (size_t i = 0; i < u_dev->size(); ++i)
+            delete [] UdevList[i];
+
+        delete [] UdevList;
+    }
 }
 
 void EditVmWindow::Config_fields_buffer()
@@ -256,9 +269,12 @@ void EditVmWindow::Update_db_data()
                 Delete_form();
                 throw QMException(_("Usb device was not selected."));
             }
-
+            FILE *tmp;
+            tmp = fopen("/tmp/q_udev", "a+");
+            fprintf(tmp, "idx: %s\n", guest_new.usbd.c_str());
+            fclose(tmp);
             guest_new.usbp = "1";
-            guest_new.usbd = u_dev.at(guest_new.usbd);
+            guest_new.usbd = u_dev->at(guest_new.usbd);
         }
         else
         {
@@ -282,7 +298,7 @@ void EditVmWindow::Print()
 
     try
     {
-        u_dev = list_usb();
+        u_dev = get_usb_list();
 
         Enable_color();
 

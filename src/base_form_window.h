@@ -36,7 +36,7 @@ protected:
     FORM *form;
     std::vector<FIELD*> field;
     int ch, cmd_exit_status;
-    MapString u_dev;
+    MapString *u_dev;
     char **UdevList, **ArchList;
     guest_t<std::string> guest;
 };

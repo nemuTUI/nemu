@@ -1,4 +1,9 @@
+#include <libudev.h>
+#include <libusb.h>
+
 #include "hostinfo.h"
+
+static QManager::MapString u_list;
 
 uint32_t QManager::total_memory()
 {
@@ -21,31 +26,13 @@ uint32_t QManager::cpu_count()
     return cores;
 }
 
-QManager::MapString QManager::list_usb()
+QManager::MapString *QManager::get_usb_list()
 {
-    MapString u_list;
-    char buff[1024] = {0};
-    std::string regex(".*\\s+ID\\s+([A-Fa-f0-9]{4}:[A-Fa-f0-9]{4})\\s+(.*\\S)\\s*\n");
+    u_list.clear();
+    std::string usb_id, usb_name;
 
-    FILE *cmd = popen("lsusb", "r");
-    
-    if (cmd)
-    {
-        while (char *line = fgets(buff, sizeof(buff), cmd))
-        {
-            boost::regex re(regex, boost::regex_constants::extended);
-            boost::smatch m;
-            
-            if (boost::regex_match(std::string(line), m, re))
-            {
-                std::string usb_id = m[1].str();
-                std::string usb_name = m[2].str();
-                u_list.insert(std::make_pair(usb_name, usb_id));
-            }
-        }
-        pclose(cmd);
-        return u_list;
-    }
+    u_list.insert(std::make_pair(usb_name, usb_id));
 
-    return MapString();
+    //return &u_list;
+    return NULL;
 }

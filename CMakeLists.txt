@@ -12,8 +12,6 @@ configure_file(
 add_custom_target(uninstall
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
-
-
 #find packcages
 set(CURSES_NEED_NCURSES TRUE)
 set(CURSES_NEED_WIDE TRUE)
@@ -21,6 +19,8 @@ find_package(Curses REQUIRED)
 find_package(Sqlite3 REQUIRED)
 find_package(Procps REQUIRED)
 find_package(Threads REQUIRED)
+find_package(libusb-1.0 REQUIRED)
+find_package(UDev REQUIRED)
 find_package(Boost REQUIRED COMPONENTS regex)
 
 #configure project
@@ -36,6 +36,8 @@ target_link_libraries(${PROJECT_NAME}
                     ${SQLITE3_LIBRARIES}
                     ${PROCPS_LIBRARIES}
                     ${CMAKE_THREAD_LIBS_INIT}
+                    ${LIBUSB_1_LIBRARIES}
+                    ${UDEV_LIBRARIES}
                     ${Boost_LIBRARIES})
 
 #set path
@@ -57,7 +59,7 @@ include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS
-    "-Wall -Wextra -pedantic ")
+    "-Wall -Wextra -pedantic -isystem ${LIBUSB_1_INCLUDE_DIRS} ")
 if(COMPILER_SUPPORTS_CXX11)
         set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS "-std=c++11")
 elseif(COMPILER_SUPPORTS_CXX0X)

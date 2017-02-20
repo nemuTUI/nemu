@@ -41,9 +41,9 @@ void AddVmWindow::Create_fields()
 
 void AddVmWindow::Config_fields_type()
 {
+    UdevList = NULL;
     const VectorString *q_arch = &get_cfg()->qemu_targets;
     ArchList = new char *[q_arch->size() + 1];
-    UdevList = new char *[u_dev.size() + 1];
 
     // Convert VectorString to *char
     for (size_t i = 0; i < q_arch->size(); ++i)
@@ -53,18 +53,21 @@ void AddVmWindow::Config_fields_type()
     }
 
     // Convert MapString to *char
+    if (u_dev)
     {
         int i = 0;
-        for (auto &UList : u_dev)
+        for (auto &UList : *u_dev)
         {
             UdevList[i] = new char[UList.first.size() +1];
             memcpy(UdevList[i], UList.first.c_str(), UList.first.size() + 1);
             i++;
         }
+
+        UdevList = new char *[u_dev->size() + 1];
+        UdevList[u_dev->size()] = NULL;
     }
 
     ArchList[q_arch->size()] = NULL;
-    UdevList[u_dev.size()] = NULL;
 
     set_field_type(field[0], TYPE_ALNUM, 0);
     set_field_type(field[1], TYPE_ENUM, ArchList, false, false);
@@ -77,14 +80,24 @@ void AddVmWindow::Config_fields_type()
     set_field_type(field[8], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[9], TYPE_ENUM, UdevList, false, false);
 
+    if (!u_dev)
+    {
+        field_opts_off(field[8], O_ACTIVE);
+        field_opts_off(field[9], O_ACTIVE);
+    }
+
     for (size_t i = 0; i < q_arch->size(); ++i)
         delete [] ArchList[i];
 
-    for (size_t i = 0; i < u_dev.size(); ++i)
-        delete [] UdevList[i];
-
     delete [] ArchList;
-    delete [] UdevList;
+
+    if (u_dev)
+    {
+        for (size_t i = 0; i < u_dev->size(); ++i)
+            delete [] UdevList[i];
+
+        delete [] UdevList;
+    }
 }
 
 void AddVmWindow::Config_fields_buffer()
@@ -152,7 +165,7 @@ void AddVmWindow::Update_db_data()
     if (guest.usbp == "yes")
     {
         guest.usbp = "1";
-        guest.usbd = u_dev.at(guest.usbd);
+        guest.usbd = u_dev->at(guest.usbd);
     }
     else
     {
@@ -251,7 +264,7 @@ void AddVmWindow::Print()
 
     try 
     {
-        u_dev = list_usb();
+        u_dev = get_usb_list();
 
         Enable_color();
         Draw_title();
