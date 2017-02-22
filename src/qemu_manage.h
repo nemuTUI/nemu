@@ -38,6 +38,7 @@ struct config {
     std::string db;
     std::string vnc_bin;
     std::string qemu_system_path;
+    std::string log_path;
     VectorString qemu_targets;
     uint32_t list_max;
     bool vnc_listen_any;

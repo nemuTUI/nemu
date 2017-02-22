@@ -105,10 +105,14 @@ void start_guest(const std::string &vm_name,
 
     system(guest_cmd.c_str());
 
-    std::ofstream debug;
-    debug.open("/tmp/qemu_manage.log");
-    debug << guest_cmd << std::endl;
-    debug.close();
+    const struct config *cfg = get_cfg();
+    if (!cfg->log_path.empty())
+    {
+        std::ofstream debug;
+        debug.open(cfg->log_path);
+        debug << guest_cmd << std::endl;
+        debug.close();
+    }
 }
 
 void connect_guest(const std::string &vm_name, const std::string &dbf)

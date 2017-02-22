@@ -39,14 +39,14 @@ void init_cfg()
         if ((file_info.st_mode & S_IFMT) != S_IFDIR)
             throw std::runtime_error("VM directory is not directory");
         if (access(config.vmdir.c_str(), W_OK) != 0)
-            throw std::runtime_error("bad permitions on VM directory");
+            throw std::runtime_error("no write access on VM directory");
 
         config.db = ptr.get<std::string>("main.db");
         if (config.db.empty())
             throw std::runtime_error("empty database file value");
         std::string t_db = config.db;
         if (access(dirname(const_cast<char *>(t_db.c_str())), W_OK) != 0)
-            throw std::runtime_error("bad permitions on DB directory");
+            throw std::runtime_error("no write access on DB directory");
 
         config.list_max = ptr.get<uint32_t>("main.list_max");
         if ((config.list_max == 0) || (config.list_max > 100))
@@ -78,6 +78,14 @@ void init_cfg()
                 throw std::runtime_error(qemu_sys_bin + " : " + strerror(errno));
 
             config.qemu_targets.push_back(token);
+        }
+
+        config.log_path = ptr.get<std::string>("qemu.log_cmd");
+        if (!config.log_path.empty())
+        {
+            std::string t_log = config.log_path;
+            if (access(dirname(const_cast<char *>(t_log.c_str())), W_OK) != 0)
+                throw std::runtime_error("no write access on log directory");
         }
     }
     catch (boost::property_tree::ptree_bad_path &err)

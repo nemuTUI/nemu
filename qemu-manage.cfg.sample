@@ -3,7 +3,7 @@
 vmdir = /home/user/qemu_vm
 
 # path to database file.
-db = /home/user/qemu_manage.db
+db = /home/user/.qemu_manage.db
 
 # maximum guests numbers in list.
 list_max = 10
@@ -21,3 +21,6 @@ qemu_system_path = /usr/bin/qemu-system
 
 # comma separated qemu system targets installed.
 targets = x86_64,i386
+
+# log last qemu command. Empty value disable logging.
+log_cmd = /tmp/qemu_last_cmd.log
