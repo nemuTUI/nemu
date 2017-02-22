@@ -196,15 +196,6 @@ MapStringVector Read_ifaces_from_json(const std::string &str)
     return result;
 }
 
-bool check_root()
-{
-    uid_t uid = getuid();
-    if (uid != 0)
-        return false;
-
-    return true;
-}
-
 void err_exit(const char *msg, const std::string &err)
 {
     clear();
