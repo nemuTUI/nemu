@@ -28,7 +28,7 @@ int main(void)
     const std::array<std::string, 3> choices = {
         _("Manage guests"),
         _("Install guest"),
-        _("Add guest"),
+        _("Quit"),
     };
 
     uint32_t highlight = 1;
@@ -326,6 +326,13 @@ int main(void)
             std::unique_ptr<QMFormWindow> add_window(new AddVmWindow(cfg->db, cfg->vmdir, 23, 60));
             add_window->Init();
             add_window->Print();
+        }
+        else if (choice == MenuQuit)
+        {
+            clear();
+            refresh();
+            endwin();
+            exit(0);
         }
     }
 
