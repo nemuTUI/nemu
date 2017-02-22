@@ -125,7 +125,7 @@ void AddVmWindow::Print_fields_names()
     mvwaddstr(window, 6, 2, ccpu);
     mvwaddstr(window, 8, 2, cmem);
     mvwaddstr(window, 10, 2, cfree);
-    mvwaddstr(window, 12, 2, _("Path to ISO"));
+    mvwaddstr(window, 12, 2, _("Path to ISO/IMG"));
     mvwaddstr(window, 14, 2, _("Interfaces"));
     mvwaddstr(window, 16, 2, _("Net driver"));
     mvwaddstr(window, 18, 2, _("USB [yes/no]"));

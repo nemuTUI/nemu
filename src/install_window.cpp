@@ -52,7 +52,7 @@ void EditInstallWindow::Config_fields_buffer()
 void EditInstallWindow::Print_fields_names()
 {
     mvwaddstr(window, 2, 2, _("OS Installed"));
-    mvwaddstr(window, 4, 2, _("Path to ISO"));
+    mvwaddstr(window, 4, 2, _("Path to ISO/IMG"));
 }
 
 void EditInstallWindow::Get_data_from_form()

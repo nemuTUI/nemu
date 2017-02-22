@@ -63,8 +63,8 @@ void AddDiskWindow::Gen_hdd()
     hdd_ch = 'a';
     MapString disk = Gen_map_from_str(guest_old.disk[0]);
 
-    if (disk.size() == 26)
-        throw QMException(_("26 disks limit reached :("));
+    if (disk.size() == 3)
+        throw QMException(_("3 disks limit reached :("));
 
     hdd_ch += disk.size();
 

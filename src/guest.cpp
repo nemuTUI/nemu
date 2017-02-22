@@ -9,6 +9,8 @@ void start_guest(const std::string &vm_name,
                  const std::string &vmdir)
 {
     guest_t<VectorString> guest;
+    const struct config *cfg = get_cfg();
+    bool iso_install = false;
 
     std::string lock_file = vmdir + "/" + vm_name + "/" + vm_name + ".lock";
     std::string guest_dir = vmdir + "/" + vm_name + "/";
@@ -60,6 +62,9 @@ void start_guest(const std::string &vm_name,
     sql_query = "select usbid from vms where name='" + vm_name + "'";
     guest.usbd = db->SelectQuery(sql_query);
 
+    if ((guest.path[0].compare(guest.path[0].size() - 4, 4, ".iso")) == 0)
+        iso_install = true;
+
     // Generate strings for system shell commands
     std::string create_lock = "( touch " + lock_file + "; ";
     std::string delete_lock = " > /dev/null 2>&1; rm " + lock_file + " )&";
@@ -69,7 +74,9 @@ void start_guest(const std::string &vm_name,
     MapString disk = Gen_map_from_str(guest.disk[0]);
 
     std::string hdx_arg, ints_arg;
-    char hdx_char= 'a';
+    char hdx_char = 'a';
+    if (!iso_install && (guest.install[0] == "1"))
+        hdx_char = 'b';
 
     for (auto &hdx : disk)
     {
@@ -84,14 +91,22 @@ void start_guest(const std::string &vm_name,
     }
 
     std::string cpu_arg, kvm_arg, hcpu_arg, install_arg, usb_arg, mem_arg, vnc_arg;
+    install_arg = "";
+    if (guest.install[0] == "1")
+    {
+        if (iso_install)
+            install_arg = " -boot d -cdrom " + guest.path[0];
+        else
+            install_arg = " -hda " + guest.path[0];
+    }
+
     std::stoi(guest.cpus[0]) > 1 ? cpu_arg = " -smp " + guest.cpus[0] : cpu_arg = "";
     guest.kvmf[0] == "1" ?  kvm_arg = " -enable-kvm" : kvm_arg = "";
     (guest.kvmf[0] == "1" && guest.hcpu[0] == "1") ?  hcpu_arg = " -cpu host" : hcpu_arg = "";
-    guest.install[0] == "1" ?  install_arg = " -boot d -cdrom " + guest.path[0] : install_arg = "";
     guest.usbp[0] == "1" ?  usb_arg = " -usb -usbdevice host:" + guest.usbd[0] : usb_arg = "";
     mem_arg = " -m " + guest.memo[0];
 
-    if (!get_cfg()->vnc_listen_any)
+    if (!cfg->vnc_listen_any)
         vnc_arg = " -vnc 127.0.0.1:" + guest.vncp[0];
     else
         vnc_arg = " -vnc :" + guest.vncp[0];
@@ -105,7 +120,6 @@ void start_guest(const std::string &vm_name,
 
     system(guest_cmd.c_str());
 
-    const struct config *cfg = get_cfg();
     if (!cfg->log_path.empty())
     {
         std::ofstream debug;
