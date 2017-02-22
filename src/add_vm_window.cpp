@@ -56,15 +56,16 @@ void AddVmWindow::Config_fields_type()
     if (u_dev)
     {
         int i = 0;
-        for (auto &UList : *u_dev)
+        UdevList = new char *[u_dev->size() + 1];
+        UdevList[u_dev->size()] = NULL;
+
+        for (auto &usb_dev : *u_dev)
         {
-            UdevList[i] = new char[UList.first.size() +1];
-            memcpy(UdevList[i], UList.first.c_str(), UList.first.size() + 1);
+            UdevList[i] = new char[usb_dev.first.size() + 1];
+            memcpy(UdevList[i], usb_dev.first.c_str(), usb_dev.first.size() + 1);
             i++;
         }
 
-        UdevList = new char *[u_dev->size() + 1];
-        UdevList[u_dev->size()] = NULL;
     }
 
     ArchList[q_arch->size()] = NULL;

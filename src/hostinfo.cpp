@@ -94,7 +94,6 @@ uint32_t QManager::cpu_count()
 
 QManager::MapString *QManager::get_usb_list()
 {
-    std::string usb_id, usb_name;
     libusb_context *ctx = NULL;
     libusb_device **list = NULL;
     struct udev *udev = NULL;
@@ -111,30 +110,37 @@ QManager::MapString *QManager::get_usb_list()
             throw std::runtime_error("udev_hwdb_new failed");
 
         if ((rc = libusb_init(&ctx)) != 0)
-            throw std::runtime_error(libusb_strerror(rc));
+            throw std::runtime_error(libusb_strerror(static_cast<libusb_error>(rc)));
 
         if ((dev_count = libusb_get_device_list(ctx, &list)) < 1)
             throw std::runtime_error("libusb_get_device_list failed");
+
+        u_list.clear();
 
         for (n = 0; n < dev_count; n++)
         {
             libusb_device *device = list[n];
             struct libusb_device_descriptor desc = {};
+            std::string usb_id, usb_name;
+            char buf[10] = {0};
 
             if (libusb_get_device_descriptor(device, &desc) != 0)
                 continue;
 
             if (get_vendor_string(vendor, sizeof(vendor), desc.idVendor) == 0)
-                sprintf(vendor, "vendor-unknown");
+                usb_name = "vendor-unknown";
+            else
+                usb_name = vendor;
+
             if (get_product_string(product, sizeof(product), desc.idVendor, desc.idProduct) == 0)
-                sprintf(product, "product-unknown");
+                usb_name += " product-unknown";
+            else
+                usb_name += product;
 
-            printf("%04x:%04x %s %s\n", desc.idVendor, desc.idProduct, vendor, product);
+            snprintf(buf, sizeof(buf), "%04x:%04x", desc.idVendor, desc.idProduct);
+            usb_id = buf;
+            u_list.insert(std::make_pair(usb_name, usb_id));
         }
-
-        u_list.clear();
-
-        u_list.insert(std::make_pair(usb_name, usb_id));
     }
     catch (const std::runtime_error &err)
     {
