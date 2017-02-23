@@ -381,6 +381,7 @@ int main(void)
                         vm_window = new VmWindow(listmax + 4, 32);
                         vm_window->Init();
                         vm_window->Print();
+                        wtimeout(vm_window->window, 1000);
                         vm_list = new VmList(vm_window->window, q_highlight, cfg->vmdir);
                         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
                         redraw_window = 0;
