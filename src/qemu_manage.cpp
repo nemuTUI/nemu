@@ -4,6 +4,8 @@
 #include <array>
 #include <vector>
 #include <memory>
+
+#include <signal.h>
 #include <libintl.h>
 
 #include "qemu_manage.h"
@@ -12,10 +14,24 @@
 
 using namespace QManager;
 
+static void signals_handler(int signal);
+static volatile sig_atomic_t redraw_window = 0;
+
 int main(void)
 {
     init_cfg();
     const struct config *cfg = get_cfg();
+    struct sigaction sa;
+
+    QMWindow *main_window = NULL;
+    QMWindow *vm_window = NULL;
+    MenuList *main_menu = NULL;
+    VmList *vm_list = NULL;
+
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sa.sa_handler = signals_handler;
+    sigaction(SIGWINCH, &sa, NULL);
 
     // localization
     char usr_path[1024] = {0};
@@ -39,15 +55,19 @@ int main(void)
     noecho();
     curs_set(0);
 
-    std::unique_ptr<QMWindow> main_window(new MainWindow(10, 30));
-    main_window->Init();
-
     for (;;)
     {
         uint32_t choice = 0;
 
+        if (main_window)
+            delete main_window;
+        main_window = new MainWindow(10, 30);
+        main_window->Init();
         main_window->Print();
-        std::unique_ptr<MenuList> main_menu(new MenuList(main_window->window, highlight));
+
+        if (main_menu)
+            delete main_menu;
+        main_menu = new MenuList(main_window->window, highlight);
         main_menu->Print(choices.begin(), choices.end());
 
         while ((ch = wgetch(main_window->window)))
@@ -78,8 +98,28 @@ int main(void)
                 exit(0);
             }
 
-            std::unique_ptr<MenuList> main_menu(new MenuList(main_window->window, highlight));
-            main_menu->Print(choices.begin(), choices.end());
+            if (redraw_window)
+            {
+                endwin();
+                refresh();
+                if (main_window)
+                    delete main_window;
+                if (main_menu)
+                    delete main_menu;
+                main_window = new MainWindow(10, 30);
+                main_window->Init();
+                main_window->Print();
+                main_menu = new MenuList(main_window->window, highlight);
+                main_menu->Print(choices.begin(), choices.end());
+                redraw_window = 0;
+            }
+            else
+            {
+                if (main_menu)
+                    delete main_menu;
+                main_menu = new MenuList(main_window->window, highlight);
+                main_menu->Print(choices.begin(), choices.end());
+            }
 
             if (choice != 0)
                 break;
@@ -111,12 +151,15 @@ int main(void)
                 guest_last = listmax;
 
                 clear();
-                std::unique_ptr<QMWindow> vm_window(new VmWindow(listmax + 4, 32));
+                if (vm_window)
+                    delete vm_window;
+                vm_window = new VmWindow(listmax + 4, 32);
                 vm_window->Init();
                 vm_window->Print();
 
-
-                std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
+                if (vm_list)
+                    delete vm_list;
+                vm_list = new VmList(vm_window->window, q_highlight, cfg->vmdir);
                 vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
                 wtimeout(vm_window->window, 1000);
@@ -310,14 +353,45 @@ int main(void)
 
                     else if (ch == KEY_F(10))
                     {
+                        if (vm_window)
+                        {
+                            delete vm_window;
+                            vm_window = NULL;
+                        }
+                        if (vm_list)
+                        {
+                            delete vm_list;
+                            vm_list = NULL;
+                        }
                         refresh();
                         endwin();
                         break;
                     }
-
                     vm_window->Print();
-                    std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
-                    vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
+
+                    if (redraw_window)
+                    {
+                        clear();
+                        endwin();
+                        refresh();
+                        if (vm_window)
+                            delete vm_window;
+                        if (vm_list)
+                            delete vm_list;
+                        vm_window = new VmWindow(listmax + 4, 32);
+                        vm_window->Init();
+                        vm_window->Print();
+                        vm_list = new VmList(vm_window->window, q_highlight, cfg->vmdir);
+                        vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
+                        redraw_window = 0;
+                    }
+                    else
+                    {
+                        if (vm_list)
+                            delete vm_list;
+                        vm_list = new VmList(vm_window->window, q_highlight, cfg->vmdir);
+                        vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
+                    }
                 }
             }
         }
@@ -337,4 +411,13 @@ int main(void)
     }
 
     return 0;
+}
+
+static void signals_handler(int signal)
+{
+    switch (signal) {
+    case SIGWINCH:
+        redraw_window = 1;
+        break;
+    }
 }
