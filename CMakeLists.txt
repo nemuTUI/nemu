@@ -42,9 +42,7 @@ target_link_libraries(${PROJECT_NAME}
 
 #set path
 set(USR_PREFIX "/usr" CACHE PATH "Executable and lang files directory prefix")
-set(ETC_PREFIX "/etc" CACHE PATH "Config file Installation directory prefix")
 add_definitions(-DUSR_PREFIX=${USR_PREFIX})
-add_definitions(-DETC_PREFIX=${ETC_PREFIX})
 
 add_subdirectory(lang)
 add_dependencies(${PROJECT_NAME} lang)
@@ -52,7 +50,8 @@ add_dependencies(${PROJECT_NAME} lang)
 #configure install
 set(QEMU_CONFIG_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cfg.sample")
 install(TARGETS ${PROJECT_NAME} DESTINATION ${USR_PREFIX}/bin)
-install(FILES ${QEMU_CONFIG_SOURCE} DESTINATION ${ETC_PREFIX} RENAME ${PROJECT_NAME}.cfg)
+install(FILES ${QEMU_CONFIG_SOURCE} DESTINATION
+    "${USR_PREFIX}/share/qemu-manage/templates/config")
 
 #x11 check and flags setup
 include(CheckCXXCompilerFlag)
