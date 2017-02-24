@@ -21,7 +21,7 @@ find_package(Procps REQUIRED)
 find_package(Threads REQUIRED)
 find_package(libusb-1.0 REQUIRED)
 find_package(UDev REQUIRED)
-find_package(Boost REQUIRED COMPONENTS regex)
+find_package(Boost REQUIRED)
 
 #configure project
 include_directories(${CURSES_INCLUDE_DIR}
@@ -37,8 +37,7 @@ target_link_libraries(${PROJECT_NAME}
                     ${PROCPS_LIBRARIES}
                     ${CMAKE_THREAD_LIBS_INIT}
                     ${LIBUSB_1_LIBRARIES}
-                    ${UDEV_LIBRARIES}
-                    ${Boost_LIBRARIES})
+                    ${UDEV_LIBRARIES})
 
 #set path
 set(USR_PREFIX "/usr" CACHE PATH "Executable and lang files directory prefix")

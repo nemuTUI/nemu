@@ -5,7 +5,6 @@
 
 #include <boost/tokenizer.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include <boost/regex.hpp>
 
 #include "qemu_manage.h"
 

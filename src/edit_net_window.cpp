@@ -54,7 +54,7 @@ void EditNetWindow::Config_fields_type()
 
     set_field_type(field[0], TYPE_ENUM, (char **)IfaceList, false, false);
     set_field_type(field[1], TYPE_ENUM, (char **)NetDrv, false, false);
-    set_field_type(field[2], TYPE_REGEXP, "([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}");
+    set_field_type(field[2], TYPE_REGEXP, ".*");
 
     for (size_t i = 0; i < iflist.size(); ++i)
         delete [] IfaceList[i];

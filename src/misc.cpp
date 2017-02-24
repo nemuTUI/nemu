@@ -1,6 +1,7 @@
 #include <pwd.h>
 #include <libgen.h>
 #include <dirent.h>
+#include <regex.h>
 
 #include <sys/stat.h>
 
@@ -209,17 +210,23 @@ void err_exit(const char *msg, const std::string &err)
 
 bool verify_mac(const std::string &mac)
 {
-    const std::string regex = ("^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$");
+    const char *regex = "^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$";
+    regex_t reg;
+    bool result = false;
 
-    boost::regex re(regex, boost::regex_constants::extended);
-    boost::smatch m;
+    if (regcomp(&reg, regex, REG_EXTENDED) != 0)
+    {
+        /* TODO log error */
+        return false;
+    }
 
-    if (boost::regex_match(std::string(mac), m, re))
-        return true;
-    
-    return false;
+    if (regexec(&reg, mac.c_str(), 0, NULL, 0) == 0)
+        result = true;
+
+    regfree(&reg);
+
+    return result;
 }
-
 
 void spinner(uint32_t pos_x, uint32_t pos_y)
 {
