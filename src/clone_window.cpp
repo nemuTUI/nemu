@@ -138,7 +138,7 @@ void CloneVmWindow::Gen_hdd()
     guest_dir = vmdir_ + "/" + guest_new.name;
     create_guest_dir_cmd = "mkdir " + guest_dir;
 
-    system(create_guest_dir_cmd.c_str());
+    (void) system(create_guest_dir_cmd.c_str());
 
     for (auto &hd : disk)
     {
@@ -149,7 +149,7 @@ void CloneVmWindow::Gen_hdd()
             "/" + hd.first + " " + vmdir_ + "/" + guest_new.name +
             "/" + guest_new.name + "_" + hdd_ch + ".img";
 
-        system(create_img_cmd.c_str());
+        (void) system(create_img_cmd.c_str());
         hdd_ch++;
     }
 }

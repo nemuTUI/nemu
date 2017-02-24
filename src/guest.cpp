@@ -118,7 +118,7 @@ void start_guest(const std::string &vm_name,
         mem_arg + kvm_arg + hcpu_arg +
         ints_arg + vnc_arg + delete_lock;
 
-    system(guest_cmd.c_str());
+    (void) system(guest_cmd.c_str());
 
     if (!cfg->log_path.empty())
     {
@@ -142,7 +142,7 @@ void connect_guest(const std::string &vm_name, const std::string &dbf)
 
     std::string connect_cmd = "vncviewer :" + std::to_string(port) + " > /dev/null 2>&1 &";
 
-    system(connect_cmd.c_str());
+    (void) system(connect_cmd.c_str());
 }
 
 void delete_guest(const std::string &vm_name,
@@ -165,7 +165,7 @@ void delete_guest(const std::string &vm_name,
     std::string sql_query = "delete from vms where name='" + vm_name + "'";
 
     db->ActionQuery(sql_query);
-    system(guest_dir_rm_cmd.c_str());
+    (void) system(guest_dir_rm_cmd.c_str());
 }
 
 void kill_guest(const std::string &vm_name)
@@ -173,7 +173,7 @@ void kill_guest(const std::string &vm_name)
     std::string stop_cmd = "pgrep -nf \"[q]emu.*/" + vm_name +
         "/" + vm_name + "_a.img\" | xargs kill";
 
-    system(stop_cmd.c_str());
+    (void) system(stop_cmd.c_str());
 }
 
 } // namespace QManager
