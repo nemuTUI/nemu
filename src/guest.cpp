@@ -11,6 +11,7 @@ void start_guest(const std::string &vm_name,
     guest_t<VectorString> guest;
     const struct config *cfg = get_cfg();
     bool iso_install = false;
+    int unused __attribute__((unused));
 
     std::string lock_file = vmdir + "/" + vm_name + "/" + vm_name + ".lock";
     std::string guest_dir = vmdir + "/" + vm_name + "/";
@@ -125,7 +126,7 @@ void start_guest(const std::string &vm_name,
         mem_arg + kvm_arg + hcpu_arg +
         ints_arg + vnc_arg + bios_arg + delete_lock;
 
-    (void) system(guest_cmd.c_str());
+    unused = system(guest_cmd.c_str());
 
     if (!cfg->log_path.empty())
     {
@@ -140,6 +141,7 @@ void connect_guest(const std::string &vm_name, const std::string &dbf)
 {
     guest_t<VectorString> guest;
     uint16_t port;
+    int unused __attribute__((unused));
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf));
     std::string sql_query = "select vnc from vms where name='" + vm_name + "'";
@@ -149,7 +151,7 @@ void connect_guest(const std::string &vm_name, const std::string &dbf)
 
     std::string connect_cmd = "vncviewer :" + std::to_string(port) + " > /dev/null 2>&1 &";
 
-    (void) system(connect_cmd.c_str());
+    unused = system(connect_cmd.c_str());
 }
 
 void delete_guest(const std::string &vm_name,
@@ -158,6 +160,7 @@ void delete_guest(const std::string &vm_name,
 {
     std::string guest_dir = vmdir + "/" + vm_name;
     std::string guest_dir_rm_cmd = "rm -rf " + guest_dir;
+    int unused __attribute__((unused));
 
     char path[PATH_MAX + 1] = {0};
 
@@ -172,15 +175,16 @@ void delete_guest(const std::string &vm_name,
     std::string sql_query = "delete from vms where name='" + vm_name + "'";
 
     db->ActionQuery(sql_query);
-    (void) system(guest_dir_rm_cmd.c_str());
+    unused = system(guest_dir_rm_cmd.c_str());
 }
 
 void kill_guest(const std::string &vm_name)
 {
+    int unused __attribute__((unused));
     std::string stop_cmd = "pgrep -nf \"[q]emu.*/" + vm_name +
         "/" + vm_name + "_a.img\" | xargs kill";
 
-    (void) system(stop_cmd.c_str());
+    unused = system(stop_cmd.c_str());
 }
 
 } // namespace QManager

@@ -134,11 +134,12 @@ void CloneVmWindow::Gen_hdd()
 {
     hdd_ch = 'a';
     MapString disk = Gen_map_from_str(guest_old.disk[0]);
+    int unused __attribute__((unused));
 
     guest_dir = vmdir_ + "/" + guest_new.name;
     create_guest_dir_cmd = "mkdir " + guest_dir;
 
-    (void) system(create_guest_dir_cmd.c_str());
+    unused = system(create_guest_dir_cmd.c_str());
 
     for (auto &hd : disk)
     {
@@ -149,7 +150,7 @@ void CloneVmWindow::Gen_hdd()
             "/" + hd.first + " " + vmdir_ + "/" + guest_new.name +
             "/" + guest_new.name + "_" + hdd_ch + ".img";
 
-        (void) system(create_img_cmd.c_str());
+        unused = system(create_img_cmd.c_str());
         hdd_ch++;
     }
 }
