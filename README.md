@@ -1,8 +1,8 @@
-Qemu Manage [qemu ncurses interface]
+Qemu Manage [ncurses interface for qemu]
 ===========
 
 ## Features
- * Add guest
+ * Install guest
  * Delete guest
  * Clone guest
  * Show guest status
@@ -10,12 +10,12 @@ Qemu Manage [qemu ncurses interface]
  * Connect to guest via vnc
  * Show/Edit guest hardware parametrs
  * USB support
+ * Network via tap interfaces
 
 ## Videos
-[![Alt Add VM example](http://img.youtube.com/vi/jOtCY--LEN8/1.jpg)](http://www.youtube.com/watch?v=jOtCY--LEN8)
+[![Alt Install OpenBSD VM example](http://img.youtube.com/vi/GdqSk1cto50/1.jpg)](http://www.youtube.com/watch?v=GdqSk1cto50)
+[![Alt Overview](http://img.youtube.com/vi/jOtCY--LEN8/1.jpg)](http://www.youtube.com/watch?v=jOtCY--LEN8)
 
 ## Environment Requirements
  * Linux host
  * app-emulation/qemu
-
-[Download latest release (0.1.7)](https://bitbucket.org/PascalRD/qemu-manage/downloads/qemu-manage-0.1.7-amd64.deb)
