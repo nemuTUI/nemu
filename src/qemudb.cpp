@@ -11,7 +11,7 @@ static int query_cb(void *NotUsed, int argc, char **argv, char **azColName)
     int i;
 
     for (i = 0; i < argc; i++)
-        result.push_back(argv[i] ? argv[i] : "NULL");
+        result.push_back(argv[i] ? argv[i] : "");
 
     return 0;
 }
