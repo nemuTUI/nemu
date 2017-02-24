@@ -1,5 +1,3 @@
-chown root:kvm /dev/kvm
-chmod 660 /dev/kvm
 gpasswd -a user kvm
 gpasswd -a user usb
-setcap CAP_NET_ADMIN=ep /usr/bin/qemu-system-x86_64
+ls -1 /usr/bin/qemu-system-* | xargs -n1 setcap CAP_NET_ADMIN=ep
