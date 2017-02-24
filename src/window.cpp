@@ -141,6 +141,12 @@ void VmInfoWindow::Print()
                  "[", hd.second.c_str(), "Gb]");
     }
 
+    // Generate guest BIOS file info
+    sql_query = "select bios from vms where name='" + guest_ + "'";
+    guest_info.bios = db->SelectQuery(sql_query);
+    if (!guest_info.bios[0].empty())
+        mvprintw(++y, col/4, "%-12s%s", "bios: ", guest_info.bios[0].c_str());
+
     getch();
     refresh();
     clear();

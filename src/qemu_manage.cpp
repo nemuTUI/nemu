@@ -315,7 +315,7 @@ int main(void)
                     {
                         const std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-                        std::unique_ptr<QMFormWindow> edit_install_window(new EditInstallWindow(cfg->db, cfg->vmdir, guest, 7, 60));
+                        std::unique_ptr<QMFormWindow> edit_install_window(new EditInstallWindow(cfg->db, cfg->vmdir, guest, 9, 60));
                         edit_install_window->Init();
                         edit_install_window->Print();
                     }

@@ -15,7 +15,7 @@ EditInstallWindow::EditInstallWindow(const std::string &dbf,
     vmdir_ = vmdir;
     vm_name_ = vm_name;
 
-    field.resize(3);
+    field.resize(4);
 }
 
 void EditInstallWindow::Create_fields()
@@ -34,6 +34,7 @@ void EditInstallWindow::Config_fields_type()
     field_opts_off(field[1], O_STATIC);
     set_field_type(field[0], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[1], TYPE_REGEXP, "^/.*");
+    set_field_type(field[2], TYPE_REGEXP, "^/.*");
 }
 
 void EditInstallWindow::Config_fields_buffer()
@@ -44,6 +45,7 @@ void EditInstallWindow::Config_fields_buffer()
         set_field_buffer(field[0], 0, YesNo[0]);
 
     set_field_buffer(field[1], 0, guest_old.path[0].c_str());
+    set_field_buffer(field[2], 0, guest_old.bios[0].c_str());
 
     for (size_t i = 0; i < field.size() - 1; ++i)
         set_field_status(field[i], false);
@@ -53,12 +55,14 @@ void EditInstallWindow::Print_fields_names()
 {
     mvwaddstr(window, 2, 2, _("OS Installed"));
     mvwaddstr(window, 4, 2, _("Path to ISO/IMG"));
+    mvwaddstr(window, 6, 2, _("Path to BIOS"));
 }
 
 void EditInstallWindow::Get_data_from_form()
 {
     guest_new.install.assign(trim_field_buffer(field_buffer(field[0], 0)));
     guest_new.path.assign(trim_field_buffer(field_buffer(field[1], 0)));
+    guest_new.bios.assign(trim_field_buffer(field_buffer(field[2], 0)));
 }
 
 void EditInstallWindow::Get_data_from_db()
@@ -69,6 +73,8 @@ void EditInstallWindow::Get_data_from_db()
     guest_old.install = db->SelectQuery(sql_query);
     sql_query = "select iso from vms where name='" + vm_name_ + "'";
     guest_old.path = db->SelectQuery(sql_query);
+    sql_query = "select bios from vms where name='" + vm_name_ + "'";
+    guest_old.bios = db->SelectQuery(sql_query);
 }
 
 void EditInstallWindow::Update_db_data()
@@ -90,6 +96,13 @@ void EditInstallWindow::Update_db_data()
     if (field_status(field[1]))
     {
         sql_query = "update vms set iso='" + guest_new.path +
+            "' where name='" + vm_name_ + "'";
+        db->ActionQuery(sql_query);
+    }
+
+    if (field_status(field[2]))
+    {
+        sql_query = "update vms set bios='" + guest_new.bios +
             "' where name='" + vm_name_ + "'";
         db->ActionQuery(sql_query);
     }

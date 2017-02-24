@@ -61,9 +61,14 @@ void start_guest(const std::string &vm_name,
     guest.usbp = db->SelectQuery(sql_query);
     sql_query = "select usbid from vms where name='" + vm_name + "'";
     guest.usbd = db->SelectQuery(sql_query);
+    sql_query = "select bios from vms where name='" + vm_name + "'";
+    guest.bios = db->SelectQuery(sql_query);
 
-    if ((guest.path[0].compare(guest.path[0].size() - 4, 4, ".iso")) == 0)
-        iso_install = true;
+    if (!guest.path[0].empty())
+    {
+        if ((guest.path[0].compare(guest.path[0].size() - 4, 4, ".iso")) == 0)
+            iso_install = true;
+    }
 
     // Generate strings for system shell commands
     std::string create_lock = "( touch " + lock_file + "; ";
@@ -90,7 +95,8 @@ void start_guest(const std::string &vm_name,
         ints_arg += " -net tap,ifname=" + ifs.first + ",script=no,downscript=no";
     }
 
-    std::string cpu_arg, kvm_arg, hcpu_arg, install_arg, usb_arg, mem_arg, vnc_arg;
+    std::string cpu_arg, kvm_arg, hcpu_arg, install_arg,
+        usb_arg, mem_arg, vnc_arg, bios_arg;
     install_arg = "";
     if (guest.install[0] == "1")
     {
@@ -105,6 +111,7 @@ void start_guest(const std::string &vm_name,
     (guest.kvmf[0] == "1" && guest.hcpu[0] == "1") ?  hcpu_arg = " -cpu host" : hcpu_arg = "";
     guest.usbp[0] == "1" ?  usb_arg = " -usb -usbdevice host:" + guest.usbd[0] : usb_arg = "";
     mem_arg = " -m " + guest.memo[0];
+    guest.bios[0].empty() ? bios_arg = "" : bios_arg = " -bios " + guest.bios[0];
 
     if (!cfg->vnc_listen_any)
         vnc_arg = " -vnc 127.0.0.1:" + guest.vncp[0];
@@ -116,7 +123,7 @@ void start_guest(const std::string &vm_name,
         create_lock + qemu_bin + usb_arg +
         install_arg + hdx_arg + cpu_arg +
         mem_arg + kvm_arg + hcpu_arg +
-        ints_arg + vnc_arg + delete_lock;
+        ints_arg + vnc_arg + bios_arg + delete_lock;
 
     (void) system(guest_cmd.c_str());
 
