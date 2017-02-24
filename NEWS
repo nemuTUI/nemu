@@ -1,3 +1,14 @@
+v0.2.0 - 24 Feb 2017
+------------------------
+    - Tab completion for file system paths.
+    - BIOS file settings.
+    - Install guest from disk image.
+    - No root required.
+    - USB device selection fixed.
+    - Handle window size change for main and guests windows.
+    - Config file was restructured.
+    ! Old database is not supported, must create new !
+
 v0.1.8 - 13 January 2015
 ------------------------
     - Code refactoring
