@@ -156,7 +156,7 @@ void AddVmWindow::Get_data_from_db()
     sql_query = "select mac from lastval";
     v_last_mac = db->SelectQuery(sql_query); // TODO: add check if null exeption
 
-    last_mac = std::stol(v_last_mac[0]);
+    last_mac = std::stoull(v_last_mac[0]);
     last_vnc = std::stoi(v_last_vnc[0]);
     last_vnc++;
 }

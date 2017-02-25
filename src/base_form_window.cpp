@@ -55,7 +55,7 @@ void QMFormWindow::Gen_mac_address(struct guest_t<std::string> &guest,
                                    const std::string &vm_name)
 {
     (void) guest;
-    last_mac = std::stol(v_last_mac[0]);
+    last_mac = std::stoull(v_last_mac[0]);
     ifaces = gen_mac_addr(last_mac, int_count, vm_name);
 
     itm = ifaces.end();
@@ -65,7 +65,7 @@ void QMFormWindow::Gen_mac_address(struct guest_t<std::string> &guest,
     its = std::remove(s_last_mac.begin(), s_last_mac.end(), ':');
     s_last_mac.erase(its, s_last_mac.end());
 
-    last_mac = std::stol(s_last_mac, 0, 16);
+    last_mac = std::stoull(s_last_mac, 0, 16);
 }
 
 void QMFormWindow::Draw_form()
