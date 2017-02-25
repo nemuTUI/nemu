@@ -1,7 +1,10 @@
+#include <iostream>
 #include <pwd.h>
 #include <libgen.h>
 #include <dirent.h>
 #include <regex.h>
+#include <string.h>
+#include <errno.h>
 
 #include <sys/stat.h>
 
@@ -12,6 +15,9 @@ namespace QManager {
 static struct config config;
 
 std::atomic<bool> finish(false);
+
+static void generate_cfg(const char *dir, const std::string &path);
+static void read_user_value(const char *msg, const std::string &def, std::string &result);
 
 void init_cfg()
 {
@@ -26,6 +32,7 @@ void init_cfg()
     }
 
     cfg_path = pw->pw_dir + std::string("/.qemu-manage.cfg");
+    generate_cfg(pw->pw_dir, cfg_path);
 
     try
     {
@@ -109,6 +116,99 @@ void init_cfg()
         fprintf(stderr, "Error: %s\n", err.what());
         exit(5);
     }
+}
+
+static void generate_cfg(const char *dir, const std::string &path)
+{
+    struct stat file_info;
+
+    if (stat(path.c_str(), &file_info) == 0)
+        return;
+
+    printf(_("Config file \"%s\" is not found.\n"), path.c_str());
+    printf(_("You can copy example from:\n"));
+    printf("%s/share/qemu-manage/templates/config/qemu-manage.cfg.sample\n", STRING(USR_PREFIX));
+    printf(_("and edit it manually or let the program generate it.\n\n"));
+    printf(_("Generate cfg? (y/n)\n> "));
+
+    switch (getchar()) {
+    case 'y':
+    case 'Y':
+        {
+            FILE *cfg;
+            std::string vmdir;
+            std::string db;
+            std::string vnc;
+            std::string targets;
+            bool dir_created = false;
+
+            if ((cfg = fopen(path.c_str(), "w+")) == NULL)
+            {
+                fprintf(stderr, "Cannot create file: %s\n", path.c_str());
+                exit(1);
+            }
+
+            std::cin.ignore();
+            while (!dir_created)
+            {
+                read_user_value(_("VM storage directory"),
+                    std::string(dir) + "/qemu_vm", vmdir);
+                if (stat(vmdir.c_str(), &file_info) != 0)
+                {
+                    if (mkdir(vmdir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
+                    {
+                        printf(_("Cannot create VM storage directory %s: %s\n"),
+                            vmdir.c_str(), ::strerror(errno));
+                        printf(_("Try again? (y/n)\n> "));
+                        switch (getchar()) {
+                        case 'y':
+                        case 'Y':
+                            std::cin.ignore();
+                            break;
+                        default:
+                            exit(1);
+                        }
+                    }
+                    else
+                        dir_created = true;
+                }
+                else
+                    dir_created = true;
+            }
+            read_user_value(_("VM settings database path"),
+                std::string(dir) + "/.qemu_manage.db", db);
+            read_user_value(_("Path to VNC client (enter \"/bin/false\" if you connect other way)"),
+                "/usr/bin/vncviewer", vnc);
+            read_user_value(_("Qemu system targets list, separated by comma"),
+                "x86_64,i386", targets);
+
+            fprintf(cfg, "[main]\n# VM storage directory\nvmdir = %s\n\n", vmdir.c_str());
+            fprintf(cfg, "# VM settings database path\ndb = %s\n\n", db.c_str());
+            fprintf(cfg, "# maximum guests numbers in list.\nlist_max = 10\n\n");
+            fprintf(cfg, "[vnc]\n# Path to VNC client\nbinary = %s\n\n", vnc.c_str());
+            fprintf(cfg, "# listen for vnc connections"
+                " (0 = only localhost, 1 = any address).\nlisten_any = 0\n\n");
+            fprintf(cfg, "[qemu]\n# path to qemu system binary without arch prefix.\n"
+                "qemu_system_path = /usr/bin/qemu-system\n\n");
+            fprintf(cfg, "# Qemu system targets list, separated by comma.\n"
+                "targets = %s\n\n", targets.c_str());
+            fprintf(cfg, "# Log last qemu command. Empty value disable logging.\n"
+                "log_cmd = /tmp/qemu_last_cmd.log\n");
+            fclose(cfg);
+        }
+        break;
+
+    default:
+        exit(1);
+    }
+}
+
+static void read_user_value(const char *msg, const std::string &def, std::string &result)
+{
+        printf(_("%s [default: %s]\n> "), msg, def.c_str());
+        std::getline(std::cin, result);
+        if (result.empty())
+            result = def;
 }
 
 const struct config *get_cfg()

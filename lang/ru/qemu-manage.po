@@ -219,3 +219,36 @@ msgstr "\"s\" - править настройки загрузки"
 
 msgid "OS Installed"
 msgstr "ОС Установлена"
+
+msgid "Config file \"%s\" is not found.\n"
+msgstr "Конфигурационный файл \"%s\" не найден.\n"
+
+msgid "You can copy example from:\n"
+msgstr "Вы можете скопировать пример из файла:\n"
+
+msgid "and edit it manually or let the program generate it.\n\n"
+msgstr "и отредактировать его вручную, либо программа сгенерирует его сама.\n\n"
+
+msgid "Generate cfg? (y/n)\n> "
+msgstr "Сгененировать файл? (y/n)\n> "
+
+msgid "VM storage directory"
+msgstr "Директория для хранения виртуальных машин"
+
+msgid "%s [default: %s]\n> "
+msgstr "%s [по умолчанию: %s]\n> "
+
+msgid "Cannot create VM storage directory %s: %s\n"
+msgstr "Не смог создать директорию %s: %s\n"
+
+msgid "Try again? (y/n)\n> "
+msgstr "Попробовать снова? (y/n)\n> "
+
+msgid "VM settings database path"
+msgstr "Путь до файла с базой настроек виртуальных машин"
+
+msgid "Path to VNC client (enter \"/bin/false\" if you connect other way)"
+msgstr "Путь до VNC клиента (введите \"/bin/false\" если будете подключаться другим способом)"
+
+msgid "Qemu system targets list, separated by comma"
+msgstr "Список установленных целей Qemu, разделенных запятой"

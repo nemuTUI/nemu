@@ -17,6 +17,10 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
+#ifndef USR_PREFIX
+#define USR_PREFIX "/usr"
+#endif
+
 #define _(str) gettext(str)
 #define STRING_LITERAL(x) # x
 #define STRING(x) STRING_LITERAL(x)

@@ -19,6 +19,13 @@ static volatile sig_atomic_t redraw_window = 0;
 
 int main(void)
 {
+    char usr_path[1024] = {0};
+    snprintf(usr_path, sizeof(usr_path), "%s%s", STRING(USR_PREFIX), "/share/locale");
+
+    setlocale(LC_ALL,"");
+    bindtextdomain("qemu-manage", usr_path);
+    textdomain("qemu-manage");
+
     init_cfg();
     const struct config *cfg = get_cfg();
     struct sigaction sa;
@@ -32,14 +39,6 @@ int main(void)
     sa.sa_flags = 0;
     sa.sa_handler = signals_handler;
     sigaction(SIGWINCH, &sa, NULL);
-
-    // localization
-    char usr_path[1024] = {0};
-    snprintf(usr_path, sizeof(usr_path), "%s%s", STRING(USR_PREFIX), "/share/locale");
-
-    setlocale(LC_ALL,"");
-    bindtextdomain("qemu-manage", usr_path);
-    textdomain("qemu-manage");
 
     const std::array<std::string, 3> choices = {
         _("Manage guests"),
