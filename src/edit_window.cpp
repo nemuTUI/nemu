@@ -331,7 +331,7 @@ void EditVmWindow::Print()
     }
     catch (QMException &err)
     {
-        ExeptionExit(err);
+        ExceptionExit(err);
     }
 }
 

@@ -35,7 +35,7 @@ void QMFormWindow::Post_form(uint32_t size)
     post_form(form);
 }
 
-void QMFormWindow::ExeptionExit(QMException &err)
+void QMFormWindow::ExceptionExit(QMException &err)
 {
     curs_set(0);
     PopupWarning Warn(err.what(), 3, 30, 4);

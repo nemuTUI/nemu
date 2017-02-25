@@ -151,10 +151,10 @@ void AddVmWindow::Get_data_from_db()
 {
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
     sql_query = "select vnc from lastval";
-    v_last_vnc = db->SelectQuery(sql_query); // TODO: add check if null exeption
+    v_last_vnc = db->SelectQuery(sql_query); // TODO: add check if null exception
 
     sql_query = "select mac from lastval";
-    v_last_mac = db->SelectQuery(sql_query); // TODO: add check if null exeption
+    v_last_mac = db->SelectQuery(sql_query); // TODO: add check if null exception
 
     last_mac = std::stoull(v_last_mac[0]);
     last_vnc = std::stoi(v_last_vnc[0]);
@@ -303,7 +303,7 @@ void AddVmWindow::Print()
     }
     catch (QMException &err)
     {
-        ExeptionExit(err);
+        ExceptionExit(err);
     }
 
     curs_set(0);

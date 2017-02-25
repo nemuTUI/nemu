@@ -146,7 +146,7 @@ void EditInstallWindow::Print()
     }
     catch (QMException &err)
     {
-        ExeptionExit(err);
+        ExceptionExit(err);
     }
     curs_set(0);
 }

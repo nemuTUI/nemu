@@ -19,7 +19,7 @@ protected:
     void Draw_title();
     void Enable_color();
     void Post_form(uint32_t size);
-    void ExeptionExit(QMException &err);
+    void ExceptionExit(QMException &err);
     void Gen_mac_address(
         struct guest_t<std::string> &guest, uint32_t int_count, const std::string &vm_name
     );

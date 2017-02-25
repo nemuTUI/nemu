@@ -196,7 +196,7 @@ void CloneVmWindow::Print()
     }
     catch (QMException &err)
     {
-        ExeptionExit(err);
+        ExceptionExit(err);
     }
 }
 }// namespace QManager

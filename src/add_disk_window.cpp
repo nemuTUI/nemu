@@ -127,7 +127,7 @@ void AddDiskWindow::Print()
     }
     catch (QMException &err)
     {
-        ExeptionExit(err);
+        ExceptionExit(err);
     }
 }
 

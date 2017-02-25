@@ -190,7 +190,7 @@ void EditNetWindow::Print()
     }
     catch (QMException &err)
     {
-        ExeptionExit(err);
+        ExceptionExit(err);
     }
 }
 
