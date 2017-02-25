@@ -16,7 +16,7 @@ KEYWORDS="amd64"
 IUSE=""
 
 DEPEND="
-	sys-libs/ncurses:0=
+	sys-libs/ncurses:0=[unicode]
 	>=dev-libs/boost-1.56
 	dev-db/sqlite:3=
 	sys-process/procps
