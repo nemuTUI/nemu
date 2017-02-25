@@ -13,14 +13,15 @@ SRC_URI="http://unixdev.ru/src/${P}.tar.gz"
 LICENSE="WTFPL-2"
 SLOT="0"
 KEYWORDS="amd64"
-IUSE=""
+IUSE="+vnc"
 
-DEPEND="
+RDEPEND="
 	sys-libs/ncurses:0=[unicode]
-	>=dev-libs/boost-1.56
 	dev-db/sqlite:3=
 	sys-process/procps
 	dev-libs/libusb:1=
-	|| ( sys-fs/eudev sys-fs/udev )
-"
-RDEPEND="${DEPEND}"
+	|| ( sys-fs/eudev sys-fs/udev )"
+DEPEND="${RDEPEND}
+	>=dev-libs/boost-1.56
+	app-emulation/qemu
+	vnc? ( net-misc/tigervnc )"
