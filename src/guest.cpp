@@ -149,7 +149,8 @@ void connect_guest(const std::string &vm_name, const std::string &dbf)
 
     port = 5900 + std::stoi(guest.vncp[0]);
 
-    std::string connect_cmd = "vncviewer :" + std::to_string(port) + " > /dev/null 2>&1 &";
+    std::string connect_cmd = get_cfg()->vnc_bin + " :" +
+        std::to_string(port) + " > /dev/null 2>&1 &";
 
     unused = system(connect_cmd.c_str());
 }
