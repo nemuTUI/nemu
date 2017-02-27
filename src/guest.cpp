@@ -1,4 +1,6 @@
 #include <libintl.h>
+#include <fcntl.h>
+#include <signal.h>
 
 #include "guest.h"
 
@@ -13,8 +15,8 @@ void start_guest(const std::string &vm_name,
     bool iso_install = false;
     int unused __attribute__((unused));
 
-    std::string lock_file = vmdir + "/" + vm_name + "/" + vm_name + ".lock";
-    std::string guest_dir = vmdir + "/" + vm_name + "/";
+    const std::string lock_file = vmdir + "/" + vm_name + "/" + vm_name + ".lock";
+    const std::string guest_dir = vmdir + "/" + vm_name + "/";
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf));
 
@@ -73,7 +75,8 @@ void start_guest(const std::string &vm_name,
 
     // Generate strings for system shell commands
     std::string create_lock = "( touch " + lock_file + "; ";
-    std::string delete_lock = " > /dev/null 2>&1; rm " + lock_file + " )&";
+    std::string delete_lock = " > /dev/null 2>&1; rm -f " +
+        lock_file + " " + guest_dir + "qemu.pid )&";
     std::string qemu_bin = "qemu-system-" + guest.arch[0];
 
     MapStringVector ints = Read_ifaces_from_json(guest.ints[0]);
@@ -97,7 +100,7 @@ void start_guest(const std::string &vm_name,
     }
 
     std::string cpu_arg, kvm_arg, hcpu_arg, install_arg,
-        usb_arg, mem_arg, vnc_arg, bios_arg;
+        usb_arg, mem_arg, vnc_arg, bios_arg, pid_arg;
     install_arg = "";
     if (guest.install[0] == "1")
     {
@@ -113,6 +116,7 @@ void start_guest(const std::string &vm_name,
     guest.usbp[0] == "1" ?  usb_arg = " -usb -usbdevice host:" + guest.usbd[0] : usb_arg = "";
     mem_arg = " -m " + guest.memo[0];
     guest.bios[0].empty() ? bios_arg = "" : bios_arg = " -bios " + guest.bios[0];
+    pid_arg = " -pidfile " + guest_dir + "qemu.pid";
 
     if (!cfg->vnc_listen_any)
         vnc_arg = " -vnc 127.0.0.1:" + guest.vncp[0];
@@ -124,7 +128,8 @@ void start_guest(const std::string &vm_name,
         create_lock + qemu_bin + usb_arg +
         install_arg + hdx_arg + cpu_arg +
         mem_arg + kvm_arg + hcpu_arg +
-        ints_arg + vnc_arg + bios_arg + delete_lock;
+        ints_arg + vnc_arg + bios_arg +
+        pid_arg + delete_lock;
 
     unused = system(guest_cmd.c_str());
 
@@ -181,11 +186,26 @@ void delete_guest(const std::string &vm_name,
 
 void kill_guest(const std::string &vm_name)
 {
-    int unused __attribute__((unused));
-    std::string stop_cmd = "pgrep -nf \"[q]emu.*/" + vm_name +
-        "/" + vm_name + "_a.img\" | xargs kill";
+    pid_t pid;
+    int fd;
+    const std::string pid_path = get_cfg()->vmdir + "/" + vm_name + "/qemu.pid";
+    char buf[10];
 
-    unused = system(stop_cmd.c_str());
+    if ((fd = open(pid_path.c_str(), O_RDONLY)) == -1)
+        return;
+
+    if (read(fd, buf, sizeof(buf)) <= 0)
+    {
+         close(fd);
+         unlink(pid_path.c_str());
+         return;
+    }
+
+    pid = std::stoi(buf);
+    kill(pid, SIGTERM);
+
+    close(fd);
+    unlink(pid_path.c_str());
 }
 
 } // namespace QManager
