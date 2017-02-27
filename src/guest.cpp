@@ -15,8 +15,9 @@ void start_guest(const std::string &vm_name,
     bool iso_install = false;
     int unused __attribute__((unused));
 
-    const std::string lock_file = vmdir + "/" + vm_name + "/" + vm_name + ".lock";
     const std::string guest_dir = vmdir + "/" + vm_name + "/";
+    const std::string start_cmd = "( ";
+    const std::string end_cmd = " > /dev/null 2>&1; rm -f " + guest_dir + "qemu.pid )&";
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf));
 
@@ -74,10 +75,7 @@ void start_guest(const std::string &vm_name,
     }
 
     // Generate strings for system shell commands
-    std::string create_lock = "( touch " + lock_file + "; ";
-    std::string delete_lock = " > /dev/null 2>&1; rm -f " +
-        lock_file + " " + guest_dir + "qemu.pid )&";
-    std::string qemu_bin = "qemu-system-" + guest.arch[0];
+    const std::string qemu_bin = cfg->qemu_system_path + "-" + guest.arch[0];
 
     MapStringVector ints = Read_ifaces_from_json(guest.ints[0]);
     MapString disk = Gen_map_from_str(guest.disk[0]);
@@ -125,11 +123,11 @@ void start_guest(const std::string &vm_name,
 
     // Generate and execute complete command
     std::string guest_cmd =
-        create_lock + qemu_bin + usb_arg +
+        start_cmd + qemu_bin + usb_arg +
         install_arg + hdx_arg + cpu_arg +
         mem_arg + kvm_arg + hcpu_arg +
         ints_arg + vnc_arg + bios_arg +
-        pid_arg + delete_lock;
+        pid_arg + end_cmd;
 
     unused = system(guest_cmd.c_str());
 
@@ -197,7 +195,6 @@ void kill_guest(const std::string &vm_name)
     if (read(fd, buf, sizeof(buf)) <= 0)
     {
          close(fd);
-         unlink(pid_path.c_str());
          return;
     }
 
@@ -205,7 +202,6 @@ void kill_guest(const std::string &vm_name)
     kill(pid, SIGTERM);
 
     close(fd);
-    unlink(pid_path.c_str());
 }
 
 } // namespace QManager

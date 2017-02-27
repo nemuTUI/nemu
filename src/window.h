@@ -136,7 +136,7 @@ public:
 
         for (Iterator list = begin; list != end; ++list)
         {
-            lock_ = vmdir_ + "/" + *list + "/" + *list + ".lock";
+            lock_ = vmdir_ + "/" + *list + "/qemu.pid";
             std::ifstream lock_f(lock_);
 
             if (lock_f)
