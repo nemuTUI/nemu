@@ -4,6 +4,7 @@
 #include <array>
 #include <thread>
 #include <libintl.h>
+#include <fcntl.h>
 
 #include "window.h"
 
@@ -146,6 +147,25 @@ void VmInfoWindow::Print()
     guest_info.bios = db->SelectQuery(sql_query);
     if (!guest_info.bios[0].empty())
         mvprintw(++y, col/4, "%-12s%s", "bios: ", guest_info.bios[0].c_str());
+
+    // Show PID.
+    {
+        int fd;
+        const std::string pid_path = get_cfg()->vmdir + "/" + guest_ + "/qemu.pid";
+        ssize_t nread;
+        char pid[10];
+
+        if ((fd = open(pid_path.c_str(), O_RDONLY)) != -1)
+        {
+            if ((nread = read(fd, pid, sizeof(pid))) > 0)
+            {
+                pid[nread - 1] = '\0';
+                y += 2;
+                mvprintw(y, col/4, "%-12s%s", "pid: ", pid);
+            }
+            close(fd);
+        }
+    }
 
     getch();
     refresh();
