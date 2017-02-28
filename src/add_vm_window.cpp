@@ -48,7 +48,7 @@ void AddVmWindow::Config_fields_type()
     // Convert VectorString to *char
     for (size_t i = 0; i < q_arch->size(); ++i)
     {
-        ArchList[i] = new char[q_arch[i].size() + 1];
+        ArchList[i] = new char[(*q_arch)[i].size() + 1];
         memcpy(ArchList[i], (*q_arch)[i].c_str(), (*q_arch)[i].size() + 1);
     }
 

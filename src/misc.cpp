@@ -52,7 +52,7 @@ void init_cfg()
         config.db = ptr.get<std::string>("main.db");
         if (config.db.empty())
             throw std::runtime_error("empty database file value");
-        std::string t_db = config.db;
+        std::string t_db(config.db.data(), config.db.length());
         if (access(dirname(const_cast<char *>(t_db.c_str())), W_OK) != 0)
             throw std::runtime_error("no write access on DB directory");
 
@@ -91,7 +91,7 @@ void init_cfg()
         config.log_path = ptr.get<std::string>("qemu.log_cmd");
         if (!config.log_path.empty())
         {
-            std::string t_log = config.log_path;
+            std::string t_log(config.log_path.data(), config.log_path.length());
             if (access(dirname(const_cast<char *>(t_log.c_str())), W_OK) != 0)
                 throw std::runtime_error("no write access on log directory");
         }
