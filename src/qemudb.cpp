@@ -30,7 +30,8 @@ QemuDb::QemuDb(const std::string &dbf)
             sql.push_back("create table vms(id integer primary key autoincrement, " \
                 "name char(30), mem integer, smp integer, hdd char, kvm integer, " \
                 "hcpu integer, vnc integer, mac char, arch char(32), iso char, "\
-                "install integer, usb integer, usbid char, bios char, kernel char)");
+                "install integer, usb integer, usbid char, bios char, kernel char, "\
+                "mouse_override integer)");
             sql.push_back("create table lastval(id integer, mac integer, vnc integer)");
             sql.push_back("insert into lastval(id, mac, vnc) values ('1', '244837814042624', '0')");
 
