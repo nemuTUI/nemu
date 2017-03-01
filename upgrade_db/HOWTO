@@ -1,0 +1,1 @@
+sqlite3 .qemu_manage.db ".read upgrade_base.sql"
