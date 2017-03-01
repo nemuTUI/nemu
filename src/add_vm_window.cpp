@@ -70,7 +70,7 @@ void AddVmWindow::Config_fields_type()
 
     ArchList[q_arch->size()] = NULL;
 
-    set_field_type(field[0], TYPE_ALNUM, 0);
+    set_field_type(field[0], TYPE_REGEXP, "^[a-zA-Z0-9_-]* *$");
     set_field_type(field[1], TYPE_ENUM, ArchList, false, false);
     set_field_type(field[2], TYPE_INTEGER, 0, 1, cpu_count());
     set_field_type(field[3], TYPE_INTEGER, 0, 64, total_memory());
@@ -226,6 +226,12 @@ void AddVmWindow::Gen_hdd()
 
 void AddVmWindow::Check_input_data()
 {
+    if (guest.name.empty())
+    {
+        Delete_form();
+        throw QMException(_("VM name is not set"));
+    }
+
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
     sql_query = "select id from vms where name='" + guest.name + "'";
     v_name = db->SelectQuery(sql_query);
