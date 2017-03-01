@@ -63,7 +63,8 @@ struct guest_t {
     T name, arch, cpus, memo,
     disk, vncp, imac, kvmf,
     hcpu, path, ints, usbp,
-    usbd, ndrv, install, bios;
+    usbd, ndrv, install, bios,
+    mouse;
 };
 
 class QMException : public std::exception {

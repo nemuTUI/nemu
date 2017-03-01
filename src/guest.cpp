@@ -41,6 +41,7 @@ void start_guest(const std::string &vm_name,
     }
 
     // Get guest parameters from database
+    // TODO optimize queries
     sql_query = "select arch from vms where name='" + vm_name + "'";
     guest.arch = db->SelectQuery(sql_query);
     sql_query = "select mem from vms where name='" + vm_name + "'";
@@ -67,6 +68,8 @@ void start_guest(const std::string &vm_name,
     guest.usbd = db->SelectQuery(sql_query);
     sql_query = "select bios from vms where name='" + vm_name + "'";
     guest.bios = db->SelectQuery(sql_query);
+    sql_query = "select mouse_override from vms where name='" + vm_name + "'";
+    guest.mouse = db->SelectQuery(sql_query);
 
     if (!guest.path[0].empty())
     {
@@ -97,9 +100,11 @@ void start_guest(const std::string &vm_name,
         ints_arg += " -net tap,ifname=" + ifs.first + ",script=no,downscript=no";
     }
 
+    // TODO use single std::string for cmd
     std::string cpu_arg, kvm_arg, hcpu_arg, install_arg,
-        usb_arg, mem_arg, vnc_arg, bios_arg, pid_arg;
+        usb_arg, mem_arg, vnc_arg, bios_arg, pid_arg, mouse_arg;
     install_arg = "";
+    mouse_arg = "";
     if (guest.install[0] == "1")
     {
         if (iso_install)
@@ -107,6 +112,8 @@ void start_guest(const std::string &vm_name,
         else
             install_arg = " -hda " + guest.path[0];
     }
+    if (guest.mouse[0] == "1")
+         mouse_arg = " -usbdevice tablet";
 
     std::stoi(guest.cpus[0]) > 1 ? cpu_arg = " -smp " + guest.cpus[0] : cpu_arg = "";
     guest.kvmf[0] == "1" ?  kvm_arg = " -enable-kvm" : kvm_arg = "";
@@ -127,7 +134,7 @@ void start_guest(const std::string &vm_name,
         install_arg + hdx_arg + cpu_arg +
         mem_arg + kvm_arg + hcpu_arg +
         ints_arg + vnc_arg + bios_arg +
-        pid_arg + end_cmd;
+        pid_arg + mouse_arg + end_cmd;
 
     unused = system(guest_cmd.c_str());
 

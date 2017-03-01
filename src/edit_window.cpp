@@ -13,14 +13,14 @@ EditVmWindow::EditVmWindow(
     vmdir_ = vmdir;
     vm_name_ = vm_name;
 
-    field.resize(8);
+    field.resize(9);
 }
 
 void EditVmWindow::Create_fields()
 {
     for (size_t i = 0; i < field.size() - 1; ++i)
     {
-        field[i] = new_field(1, 35, (i+1)*2, 1, 0, 0);
+        field[i] = new_field(1, 35, (i+1)*2, 7, 0, 0);
         set_field_back(field[i], A_UNDERLINE);
     }
 
@@ -53,6 +53,7 @@ void EditVmWindow::Config_fields_type()
     set_field_type(field[4], TYPE_INTEGER, 0, 0, 64);
     set_field_type(field[5], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[6], TYPE_ENUM, UdevList, false, false);
+    set_field_type(field[7], TYPE_ENUM, (char **)YesNo, false, false);
 
     if (!u_dev)
     {
@@ -96,6 +97,11 @@ void EditVmWindow::Config_fields_buffer()
     else
         set_field_buffer(field[5], 0, YesNo[1]);
 
+    if (guest_old.mouse[0] == "1")
+        set_field_buffer(field[7], 0, YesNo[0]);
+    else
+        set_field_buffer(field[7], 0, YesNo[1]);
+
     field_opts_off(field[6], O_STATIC);
 
     for (size_t i = 0; i < field.size() - 1; ++i)
@@ -111,6 +117,7 @@ void EditVmWindow::Get_data_from_form()
     guest_new.ints.assign(trim_field_buffer(field_buffer(field[4], 0)));
     guest_new.usbp.assign(trim_field_buffer(field_buffer(field[5], 0)));
     guest_new.usbd.assign(trim_field_buffer(field_buffer(field[6], 0)));
+    guest_new.mouse.assign(trim_field_buffer(field_buffer(field[7], 0)));
 }
 
 void EditVmWindow::Print_fields_names()
@@ -121,7 +128,7 @@ void EditVmWindow::Print_fields_names()
     snprintf(ccpu, sizeof(ccpu), "%s%u%s", _("CPU cores [1-"), cpu_count(), "]");
     snprintf(cmem, sizeof(cmem), "%s%u%s", _("Memory [64-"), total_memory(), "]Mb");
 
-    mvwaddstr(window, 2, 22, (vm_name_ + _(" settings:")).c_str());
+    mvwaddstr(window, 2, 28, (vm_name_ + _(" settings:")).c_str());
     mvwaddstr(window, 4, 2, ccpu);
     mvwaddstr(window, 6, 2, cmem);
     mvwaddstr(window, 8, 2, _("KVM [yes/no]"));
@@ -129,6 +136,7 @@ void EditVmWindow::Print_fields_names()
     mvwaddstr(window, 12, 2, _("Interfaces"));
     mvwaddstr(window, 14, 2, _("USB [yes/no]"));
     mvwaddstr(window, 16, 2, _("USB device"));
+    mvwaddstr(window, 18, 2, _("Override mouse emulation"));
 }
 
 void EditVmWindow::Get_data_from_db()
@@ -152,6 +160,9 @@ void EditVmWindow::Get_data_from_db()
 
     sql_query = "select mac from vms where name='" + vm_name_ + "'";
     guest_old.ints = db->SelectQuery(sql_query);
+
+    sql_query = "select mouse_override from vms where name='" + vm_name_ + "'";
+    guest_old.mouse = db->SelectQuery(sql_query);
 
     sql_query = "select mac from lastval";
     v_last_mac = db->SelectQuery(sql_query);
@@ -285,6 +296,18 @@ void EditVmWindow::Update_db_data()
         db->ActionQuery(sql_query);
 
         sql_query = "update vms set usb='" + guest_new.usbp +
+            "' where name='" + vm_name_ + "'";
+        db->ActionQuery(sql_query);
+    }
+
+    if (field_status(field[7]))
+    {
+        if (guest_new.mouse == "yes")
+            guest_new.mouse = "1";
+        else
+            guest_new.mouse = "0";
+
+        sql_query = "update vms set mouse_override='" + guest_new.mouse +
             "' where name='" + vm_name_ + "'";
         db->ActionQuery(sql_query);
     }

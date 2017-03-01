@@ -189,12 +189,12 @@ void AddVmWindow::Update_db_data()
 
     // Add guest to database
     sql_query = "insert into vms("
-        "name, mem, smp, hdd, kvm, hcpu, vnc, mac, arch, iso, install, usb, usbid"
+        "name, mem, smp, hdd, kvm, hcpu, vnc, mac, arch, iso, install, usb, usbid, mouse_override"
         ") values('"
         + guest.name + "', '" + guest.memo + "', '" + guest.cpus + "', '"
         + guest.disk + "', '" + guest.kvmf + "', '" + guest.hcpu + "', '"
         + guest.vncp + "', '" + guest.ints + "', '" + guest.arch + "', '"
-        + guest.path + "', '1', '" + guest.usbp + "', '" + guest.usbd + "')";
+        + guest.path + "', '1', '" + guest.usbp + "', '" + guest.usbd + "', '0')";
 
     db->ActionQuery(sql_query);
 }
