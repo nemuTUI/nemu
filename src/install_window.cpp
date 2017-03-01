@@ -124,6 +124,12 @@ void EditInstallWindow::Print()
         Print_fields_names();
         Draw_form();
 
+        if (!action_ok)
+        {
+            Delete_form();
+            return;
+        }
+
         Get_data_from_form();
 
         getmaxyx(stdscr, row, col);
@@ -148,7 +154,6 @@ void EditInstallWindow::Print()
     {
         ExceptionExit(err);
     }
-    curs_set(0);
 }
 
 } // namespace QManager

@@ -71,8 +71,8 @@ msgid " info"
 msgstr " инфо"
 
 #: windows.cpp:135
-msgid "F10 - finish, F2 - save"
-msgstr "F10-выйти, F2-сохранить"
+msgid "F10 - cancel, F2 - OK"
+msgstr "F10 - отмена, F2 - OK"
 
 #: windows.cpp:299 windows.cpp:553
 msgid "CPU cores [1-"

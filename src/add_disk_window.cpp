@@ -97,6 +97,12 @@ void AddDiskWindow::Print()
         Print_fields_names();
         Draw_form();
 
+        if (!action_ok)
+        {
+            Delete_form();
+            return;
+        }
+
         Get_data_from_form();
         Get_data_from_db();
 

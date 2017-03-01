@@ -277,6 +277,12 @@ void AddVmWindow::Print()
         Print_fields_names();
         Draw_form();
 
+        if (!action_ok)
+        {
+            Delete_form();
+            return;
+        }
+
         Get_data_from_form();
         Check_input_data();
 

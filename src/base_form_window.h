@@ -16,7 +16,7 @@ public:
 protected:
     void Delete_form();
     void Draw_form();
-    void Draw_title();
+    void Draw_title(const std::string &msg = _("F10 - cancel, F2 - OK"));
     void Enable_color();
     void Post_form(uint32_t size);
     void ExceptionExit(QMException &err);
@@ -39,6 +39,7 @@ protected:
     MapString *u_dev;
     char **UdevList, **ArchList;
     guest_t<std::string> guest;
+    bool action_ok;
 };
 
 } // namespace QManager

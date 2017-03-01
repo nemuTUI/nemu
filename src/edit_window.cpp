@@ -308,6 +308,14 @@ void EditVmWindow::Print()
         Post_form(21);
         Print_fields_names();
         Draw_form();
+
+        if (!action_ok)
+        {
+            Delete_form();
+            curs_set(0);
+            return;
+        }
+
         Get_data_from_form();
 
         getmaxyx(stdscr, row, col);

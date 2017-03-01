@@ -11,16 +11,17 @@ void QMFormWindow::Delete_form()
 
     for (size_t i = 0; i < field.size() - 1; ++i)
         free_field(field[i]);
+
+    curs_set(0);
 }
 
-void QMFormWindow::Draw_title()
+void QMFormWindow::Draw_title(const std::string &msg)
 {
-    help_msg = _("F10 - finish, F2 - save");
-    str_size = mbstowcs(NULL, help_msg.c_str(), help_msg.size());
+    str_size = mbstowcs(NULL, msg.c_str(), msg.size());
 
     clear();
     border(0,0,0,0,0,0,0,0);
-    mvprintw(1, (col - str_size) / 2, help_msg.c_str());
+    mvprintw(1, (col - str_size) / 2, msg.c_str());
     refresh();
     curs_set(1);
 }
@@ -70,8 +71,14 @@ void QMFormWindow::Gen_mac_address(struct guest_t<std::string> &guest,
 
 void QMFormWindow::Draw_form()
 {
+    action_ok = false;
+    wtimeout(window, 500);
+
     while ((ch = wgetch(window)) != KEY_F(10))
     {
+        if (action_ok)
+            break;
+
         switch(ch) {
         case KEY_DOWN:
             form_driver(form, REQ_VALIDATION);
@@ -122,6 +129,7 @@ void QMFormWindow::Draw_form()
             break;
 
         case KEY_F(2):
+            action_ok = true;
             form_driver(form, REQ_VALIDATION);
             break;
 
