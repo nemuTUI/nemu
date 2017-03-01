@@ -251,4 +251,7 @@ msgid "Path to VNC client (enter \"/bin/false\" if you connect other way)"
 msgstr "Путь до VNC клиента (введите \"/bin/false\" если будете подключаться другим способом)"
 
 msgid "Qemu system targets list, separated by comma"
-msgstr "Список установленных целей Qemu, разделенных запятой"
+msgstr "Список установленных целей QEMU, разделенных запятой"
+
+msgid "Override mouse emulation"
+msgstr "Синхронизировать мышь"
