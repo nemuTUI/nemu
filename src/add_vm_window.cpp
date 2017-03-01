@@ -103,6 +103,7 @@ void AddVmWindow::Config_fields_type()
 
 void AddVmWindow::Config_fields_buffer()
 {
+    set_field_buffer(field[1], 0, (*(&get_cfg()->qemu_targets))[0].c_str());
     set_field_buffer(field[2], 0, "1");
     set_field_buffer(field[6], 0, "1");
     set_field_buffer(field[7], 0, DEFAULT_NETDRV);
