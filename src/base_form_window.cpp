@@ -56,6 +56,10 @@ void QMFormWindow::Gen_mac_address(struct guest_t<std::string> &guest,
                                    const std::string &vm_name)
 {
     (void) guest;
+
+    if (int_count == 0)
+        return;
+
     last_mac = std::stoull(v_last_mac[0]);
     ifaces = gen_mac_addr(last_mac, int_count, vm_name);
 

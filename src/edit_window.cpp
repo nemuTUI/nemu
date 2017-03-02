@@ -50,7 +50,7 @@ void EditVmWindow::Config_fields_type()
     set_field_type(field[1], TYPE_INTEGER, 0, 64, total_memory());
     set_field_type(field[2], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[3], TYPE_ENUM, (char **)YesNo, false, false);
-    set_field_type(field[4], TYPE_INTEGER, 0, 0, 64);
+    set_field_type(field[4], TYPE_INTEGER, 1, 0, 64);
     set_field_type(field[5], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[6], TYPE_ENUM, UdevList, false, false);
     set_field_type(field[7], TYPE_ENUM, (char **)YesNo, false, false);
@@ -260,8 +260,11 @@ void EditVmWindow::Update_db_data()
             Gen_mac_address(guest_new, ui_vm_ints, vm_name_);
             Gen_iface_json();
 
-            sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
-            db->ActionQuery(sql_query);
+            if (ui_vm_ints != 0)
+            {
+                sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
+                db->ActionQuery(sql_query);
+            }
 
             sql_query = "update vms set mac='" + guest_new.ints +
                 "' where name='" + vm_name_ + "'";
@@ -278,10 +281,6 @@ void EditVmWindow::Update_db_data()
                 Delete_form();
                 throw QMException(_("Usb device was not selected."));
             }
-            FILE *tmp;
-            tmp = fopen("/tmp/q_udev", "a+");
-            fprintf(tmp, "idx: %s\n", guest_new.usbd.c_str());
-            fclose(tmp);
             guest_new.usbp = "1";
             guest_new.usbd = u_dev->at(guest_new.usbd);
         }

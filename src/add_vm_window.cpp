@@ -76,7 +76,7 @@ void AddVmWindow::Config_fields_type()
     set_field_type(field[3], TYPE_INTEGER, 0, 64, total_memory());
     set_field_type(field[4], TYPE_INTEGER, 0, 1, disk_free(vmdir_));
     set_field_type(field[5], TYPE_REGEXP, "^/.*");
-    set_field_type(field[6], TYPE_INTEGER, 0, 0, 64);
+    set_field_type(field[6], TYPE_INTEGER, 1, 0, 64);
     set_field_type(field[7], TYPE_ENUM, (char **)NetDrv, false, false);
     set_field_type(field[8], TYPE_ENUM, (char **)YesNo, false, false);
     set_field_type(field[9], TYPE_ENUM, UdevList, false, false);

@@ -71,7 +71,7 @@ void start_guest(const std::string &vm_name,
     sql_query = "select mouse_override from vms where name='" + vm_name + "'";
     guest.mouse = db->SelectQuery(sql_query);
 
-    if (!guest.path[0].empty())
+    if (!guest.path[0].empty() && guest.path[0].length() > 4)
     {
         if ((guest.path[0].compare(guest.path[0].size() - 4, 4, ".iso")) == 0)
             iso_install = true;
