@@ -1,6 +1,6 @@
-# Russian Qemu Manage lang file.
+# Russian nemu lang file.
 # Copyright (C) 2017
-# This file is distributed under the same license as the Qemu Manage package.
+# This file is distributed under the same license as the name package.
 # Void <main@void.so>, 2017.
 #
 #, fuzzy

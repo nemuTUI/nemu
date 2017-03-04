@@ -50,19 +50,19 @@ void CloneVmWindow::Get_data_from_db()
 {
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
-    sql_query = "select mac from vms where name='" + vm_name_ + "'";
+    sql_query = "SELECT mac FROM vms WHERE name='" + vm_name_ + "'";
     guest_old.ints = db->SelectQuery(sql_query);
 
-    sql_query = "select mac from lastval";
+    sql_query = "SELECT mac FROM lastval";
     v_last_mac = db->SelectQuery(sql_query);
 
-    sql_query = "select vnc from lastval";
+    sql_query = "SELECT vnc FROM lastval";
     v_last_vnc = db->SelectQuery(sql_query);
 
-    sql_query = "select id from vms where name='" + guest_new.name + "'";
+    sql_query = "SELECT id FROM vms WHERE name='" + guest_new.name + "'";
     v_name = db->SelectQuery(sql_query);
 
-    sql_query = "select hdd from vms where name='" + vm_name_ + "'";
+    sql_query = "SELECT hdd FROM vms WHERE name='" + vm_name_ + "'";
     guest_old.disk = db->SelectQuery(sql_query);
 
     last_vnc = std::stoi(v_last_vnc[0]);
@@ -93,40 +93,40 @@ void CloneVmWindow::Gen_iface_json()
 
 void CloneVmWindow::Update_db_data()
 {
-    const std::array<std::string, 9> columns = {
-        "mem", "smp", "kvm", "hcpu",
-        "arch", "iso", "install",
-        "usb", "usbid"
+    const std::array<std::string, 12> columns = {
+        "mem", "smp", "kvm", "hcpu", "arch", "iso",
+        "install", "usb", "usbid", "bios", "kernel",
+        "mouse_override"
     };
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
-    sql_query = "insert into vms(name) values('" + guest_new.name + "')";
+    sql_query = "INSERT INTO vms(name) VALUES('" + guest_new.name + "')";
     db->ActionQuery(sql_query);
 
-    sql_query = "update lastval set mac='" + std::to_string(last_mac) + "'";
+    sql_query = "UPDATE lastval SET mac='" + std::to_string(last_mac) + "'";
     db->ActionQuery(sql_query);
 
-    sql_query = "update lastval set vnc='" + std::to_string(last_vnc) + "'";
+    sql_query = "UPDATE lastval SET vnc='" + std::to_string(last_vnc) + "'";
     db->ActionQuery(sql_query);
 
     for (auto &c : columns)
     {
-        sql_query = "update vms set " + c + "=(select " + c + " from vms where name='" +
+        sql_query = "UPDATE vms SET " + c + "=(SELECT " + c + " FROM vms WHERE name='" +
             vm_name_ + "') where name='" + guest_new.name + "'";
         db->ActionQuery(sql_query);
     }
 
-    sql_query = "update vms set mac='" + guest_new.ints +
-        "' where name='" + guest_new.name + "'";
+    sql_query = "UPDATE vms SET mac='" + guest_new.ints +
+        "' WHERE name='" + guest_new.name + "'";
     db->ActionQuery(sql_query);
 
-    sql_query = "update vms set vnc='" + std::to_string(last_vnc) +
-        "' where name='" + guest_new.name + "'";
+    sql_query = "UPDATE vms SET vnc='" + std::to_string(last_vnc) +
+        "' WHERE name='" + guest_new.name + "'";
     db->ActionQuery(sql_query);
 
-    sql_query = "update vms set hdd='" + guest_new.disk +
-        "' where name='" + guest_new.name + "'";
+    sql_query = "UPDATE vms SET hdd='" + guest_new.disk +
+        "' WHERE name='" + guest_new.name + "'";
     db->ActionQuery(sql_query);
 }
 
