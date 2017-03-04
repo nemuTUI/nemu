@@ -1,1 +1,0 @@
-sqlite3 <DB_PATH> ".read <upgrade_db_version.sql>"
