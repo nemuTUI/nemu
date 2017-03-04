@@ -48,9 +48,13 @@ add_dependencies(${PROJECT_NAME} lang)
 
 #configure install
 set(QEMU_CONFIG_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cfg.sample")
+set(QEMU_DB_UPGRADE_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/upgrade_db.sh")
 install(TARGETS ${PROJECT_NAME} DESTINATION ${USR_PREFIX}/bin)
 install(FILES ${QEMU_CONFIG_SOURCE} DESTINATION
     "${USR_PREFIX}/share/nemu/templates/config")
+install(FILES ${QEMU_DB_UPGRADE_SCRIPT} PERMISSIONS OWNER_EXECUTE OWNER_WRITE
+    OWNER_READ  GROUP_EXECUTE GROUP_READ WORLD_EXECUTE
+    WORLD_READ DESTINATION "${USR_PREFIX}/share/nemu/scripts")
 
 #x11 check and flags setup
 include(CheckCXXCompilerFlag)
