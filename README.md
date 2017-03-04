@@ -1,4 +1,4 @@
-nemu [+ n- curses interface for Q+ EMU- ]
+nemu [<b>n</b>curses interface for Q<b>EMU</b>]
 ===========
 
 ## Features
