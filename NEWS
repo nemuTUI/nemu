@@ -1,7 +1,20 @@
+v0.3.0 - 04 Mar 2017
+------------------------
+    - Show QEMU PID in guest info window.
+    - Form navigation improvments.
+    - Add mouse override feature.
+    - More symbols accepted for VM names.
+    - Zero tap interfaces can be configured now.
+    - Fix crashes with gcc-4.9.*
+    - Other bug fixes.
+
+    ! Old database is not supported, must create new, but
+    ! if upgraded from v0.2.* then run ./upgrade_db.sh script.
+
 v0.2.1 - 25 Feb 2017
 ------------------------
-    - Fix integer overflow on x86_32
-    - Generate user config file
+    - Fix integer overflow on x86_32.
+    - Generate user config file.
 
 v0.2.0 - 24 Feb 2017
 ------------------------
