@@ -7,7 +7,7 @@
 #include <sys/statvfs.h>
 #include <boost/regex.hpp>
 
-#include "qemu_manage.h"
+#include "qengui.h"
 
 namespace QManager {
 

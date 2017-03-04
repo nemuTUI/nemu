@@ -1,7 +1,7 @@
 #ifndef WINDOWS_H_
 #define WINDOWS_H_
 
-#include "qemu_manage.h"
+#include "qengui.h"
 #include "qemudb.h"
 #include "misc.h"
 #include "hostinfo.h"

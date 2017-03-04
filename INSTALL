@@ -1,13 +1,13 @@
-How to Install Qemu manage on Linux.
+How to install qengui on Linux.
 ====================================
 
 1. Get sources
 
-% git clone https://bitbucket.org/PascalRD/qemu-manage
+% git clone https://bitbucket.org/PascalRD/qengui
 
 2. Run cmake in the top source directory and build the project
 
-% cd qemu-manage
+% cd qengui
 % mkdir build && cd build
 % cmake ../
 % make

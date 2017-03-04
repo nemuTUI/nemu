@@ -31,7 +31,7 @@ void init_cfg()
         exit(1);
     }
 
-    cfg_path = pw->pw_dir + std::string("/.qemu-manage.cfg");
+    cfg_path = pw->pw_dir + std::string("/.qengui.cfg");
     generate_cfg(pw->pw_dir, cfg_path);
 
     try
@@ -127,7 +127,7 @@ static void generate_cfg(const char *dir, const std::string &path)
 
     printf(_("Config file \"%s\" is not found.\n"), path.c_str());
     printf(_("You can copy example from:\n"));
-    printf("%s/share/qemu-manage/templates/config/qemu-manage.cfg.sample\n", STRING(USR_PREFIX));
+    printf("%s/share/qengui/templates/config/qengui.cfg.sample\n", STRING(USR_PREFIX));
     printf(_("and edit it manually or let the program generate it.\n\n"));
     printf(_("Generate cfg? (y/n)\n> "));
 
@@ -176,7 +176,7 @@ static void generate_cfg(const char *dir, const std::string &path)
                     dir_created = true;
             }
             read_user_value(_("VM settings database path"),
-                std::string(dir) + "/.qemu_manage.db", db);
+                std::string(dir) + "/.qengui.db", db);
             read_user_value(_("Path to VNC client (enter \"/bin/false\" if you connect other way)"),
                 "/usr/bin/vncviewer", vnc);
             read_user_value(_("Qemu system targets list, separated by comma"),

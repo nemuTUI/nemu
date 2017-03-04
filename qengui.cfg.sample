@@ -3,7 +3,7 @@
 vmdir = /home/user/qemu_vm
 
 # path to database file.
-db = /home/user/.qemu_manage.db
+db = /home/user/.qengui.db
 
 # maximum guests numbers in list.
 list_max = 10

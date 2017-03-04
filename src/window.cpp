@@ -192,17 +192,17 @@ void HelpWindow::Print()
 
     std::unique_ptr<VectorString> msg_(new VectorString); 
 
-    msg_->push_back("Qemu Manage v" + std::string(VERSION));
+    msg_->push_back(" qengui v" + std::string(VERSION));
     msg_->push_back("");
-    msg_->push_back(_("\"r\" - start guest"));
-    msg_->push_back(_("\"c\" - connect to guest via vnc"));
-    msg_->push_back(_("\"f\" - force stop guest"));
-    msg_->push_back(_("\"d\" - delete guest"));
-    msg_->push_back(_("\"e\" - edit guest settings"));
-    msg_->push_back(_("\"i\" - edit network settings"));
-    msg_->push_back(_("\"a\" - add virtual disk"));
-    msg_->push_back(_("\"l\" - clone guest"));
-    msg_->push_back(_("\"s\" - edit boot settings"));
+    msg_->push_back(_(" r - start guest"));
+    msg_->push_back(_(" c - connect to guest via vnc"));
+    msg_->push_back(_(" f - force stop guest"));
+    msg_->push_back(_(" d - delete guest"));
+    msg_->push_back(_(" e - edit guest settings"));
+    msg_->push_back(_(" i - edit network settings"));
+    msg_->push_back(_(" a - add virtual disk"));
+    msg_->push_back(_(" l - clone guest"));
+    msg_->push_back(_(" s - edit boot settings"));
 
     for (auto &msg : *msg_)
     {
