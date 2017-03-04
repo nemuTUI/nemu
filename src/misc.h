@@ -6,7 +6,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
-#include "qengui.h"
+#include "nemu.h"
 
 namespace QManager {
 

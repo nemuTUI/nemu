@@ -8,7 +8,7 @@
 #include <signal.h>
 #include <libintl.h>
 
-#include "qengui.h"
+#include "nemu.h"
 #include "qm_windows.h"
 #include "guest.h"
 
@@ -23,8 +23,8 @@ int main(void)
     snprintf(usr_path, sizeof(usr_path), "%s%s", STRING(USR_PREFIX), "/share/locale");
 
     setlocale(LC_ALL,"");
-    bindtextdomain("qengui", usr_path);
-    textdomain("qengui");
+    bindtextdomain("nemu", usr_path);
+    textdomain("nemu");
 
     init_cfg();
     const struct config *cfg = get_cfg();

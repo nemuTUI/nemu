@@ -1,4 +1,4 @@
-qengui [ncurses interface for QEMU]
+nemu [+ n- curses interface for Q+ EMU- ]
 ===========
 
 ## Features

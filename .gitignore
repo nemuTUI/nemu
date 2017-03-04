@@ -1,9 +1,7 @@
 *.swp
 *.o
-qemu_manage
 tags
 test.cfg
-qemu-manager.mo
 *.user
 CMakeCache.txt
 Makefile
@@ -11,7 +9,6 @@ CMakeFiles/
 cmake_install.cmake
 cmake_uninstall.cmake
 lang/cmake_install.cmake
-lang/qemu-manage.mo
-qemu-manage
+lang/nemu.mo
 install_manifest.txt
 build

@@ -1,13 +1,13 @@
-How to install qengui on Linux.
+How to install nemu on Linux.
 ====================================
 
 1. Get sources
 
-% git clone https://bitbucket.org/PascalRD/qengui
+% git clone https://bitbucket.org/PascalRD/nemu
 
 2. Run cmake in the top source directory and build the project
 
-% cd qengui
+% cd nemu
 % mkdir build && cd build
 % cmake ../
 % make

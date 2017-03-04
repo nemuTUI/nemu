@@ -1,5 +1,5 @@
-#ifndef QENGUI_H_
-#define QENGUI_H_
+#ifndef NEMU_H_
+#define NEMU_H_
 
 #include <string>
 #include <thread>
@@ -79,4 +79,4 @@ private:
 
 } // namespace QManager
 
-#endif /* QENGUI_H_ */
+#endif /* NEMU_H_ */

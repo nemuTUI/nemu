@@ -1,6 +1,6 @@
 #configure env
 cmake_minimum_required(VERSION 2.8)
-project(qengui)
+project(nemu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # uninstall target
@@ -50,7 +50,7 @@ add_dependencies(${PROJECT_NAME} lang)
 set(QEMU_CONFIG_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cfg.sample")
 install(TARGETS ${PROJECT_NAME} DESTINATION ${USR_PREFIX}/bin)
 install(FILES ${QEMU_CONFIG_SOURCE} DESTINATION
-    "${USR_PREFIX}/share/qengui/templates/config")
+    "${USR_PREFIX}/share/nemu/templates/config")
 
 #x11 check and flags setup
 include(CheckCXXCompilerFlag)

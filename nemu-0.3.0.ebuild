@@ -7,7 +7,7 @@ EAPI=6
 inherit cmake-utils
 
 DESCRIPTION="ncurses interface for QEMU"
-HOMEPAGE="https://unixdev.ru/qengui"
+HOMEPAGE="https://unixdev.ru/nemu"
 SRC_URI="http://unixdev.ru/src/${P}.tar.gz"
 
 LICENSE="WTFPL-2"
