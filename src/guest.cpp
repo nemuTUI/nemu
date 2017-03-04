@@ -16,8 +16,7 @@ void start_guest(const std::string &vm_name,
     int unused __attribute__((unused));
 
     const std::string guest_dir = vmdir + "/" + vm_name + "/";
-    const std::string start_cmd = "( ";
-    const std::string end_cmd = " > /dev/null 2>&1; rm -f " + guest_dir + "qemu.pid )&";
+    std::string qemu_cmd = "( ";
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf));
 
@@ -78,12 +77,11 @@ void start_guest(const std::string &vm_name,
     }
 
     // Generate strings for system shell commands
-    const std::string qemu_bin = cfg->qemu_system_path + "-" + guest.arch[0];
+    qemu_cmd += cfg->qemu_system_path + "-" + guest.arch[0];
 
     MapStringVector ints = Read_ifaces_from_json(guest.ints[0]);
     MapString disk = Gen_map_from_str(guest.disk[0]);
 
-    std::string hdx_arg, ints_arg;
     char hdx_char = 'a';
     if (!iso_install && (guest.install[0] == "1"))
         hdx_char = 'b';
@@ -91,58 +89,53 @@ void start_guest(const std::string &vm_name,
     for (auto &hdx : disk)
     {
         std::string hdd(1, hdx_char++);
-        hdx_arg += " -hd" + hdd + " " + guest_dir + hdx.first;
+        qemu_cmd += " -hd" + hdd + " " + guest_dir + hdx.first;
     }
 
     for (auto &ifs : ints)
     {
-        ints_arg += " -net nic,macaddr=" + ifs.second[0] + ",model=" + ifs.second[1];
-        ints_arg += " -net tap,ifname=" + ifs.first + ",script=no,downscript=no";
+        qemu_cmd += " -net nic,macaddr=" + ifs.second[0] + ",model=" + ifs.second[1];
+        qemu_cmd += " -net tap,ifname=" + ifs.first + ",script=no,downscript=no";
     }
 
-    // TODO use single std::string for cmd
-    std::string cpu_arg, kvm_arg, hcpu_arg, install_arg,
-        usb_arg, mem_arg, vnc_arg, bios_arg, pid_arg, mouse_arg;
-    install_arg = "";
-    mouse_arg = "";
     if (guest.install[0] == "1")
     {
         if (iso_install)
-            install_arg = " -boot d -cdrom " + guest.path[0];
+            qemu_cmd += " -boot d -cdrom " + guest.path[0];
         else
-            install_arg = " -hda " + guest.path[0];
+            qemu_cmd += " -hda " + guest.path[0];
     }
     if (guest.mouse[0] == "1")
-         mouse_arg = " -usbdevice tablet";
+         qemu_cmd += " -usbdevice tablet";
 
-    std::stoi(guest.cpus[0]) > 1 ? cpu_arg = " -smp " + guest.cpus[0] : cpu_arg = "";
-    guest.kvmf[0] == "1" ?  kvm_arg = " -enable-kvm" : kvm_arg = "";
-    (guest.kvmf[0] == "1" && guest.hcpu[0] == "1") ?  hcpu_arg = " -cpu host" : hcpu_arg = "";
-    guest.usbp[0] == "1" ?  usb_arg = " -usb -usbdevice host:" + guest.usbd[0] : usb_arg = "";
-    mem_arg = " -m " + guest.memo[0];
-    guest.bios[0].empty() ? bios_arg = "" : bios_arg = " -bios " + guest.bios[0];
-    pid_arg = " -pidfile " + guest_dir + "qemu.pid";
+    if (std::stoi(guest.cpus[0]) > 1)
+        qemu_cmd += " -smp " + guest.cpus[0];
+    if (guest.kvmf[0] == "1")
+        qemu_cmd += " -enable-kvm";
+    if (guest.kvmf[0] == "1" && guest.hcpu[0] == "1")
+        qemu_cmd += " -cpu host";
+    if (guest.usbp[0] == "1")
+        qemu_cmd += " -usb -usbdevice host:" + guest.usbd[0];
+    if (!guest.bios[0].empty())
+        qemu_cmd += " -bios " + guest.bios[0];
+
+    qemu_cmd += " -pidfile " + guest_dir + "qemu.pid";
+    qemu_cmd += " -m " + guest.memo[0];
 
     if (!cfg->vnc_listen_any)
-        vnc_arg = " -vnc 127.0.0.1:" + guest.vncp[0];
+        qemu_cmd += " -vnc 127.0.0.1:" + guest.vncp[0];
     else
-        vnc_arg = " -vnc :" + guest.vncp[0];
+        qemu_cmd += " -vnc :" + guest.vncp[0];
 
-    // Generate and execute complete command
-    std::string guest_cmd =
-        start_cmd + qemu_bin + usb_arg +
-        install_arg + hdx_arg + cpu_arg +
-        mem_arg + kvm_arg + hcpu_arg +
-        ints_arg + vnc_arg + bios_arg +
-        pid_arg + mouse_arg + end_cmd;
+    qemu_cmd += " > /dev/null 2>&1; rm -f " + guest_dir + "qemu.pid )&";
 
-    unused = system(guest_cmd.c_str());
+    unused = system(qemu_cmd.c_str());
 
     if (!cfg->log_path.empty())
     {
         std::ofstream debug;
         debug.open(cfg->log_path);
-        debug << guest_cmd << std::endl;
+        debug << qemu_cmd << std::endl;
         debug.close();
     }
 }
