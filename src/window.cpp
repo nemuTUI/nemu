@@ -73,7 +73,7 @@ void VmInfoWindow::Print()
     border(0,0,0,0,0,0,0,0);
     mvprintw(1, (col - title_.size())/2, title_.c_str());
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
-
+    /* TODO: do single SQL request */
     sql_query = "select arch from vms where name='" + guest_ + "'";
     guest_info.arch = db->SelectQuery(sql_query);
     mvprintw(4, col/4, "%-12s%s", "arch: ", guest_info.arch[0].c_str());
@@ -105,8 +105,19 @@ void VmInfoWindow::Print()
 
     sql_query = "select usb from vms where name='" + guest_ + "'";
     guest_info.usbp = db->SelectQuery(sql_query);
-    guest_info.usbp[0] == "1" ? guest_info.usbp[0] = "enabled" : guest_info.usbp[0] = "disabled";
-    mvprintw(8, col/4, "%-12s%s", "usb: ", guest_info.usbp[0].c_str());
+    if (guest_info.usbp[0] == "1")
+    {
+        sql_query = "select usbid from vms where name='" + guest_ + "'";
+        guest_info.usbd = db->SelectQuery(sql_query);
+        guest_info.usbp[0] = "enabled";
+        mvprintw(8, col/4, "%-12s%s [%s]", "usb: ", guest_info.usbp[0].c_str(),
+            guest_info.usbd[0].c_str());
+    }
+    else
+    {
+        guest_info.usbp[0] = "disabled";
+        mvprintw(8, col/4, "%-12s%s", "usb: ", guest_info.usbp[0].c_str());
+    }
 
     sql_query = "select vnc from vms where name='" + guest_ + "'";
     guest_info.vncp = db->SelectQuery(sql_query);

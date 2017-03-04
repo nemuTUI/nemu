@@ -135,17 +135,25 @@ void AddVmWindow::Print_fields_names()
 
 void AddVmWindow::Get_data_from_form()
 {
-    guest.name.assign(trim_field_buffer(field_buffer(field[0], 0)));
-    guest.arch.assign(trim_field_buffer(field_buffer(field[1], 0)));
-    guest.cpus.assign(trim_field_buffer(field_buffer(field[2], 0)));
-    guest.memo.assign(trim_field_buffer(field_buffer(field[3], 0)));
-    guest.disk.assign(trim_field_buffer(field_buffer(field[4], 0)));
-    guest.vncp.assign(v_last_vnc[0]);
-    guest.path.assign(trim_field_buffer(field_buffer(field[5], 0)));
-    guest.ints.assign(trim_field_buffer(field_buffer(field[6], 0)));
-    guest.ndrv.assign(trim_field_buffer(field_buffer(field[7], 0)));
-    guest.usbp.assign(trim_field_buffer(field_buffer(field[8], 0)));
-    guest.usbd.assign(trim_field_buffer(field_buffer(field[9], 0)));
+    try
+    {
+        guest.name.assign(trim_field_buffer(field_buffer(field[0], 0), true));
+        guest.arch.assign(trim_field_buffer(field_buffer(field[1], 0), true));
+        guest.cpus.assign(trim_field_buffer(field_buffer(field[2], 0), true));
+        guest.memo.assign(trim_field_buffer(field_buffer(field[3], 0), true));
+        guest.disk.assign(trim_field_buffer(field_buffer(field[4], 0), true));
+        guest.vncp.assign(v_last_vnc[0]);
+        guest.path.assign(trim_field_buffer(field_buffer(field[5], 0), true));
+        guest.ints.assign(trim_field_buffer(field_buffer(field[6], 0), true));
+        guest.ndrv.assign(trim_field_buffer(field_buffer(field[7], 0), true));
+        guest.usbp.assign(trim_field_buffer(field_buffer(field[8], 0), true));
+        if (guest.usbp == "yes")
+            guest.usbd.assign(trim_field_buffer(field_buffer(field[9], 0), true));
+    }
+    catch (const std::runtime_error &e)
+    {
+        throw QMException(_(e.what()));
+    }
 }
 
 void AddVmWindow::Get_data_from_db()
@@ -226,12 +234,6 @@ void AddVmWindow::Gen_hdd()
 
 void AddVmWindow::Check_input_data()
 {
-    if (guest.name.empty())
-    {
-        Delete_form();
-        throw QMException(_("VM name is not set"));
-    }
-
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
     sql_query = "select id from vms where name='" + guest.name + "'";
     v_name = db->SelectQuery(sql_query);
@@ -240,29 +242,6 @@ void AddVmWindow::Check_input_data()
     {
         Delete_form();
         throw QMException(_("This name is already used"));
-    }
-
-    if (guest.usbp == "yes")
-    {
-        for (size_t i = 0; i < 10; ++i)
-        {
-            if (!field_status(field[i]))
-            {
-                Delete_form();
-                throw QMException(_("Must fill all params"));
-            }
-        }
-    }
-    else
-    {
-        for (size_t i = 0; i < 8; ++i)
-        {
-            if (!field_status(field[i]))
-            {
-                Delete_form();
-                throw QMException(_("Must fill all params"));
-            }
-        }
     }
 }
 

@@ -110,14 +110,22 @@ void EditVmWindow::Config_fields_buffer()
 
 void EditVmWindow::Get_data_from_form()
 {
-    guest_new.cpus.assign(trim_field_buffer(field_buffer(field[0], 0)));
-    guest_new.memo.assign(trim_field_buffer(field_buffer(field[1], 0)));
-    guest_new.kvmf.assign(trim_field_buffer(field_buffer(field[2], 0)));
-    guest_new.hcpu.assign(trim_field_buffer(field_buffer(field[3], 0)));
-    guest_new.ints.assign(trim_field_buffer(field_buffer(field[4], 0)));
-    guest_new.usbp.assign(trim_field_buffer(field_buffer(field[5], 0)));
-    guest_new.usbd.assign(trim_field_buffer(field_buffer(field[6], 0)));
-    guest_new.mouse.assign(trim_field_buffer(field_buffer(field[7], 0)));
+    try
+    {
+        guest_new.cpus.assign(trim_field_buffer(field_buffer(field[0], 0), true));
+        guest_new.memo.assign(trim_field_buffer(field_buffer(field[1], 0), true));
+        guest_new.kvmf.assign(trim_field_buffer(field_buffer(field[2], 0), true));
+        guest_new.hcpu.assign(trim_field_buffer(field_buffer(field[3], 0), true));
+        guest_new.ints.assign(trim_field_buffer(field_buffer(field[4], 0), true));
+        guest_new.usbp.assign(trim_field_buffer(field_buffer(field[5], 0), true));
+        if (guest_new.usbp == "yes")
+            guest_new.usbd.assign(trim_field_buffer(field_buffer(field[6], 0), false));
+        guest_new.mouse.assign(trim_field_buffer(field_buffer(field[7], 0), true));
+    }
+    catch (const std::runtime_error &e)
+    {
+        throw QMException(_(e.what()));
+    }
 }
 
 void EditVmWindow::Print_fields_names()
@@ -157,6 +165,9 @@ void EditVmWindow::Get_data_from_db()
 
     sql_query = "select usb from vms where name='" + vm_name_ + "'";
     guest_old.usbp = db->SelectQuery(sql_query);
+
+    sql_query = "select usbid from vms where name='" + vm_name_ + "'";
+    guest_old.usbd = db->SelectQuery(sql_query);
 
     sql_query = "select mac from vms where name='" + vm_name_ + "'";
     guest_old.ints = db->SelectQuery(sql_query);

@@ -74,9 +74,9 @@ void EditNetWindow::Print_fields_names()
 
 void EditNetWindow::Get_data_from_form()
 {
-    guest_new.name.assign(trim_field_buffer(field_buffer(field[0], 0)));
-    guest_new.ndrv.assign(trim_field_buffer(field_buffer(field[1], 0)));
-    guest_new.imac.assign(trim_field_buffer(field_buffer(field[2], 0)));
+    guest_new.name.assign(trim_field_buffer(field_buffer(field[0], 0), false));
+    guest_new.ndrv.assign(trim_field_buffer(field_buffer(field[1], 0), false));
+    guest_new.imac.assign(trim_field_buffer(field_buffer(field[2], 0), false));
 }
 
 void EditNetWindow::Gen_iface_json()

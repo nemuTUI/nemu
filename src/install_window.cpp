@@ -60,9 +60,9 @@ void EditInstallWindow::Print_fields_names()
 
 void EditInstallWindow::Get_data_from_form()
 {
-    guest_new.install.assign(trim_field_buffer(field_buffer(field[0], 0)));
-    guest_new.path.assign(trim_field_buffer(field_buffer(field[1], 0)));
-    guest_new.bios.assign(trim_field_buffer(field_buffer(field[2], 0)));
+    guest_new.install.assign(trim_field_buffer(field_buffer(field[0], 0), false));
+    guest_new.path.assign(trim_field_buffer(field_buffer(field[1], 0), false));
+    guest_new.bios.assign(trim_field_buffer(field_buffer(field[2], 0), false));
 }
 
 void EditInstallWindow::Get_data_from_db()

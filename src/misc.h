@@ -10,7 +10,7 @@
 
 namespace QManager {
 
-std::string trim_field_buffer(char *buff);
+std::string trim_field_buffer(char *buff, bool check);
 MapString gen_mac_addr(uint64_t &mac, uint32_t &int_num, const std::string &vm_name);
 MapString Gen_map_from_str(const std::string &str);
 MapStringVector Read_ifaces_from_json(const std::string &str);

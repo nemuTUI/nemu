@@ -121,7 +121,7 @@ void QMFormWindow::Draw_form()
                 form_driver(form, REQ_NEXT_FIELD);
                 form_driver(form, REQ_PREV_FIELD);
                 form_driver(form, REQ_END_FIELD);
-                std::string input = trim_field_buffer(field_buffer(current_field(form), 0));
+                std::string input = trim_field_buffer(field_buffer(current_field(form), 0), false);
                 std::string result;
 
                 if (append_path(input, result))

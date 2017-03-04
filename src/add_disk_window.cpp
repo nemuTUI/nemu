@@ -38,7 +38,14 @@ void AddDiskWindow::Print_fields_names()
 
 void AddDiskWindow::Get_data_from_form()
 {
-    guest_new.disk.assign(trim_field_buffer(field_buffer(field[0], 0)));
+    try
+    {
+        guest_new.disk.assign(trim_field_buffer(field_buffer(field[0], 0), true));
+    }
+    catch (const std::runtime_error &e)
+    {
+        throw QMException(_(e.what()));
+    }
 }
 
 void AddDiskWindow::Get_data_from_db()
@@ -109,8 +116,15 @@ void AddDiskWindow::Print()
         if (guest_new.disk.empty())
             throw QMException(_("Null disk size"));
 
-        if (std::stol(guest_new.disk) <= 0 || std::stoul(guest_new.disk) >= disk_free(vmdir_))
-            throw QMException(_("Wrong disk size"));
+        try
+        {
+            if (std::stol(guest_new.disk) <= 0 || std::stoul(guest_new.disk) >= disk_free(vmdir_))
+                throw QMException(_("Wrong disk size"));
+        }
+        catch (const std::logic_error)
+        {
+            throw QMException(_("Invalid data"));
+        }
 
         getmaxyx(stdscr, row, col);
         std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);

@@ -216,10 +216,13 @@ const struct config *get_cfg()
     return &config;
 }
 
-std::string trim_field_buffer(char *buff)
+std::string trim_field_buffer(char *buff, bool check)
 {
     std::string field(buff);
     field.erase(field.find_last_not_of(" ") + 1);
+
+    if (field.empty() && check)
+        throw std::runtime_error("empty value");
 
     return field;
 }
