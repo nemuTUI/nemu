@@ -27,13 +27,14 @@ QemuDb::QemuDb(const std::string &dbf)
     {
         if (!db)
         {
-            sql.push_back("create table vms(id integer primary key autoincrement, " \
+            sql.push_back("PRAGMA user_version=1");
+            sql.push_back("CREATE TABLE vms(id integer PRIMARY KEY AUTOINCREMENT, " \
                 "name char(30), mem integer, smp integer, hdd char, kvm integer, " \
                 "hcpu integer, vnc integer, mac char, arch char(32), iso char, "\
                 "install integer, usb integer, usbid char, bios char, kernel char, "\
                 "mouse_override integer)");
-            sql.push_back("create table lastval(id integer, mac integer, vnc integer)");
-            sql.push_back("insert into lastval(id, mac, vnc) values ('1', '244837814042624', '0')");
+            sql.push_back("CREATE TABLE lastval(id integer, mac integer, vnc integer)");
+            sql.push_back("INSERT INTO lastval(id, mac, vnc) VALUES ('1', '244837814042624', '0')");
 
             if (dbexec)
                 throw QMException(sqlite3_errmsg(qdb));
