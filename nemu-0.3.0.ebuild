@@ -25,3 +25,10 @@ DEPEND="${RDEPEND}
 	>=dev-libs/boost-1.56
 	app-emulation/qemu
 	vnc? ( net-misc/tigervnc )"
+
+pkg_postinst() {
+    elog "Old database is not supported (nEMU versions < 0.2.*)."
+	elog "You will need to delete current database."
+	elog "But if you upgraded from versions >= 0.2.*"
+	elog "execute script /usr/share/nemu/scripts/upgrade_db.sh <db_path>"
+}
