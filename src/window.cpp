@@ -192,7 +192,7 @@ void HelpWindow::Print()
 
     std::unique_ptr<VectorString> msg_(new VectorString); 
 
-    msg_->push_back(" nemu v" + std::string(VERSION));
+    msg_->push_back(" nEMU v" + std::string(VERSION));
     msg_->push_back("");
     msg_->push_back(_(" r - start guest"));
     msg_->push_back(_(" c - connect to guest via vnc"));

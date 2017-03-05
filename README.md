@@ -1,4 +1,4 @@
-nemu [**n**curses interface for Q**EMU**]
+**nEMU** [**n**curses interface for Q**EMU**]
 ===========
 
 ## Features
