@@ -24,13 +24,15 @@
 #define _(str) gettext(str)
 #define STRING_LITERAL(x) # x
 #define STRING(x) STRING_LITERAL(x)
-#define VERSION "0.3.0"
+#define VERSION "0.4.0-dev"
 #define DEFAULT_NETDRV "virtio"
+#define DEFAULT_DRVINT "virtio"
 
 namespace QManager {
 
 extern const char *YesNo[3];
 extern const char *NetDrv[4];
+extern const char *drive_ints[4];
 extern std::atomic<bool> finish;
 
 typedef std::vector<std::string> VectorString;
@@ -64,7 +66,7 @@ struct guest_t {
     disk, vncp, imac, kvmf,
     hcpu, path, ints, usbp,
     usbd, ndrv, install, bios,
-    mouse;
+    mouse, drvint;
 };
 
 class QMException : public std::exception {

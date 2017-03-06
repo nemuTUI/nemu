@@ -69,6 +69,8 @@ void start_guest(const std::string &vm_name,
     guest.bios = db->SelectQuery(sql_query);
     sql_query = "select mouse_override from vms where name='" + vm_name + "'";
     guest.mouse = db->SelectQuery(sql_query);
+    sql_query = "select drive_interface from vms where name='" + vm_name + "'";
+    guest.drvint = db->SelectQuery(sql_query);
 
     if (!guest.path[0].empty() && guest.path[0].length() > 4)
     {
@@ -82,14 +84,18 @@ void start_guest(const std::string &vm_name,
     MapStringVector ints = Read_ifaces_from_json(guest.ints[0]);
     MapString disk = Gen_map_from_str(guest.disk[0]);
 
-    char hdx_char = 'a';
-    if (!iso_install && (guest.install[0] == "1"))
-        hdx_char = 'b';
+    if (guest.install[0] == "1")
+    {
+        if (iso_install)
+            qemu_cmd += " -boot d -drive file=" + guest.path[0] + ",media=cdrom,if=ide";
+        else
+            qemu_cmd += " -drive file=" + guest.path[0] + ",media=disk,if=ide";
+    }
 
     for (auto &hdx : disk)
     {
-        std::string hdd(1, hdx_char++);
-        qemu_cmd += " -hd" + hdd + " " + guest_dir + hdx.first;
+        qemu_cmd += " -drive file=" + guest_dir + hdx.first +
+            ",media=disk,if=" + guest.drvint[0];
     }
 
     for (auto &ifs : ints)
@@ -98,13 +104,6 @@ void start_guest(const std::string &vm_name,
         qemu_cmd += " -net tap,ifname=" + ifs.first + ",script=no,downscript=no";
     }
 
-    if (guest.install[0] == "1")
-    {
-        if (iso_install)
-            qemu_cmd += " -boot d -cdrom " + guest.path[0];
-        else
-            qemu_cmd += " -hda " + guest.path[0];
-    }
     if (guest.mouse[0] == "1")
          qemu_cmd += " -usbdevice tablet";
 

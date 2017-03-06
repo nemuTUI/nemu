@@ -11,7 +11,7 @@ AddVmWindow::AddVmWindow(const std::string &dbf, const std::string &vmdir,
     dbf_ = dbf;
     vmdir_ = vmdir;
 
-    field.resize(11);
+    field.resize(12);
 }
 
 void AddVmWindow::Gen_iface_json()
@@ -75,16 +75,17 @@ void AddVmWindow::Config_fields_type()
     set_field_type(field[2], TYPE_INTEGER, 0, 1, cpu_count());
     set_field_type(field[3], TYPE_INTEGER, 0, 64, total_memory());
     set_field_type(field[4], TYPE_INTEGER, 0, 1, disk_free(vmdir_));
-    set_field_type(field[5], TYPE_REGEXP, "^/.*");
-    set_field_type(field[6], TYPE_INTEGER, 1, 0, 64);
-    set_field_type(field[7], TYPE_ENUM, (char **)NetDrv, false, false);
-    set_field_type(field[8], TYPE_ENUM, (char **)YesNo, false, false);
-    set_field_type(field[9], TYPE_ENUM, UdevList, false, false);
+    set_field_type(field[5], TYPE_ENUM, (char **)drive_ints, false, false);
+    set_field_type(field[6], TYPE_REGEXP, "^/.*");
+    set_field_type(field[7], TYPE_INTEGER, 1, 0, 64);
+    set_field_type(field[8], TYPE_ENUM, (char **)NetDrv, false, false);
+    set_field_type(field[9], TYPE_ENUM, (char **)YesNo, false, false);
+    set_field_type(field[10], TYPE_ENUM, UdevList, false, false);
 
     if (!u_dev)
     {
-        field_opts_off(field[8], O_ACTIVE);
         field_opts_off(field[9], O_ACTIVE);
+        field_opts_off(field[10], O_ACTIVE);
     }
 
     for (size_t i = 0; i < q_arch->size(); ++i)
@@ -105,12 +106,13 @@ void AddVmWindow::Config_fields_buffer()
 {
     set_field_buffer(field[1], 0, (*(&get_cfg()->qemu_targets))[0].c_str());
     set_field_buffer(field[2], 0, "1");
-    set_field_buffer(field[6], 0, "1");
-    set_field_buffer(field[7], 0, DEFAULT_NETDRV);
-    set_field_buffer(field[8], 0, "no");
+    set_field_buffer(field[5], 0, DEFAULT_DRVINT);
+    set_field_buffer(field[7], 0, "1");
+    set_field_buffer(field[8], 0, DEFAULT_NETDRV);
+    set_field_buffer(field[9], 0, "no");
     field_opts_off(field[0], O_STATIC);
-    field_opts_off(field[5], O_STATIC);
-    field_opts_off(field[9], O_STATIC);
+    field_opts_off(field[6], O_STATIC);
+    field_opts_off(field[10], O_STATIC);
     set_max_field(field[0], 30);
 }
 
@@ -126,11 +128,12 @@ void AddVmWindow::Print_fields_names()
     mvwaddstr(window, 6, 2, ccpu);
     mvwaddstr(window, 8, 2, cmem);
     mvwaddstr(window, 10, 2, cfree);
-    mvwaddstr(window, 12, 2, _("Path to ISO/IMG"));
-    mvwaddstr(window, 14, 2, _("Interfaces"));
-    mvwaddstr(window, 16, 2, _("Net driver"));
-    mvwaddstr(window, 18, 2, _("USB [yes/no]"));
-    mvwaddstr(window, 20, 2, _("USB device"));
+    mvwaddstr(window, 12, 2, _("Disk interface"));
+    mvwaddstr(window, 14, 2, _("Path to ISO/IMG"));
+    mvwaddstr(window, 16, 2, _("Interfaces"));
+    mvwaddstr(window, 18, 2, _("Net driver"));
+    mvwaddstr(window, 20, 2, _("USB [yes/no]"));
+    mvwaddstr(window, 22, 2, _("USB device"));
 }
 
 void AddVmWindow::Get_data_from_form()
@@ -143,12 +146,13 @@ void AddVmWindow::Get_data_from_form()
         guest.memo.assign(trim_field_buffer(field_buffer(field[3], 0), true));
         guest.disk.assign(trim_field_buffer(field_buffer(field[4], 0), true));
         guest.vncp.assign(v_last_vnc[0]);
-        guest.path.assign(trim_field_buffer(field_buffer(field[5], 0), true));
-        guest.ints.assign(trim_field_buffer(field_buffer(field[6], 0), true));
-        guest.ndrv.assign(trim_field_buffer(field_buffer(field[7], 0), true));
-        guest.usbp.assign(trim_field_buffer(field_buffer(field[8], 0), true));
+        guest.drvint.assign(trim_field_buffer(field_buffer(field[5], 0), true));
+        guest.path.assign(trim_field_buffer(field_buffer(field[6], 0), true));
+        guest.ints.assign(trim_field_buffer(field_buffer(field[7], 0), true));
+        guest.ndrv.assign(trim_field_buffer(field_buffer(field[8], 0), true));
+        guest.usbp.assign(trim_field_buffer(field_buffer(field[9], 0), true));
         if (guest.usbp == "yes")
-            guest.usbd.assign(trim_field_buffer(field_buffer(field[9], 0), true));
+            guest.usbd.assign(trim_field_buffer(field_buffer(field[10], 0), true));
     }
     catch (const std::runtime_error &e)
     {
@@ -198,12 +202,14 @@ void AddVmWindow::Update_db_data()
 
     // Add guest to database
     sql_query = "insert into vms("
-        "name, mem, smp, hdd, kvm, hcpu, vnc, mac, arch, iso, install, usb, usbid, mouse_override"
+        "name, mem, smp, hdd, kvm, hcpu, vnc, mac, arch, iso, install, usb, "
+        "usbid, drive_interface, mouse_override"
         ") values('"
         + guest.name + "', '" + guest.memo + "', '" + guest.cpus + "', '"
         + guest.disk + "', '" + guest.kvmf + "', '" + guest.hcpu + "', '"
         + guest.vncp + "', '" + guest.ints + "', '" + guest.arch + "', '"
-        + guest.path + "', '1', '" + guest.usbp + "', '" + guest.usbd + "', '0')";
+        + guest.path + "', '1', '" + guest.usbp + "', '" + guest.usbd + "', '"
+        + guest.drvint + "', '0')";
 
     db->ActionQuery(sql_query);
 }

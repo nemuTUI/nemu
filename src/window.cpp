@@ -18,6 +18,10 @@ const char *NetDrv[4] = {
     "virtio", "rtl8139", "e1000", NULL
 };
 
+const char *drive_ints[4] = {
+    "ide", "scsi", "virtio", NULL
+};
+
 QMWindow::QMWindow(int height, int width, int starty)
 {
     getmaxyx(stdscr, row, col);

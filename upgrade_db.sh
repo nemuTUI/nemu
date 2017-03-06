@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=1
+DB_ACTUAL_VERSION=2
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*\s=\s//')
 RC=0
 
@@ -25,6 +25,14 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD mouse_override integer;' &&
             sqlite3 "$DB_PATH" -line 'UPDATE vms SET mouse_override = 0 WHERE mouse_override IS NULL;' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=1'
+            ) || RC=1
+            ;;
+
+        ( 1 )
+            (
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD drive_interface char;' &&
+            sqlite3 "$DB_PATH" -line 'UPDATE vms SET drive_interface = "ide" WHERE drive_interface IS NULL;' &&
+            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=2'
             ) || RC=1
             ;;
 

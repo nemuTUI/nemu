@@ -397,7 +397,7 @@ int main(void)
         }
         else if (choice == MenuAddVm)
         {
-            std::unique_ptr<QMFormWindow> add_window(new AddVmWindow(cfg->db, cfg->vmdir, 23, 60));
+            std::unique_ptr<QMFormWindow> add_window(new AddVmWindow(cfg->db, cfg->vmdir, 25, 60));
             add_window->Init();
             add_window->Print();
         }
