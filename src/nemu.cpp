@@ -287,7 +287,7 @@ int main(void)
                     {
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-                        std::unique_ptr<QMFormWindow> edit_window(new EditVmWindow(cfg->db, cfg->vmdir, guest, 21, 67));
+                        std::unique_ptr<QMFormWindow> edit_window(new EditVmWindow(cfg->db, cfg->vmdir, guest, 23, 67));
                         edit_window->Init();
                         edit_window->Print();
                     }
