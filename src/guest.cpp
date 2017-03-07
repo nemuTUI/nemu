@@ -130,23 +130,43 @@ void delete_guest(const std::string &vm_name,
                   const std::string &vmdir)
 {
     std::string guest_dir = vmdir + "/" + vm_name;
-    std::string guest_dir_rm_cmd = "rm -rf " + guest_dir;
-    int unused __attribute__((unused));
+    VectorString guest;
+    bool ok = true;
 
     char path[PATH_MAX + 1] = {0};
 
     if (realpath(guest_dir.c_str(), path) == NULL)
         err_exit(_("Error get realpath."));
 
-    /* Just in case */
-    if (strcmp(path, "/") == 0)
-        err_exit(_("Something goes wrong. Delete root partition prevented."));
-
     std::unique_ptr<QemuDb> db(new QemuDb(dbf));
-    std::string sql_query = "delete from vms where name='" + vm_name + "'";
+    std::string sql_query = "SELECT hdd FROM vms WHERE name='" + vm_name + "'";
+    db->SelectQuery(sql_query, &guest);
 
+    MapString disk = Gen_map_from_str(guest[0]);
+    std::string disk_path;
+
+    for (auto &hd : disk)
+    {
+        disk_path = std::string(path) + "/" + hd.first;
+        if (unlink(disk_path.c_str()) == -1)
+            ok = false;
+    }
+
+    if (ok)
+    {
+        if (rmdir(path) == -1)
+            ok = false;
+    }
+
+    sql_query = "DELETE FROM vms WHERE name='" + vm_name + "'";
     db->ActionQuery(sql_query);
-    unused = system(guest_dir_rm_cmd.c_str());
+
+    if (!ok)
+    {
+        std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Some files was not deleted!"), 3, 30, 7));
+        Warn->Init();
+        Warn->Print(Warn->window);
+    }
 }
 
 void kill_guest(const std::string &vm_name)
