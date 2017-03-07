@@ -163,11 +163,11 @@ void AddVmWindow::Get_data_from_form()
 void AddVmWindow::Get_data_from_db()
 {
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
-    sql_query = "select vnc from lastval";
-    v_last_vnc = db->SelectQuery(sql_query); // TODO: add check if null exception
+    sql_query = "SELECT vnc FROM lastval";
+    db->SelectQuery(sql_query, &v_last_vnc); // TODO: add check if null exception
 
-    sql_query = "select mac from lastval";
-    v_last_mac = db->SelectQuery(sql_query); // TODO: add check if null exception
+    sql_query = "SELECT mac FROM lastval";
+    db->SelectQuery(sql_query, &v_last_mac); // TODO: add check if null exception
 
     last_mac = std::stoull(v_last_mac[0]);
     last_vnc = std::stoi(v_last_vnc[0]);
@@ -241,8 +241,8 @@ void AddVmWindow::Gen_hdd()
 void AddVmWindow::Check_input_data()
 {
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
-    sql_query = "select id from vms where name='" + guest.name + "'";
-    v_name = db->SelectQuery(sql_query);
+    sql_query = "SELECT id FROM vms WHERE name='" + guest.name + "'";
+    db->SelectQuery(sql_query, &v_name);
 
     if (!v_name.empty())
     {
@@ -284,7 +284,7 @@ void AddVmWindow::Print()
         try
         {
             Gen_hdd();
-            Gen_mac_address(guest, std::stoi(guest.ints), guest.name);
+            Gen_mac_address(std::stoi(guest.ints), guest.name);
             Gen_iface_json();
             Update_db_data();
         }

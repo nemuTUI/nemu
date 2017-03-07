@@ -52,7 +52,7 @@ public:
 
 private:
     std::string guest_, title_, dbf_, sql_query;
-    guest_t<VectorString> guest_info;
+    VectorString guest_info;
 };
 
 class HelpWindow : public QMWindow

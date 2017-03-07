@@ -2,16 +2,14 @@
 
 namespace QManager {
 
-static VectorString result;
-
-static int query_cb(void *NotUsed, int argc, char **argv, char **azColName)
+static int query_cb(void *v, int argc, char **argv, char **azColName)
 {
-    (void) NotUsed;
     (void) azColName;
+    VectorString *result = (VectorString *) v;
     int i;
 
     for (i = 0; i < argc; i++)
-        result.push_back(argv[i] ? argv[i] : "");
+        result->push_back(argv[i] ? argv[i] : "");
 
     return 0;
 }
@@ -62,15 +60,15 @@ QemuDb::QemuDb(const std::string &dbf)
     }
 }
 
-VectorString QemuDb::SelectQuery(const std::string &query)
+void QemuDb::SelectQuery(const std::string &query, VectorString *result)
 {
     query_ = query;
 
-    result.clear();
+    result->clear();
 
     try
     {
-        dbexec = sqlite3_exec(qdb, query_.c_str(), query_cb, 0, &zErrMsg);
+        dbexec = sqlite3_exec(qdb, query_.c_str(), query_cb, (void *) result, &zErrMsg);
 
         if (dbexec != SQLITE_OK)
             throw QMException(zErrMsg);
@@ -84,8 +82,6 @@ VectorString QemuDb::SelectQuery(const std::string &query)
         endwin();
         exit(10);
     }
-
-    return result;
 }
 
 void QemuDb::ActionQuery(const std::string &query)

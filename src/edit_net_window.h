@@ -26,8 +26,8 @@ private:
 
 private:
     std::string vm_name_;
-    guest_t<VectorString> guest_old;
-    guest_t<std::string> guest_new;
+    VectorString guest_old_ints;
+    guest_t guest_new;
     MapStringVector ifs;
     VectorString iflist, all_ints;
     char **IfaceList;

@@ -20,9 +20,7 @@ protected:
     void Enable_color();
     void Post_form(uint32_t size);
     void ExceptionExit(QMException &err);
-    void Gen_mac_address(
-        struct guest_t<std::string> &guest, uint32_t int_count, const std::string &vm_name
-    );
+    void Gen_mac_address(uint32_t int_count, const std::string &vm_name);
 
 protected:
     std::string sql_query, s_last_mac,
@@ -38,7 +36,7 @@ protected:
     int ch, cmd_exit_status;
     MapString *u_dev;
     char **UdevList, **ArchList;
-    guest_t<std::string> guest;
+    guest_t guest;
     bool action_ok;
 };
 

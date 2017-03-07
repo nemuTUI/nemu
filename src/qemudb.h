@@ -11,7 +11,7 @@ class QemuDb
 {
 public:
     QemuDb(const std::string &dbf);
-    VectorString SelectQuery(const std::string &query);
+    void SelectQuery(const std::string &query, VectorString *result);
     void ActionQuery(const std::string &query);
     ~QemuDb() { sqlite3_close(qdb); }
 

@@ -53,14 +53,14 @@ void AddDiskWindow::Get_data_from_db()
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
     sql_query = "select hdd from vms where name='" + vm_name_ + "'";
-    guest_old.disk = db->SelectQuery(sql_query);
+    db->SelectQuery(sql_query, &guest_old_disk);
 }
 
 void AddDiskWindow::Update_db_data()
 {
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
-    sql_query = "update vms set hdd='" + guest_old.disk[0] +
+    sql_query = "update vms set hdd='" + guest_old_disk[0] +
       "' where name='" + vm_name_ + "'";
     db->ActionQuery(sql_query);
 }
@@ -68,7 +68,7 @@ void AddDiskWindow::Update_db_data()
 void AddDiskWindow::Gen_hdd()
 {
     hdd_ch = 'a';
-    MapString disk = Gen_map_from_str(guest_old.disk[0]);
+    MapString disk = Gen_map_from_str(guest_old_disk[0]);
 
     if (disk.size() == 3)
         throw QMException(_("3 disks limit reached :("));
@@ -87,7 +87,7 @@ void AddDiskWindow::Gen_hdd()
         throw QMException(_("Can't create img file"));
     }
 
-    guest_old.disk[0] += vm_name_ + "_" + hdd_ch + ".img=" + guest_new.disk + ";";
+    guest_old_disk[0] += vm_name_ + "_" + hdd_ch + ".img=" + guest_new.disk + ";";
 }
 
 void AddDiskWindow::Print()

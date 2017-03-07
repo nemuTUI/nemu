@@ -50,20 +50,17 @@ void CloneVmWindow::Get_data_from_db()
 {
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
-    sql_query = "SELECT mac FROM vms WHERE name='" + vm_name_ + "'";
-    guest_old.ints = db->SelectQuery(sql_query);
+    sql_query = "SELECT * FROM vms WHERE name='" + vm_name_ + "'";
+    db->SelectQuery(sql_query, &guest_old);
 
     sql_query = "SELECT mac FROM lastval";
-    v_last_mac = db->SelectQuery(sql_query);
+    db->SelectQuery(sql_query, &v_last_mac);
 
     sql_query = "SELECT vnc FROM lastval";
-    v_last_vnc = db->SelectQuery(sql_query);
+    db->SelectQuery(sql_query, &v_last_vnc);
 
     sql_query = "SELECT id FROM vms WHERE name='" + guest_new.name + "'";
-    v_name = db->SelectQuery(sql_query);
-
-    sql_query = "SELECT hdd FROM vms WHERE name='" + vm_name_ + "'";
-    guest_old.disk = db->SelectQuery(sql_query);
+    db->SelectQuery(sql_query, &v_name);
 
     last_vnc = std::stoi(v_last_vnc[0]);
     last_vnc++;
@@ -71,18 +68,19 @@ void CloneVmWindow::Get_data_from_db()
 
 void CloneVmWindow::Gen_iface_json()
 {
-    MapStringVector old_ifaces = Read_ifaces_from_json(guest_old.ints[0]);
+    MapStringVector old_ifaces = Read_ifaces_from_json(guest_old[SQL_IDX_MAC]);
+    VectorString ndrv;
     size_t i = 0;
 
     for (auto &old_ifs : old_ifaces)
-        guest_old.ndrv.push_back(old_ifs.second[1]);
+        ndrv.push_back(old_ifs.second[1]);
 
     guest_new.ints.clear();
 
     for (auto &ifs : ifaces)
     {
         guest_new.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
-            ifs.second + "\",\"drv\":\"" + guest_old.ndrv[i] + "\"},";
+            ifs.second + "\",\"drv\":\"" + ndrv[i] + "\"},";
 
         i++;
     }
@@ -133,7 +131,7 @@ void CloneVmWindow::Update_db_data()
 void CloneVmWindow::Gen_hdd()
 {
     hdd_ch = 'a';
-    MapString disk = Gen_map_from_str(guest_old.disk[0]);
+    MapString disk = Gen_map_from_str(guest_old[SQL_IDX_HDD]);
     int unused __attribute__((unused));
 
     guest_dir = vmdir_ + "/" + guest_new.name;
@@ -188,8 +186,7 @@ void CloneVmWindow::Print()
         getmaxyx(stdscr, row, col);
         std::thread spin_thr(spinner, 1, (col + str_size + 2) / 2);
 
-        Gen_mac_address(guest_new,
-                        Read_ifaces_from_json(guest_old.ints[0]).size(),
+        Gen_mac_address(Read_ifaces_from_json(guest_old[SQL_IDX_MAC]).size(),
                         guest_new.name);
         Gen_iface_json();
 

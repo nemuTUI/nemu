@@ -67,7 +67,7 @@ enum select_idx {
     SQL_IDX_SMP,
     SQL_IDX_HDD,
     SQL_IDX_KVM,
-    SQL_IDX_CPU,
+    SQL_IDX_HCPU,
     SQL_IDX_VNC,
     SQL_IDX_MAC,
     SQL_IDX_ARCH,
@@ -81,9 +81,8 @@ enum select_idx {
     SQL_IDX_DINT
 };
 
-template <typename T>
 struct guest_t {
-    T name, arch, cpus, memo,
+    std::string name, arch, cpus, memo,
     disk, vncp, imac, kvmf,
     hcpu, path, ints, usbp,
     usbd, ndrv, install, bios,

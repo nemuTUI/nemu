@@ -77,60 +77,38 @@ void VmInfoWindow::Print()
     border(0,0,0,0,0,0,0,0);
     mvprintw(1, (col - title_.size())/2, title_.c_str());
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
-    /* TODO: do single SQL request */
-    sql_query = "select arch from vms where name='" + guest_ + "'";
-    guest_info.arch = db->SelectQuery(sql_query);
-    mvprintw(4, col/4, "%-12s%s", "arch: ", guest_info.arch[0].c_str());
 
-    sql_query = "select smp from vms where name='" + guest_ + "'";
-    guest_info.cpus = db->SelectQuery(sql_query);
-    mvprintw(5, col/4, "%-12s%s", "cores: ", guest_info.cpus[0].c_str());
+    sql_query = "SELECT * FROM vms WHERE name='" + guest_ + "'";
+    db->SelectQuery(sql_query, &guest_info);
 
-    sql_query = "select mem from vms where name='" + guest_ + "'";
-    guest_info.memo = db->SelectQuery(sql_query);
-    mvprintw(6, col/4, "%-12s%s %s", "memory: ", guest_info.memo[0].c_str(), "Mb");
+    mvprintw(4, col/4, "%-12s%s", "arch: ", guest_info[SQL_IDX_ARCH].c_str());
+    mvprintw(5, col/4, "%-12s%s", "cores: ", guest_info[SQL_IDX_SMP].c_str());
+    mvprintw(6, col/4, "%-12s%s %s", "memory: ", guest_info[SQL_IDX_MEM].c_str(), "Mb");
 
-    sql_query = "select kvm from vms where name='" + guest_ + "'";
-    guest_info.kvmf = db->SelectQuery(sql_query);
-    sql_query = "select hcpu from vms where name='" + guest_ + "'";
-    guest_info.hcpu = db->SelectQuery(sql_query);
-
-    if (guest_info.kvmf[0] == "1")
+    if (guest_info[SQL_IDX_KVM] == "1")
     {
-        if (guest_info.hcpu[0] == "1")
-            guest_info.kvmf[0] = "enabled [+hostcpu]";
+        if (guest_info[SQL_IDX_HCPU] == "1")
+            guest_info[SQL_IDX_KVM] = "enabled [+hostcpu]";
         else
-            guest_info.kvmf[0] = "enabled";
+            guest_info[SQL_IDX_KVM] = "enabled";
     }
     else
-        guest_info.kvmf[0] = "disabled";
+        guest_info[SQL_IDX_KVM] = "disabled";
 
-    mvprintw(7, col/4, "%-12s%s", "kvm: ", guest_info.kvmf[0].c_str());
+    mvprintw(7, col/4, "%-12s%s", "kvm: ", guest_info[SQL_IDX_KVM].c_str());
 
-    sql_query = "select usb from vms where name='" + guest_ + "'";
-    guest_info.usbp = db->SelectQuery(sql_query);
-    if (guest_info.usbp[0] == "1")
+    if (guest_info[SQL_IDX_USBF] == "1")
     {
-        sql_query = "select usbid from vms where name='" + guest_ + "'";
-        guest_info.usbd = db->SelectQuery(sql_query);
-        guest_info.usbp[0] = "enabled";
-        mvprintw(8, col/4, "%-12s%s [%s]", "usb: ", guest_info.usbp[0].c_str(),
-            guest_info.usbd[0].c_str());
+        mvprintw(8, col/4, "%-12s%s [%s]", "usb: ", "enabled",
+            guest_info[SQL_IDX_USBD].c_str());
     }
     else
-    {
-        guest_info.usbp[0] = "disabled";
-        mvprintw(8, col/4, "%-12s%s", "usb: ", guest_info.usbp[0].c_str());
-    }
+        mvprintw(8, col/4, "%-12s%s", "usb: ", "disabled");
 
-    sql_query = "select vnc from vms where name='" + guest_ + "'";
-    guest_info.vncp = db->SelectQuery(sql_query);
     mvprintw(9, col/4, "%-12s%s [%u]", "vnc port: ",
-        guest_info.vncp[0].c_str(), std::stoi(guest_info.vncp[0]) + 5900);
+        guest_info[SQL_IDX_VNC].c_str(), std::stoi(guest_info[SQL_IDX_VNC]) + 5900);
 
-    sql_query = "select mac from vms where name='" + guest_ + "'";
-    guest_info.ints = db->SelectQuery(sql_query);
-    MapStringVector ints = Read_ifaces_from_json(guest_info.ints[0]);
+    MapStringVector ints = Read_ifaces_from_json(guest_info[SQL_IDX_MAC]);
 
     // Generate guest inerfaces info
     uint32_t i = 0;
@@ -144,24 +122,20 @@ void VmInfoWindow::Print()
     }
 
     // Generate guest hd images info
-    sql_query = "select hdd from vms where name='" + guest_ + "'";
-    guest_info.disk = db->SelectQuery(sql_query);
-    MapString disk = Gen_map_from_str(guest_info.disk[0]);
+    MapString disk = Gen_map_from_str(guest_info[SQL_IDX_HDD]);
 
-    char hdx = 'a';
+    i = 0;
 
     for (auto &hd : disk)
     {
-        mvprintw(++y, col/4, "%s%c%-9s%s %s%s%s", "hd",
-                 hdx++, ":", hd.first.c_str(),
+        mvprintw(++y, col/4, "%s%u%-7s%s %s%s%s", "disk",
+                 i++, ":", hd.first.c_str(),
                  "[", hd.second.c_str(), "Gb]");
     }
 
     // Generate guest BIOS file info
-    sql_query = "select bios from vms where name='" + guest_ + "'";
-    guest_info.bios = db->SelectQuery(sql_query);
-    if (!guest_info.bios[0].empty())
-        mvprintw(++y, col/4, "%-12s%s", "bios: ", guest_info.bios[0].c_str());
+    if (!guest_info[SQL_IDX_BIOS].empty())
+        mvprintw(++y, col/4, "%-12s%s", "bios: ", guest_info[SQL_IDX_BIOS].c_str());
 
     // Show PID.
     {

@@ -127,9 +127,10 @@ int main(void)
         if (choice == MenuVmlist)
         {
             const std::string sql_list_vm = "select name from vms order by name asc";
+            VectorString guests;
 
             std::unique_ptr<QemuDb> db(new QemuDb(cfg->db));
-            VectorString guests = db->SelectQuery(sql_list_vm);
+            db->SelectQuery(sql_list_vm, &guests);
 
             if (guests.empty())
             {

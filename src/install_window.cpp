@@ -39,13 +39,13 @@ void EditInstallWindow::Config_fields_type()
 
 void EditInstallWindow::Config_fields_buffer()
 {
-    if (guest_old.install[0] == "1")
+    if (guest_old[SQL_IDX_INST] == "1")
         set_field_buffer(field[0], 0, YesNo[1]);
     else
         set_field_buffer(field[0], 0, YesNo[0]);
 
-    set_field_buffer(field[1], 0, guest_old.path[0].c_str());
-    set_field_buffer(field[2], 0, guest_old.bios[0].c_str());
+    set_field_buffer(field[1], 0, guest_old[SQL_IDX_ISO].c_str());
+    set_field_buffer(field[2], 0, guest_old[SQL_IDX_BIOS].c_str());
 
     for (size_t i = 0; i < field.size() - 1; ++i)
         set_field_status(field[i], false);
@@ -69,12 +69,8 @@ void EditInstallWindow::Get_data_from_db()
 {
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
-    sql_query = "select install from vms where name='" + vm_name_ + "'";
-    guest_old.install = db->SelectQuery(sql_query);
-    sql_query = "select iso from vms where name='" + vm_name_ + "'";
-    guest_old.path = db->SelectQuery(sql_query);
-    sql_query = "select bios from vms where name='" + vm_name_ + "'";
-    guest_old.bios = db->SelectQuery(sql_query);
+    sql_query = "SELECT * FROM vms WHERE name='" + vm_name_ + "'";
+    db->SelectQuery(sql_query, &guest_old);
 }
 
 void EditInstallWindow::Update_db_data()

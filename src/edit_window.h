@@ -25,8 +25,8 @@ private:
     void Gen_iface_json();
 
 private:
-    guest_t<VectorString> guest_old;
-    guest_t<std::string> guest_new;
+    VectorString guest_old;
+    guest_t guest_new;
     std::string vm_name_;
     uint32_t ints_count;
 };

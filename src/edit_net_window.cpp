@@ -29,15 +29,15 @@ void EditNetWindow::Get_data_from_db()
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
     sql_query = "select mac from vms where name='" + vm_name_ + "'";
-    guest_old.ints = db->SelectQuery(sql_query);
+    db->SelectQuery(sql_query, &guest_old_ints);
 
     sql_query = "select mac from vms";
-    all_ints = db->SelectQuery(sql_query);
+    db->SelectQuery(sql_query, &all_ints);
 }
 
 void EditNetWindow::Config_fields_type()
 {
-    ifs = Read_ifaces_from_json(guest_old.ints[0]);
+    ifs = Read_ifaces_from_json(guest_old_ints[0]);
 
     for (auto i : ifs)
         iflist.push_back(i.first);

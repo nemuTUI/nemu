@@ -51,12 +51,9 @@ void QMFormWindow::Enable_color()
     wbkgd(window, COLOR_PAIR(1));
 }
 
-void QMFormWindow::Gen_mac_address(struct guest_t<std::string> &guest, 
-                                   uint32_t int_count,
+void QMFormWindow::Gen_mac_address(uint32_t int_count,
                                    const std::string &vm_name)
 {
-    (void) guest;
-
     if (int_count == 0)
         return;
 

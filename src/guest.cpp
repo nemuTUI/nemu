@@ -22,7 +22,7 @@ void start_guest(const std::string &vm_name,
 
     // Check if system is already installed
     const std::string sql_query = "SELECT * FROM vms WHERE name='" + vm_name + "'";
-    guest = db->SelectQuery(sql_query);
+    db->SelectQuery(sql_query, &guest);
 
     if (guest[SQL_IDX_INST] == "1")
     {
@@ -79,7 +79,7 @@ void start_guest(const std::string &vm_name,
         qemu_cmd += " -smp " + guest[SQL_IDX_SMP];
     if (guest[SQL_IDX_KVM] == "1")
         qemu_cmd += " -enable-kvm";
-    if (guest[SQL_IDX_KVM] == "1" && guest[SQL_IDX_CPU] == "1")
+    if (guest[SQL_IDX_KVM] == "1" && guest[SQL_IDX_HCPU] == "1")
         qemu_cmd += " -cpu host";
     if (guest[SQL_IDX_USBF] == "1")
         qemu_cmd += " -usb -usbdevice host:" + guest[SQL_IDX_USBD];
@@ -109,15 +109,15 @@ void start_guest(const std::string &vm_name,
 
 void connect_guest(const std::string &vm_name, const std::string &dbf)
 {
-    guest_t<VectorString> guest;
+    VectorString vncp;
     uint16_t port;
     int unused __attribute__((unused));
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf));
-    std::string sql_query = "select vnc from vms where name='" + vm_name + "'";
-    guest.vncp = db->SelectQuery(sql_query);
+    const std::string sql_query = "select vnc from vms where name='" + vm_name + "'";
+    db->SelectQuery(sql_query, &vncp);
 
-    port = 5900 + std::stoi(guest.vncp[0]);
+    port = 5900 + std::stoi(vncp[0]);
 
     std::string connect_cmd = get_cfg()->vnc_bin + " :" +
         std::to_string(port) + " > /dev/null 2>&1 &";

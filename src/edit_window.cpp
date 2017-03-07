@@ -73,33 +73,33 @@ void EditVmWindow::Config_fields_type()
 
 void EditVmWindow::Config_fields_buffer()
 {
-    MapStringVector old_ifaces = Read_ifaces_from_json(guest_old.ints[0]);
+    MapStringVector old_ifaces = Read_ifaces_from_json(guest_old[SQL_IDX_MAC]);
     ints_count = old_ifaces.size();
 
     char cints[64] = {0};
     snprintf(cints, sizeof(cints), "%u", ints_count);
 
-    set_field_buffer(field[0], 0, guest_old.cpus[0].c_str());
-    set_field_buffer(field[1], 0, guest_old.memo[0].c_str());
-    set_field_buffer(field[5], 0, guest_old.drvint[0].c_str());
+    set_field_buffer(field[0], 0, guest_old[SQL_IDX_SMP].c_str());
+    set_field_buffer(field[1], 0, guest_old[SQL_IDX_MEM].c_str());
+    set_field_buffer(field[5], 0, guest_old[SQL_IDX_DINT].c_str());
     set_field_buffer(field[4], 0, cints);
 
-    if (guest_old.kvmf[0] == "1")
+    if (guest_old[SQL_IDX_KVM] == "1")
         set_field_buffer(field[2], 0, YesNo[0]);
     else
         set_field_buffer(field[2], 0, YesNo[1]);
 
-    if (guest_old.hcpu[0] == "1")
+    if (guest_old[SQL_IDX_HCPU] == "1")
         set_field_buffer(field[3], 0, YesNo[0]);
     else
         set_field_buffer(field[3], 0, YesNo[1]);
 
-    if (guest_old.usbp[0] == "1")
+    if (guest_old[SQL_IDX_USBF] == "1")
         set_field_buffer(field[6], 0, YesNo[0]);
     else
         set_field_buffer(field[6], 0, YesNo[1]);
 
-    if (guest_old.mouse[0] == "1")
+    if (guest_old[SQL_IDX_OVER] == "1")
         set_field_buffer(field[8], 0, YesNo[0]);
     else
         set_field_buffer(field[8], 0, YesNo[1]);
@@ -155,40 +155,17 @@ void EditVmWindow::Get_data_from_db()
 {
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
-    sql_query = "select smp from vms where name='" + vm_name_ + "'";
-    guest_old.cpus = db->SelectQuery(sql_query);
+    sql_query = "SELECT * FROM vms WHERE name='" + vm_name_ + "'";
+    db->SelectQuery(sql_query, &guest_old);
 
-    sql_query = "select mem from vms where name='" + vm_name_ + "'";
-    guest_old.memo = db->SelectQuery(sql_query);
-
-    sql_query = "select kvm from vms where name='" + vm_name_ + "'";
-    guest_old.kvmf = db->SelectQuery(sql_query);
-
-    sql_query = "select hcpu from vms where name='" + vm_name_ + "'";
-    guest_old.hcpu = db->SelectQuery(sql_query);
-
-    sql_query = "select usb from vms where name='" + vm_name_ + "'";
-    guest_old.usbp = db->SelectQuery(sql_query);
-
-    sql_query = "select usbid from vms where name='" + vm_name_ + "'";
-    guest_old.usbd = db->SelectQuery(sql_query);
-
-    sql_query = "select mac from vms where name='" + vm_name_ + "'";
-    guest_old.ints = db->SelectQuery(sql_query);
-
-    sql_query = "select mouse_override from vms where name='" + vm_name_ + "'";
-    guest_old.mouse = db->SelectQuery(sql_query);
-
-    sql_query = "select drive_interface from vms where name='" + vm_name_ + "'";
-    guest_old.drvint = db->SelectQuery(sql_query);
-
-    sql_query = "select mac from lastval";
-    v_last_mac = db->SelectQuery(sql_query);
+    sql_query = "SELECT mac FROM lastval";
+    db->SelectQuery(sql_query, &v_last_mac);
 }
 
 void EditVmWindow::Gen_iface_json()
 {
-    MapStringVector old_ifaces = Read_ifaces_from_json(guest_old.ints[0]);
+    MapStringVector old_ifaces = Read_ifaces_from_json(guest_old[SQL_IDX_MAC]);
+    VectorString ndrv;
     size_t old_if_count = old_ifaces.size();
 
     if (old_if_count > ui_vm_ints)
@@ -196,7 +173,7 @@ void EditVmWindow::Gen_iface_json()
         size_t n = 0;
         for (auto it : old_ifaces)
         {
-            guest_old.ndrv.push_back(it.second[1]);
+            ndrv.push_back(it.second[1]);
             ++n;
             if (n == ui_vm_ints)
                 break;
@@ -207,10 +184,10 @@ void EditVmWindow::Gen_iface_json()
         size_t count_diff = ui_vm_ints - old_if_count;
 
         for (auto it : old_ifaces)
-            guest_old.ndrv.push_back(it.second[1]);
+            ndrv.push_back(it.second[1]);
 
         for (size_t i = 0; i < count_diff; ++i)
-            guest_old.ndrv.push_back(DEFAULT_NETDRV);
+            ndrv.push_back(DEFAULT_NETDRV);
     }
 
     guest_new.ints.clear();
@@ -218,7 +195,7 @@ void EditVmWindow::Gen_iface_json()
     for (auto &ifs : ifaces)
     {
         guest_new.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
-            ifs.second + "\",\"drv\":\"" + guest_old.ndrv[i] + "\"},";
+            ifs.second + "\",\"drv\":\"" + ndrv[i] + "\"},";
 
         i++;
     }
@@ -275,7 +252,7 @@ void EditVmWindow::Update_db_data()
 
         if (ui_vm_ints != ints_count)
         {
-            Gen_mac_address(guest_new, ui_vm_ints, vm_name_);
+            Gen_mac_address(ui_vm_ints, vm_name_);
             Gen_iface_json();
 
             if (ui_vm_ints != 0)
