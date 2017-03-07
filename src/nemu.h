@@ -60,6 +60,27 @@ enum input_choices {
     MenuKeyI = 105, MenuKeyS = 115,
 };
 
+enum select_idx {
+    SQL_IDX_ID = 0,
+    SQL_IDX_NAME,
+    SQL_IDX_MEM,
+    SQL_IDX_SMP,
+    SQL_IDX_HDD,
+    SQL_IDX_KVM,
+    SQL_IDX_CPU,
+    SQL_IDX_VNC,
+    SQL_IDX_MAC,
+    SQL_IDX_ARCH,
+    SQL_IDX_ISO,
+    SQL_IDX_INST,
+    SQL_IDX_USBF,
+    SQL_IDX_USBD,
+    SQL_IDX_BIOS,
+    SQL_IDX_KERN,
+    SQL_IDX_OVER,
+    SQL_IDX_DINT
+};
+
 template <typename T>
 struct guest_t {
     T name, arch, cpus, memo,
