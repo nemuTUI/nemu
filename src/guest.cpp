@@ -1,6 +1,7 @@
 #include <libintl.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/stat.h>
 
 #include "guest.h"
 
@@ -85,6 +86,52 @@ void start_guest(const std::string &vm_name,
         qemu_cmd += " -usb -usbdevice host:" + guest[SQL_IDX_USBD];
     if (!guest[SQL_IDX_BIOS].empty())
         qemu_cmd += " -bios " + guest[SQL_IDX_BIOS];
+    if (!guest[SQL_IDX_KERN].empty())
+    {
+        qemu_cmd += " -kernel " + guest[SQL_IDX_KERN];
+        if (!guest[SQL_IDX_KAPP].empty())
+            qemu_cmd += " -append \"" + guest[SQL_IDX_KAPP] + "\"";
+    }
+    if (!guest[SQL_IDX_SOCK].empty())
+    {
+        struct stat info;
+
+        if (stat(guest[SQL_IDX_SOCK].c_str(), &info) != -1)
+        {
+            std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Socket is already used!"), 3, 30, 7));
+            Warn->Init();
+            Warn->Print(Warn->window);
+            return;
+        }
+
+        qemu_cmd += " -chardev socket,path=" + guest[SQL_IDX_SOCK] +
+            ",server,nowait,id=socket_" + vm_name +
+            " -device isa-serial,chardev=socket_" + vm_name;
+    }
+    if (!guest[SQL_IDX_TTY].empty())
+    {
+        int fd;
+
+        if ((fd = open(guest[SQL_IDX_TTY].c_str(), O_RDONLY)) == -1)
+        {
+            std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("TTY is missing!"), 3, 30, 7));
+            Warn->Init();
+            Warn->Print(Warn->window);
+            return;
+        }
+        if (!isatty(fd))
+        {
+            close(fd);
+            std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("TTY is not terminal!"), 3, 30, 7));
+            Warn->Init();
+            Warn->Print(Warn->window);
+            return;
+        }
+        close(fd);
+        qemu_cmd += " -chardev tty,path=" + guest[SQL_IDX_TTY] +
+            ",id=tty_" + vm_name +
+            " -device isa-serial,chardev=tty_" + vm_name;
+    }
 
     qemu_cmd += " -pidfile " + guest_dir + "qemu.pid";
     qemu_cmd += " -m " + guest[SQL_IDX_MEM];

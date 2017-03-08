@@ -133,9 +133,17 @@ void VmInfoWindow::Print()
                  "[", hd.second.c_str(), "Gb]");
     }
 
-    // Generate guest BIOS file info
+    // Generate guest boot settings info
     if (!guest_info[SQL_IDX_BIOS].empty())
         mvprintw(++y, col/4, "%-12s%s", "bios: ", guest_info[SQL_IDX_BIOS].c_str());
+    if (!guest_info[SQL_IDX_KERN].empty())
+        mvprintw(++y, col/4, "%-12s%s", "kernel: ", guest_info[SQL_IDX_KERN].c_str());
+    if (!guest_info[SQL_IDX_KAPP].empty())
+        mvprintw(++y, col/4, "%-12s%s", "cmdline: ", guest_info[SQL_IDX_KAPP].c_str());
+    if (!guest_info[SQL_IDX_TTY].empty())
+        mvprintw(++y, col/4, "%-12s%s", "tty: ", guest_info[SQL_IDX_TTY].c_str());
+    if (!guest_info[SQL_IDX_SOCK].empty())
+        mvprintw(++y, col/4, "%-12s%s", "socket: ", guest_info[SQL_IDX_SOCK].c_str());
 
     // Show PID.
     {

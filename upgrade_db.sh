@@ -32,6 +32,9 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             (
             sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD drive_interface char;' &&
             sqlite3 "$DB_PATH" -line 'UPDATE vms SET drive_interface = "ide" WHERE drive_interface IS NULL;' &&
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD kernel_append char;' &&
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD tty_path char;' &&
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD socket_path char;' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=2'
             ) || RC=1
             ;;

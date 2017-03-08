@@ -91,10 +91,11 @@ void CloneVmWindow::Gen_iface_json()
 
 void CloneVmWindow::Update_db_data()
 {
-    const std::array<std::string, 13> columns = {
+    const std::array<std::string, 16> columns = {
         "mem", "smp", "kvm", "hcpu", "arch", "iso",
         "install", "usb", "usbid", "bios", "kernel",
-        "mouse_override", "drive_interface"
+        "mouse_override", "drive_interface", "kernel_append",
+        "tty_path", "socket_path"
     };
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));

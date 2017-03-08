@@ -78,7 +78,10 @@ enum select_idx {
     SQL_IDX_BIOS,
     SQL_IDX_KERN,
     SQL_IDX_OVER,
-    SQL_IDX_DINT
+    SQL_IDX_DINT,
+    SQL_IDX_KAPP,
+    SQL_IDX_TTY,
+    SQL_IDX_SOCK
 };
 
 struct guest_t {
@@ -86,7 +89,8 @@ struct guest_t {
     disk, vncp, imac, kvmf,
     hcpu, path, ints, usbp,
     usbd, ndrv, install, bios,
-    mouse, drvint;
+    mouse, drvint, kappend, kpath, tty,
+    socket;
 };
 
 class QMException : public std::exception {

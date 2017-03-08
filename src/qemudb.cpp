@@ -26,11 +26,12 @@ QemuDb::QemuDb(const std::string &dbf)
         if (!db)
         {
             sql.push_back("PRAGMA user_version=2");
-            sql.push_back("CREATE TABLE vms(id integer PRIMARY KEY AUTOINCREMENT, " \
-                "name char(30), mem integer, smp integer, hdd char, kvm integer, " \
-                "hcpu integer, vnc integer, mac char, arch char(32), iso char, "\
-                "install integer, usb integer, usbid char, bios char, kernel char, "\
-                "mouse_override integer, drive_interface char)");
+            sql.push_back("CREATE TABLE vms(id integer PRIMARY KEY AUTOINCREMENT, "
+                "name char(30), mem integer, smp integer, hdd char, kvm integer, "
+                "hcpu integer, vnc integer, mac char, arch char(32), iso char, "
+                "install integer, usb integer, usbid char, bios char, kernel char, "
+                "mouse_override integer, drive_interface char, kernel_append char, "
+                "tty_path char, socket_path char)");
             sql.push_back("CREATE TABLE lastval(id integer, mac integer, vnc integer)");
             sql.push_back("INSERT INTO lastval(id, mac, vnc) VALUES ('1', '244837814042624', '0')");
 
