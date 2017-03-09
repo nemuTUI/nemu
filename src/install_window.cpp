@@ -22,7 +22,7 @@ void EditInstallWindow::Create_fields()
 {
     for (size_t i = 0; i < field.size() - 1; ++i)
     {
-        field[i] = new_field(1, 37, i*2, 1, 0, 0);
+        field[i] = new_field(1, 41, i*2, 5, 0, 0);
         set_field_back(field[i], A_UNDERLINE);
     }
 

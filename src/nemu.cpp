@@ -344,7 +344,7 @@ int main(void)
                     {
                         const std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-                        std::unique_ptr<QMFormWindow> edit_install_window(new EditInstallWindow(cfg->db, cfg->vmdir, guest, 17, 60));
+                        std::unique_ptr<QMFormWindow> edit_install_window(new EditInstallWindow(cfg->db, cfg->vmdir, guest, 17, 67));
                         edit_install_window->Init();
                         edit_install_window->Print();
                     }
@@ -427,7 +427,7 @@ int main(void)
         }
         else if (choice == MenuAddVm)
         {
-            std::unique_ptr<QMFormWindow> add_window(new AddVmWindow(cfg->db, cfg->vmdir, 25, 60));
+            std::unique_ptr<QMFormWindow> add_window(new AddVmWindow(cfg->db, cfg->vmdir, 25, 67));
             add_window->Init();
             add_window->Print();
         }

@@ -32,7 +32,7 @@ void AddVmWindow::Create_fields()
 {
     for (size_t i = 0; i < field.size() - 1; ++i)
     {
-        field[i] = new_field(1, 35, i*2, 1, 0, 0);
+        field[i] = new_field(1, 38, i*2, 5, 0, 0);
         set_field_back(field[i], A_UNDERLINE);
     }
 
@@ -130,7 +130,7 @@ void AddVmWindow::Print_fields_names()
     mvwaddstr(window, 10, 2, cfree);
     mvwaddstr(window, 12, 2, _("Disk interface"));
     mvwaddstr(window, 14, 2, _("Path to ISO/IMG"));
-    mvwaddstr(window, 16, 2, _("Interfaces"));
+    mvwaddstr(window, 16, 2, _("Network interfaces"));
     mvwaddstr(window, 18, 2, _("Net driver"));
     mvwaddstr(window, 20, 2, _("USB [yes/no]"));
     mvwaddstr(window, 22, 2, _("USB device"));

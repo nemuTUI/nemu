@@ -21,10 +21,6 @@ msgstr ""
 msgid "Already installed (y/n)"
 msgstr "Уже установлен (y/n)"
 
-#: guest.cpp:120
-msgid "Something goes wrong. Delete root partition prevented."
-msgstr "Что-то пошло не так. Предотвращено удаление корня"
-
 #: qemu_manage.cpp:28
 msgid "Manage guests"
 msgstr "Управление гостями"
@@ -66,10 +62,6 @@ msgstr "Для перемещения используйте стрелки, в�
 msgid "F1 - help, F10 - main menu "
 msgstr "F1-помощь, F10-главное меню"
 
-#: windows.cpp:48
-msgid " info"
-msgstr " инфо"
-
 #: windows.cpp:135
 msgid "F10 - cancel, F2 - OK"
 msgstr "F10 - отмена, F2 - OK"
@@ -109,8 +101,8 @@ msgid "Path to BIOS"
 msgstr "Путь до BIOS"
 
 #: windows.cpp:311 windows.cpp:560
-msgid "Interfaces"
-msgstr "Интерфейсы"
+msgid "Network interfaces"
+msgstr "Сетевые интерфейсы"
 
 #: windows.cpp:312 windows.cpp:561
 msgid "USB [yes/no]"
@@ -118,7 +110,10 @@ msgstr "USB [yes/no]"
 
 #: windows.cpp:313 windows.cpp:562
 msgid "USB device"
-msgstr "USB девайс"
+msgstr "USB устройство"
+
+msgid "Disk interface"
+msgstr "Интерфейс дисков"
 
 #: windows.cpp:389
 msgid "Can't create guest dir"
@@ -149,34 +144,43 @@ msgid "Clone "
 msgstr "Клон "
 
 #: windows.cpp:853
-msgid "\"r\" - start guest"
-msgstr "\"r\" - включить гостя"
+msgid " r - start guest"
+msgstr " r - включить гостя"
 
 #: windows.cpp:854
-msgid "\"c\" - connect to guest via vnc"
-msgstr "\"c\" - подключиться по vnc"
+msgid " c - connect to guest via vnc"
+msgstr " c - подключиться по vnc"
 
 #: windows.cpp:855
-msgid "\"f\" - force stop guest"
-msgstr "\"f\" - принудительное выключение"
+msgid " f - force stop guest"
+msgstr " f - принудительное выключение"
 
-msgid "\"a\" - add virtual disk"
-msgstr "\"a\" - добавить виртуальный диск"
+msgid " a - add virtual disk"
+msgstr " a - добавить виртуальный диск"
 
 #: windows.cpp:856
-msgid "\"d\" - delete guest"
-msgstr "\"d\" - удалить гостя"
+msgid " d - delete guest"
+msgstr " d - удалить гостя"
 
 #: windows.cpp:857
-msgid "\"e\" - edit guest settings"
-msgstr "\"e\" - править натсройки гостя"
+msgid " e - edit guest settings"
+msgstr " e - править натсройки гостя"
 
-msgid "\"i\" - edit network settings"
-msgstr "\"i\" - править настройки сети"
+msgid " i - edit network settings"
+msgstr " i - править настройки сети"
 
 #: windows.cpp:858
-msgid "\"l\" - clone guest"
-msgstr "\"l\" - клонировать гостя"
+msgid " l - clone guest"
+msgstr " l - клонировать гостя"
+
+msgid " t - start guest in temporary mode"
+msgstr " t - включить гостя без сохранения"
+
+msgid " m - show command"
+msgstr " m - показать команду"
+
+msgid "running command for "
+msgstr "команда для запуска "
 
 msgid "Size [1-"
 msgstr "Размер [1-"
@@ -214,8 +218,8 @@ msgstr "Что-то пошло не так"
 msgid "Wrong mac address"
 msgstr "Неправильный мак адрес"
 
-msgid "\"s\" - edit boot settings"
-msgstr "\"s\" - править настройки загрузки"
+msgid " s - edit boot settings"
+msgstr " s - править настройки загрузки"
 
 msgid "OS Installed"
 msgstr "ОС Установлена"
@@ -253,5 +257,14 @@ msgstr "Путь до VNC клиента (введите \"/bin/false\" если
 msgid "Qemu system targets list, separated by comma"
 msgstr "Список установленных целей QEMU, разделенных запятой"
 
-msgid "Override mouse emulation"
+msgid "Sync mouse position"
 msgstr "Синхронизировать мышь"
+
+msgid "Path to kernel"
+msgstr "Путь до ядра"
+
+msgid "Kernel cmdline"
+msgstr "Аргументы ядра"
+
+msgid "Serial socket"
+msgstr "Serial сокет"

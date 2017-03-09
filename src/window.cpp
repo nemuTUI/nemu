@@ -68,7 +68,6 @@ VmInfoWindow::VmInfoWindow(const std::string &guest, const std::string &dbf,
                            int starty) : QMWindow(height, width, starty)
 {
     guest_ = guest;
-    title_ = guest_ + _(" info");
     dbf_ = dbf;
 }
 
@@ -76,7 +75,7 @@ CmdInfoWindow::CmdInfoWindow(const std::string &guest,
                   int height, int width, int starty)
 : QMWindow(height, width, starty), guest_(guest)
 {
-    title_ = guest_ + _(" running command");
+    title_ = _("running command for ") + guest_;
 }
 
 void CmdInfoWindow::Print()
@@ -99,7 +98,7 @@ void VmInfoWindow::Print()
 {
     clear();
     border(0,0,0,0,0,0,0,0);
-    mvprintw(1, (col - title_.size())/2, title_.c_str());
+    mvprintw(1, (col - guest_.size())/2, guest_.c_str());
     std::unique_ptr<QemuDb> db(new QemuDb(dbf_));
 
     sql_query = "SELECT * FROM vms WHERE name='" + guest_ + "'";

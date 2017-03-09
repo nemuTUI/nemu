@@ -20,7 +20,7 @@ void EditVmWindow::Create_fields()
 {
     for (size_t i = 0; i < field.size() - 1; ++i)
     {
-        field[i] = new_field(1, 35, (i+1)*2, 7, 0, 0);
+        field[i] = new_field(1, 38, (i+1)*2, 5, 0, 0);
         set_field_back(field[i], A_UNDERLINE);
     }
 
@@ -139,7 +139,7 @@ void EditVmWindow::Print_fields_names()
     snprintf(ccpu, sizeof(ccpu), "%s%u%s", _("CPU cores [1-"), cpu_count(), "]");
     snprintf(cmem, sizeof(cmem), "%s%u%s", _("Memory [64-"), total_memory(), "]Mb");
 
-    mvwaddstr(window, 2, 28, (vm_name_ + _(" settings:")).c_str());
+    mvwaddstr(window, 2, 26, (vm_name_ + _(" settings:")).c_str());
     mvwaddstr(window, 4, 2, ccpu);
     mvwaddstr(window, 6, 2, cmem);
     mvwaddstr(window, 8, 2, _("KVM [yes/no]"));
@@ -148,7 +148,7 @@ void EditVmWindow::Print_fields_names()
     mvwaddstr(window, 14, 2, _("Disk interface"));
     mvwaddstr(window, 16, 2, _("USB [yes/no]"));
     mvwaddstr(window, 18, 2, _("USB device"));
-    mvwaddstr(window, 20, 2, _("Override mouse emulation"));
+    mvwaddstr(window, 20, 2, _("Sync mouse position"));
 }
 
 void EditVmWindow::Get_data_from_db()
