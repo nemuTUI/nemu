@@ -39,6 +39,10 @@ void start_guest(const std::string &vm_name,
             std::string sql_query = "UPDATE vms SET install='0' WHERE name='" + vm_name + "'";
             db->ActionQuery(sql_query);
         }
+
+        /* Clear temporary flag while install */
+        if (data)
+            data->flags &= ~START_TEMP;
     }
 
     // Get guest parameters from database
