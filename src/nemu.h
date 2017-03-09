@@ -93,6 +93,7 @@ enum start_flags {
 struct start_data {
     uint32_t flags;
     std::string cmd;
+    start_data() : flags(0), cmd({}) {}
 };
 
 struct guest_t {

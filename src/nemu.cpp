@@ -226,7 +226,7 @@ int main(void)
 
                     else if (ch == MenuKeyR)
                     {
-                        struct start_data start = {};
+                        struct start_data start;
                         std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
                         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
@@ -244,7 +244,7 @@ int main(void)
 
                     else if (ch == MenuKeyT)
                     {
-                        struct start_data start = {};
+                        struct start_data start;
                         std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
                         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 

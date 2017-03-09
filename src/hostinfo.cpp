@@ -120,9 +120,11 @@ QManager::MapString *QManager::get_usb_list()
         for (n = 0; n < dev_count; n++)
         {
             libusb_device *device = list[n];
-            struct libusb_device_descriptor desc = {};
+            struct libusb_device_descriptor desc;
             std::string usb_id, usb_name;
             char buf[10] = {0};
+
+            memset(&desc, 0, sizeof(desc));
 
             if (libusb_get_device_descriptor(device, &desc) != 0)
                 continue;
