@@ -7,6 +7,7 @@
 #include <fcntl.h>
 
 #include "window.h"
+#include "guest.h"
 
 namespace QManager {
 
@@ -69,6 +70,29 @@ VmInfoWindow::VmInfoWindow(const std::string &guest, const std::string &dbf,
     guest_ = guest;
     title_ = guest_ + _(" info");
     dbf_ = dbf;
+}
+
+CmdInfoWindow::CmdInfoWindow(const std::string &guest,
+                  int height, int width, int starty)
+: QMWindow(height, width, starty), guest_(guest)
+{
+    title_ = guest_ + _(" running command");
+}
+
+void CmdInfoWindow::Print()
+{
+    clear();
+    const struct config *cfg = get_cfg();
+    struct start_data start = {};
+
+    start.flags |= START_FAKE;
+    start_guest(guest_, cfg->db, cfg->vmdir, &start);
+    mvprintw(1, (col - title_.size())/2, title_.c_str());
+    mvprintw(3, 0, "%s", start.cmd.c_str());
+
+    getch();
+    refresh();
+    clear();
 }
 
 void VmInfoWindow::Print()
@@ -190,6 +214,7 @@ void HelpWindow::Print()
     msg_->push_back(_(" a - add virtual disk"));
     msg_->push_back(_(" l - clone guest"));
     msg_->push_back(_(" s - edit boot settings"));
+    msg_->push_back(_(" m - show command"));
 
     for (auto &msg : *msg_)
     {

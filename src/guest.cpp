@@ -16,9 +16,15 @@ void start_guest(const std::string &vm_name,
     const struct config *cfg = get_cfg();
     bool iso_install = false;
     int unused __attribute__((unused));
+    std::string qemu_cmd;
+
+    if (!data)
+         return;
 
     const std::string guest_dir = vmdir + "/" + vm_name + "/";
-    std::string qemu_cmd = "( ";
+
+    if (!(data->flags & START_FAKE))
+        qemu_cmd += "( ";
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf));
 
@@ -26,7 +32,7 @@ void start_guest(const std::string &vm_name,
     const std::string sql_query = "SELECT * FROM vms WHERE name='" + vm_name + "'";
     db->SelectQuery(sql_query, &guest);
 
-    if (guest[SQL_IDX_INST] == "1")
+    if ((guest[SQL_IDX_INST] == "1") && (!(data->flags & START_FAKE)))
     {
         uint32_t ch;
         std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Already installed (y/n)"), 3, 25, 7));
@@ -41,8 +47,7 @@ void start_guest(const std::string &vm_name,
         }
 
         /* Clear temporary flag while install */
-        if (data)
-            data->flags &= ~START_TEMP;
+        data->flags &= ~START_TEMP;
     }
 
     // Get guest parameters from database
@@ -99,14 +104,17 @@ void start_guest(const std::string &vm_name,
     }
     if (!guest[SQL_IDX_SOCK].empty())
     {
-        struct stat info;
-
-        if (stat(guest[SQL_IDX_SOCK].c_str(), &info) != -1)
+        if (!(data->flags & START_FAKE))
         {
-            std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Socket is already used!"), 3, 30, 7));
-            Warn->Init();
-            Warn->Print(Warn->window);
-            return;
+            struct stat info;
+
+            if (stat(guest[SQL_IDX_SOCK].c_str(), &info) != -1)
+            {
+                std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Socket is already used!"), 3, 30, 7));
+                Warn->Init();
+                Warn->Print(Warn->window);
+                return;
+            }
         }
 
         qemu_cmd += " -chardev socket,path=" + guest[SQL_IDX_SOCK] +
@@ -115,34 +123,35 @@ void start_guest(const std::string &vm_name,
     }
     if (!guest[SQL_IDX_TTY].empty())
     {
-        int fd;
+        if (!(data->flags & START_FAKE))
+        {
+            int fd;
 
-        if ((fd = open(guest[SQL_IDX_TTY].c_str(), O_RDONLY)) == -1)
-        {
-            std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("TTY is missing!"), 3, 30, 7));
-            Warn->Init();
-            Warn->Print(Warn->window);
-            return;
-        }
-        if (!isatty(fd))
-        {
+            if ((fd = open(guest[SQL_IDX_TTY].c_str(), O_RDONLY)) == -1)
+            {
+                std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("TTY is missing!"), 3, 30, 7));
+                Warn->Init();
+                Warn->Print(Warn->window);
+                return;
+            }
+            if (!isatty(fd))
+            {
+                close(fd);
+                std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("TTY is not terminal!"), 3, 30, 7));
+                Warn->Init();
+                Warn->Print(Warn->window);
+                return;
+            }
             close(fd);
-            std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("TTY is not terminal!"), 3, 30, 7));
-            Warn->Init();
-            Warn->Print(Warn->window);
-            return;
         }
-        close(fd);
+
         qemu_cmd += " -chardev tty,path=" + guest[SQL_IDX_TTY] +
             ",id=tty_" + vm_name +
             " -device isa-serial,chardev=tty_" + vm_name;
     }
 
-    if (data)
-    {
-        if (data->flags & START_TEMP)
-            qemu_cmd += " -snapshot";
-    }
+    if (data->flags & START_TEMP)
+        qemu_cmd += " -snapshot";
 
     qemu_cmd += " -pidfile " + guest_dir + "qemu.pid";
     qemu_cmd += " -m " + guest[SQL_IDX_MEM];
@@ -151,6 +160,12 @@ void start_guest(const std::string &vm_name,
         qemu_cmd += " -vnc 127.0.0.1:" + guest[SQL_IDX_VNC];
     else
         qemu_cmd += " -vnc :" + guest[SQL_IDX_VNC];
+
+    if (data->flags & START_FAKE)
+    {
+         data->cmd = qemu_cmd;
+         return;
+    }
 
     qemu_cmd += " > /dev/null 2>&1; rm -f " + guest_dir + "qemu.pid )&";
 

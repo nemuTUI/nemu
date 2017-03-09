@@ -55,6 +55,17 @@ private:
     VectorString guest_info;
 };
 
+class CmdInfoWindow : public QMWindow
+{
+public:
+    CmdInfoWindow(const std::string &guest,
+                  int height, int width, int starty = 7);
+    virtual void Print();
+
+private:
+    std::string guest_, title_;
+};
+
 class HelpWindow : public QMWindow
 {
 public:

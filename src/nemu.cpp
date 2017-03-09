@@ -217,8 +217,16 @@ int main(void)
                         vminfo_window->Print();
                     }
 
+                    else if (ch == MenuKeyM)
+                    {
+                        std::string guest = guests.at((guest_first + q_highlight) - 1);
+                        std::unique_ptr<QMWindow> cmdinfo_window(new CmdInfoWindow(guest, 10, 30));
+                        cmdinfo_window->Print();
+                    }
+
                     else if (ch == MenuKeyR)
                     {
+                        struct start_data start = {};
                         std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
                         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
@@ -231,12 +239,12 @@ int main(void)
                             Warn->Print(Warn->window);
                         }
                         else
-                            start_guest(guest, cfg->db, cfg->vmdir, NULL);
+                            start_guest(guest, cfg->db, cfg->vmdir, &start);
                     }
 
                     else if (ch == MenuKeyT)
                     {
-                        struct start_data start;
+                        struct start_data start = {};
                         std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
                         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
 
@@ -367,7 +375,7 @@ int main(void)
 
                     else if (ch == KEY_F(1))
                     {
-                        std::unique_ptr<QMWindow> help_window(new HelpWindow(14, 40));
+                        std::unique_ptr<QMWindow> help_window(new HelpWindow(15, 40));
                         help_window->Init();
                         help_window->Print();
                     }
