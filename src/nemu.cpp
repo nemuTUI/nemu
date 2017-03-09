@@ -231,7 +231,28 @@ int main(void)
                             Warn->Print(Warn->window);
                         }
                         else
-                            start_guest(guest, cfg->db, cfg->vmdir);
+                            start_guest(guest, cfg->db, cfg->vmdir, NULL);
+                    }
+
+                    else if (ch == MenuKeyT)
+                    {
+                        struct start_data start;
+                        std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
+                        vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
+
+                        std::string guest = guests.at((guest_first + q_highlight) - 1);
+
+                        if (vm_list->vm_status.at(guest) == "running")
+                        {
+                            std::unique_ptr<PopupWarning> Warn(new PopupWarning(_("Already running!"), 3, 20, 7));
+                            Warn->Init();
+                            Warn->Print(Warn->window);
+                        }
+                        else
+                        {
+                            start.flags |= START_TEMP;
+                            start_guest(guest, cfg->db, cfg->vmdir, &start);
+                        }
                     }
 
                     else if (ch == MenuKeyC)
@@ -346,7 +367,7 @@ int main(void)
 
                     else if (ch == KEY_F(1))
                     {
-                        std::unique_ptr<QMWindow> help_window(new HelpWindow(13, 40));
+                        std::unique_ptr<QMWindow> help_window(new HelpWindow(14, 40));
                         help_window->Init();
                         help_window->Print();
                     }

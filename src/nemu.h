@@ -58,6 +58,7 @@ enum input_choices {
     MenuKeyE = 101, MenuKeyL = 108,
     MenuKeyY = 121, MenuKeyA = 97,
     MenuKeyI = 105, MenuKeyS = 115,
+    MenuKeyT = 116
 };
 
 enum select_idx {
@@ -82,6 +83,16 @@ enum select_idx {
     SQL_IDX_KAPP,
     SQL_IDX_TTY,
     SQL_IDX_SOCK
+};
+
+enum start_flags {
+    START_TEMP = (1 << 0),
+    START_FAKE = (1 << 1)
+};
+
+struct start_data {
+    uint32_t flags;
+    std::string cmd;
 };
 
 struct guest_t {

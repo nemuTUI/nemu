@@ -7,7 +7,8 @@ namespace QManager {
 
 void start_guest(const std::string &vm_name,
                  const std::string &dbf,
-                 const std::string &vmdir);
+                 const std::string &vmdir,
+                 struct start_data *data);
 
 void delete_guest(const std::string &vm_name,
                   const std::string &dbf,

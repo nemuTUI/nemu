@@ -9,7 +9,8 @@ namespace QManager {
 
 void start_guest(const std::string &vm_name,
                  const std::string &dbf,
-                 const std::string &vmdir)
+                 const std::string &vmdir,
+                 struct start_data *data)
 {
     VectorString guest;
     const struct config *cfg = get_cfg();
@@ -131,6 +132,12 @@ void start_guest(const std::string &vm_name,
         qemu_cmd += " -chardev tty,path=" + guest[SQL_IDX_TTY] +
             ",id=tty_" + vm_name +
             " -device isa-serial,chardev=tty_" + vm_name;
+    }
+
+    if (data)
+    {
+        if (data->flags & START_TEMP)
+            qemu_cmd += " -snapshot";
     }
 
     qemu_cmd += " -pidfile " + guest_dir + "qemu.pid";

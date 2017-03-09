@@ -181,6 +181,7 @@ void HelpWindow::Print()
     msg_->push_back(" nEMU v" + std::string(VERSION));
     msg_->push_back("");
     msg_->push_back(_(" r - start guest"));
+    msg_->push_back(_(" t - start guest in temporary mode"));
     msg_->push_back(_(" c - connect to guest via vnc"));
     msg_->push_back(_(" f - force stop guest"));
     msg_->push_back(_(" d - delete guest"));
