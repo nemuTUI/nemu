@@ -83,7 +83,7 @@ void CmdInfoWindow::Print()
 {
     clear();
     const struct config *cfg = get_cfg();
-    struct start_data start = {};
+    struct start_data start;
 
     start.flags |= START_FAKE;
     start_guest(guest_, cfg->db, cfg->vmdir, &start);
