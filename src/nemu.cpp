@@ -54,6 +54,7 @@ int main(void)
     noecho();
     curs_set(0);
 
+    /* {{{ Main loop start, print main window */
     for (;;)
     {
         uint32_t choice = 0;
@@ -69,6 +70,7 @@ int main(void)
         main_menu = new MenuList(main_window->window, highlight);
         main_menu->Print(choices.begin(), choices.end());
 
+        /* {{{ Get user input */
         while ((ch = wgetch(main_window->window)))
         {
             switch (ch) {
@@ -122,8 +124,9 @@ int main(void)
 
             if (choice != 0)
                 break;
-        }
+        } /* }}} get user input */
 
+        /* {{{ Print VM list */
         if (choice == MenuVmlist)
         {
             const std::string sql_list_vm = "select name from vms order by name asc";
@@ -210,13 +213,15 @@ int main(void)
                             q_highlight++;
                     }
 
+                    /* {{{ Print VM info */
                     else if (ch == MenuKeyEnter)
                     {
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
                         std::unique_ptr<QMWindow> vminfo_window(new VmInfoWindow(guest, cfg->db, 10, 30));
                         vminfo_window->Print();
-                    }
+                    } /* }}} */
 
+                    /* {{{ Nemu */
                     else if (ch == MenuKeyM)
                     {
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
@@ -238,8 +243,9 @@ int main(void)
                             nemu_window->Print();
                             nemu = 0;
                         }
-                    }
+                    } /* }}} */
 
+                    /* {{{ Start VM */
                     else if (ch == MenuKeyR)
                     {
                         struct start_data start;
@@ -256,8 +262,9 @@ int main(void)
                         }
                         else
                             start_guest(guest, cfg->db, cfg->vmdir, &start);
-                    }
+                    } /* }}} */
 
+                    /* {{{ Start VM in temporary mode */
                     else if (ch == MenuKeyT)
                     {
                         struct start_data start;
@@ -277,8 +284,9 @@ int main(void)
                             start.flags |= START_TEMP;
                             start_guest(guest, cfg->db, cfg->vmdir, &start);
                         }
-                    }
+                    } /* }}} */
 
+                    /* {{{ Connect to VM */
                     else if (ch == MenuKeyC)
                     {
                         std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
@@ -288,8 +296,9 @@ int main(void)
 
                         if (vm_list->vm_status.at(guest) == "running")
                             connect_guest(guest, cfg->db);
-                    }
+                    } /* }}} */
 
+                    /* {{{ Delete VM */
                     else if (ch == MenuKeyD)
                     {
                         std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
@@ -316,8 +325,9 @@ int main(void)
                                 break;
                             }
                         }
-                    }
+                    } /* }}} */
 
+                    /* {{{ Force stop VM */
                     else if (ch == MenuKeyF)
                     {
                         std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
@@ -327,8 +337,9 @@ int main(void)
 
                         if (vm_list->vm_status.at(guest) == "running")
                             kill_guest(guest);
-                    }
-     
+                    } /* }}} */
+
+                    /* {{{ Edit VM settings */
                     else if (ch == MenuKeyE)
                     {
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
@@ -336,8 +347,9 @@ int main(void)
                         std::unique_ptr<QMFormWindow> edit_window(new EditVmWindow(cfg->db, cfg->vmdir, guest, 23, 67));
                         edit_window->Init();
                         edit_window->Print();
-                    }
+                    } /* }}} */
 
+                    /* {{{ Add disk image */
                     else if (ch == MenuKeyA)
                     {
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
@@ -345,8 +357,9 @@ int main(void)
                         std::unique_ptr<QMFormWindow> add_disk_window(new AddDiskWindow(cfg->db, cfg->vmdir, guest, 7, 35));
                         add_disk_window->Init();
                         add_disk_window->Print();
-                    }
+                    } /* }}} */
 
+                    /* {{{ Edit network settings */
                     else if (ch == MenuKeyI)
                     {
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
@@ -354,8 +367,9 @@ int main(void)
                         std::unique_ptr<QMFormWindow> edit_net_window(new EditNetWindow(cfg->db, cfg->vmdir, guest, 9, 39));
                         edit_net_window->Init();
                         edit_net_window->Print();
-                    }
+                    } /* }}} */
 
+                    /* {{{ Edit VM settings */
                     else if (ch == MenuKeyS)
                     {
                         const std::string guest = guests.at((guest_first + q_highlight) - 1);
@@ -363,8 +377,9 @@ int main(void)
                         std::unique_ptr<QMFormWindow> edit_install_window(new EditInstallWindow(cfg->db, cfg->vmdir, guest, 17, 67));
                         edit_install_window->Init();
                         edit_install_window->Print();
-                    }
+                    } /* }}} */
 
+                    /* {{{ Clone VM */
                     else if (ch == MenuKeyL)
                     {
                         std::unique_ptr<VmList> vm_list(new VmList(vm_window->window, q_highlight, cfg->vmdir));
@@ -387,15 +402,17 @@ int main(void)
                             // Exit from loop to reread guests
                             break;
                         }
-                    }
+                    } /* }}} */
 
+                    /* {{{ Print help */
                     else if (ch == KEY_F(1))
                     {
                         std::unique_ptr<QMWindow> help_window(new HelpWindow(15, 40));
                         help_window->Init();
                         help_window->Print();
-                    }
+                    } /* }}} */
 
+                    /* {{{ Back to main window */
                     else if (ch == KEY_F(10))
                     {
                         if (vm_window)
@@ -437,24 +454,28 @@ int main(void)
                             delete vm_list;
                         vm_list = new VmList(vm_window->window, q_highlight, cfg->vmdir);
                         vm_list->Print(guests.begin() + guest_first, guests.begin() + guest_last);
-                    }
+                    } /* }}} */
                 }
             }
-        }
+        } /* }}} VM list */
+
+        /* {{{ Install VM window */
         else if (choice == MenuAddVm)
         {
             std::unique_ptr<QMFormWindow> add_window(new AddVmWindow(cfg->db, cfg->vmdir, 25, 67));
             add_window->Init();
             add_window->Print();
-        }
+        } /* }}} */
+
+        /* {{{ exit nEMU */
         else if (choice == MenuQuit)
         {
             clear();
             refresh();
             endwin();
             exit(0);
-        }
-    }
+        } /* }}} */
+    } /* }}} main loop */
 
     return 0;
 }
@@ -467,3 +488,4 @@ static void signals_handler(int signal)
         break;
     }
 }
+/* vim:set ts=4 sw=4 fdm=marker: */
