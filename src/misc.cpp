@@ -425,3 +425,4 @@ bool append_path(const std::string &input, std::string &result)
 }
 
 } // namespace QManager
+/* vim:set ts=4 sw=4 fdm=marker: */

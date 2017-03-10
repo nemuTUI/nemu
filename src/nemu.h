@@ -118,3 +118,4 @@ private:
 } // namespace QManager
 
 #endif /* NEMU_H_ */
+/* vim:set ts=4 sw=4 fdm=marker: */

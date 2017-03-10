@@ -142,3 +142,4 @@ void QMFormWindow::Draw_form()
 }
 
 } // namespace QManager
+/* vim:set ts=4 sw=4 fdm=marker: */

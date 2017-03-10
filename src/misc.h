@@ -26,3 +26,4 @@ void init_cfg();
 } // namespace QManager
 
 #endif
+/* vim:set ts=4 sw=4 fdm=marker: */

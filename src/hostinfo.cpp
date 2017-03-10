@@ -162,3 +162,4 @@ QManager::MapString *QManager::get_usb_list()
 
     return &u_list;
 }
+/* vim:set ts=4 sw=4 fdm=marker: */

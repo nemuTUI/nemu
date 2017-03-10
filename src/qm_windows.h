@@ -10,3 +10,4 @@
 #include "edit_net_window.h"
 
 #endif
+/* vim:set ts=4 sw=4 fdm=marker: */

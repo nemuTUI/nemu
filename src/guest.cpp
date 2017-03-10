@@ -265,3 +265,4 @@ void kill_guest(const std::string &vm_name)
 }
 
 } // namespace QManager
+/* vim:set ts=4 sw=4 fdm=marker: */

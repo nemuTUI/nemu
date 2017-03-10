@@ -368,3 +368,4 @@ void EditVmWindow::Print()
 }
 
 } // namespace QManager
+/* vim:set ts=4 sw=4 fdm=marker: */
