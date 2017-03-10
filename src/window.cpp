@@ -316,9 +316,7 @@ void NemuWindow::Print()
     clear();
 
     for (auto &n : nemu)
-    {
         mvprintw(line++, 0, "%s", n.c_str());
-    }
 
     getch();
     refresh();

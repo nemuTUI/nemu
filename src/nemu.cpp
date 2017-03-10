@@ -233,8 +233,6 @@ int main(void)
                         if (ch == 0x4d && nemu == 2)
                              nemu++;
                         if (ch == 0x55 && nemu == 3)
-                             nemu++;
-                        if (nemu == 4)
                         {
                             std::unique_ptr<NemuWindow> nemu_window(new NemuWindow(10, 30));
                             nemu_window->Print();
