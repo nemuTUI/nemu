@@ -66,6 +66,13 @@ private:
     std::string guest_, title_;
 };
 
+class NemuWindow : public QMWindow
+{
+public:
+    NemuWindow(int height, int width, int starty = 7);
+    virtual void Print();
+};
+
 class HelpWindow : public QMWindow
 {
 public:

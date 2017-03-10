@@ -47,7 +47,7 @@ int main(void)
     };
 
     uint32_t highlight = 1;
-    uint32_t ch;
+    uint32_t ch, nemu = 0;
 
     initscr();
     raw();
@@ -222,6 +222,24 @@ int main(void)
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
                         std::unique_ptr<QMWindow> cmdinfo_window(new CmdInfoWindow(guest, 10, 30));
                         cmdinfo_window->Print();
+                    }
+
+                    else if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)
+                    {
+                        if (ch == 0x6e && !nemu)
+                             nemu++;
+                        if (ch == 0x45 && nemu == 1)
+                             nemu++;
+                        if (ch == 0x4d && nemu == 2)
+                             nemu++;
+                        if (ch == 0x55 && nemu == 3)
+                             nemu++;
+                        if (nemu == 4)
+                        {
+                            std::unique_ptr<NemuWindow> nemu_window(new NemuWindow(10, 30));
+                            nemu_window->Print();
+                            nemu = 0;
+                        }
                     }
 
                     else if (ch == MenuKeyR)

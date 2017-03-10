@@ -264,4 +264,65 @@ VmList::VmList(WINDOW *menu_window, uint32_t &highlight, const std::string &vmdi
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
 }
 
+NemuWindow::NemuWindow(int height, int width, int starty)
+: QMWindow(height, width, starty)
+{
+}
+
+void NemuWindow::Print()
+{
+    int line = 0;
+    VectorString nemu;
+
+    nemu.push_back("            .x@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@o.           ");
+    nemu.push_back("          .x@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@x.          ");
+    nemu.push_back("         o@@@@@@@@@@@@@x@@@@@@@@@@@@@@@@@@@@@@@@@o         ");
+    nemu.push_back("       .x@@@@@@@@x@@@@xx@@@@@@@@@@@@@@@@@@@@@@@@@@o        ");
+    nemu.push_back("      .x@@@@@@@x. .x@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.       ");
+    nemu.push_back("      x@@@@@ox@x..o@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.      ");
+    nemu.push_back("     o@@@@@@xx@@@@@@@@@@@@@@@@@@@@@@@@x@@@@@@@@@@@@@o      ");
+    nemu.push_back("    .x@@@@@@@@@@x@@@@@@@@@@@@@@@@@@@@@o@@@@@@@@@@@@@@.     ");
+    nemu.push_back("    .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@x.@@@@@@@@@@@@@@o     ");
+    nemu.push_back("    o@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@xx..o@@@@@@@@@@@@@x     ");
+    nemu.push_back("    x@@@@@@@@@@@@@@@@@@xxoooooooo........oxxx@@@@@@@@x.    ");
+    nemu.push_back("    x@@@@@@@@@@x@@@@@@x. .oxxx@@xo.       .oxo.o@@@@@x     ");
+    nemu.push_back("    o@@@@@@@@x..o@@@@@o .xxx@@@o ..      .x@ooox@@@@@o     ");
+    nemu.push_back("    .x@@@@@@@oo..x@@@@.  ...oo..         .oo. o@@@@@o.     ");
+    nemu.push_back("     .x@@@@@@xoooo@@@@.                       x@@@x..      ");
+    nemu.push_back("       o@@@@@@ooxx@@@@.                 .    .@@@x..       ");
+    nemu.push_back("        .o@@@@@@o.x@@@.                 ..   o@@x.         ");
+    nemu.push_back("         .x@@@@@@xx@@@.                 ..  .x@o           ");
+    nemu.push_back("         o@@@@@@@o.x@@.                    .x@x.           ");
+    nemu.push_back("         o@@@@@@@o o@@@xo.         .....  .x@x.            ");
+    nemu.push_back("          .@@@@@x. .x@o.x@x..           .o@@@.             ");
+    nemu.push_back("         .x@@@@@o.. o@o  .o@@xoo..    .o..@@o              ");
+    nemu.push_back("          o@@@@oo@@xx@x.   .x@@@ooooooo. o@x.              ");
+    nemu.push_back("         .o@@o..xx@@@@@xo.. o@x.         xx.               ");
+    nemu.push_back("          .oo. ....ox@@@@@@xx@o          xo.               ");
+    nemu.push_back("          ....       .o@@@@@@@@o        .@..               ");
+    nemu.push_back("           ...         ox.ox@@@.        .x..               ");
+    nemu.push_back("            ...        .x. .@@x.        .o                 ");
+    nemu.push_back("              .         .o .@@o.         o                 ");
+    nemu.push_back("                         o. x@@o         .                 ");
+    nemu.push_back("                         .o o@@..        .                 ");
+    nemu.push_back("                          ...@o..        .                 ");
+    nemu.push_back("                           .x@xo.                          ");
+    nemu.push_back("                            .x..                           ");
+    nemu.push_back("                           .x....                          ");
+    nemu.push_back("                           o@..xo                          ");
+    nemu.push_back("                           o@o oo                          ");
+    nemu.push_back("                           ..                              ");
+
+    clear();
+
+    for (auto &n : nemu)
+    {
+        mvprintw(line++, 0, "%s", n.c_str());
+    }
+
+    getch();
+    refresh();
+    clear();
+}
+
 } // namespace QManager
