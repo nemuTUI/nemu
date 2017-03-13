@@ -54,11 +54,12 @@ struct nlmsgerr {
 };
 
 static bool manage_tap(const std::string &name, int on_off);
-static void link_change(const std::string &name, int action, const std::string &data);
+static void link_change(const std::string &name, int action);
 static void addr_change(const std::string &name, int action, const std::string &data);
 static uint32_t get_tap_index(const std::string name);
 static void rtnl_open(struct rtnl_handle *rth);
 static void rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n);
+static bool add_attr(struct nlmsghdr *n, size_t mlen, int type, const void *data, size_t dlen);
 
 bool net_add_tap(const std::string &name)
 {
@@ -91,6 +92,25 @@ bool net_set_ipaddr(const std::string &name, const std::string &addr)
 static inline uint32_t get_tap_index(const std::string name)
 {
     return if_nametoindex(name.c_str());
+}
+
+static bool add_attr(struct nlmsghdr *n, size_t mlen, int type, const void *data, size_t dlen)
+{
+    size_t len = RTA_LENGTH(dlen);
+    struct rtattr *rta;
+
+    if (NLMSG_ALIGN(n->nlmsg_len) + RTA_ALIGN(len) > mlen)
+    {
+        return false;
+    }
+
+    rta = (struct rtattr *) (((void *) n) + NLMSG_ALIGN(n->nlmsg_len));
+    rta->rta_type = type;
+    rta->rta_len = len;
+    memcpy(RTA_DATA(rta), data, dlen);
+    n->nlmsg_len = NLMSG_ALIGN(n->nlmsg_len) + RTA_ALIGN(len);
+
+    return true;
 }
 
 static void rtnl_open(struct rtnl_handle *rth)
@@ -167,7 +187,7 @@ static void rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n)
     }
 }
 
-static void link_change(const std::string &name, int action, const std::string &data)
+static void link_change(const std::string &name, int action)
 {
     struct iplink_req req;
     struct rtnl_handle rth;
@@ -220,9 +240,50 @@ static void addr_change(const std::string &name, int action, const std::string &
 
     req.i.ifa_family = AF_INET;
     req.i.ifa_index = dev_index;
+    req.i.ifa_scope = 0;
 
     switch (action) {
     case SET_LINK_ADDR:
+        {
+            struct in_addr addr;
+            struct in_addr brd;
+            struct in_addr mask;
+            uint32_t cidr;
+            VectorString vsaddr;
+            char *token;
+            char *saveptr = const_cast<char *>(data.c_str());
+
+            while ((token = strtok_r(saveptr, "/", &saveptr)))
+                vsaddr.push_back(token);
+
+            if (vsaddr.size() != 2)
+                throw std::runtime_error(_("Invalid address format: expected IPv4/CIDR"));
+
+            if (inet_pton(AF_INET, vsaddr[0].c_str(), &addr.s_addr) != 1)
+                throw std::runtime_error(_("Invalid IPv4 address"));
+
+            try {
+                cidr = std::stoi(vsaddr[1]);
+            }
+            catch (const std::out_of_range &e) {
+                throw std::runtime_error(_("Out of range"));
+            }
+
+            if (cidr > 32 || !cidr)
+                throw std::runtime_error(_("Invalid CIDR expected: [1-32]"));
+
+            mask.s_addr = 0xfffffff;
+            mask.s_addr <<= 32 - cidr;
+            mask.s_addr = htonl(mask.s_addr);
+            brd.s_addr = addr.s_addr | (~mask.s_addr);
+            req.i.ifa_prefixlen = cidr;
+
+            if (!add_attr(&req.n, sizeof(req), IFA_LOCAL, &addr.s_addr, sizeof(addr.s_addr)) ||
+                !add_attr(&req.n, sizeof(req), IFA_BROADCAST, &brd.s_addr, sizeof(brd.s_addr)))
+            {
+                throw std::runtime_error(_("Error add_attr"));
+            }
+        }
         break;
     }
 
@@ -264,7 +325,7 @@ static bool manage_tap(const std::string &name, int on_off)
         }
 
         if (on_off == TAP_ON)
-            link_change(name, SET_LINK_UP, "");
+            link_change(name, SET_LINK_UP);
     }
     catch (const std::runtime_error &e)
     {
