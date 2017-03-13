@@ -141,7 +141,7 @@ void VmInfoWindow::Print()
     {
         mvprintw(++y, col/4, "%s%u%-8s%s [%s] [%s]",
                  "eth", i++, ":", ifs.first.c_str(),
-                 ifs.second[0].c_str(), ifs.second[1].c_str());
+                 ifs.second[IFS_MAC].c_str(), ifs.second[IFS_DRV].c_str());
     }
 
     // Generate guest hd images info
@@ -156,7 +156,7 @@ void VmInfoWindow::Print()
                  "[", hd.second.c_str(), "Gb]");
     }
 
-    // Generate guest boot settings info
+    /* {{{ Generate guest boot settings info */
     if (!guest_info[SQL_IDX_BIOS].empty())
         mvprintw(++y, col/4, "%-12s%s", "bios: ", guest_info[SQL_IDX_BIOS].c_str());
     if (!guest_info[SQL_IDX_KERN].empty())
@@ -167,8 +167,9 @@ void VmInfoWindow::Print()
         mvprintw(++y, col/4, "%-12s%s", "tty: ", guest_info[SQL_IDX_TTY].c_str());
     if (!guest_info[SQL_IDX_SOCK].empty())
         mvprintw(++y, col/4, "%-12s%s", "socket: ", guest_info[SQL_IDX_SOCK].c_str());
+    /* }}} boot settings */
 
-    // Show PID.
+    /* {{{ Print PID */
     {
         int fd;
         const std::string pid_path = get_cfg()->vmdir + "/" + guest_ + "/qemu.pid";
@@ -185,7 +186,17 @@ void VmInfoWindow::Print()
             }
             close(fd);
         }
-    }
+    } /* }}} PID */
+
+    /* {{{ Print host IP addresses for TAP ints */
+    y++;
+    for (auto &ifs : ints)
+    {
+        if (ifs.second[IFS_IPV4].empty())
+            continue;
+        mvprintw(++y, col/4, "%-12s%s [%s]", "Host IP: ",
+            ifs.first.c_str(), ifs.second[IFS_IPV4].c_str());
+    } /* }}} */
 
     getch();
     refresh();

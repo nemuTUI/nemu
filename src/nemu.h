@@ -85,6 +85,12 @@ enum select_idx {
     SQL_IDX_SOCK
 };
 
+enum ifs_idx {
+    IFS_MAC = 0,
+    IFS_DRV,
+    IFS_IPV4
+};
+
 enum start_flags {
     START_TEMP = (1 << 0),
     START_FAKE = (1 << 1)

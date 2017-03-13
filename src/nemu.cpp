@@ -129,7 +129,7 @@ int main(void)
         /* {{{ Print VM list */
         if (choice == MenuVmlist)
         {
-            const std::string sql_list_vm = "select name from vms order by name asc";
+            const std::string sql_list_vm = "SELECT name FROM vms ORDER BY name ASC";
             VectorString guests;
 
             std::unique_ptr<QemuDb> db(new QemuDb(cfg->db));

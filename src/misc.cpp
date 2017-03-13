@@ -288,13 +288,21 @@ MapStringVector Read_ifaces_from_json(const std::string &str)
     boost::property_tree::ptree ptr;
     boost::property_tree::json_parser::read_json(ss, ptr);
 
-    for (auto &i : ptr.get_child("ifaces"))
+    try
     {
-        std::vector<std::string> values;
-        std::string key = i.second.get<std::string>("name");
-        values.push_back(i.second.get<std::string>("mac"));
-        values.push_back(i.second.get<std::string>("drv"));
-        result.insert(std::make_pair(key, values));
+        for (auto &i : ptr.get_child("ifaces"))
+        {
+            std::vector<std::string> values;
+            std::string key = i.second.get<std::string>("name");
+            values.push_back(i.second.get<std::string>("mac"));
+            values.push_back(i.second.get<std::string>("drv"));
+            values.push_back(i.second.get<std::string>("ip4"));
+            result.insert(std::make_pair(key, values));
+        }
+    }
+    catch (const boost::property_tree::ptree_bad_path &e)
+    {
+        err_exit(e.what(), _("Database error"));
     }
 
     return result;

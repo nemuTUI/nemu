@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 
 #include "guest.h"
+#include "network.h"
 
 namespace QManager {
 
@@ -28,7 +29,7 @@ void start_guest(const std::string &vm_name,
 
     std::unique_ptr<QemuDb> db(new QemuDb(dbf));
 
-    // Check if system is already installed
+    /* {{{ Check if VM is already installed */
     const std::string sql_query = "SELECT * FROM vms WHERE name='" + vm_name + "'";
     db->SelectQuery(sql_query, &guest);
 
@@ -48,9 +49,8 @@ void start_guest(const std::string &vm_name,
 
         /* Clear temporary flag while install */
         data->flags &= ~START_TEMP;
-    }
+    } /* }}} */
 
-    // Get guest parameters from database
     if (!guest[SQL_IDX_ISO].empty() && guest[SQL_IDX_ISO].length() > 4)
     {
         if ((guest[SQL_IDX_ISO].compare(guest[SQL_IDX_ISO].size() - 4, 4, ".iso")) == 0)
@@ -79,8 +79,10 @@ void start_guest(const std::string &vm_name,
 
     for (auto &ifs : ints)
     {
-        qemu_cmd += " -net nic,macaddr=" + ifs.second[0] + ",model=" + ifs.second[1];
+        qemu_cmd += " -net nic,macaddr=" + ifs.second[IFS_MAC] + ",model=" + ifs.second[IFS_DRV];
         qemu_cmd += " -net tap,ifname=" + ifs.first + ",script=no,downscript=no";
+        if (!ifs.second[IFS_IPV4].empty())
+            add_tap(ifs.first);
     }
 
     if (guest[SQL_IDX_OVER] == "1")
@@ -102,6 +104,8 @@ void start_guest(const std::string &vm_name,
         if (!guest[SQL_IDX_KAPP].empty())
             qemu_cmd += " -append \"" + guest[SQL_IDX_KAPP] + "\"";
     }
+
+    /* {{{ Setup serial socket */
     if (!guest[SQL_IDX_SOCK].empty())
     {
         if (!(data->flags & START_FAKE))
@@ -120,7 +124,9 @@ void start_guest(const std::string &vm_name,
         qemu_cmd += " -chardev socket,path=" + guest[SQL_IDX_SOCK] +
             ",server,nowait,id=socket_" + vm_name +
             " -device isa-serial,chardev=socket_" + vm_name;
-    }
+    } /* }}} Socket */
+
+    /* {{{ Setup serial TTY */
     if (!guest[SQL_IDX_TTY].empty())
     {
         if (!(data->flags & START_FAKE))
@@ -148,7 +154,7 @@ void start_guest(const std::string &vm_name,
         qemu_cmd += " -chardev tty,path=" + guest[SQL_IDX_TTY] +
             ",id=tty_" + vm_name +
             " -device isa-serial,chardev=tty_" + vm_name;
-    }
+    } /* }}} TTY */
 
     if (data->flags & START_TEMP)
         qemu_cmd += " -snapshot";
