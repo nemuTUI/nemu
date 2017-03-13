@@ -36,6 +36,12 @@ struct iplink_req {
     char buf[1024];
 };
 
+struct ipaddr_req {
+    struct nlmsghdr n;
+    struct ifaddrmsg i;
+    char buf[256];
+};
+
 struct rtnl_handle {
     int32_t sd;
     uint32_t seq;
@@ -48,19 +54,38 @@ struct nlmsgerr {
 };
 
 static bool manage_tap(const std::string &name, int on_off);
-static bool link_up(const std::string &name);
+static void link_change(const std::string &name, int action, const std::string &data);
+static void addr_change(const std::string &name, int action, const std::string &data);
 static uint32_t get_tap_index(const std::string name);
 static void rtnl_open(struct rtnl_handle *rth);
 static void rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n);
 
-bool add_tap(const std::string &name)
+bool net_add_tap(const std::string &name)
 {
     return manage_tap(name, TAP_ON);
 }
 
-bool del_tap(const std::string &name)
+bool net_del_tap(const std::string &name)
 {
     return manage_tap(name, TAP_OFF);
+}
+
+bool net_set_ipaddr(const std::string &name, const std::string &addr)
+{
+    bool rc = true;
+    try
+    {
+        addr_change(name, SET_LINK_ADDR, addr);
+    }
+    catch (const std::runtime_error &e)
+    {
+        std::unique_ptr<PopupWarning> Warn(new PopupWarning(e.what(), 3, 60, 7));
+        Warn->Init();
+        Warn->Print(Warn->window);
+        rc = false;
+    }
+
+    return rc;
 }
 
 static inline uint32_t get_tap_index(const std::string name)
@@ -142,7 +167,7 @@ static void rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n)
     }
 }
 
-static bool link_change(const std::string &name, int action)
+static void link_change(const std::string &name, int action, const std::string &data)
 {
     struct iplink_req req;
     struct rtnl_handle rth;
@@ -173,8 +198,37 @@ static bool link_change(const std::string &name, int action)
     rtnl_open(&rth);
     rtnl_talk(&rth, &req.n);
     close(rth.sd);
+}
 
-    return true;
+static void addr_change(const std::string &name, int action, const std::string &data)
+{
+    struct ipaddr_req req;
+    struct rtnl_handle rth;
+    uint32_t dev_index;
+
+    memset(&req, 0, sizeof(req));
+
+    if ((dev_index = get_tap_index(name)) == 0)
+    {
+        std::string err = _("if_nametoindex: ") + std::string(strerror(errno));
+        throw std::runtime_error(err);
+    }
+
+    req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifaddrmsg));
+    req.n.nlmsg_flags = NLM_F_REQUEST | NLM_F_CREATE | NLM_F_EXCL;
+    req.n.nlmsg_type = RTM_NEWADDR;
+
+    req.i.ifa_family = AF_INET;
+    req.i.ifa_index = dev_index;
+
+    switch (action) {
+    case SET_LINK_ADDR:
+        break;
+    }
+
+    rtnl_open(&rth);
+    rtnl_talk(&rth, &req.n);
+    close(rth.sd);
 }
 
 static bool manage_tap(const std::string &name, int on_off)
@@ -210,7 +264,7 @@ static bool manage_tap(const std::string &name, int on_off)
         }
 
         if (on_off == TAP_ON)
-            link_up(name);
+            link_change(name, SET_LINK_UP, "");
     }
     catch (const std::runtime_error &e)
     {
