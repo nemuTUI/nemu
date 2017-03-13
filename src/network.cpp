@@ -270,7 +270,7 @@ static void addr_change(const std::string &name, int action, const std::string &
             }
 
             if (cidr > 32 || !cidr)
-                throw std::runtime_error(_("Invalid CIDR expected: [1-32]"));
+                throw std::runtime_error(_("Invalid CIDR: expected [1-32]"));
 
             mask.s_addr = 0xfffffff;
             mask.s_addr <<= 32 - cidr;
