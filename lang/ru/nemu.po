@@ -179,6 +179,12 @@ msgstr " t - включить гостя без сохранения"
 msgid " m - show command"
 msgstr " m - показать команду"
 
+msgid " u - delete unused tap interfaces"
+msgstr " u - удалить пустые tap интерфейсы"
+
+msgid "IPv4 address"
+msgstr "IPv4 адрес"
+
 msgid "running command for "
 msgstr "команда для запуска "
 
