@@ -108,7 +108,7 @@ struct guest_t {
     hcpu, path, ints, usbp,
     usbd, ndrv, install, bios,
     mouse, drvint, kappend, kpath, tty,
-    socket;
+    socket, ipv4;
 };
 
 class QMException : public std::exception {

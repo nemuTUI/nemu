@@ -13,13 +13,13 @@ EditNetWindow::EditNetWindow(
     vmdir_ = vmdir;
     vm_name_ = vm_name;
 
-    field.resize(4);
+    field.resize(5);
 }
 
 void EditNetWindow::Create_fields()
 {
     for (size_t i = 0; i < field.size() - 1; ++i)
-        field[i] = new_field(1, 17, i*2, 1, 0, 0);
+        field[i] = new_field(1, 22, i*2, 2, 0, 0);
 
     field[field.size() - 1] = NULL;
 }
@@ -55,6 +55,9 @@ void EditNetWindow::Config_fields_type()
     set_field_type(field[0], TYPE_ENUM, (char **)IfaceList, false, false);
     set_field_type(field[1], TYPE_ENUM, (char **)NetDrv, false, false);
     set_field_type(field[2], TYPE_REGEXP, ".*");
+    set_field_type(field[3], TYPE_REGEXP, ".*");
+    field_opts_off(field[2], O_STATIC);
+    field_opts_off(field[3], O_STATIC);
 
     for (size_t i = 0; i < iflist.size(); ++i)
         delete [] IfaceList[i];
@@ -70,6 +73,7 @@ void EditNetWindow::Print_fields_names()
     mvwaddstr(window, 2, 2, _("Interface"));
     mvwaddstr(window, 4, 2, _("Net driver"));
     mvwaddstr(window, 6, 2, _("Mac address"));
+    mvwaddstr(window, 8, 2, _("IPv4 address"));
 }
 
 void EditNetWindow::Get_data_from_form()
@@ -77,6 +81,7 @@ void EditNetWindow::Get_data_from_form()
     guest_new.name.assign(trim_field_buffer(field_buffer(field[0], 0), false));
     guest_new.ndrv.assign(trim_field_buffer(field_buffer(field[1], 0), false));
     guest_new.imac.assign(trim_field_buffer(field_buffer(field[2], 0), false));
+    guest_new.ipv4.assign(trim_field_buffer(field_buffer(field[3], 0), false));
 }
 
 void EditNetWindow::Gen_iface_json()
@@ -86,7 +91,8 @@ void EditNetWindow::Gen_iface_json()
     for (auto &i : ifs)
     {
         guest_new.ints += "{\"name\":\"" + i.first + "\",\"mac\":\"" +
-            i.second[0] + "\",\"drv\":\"" + i.second[1] + "\"},";
+            i.second[IFS_MAC] + "\",\"drv\":\"" + i.second[IFS_DRV] +
+            "\",\"ip4\":\"" + i.second[IFS_IPV4] + "\"},";
     }
 
     guest_new.ints.erase(guest_new.ints.find_last_not_of(",") + 1);
@@ -107,7 +113,7 @@ void EditNetWindow::Update_db_data()
         if (it == ifs.end())
             throw QMException(_("Something goes wrong"));
 
-        it->second[1] = guest_new.ndrv;
+        it->second[IFS_DRV] = guest_new.ndrv;
 
         Gen_iface_json();
 
@@ -136,7 +142,7 @@ void EditNetWindow::Update_db_data()
             MapStringVector ints = Read_ifaces_from_json(all_ints[i]);
     
             for (auto i : ints)
-                mac_db.insert(i.second[0]);
+                mac_db.insert(i.second[IFS_MAC]);
         }
 
         auto mac_it = mac_db.find(guest_new.imac);
@@ -144,7 +150,26 @@ void EditNetWindow::Update_db_data()
         if (mac_it != mac_db.end())
             throw QMException(_("This mac is already used!"));
 
-        it->second[0] = guest_new.imac;
+        it->second[IFS_MAC] = guest_new.imac;
+
+        Gen_iface_json();
+
+        sql_query = "update vms set mac='" + guest_new.ints +
+            "' where name='" + vm_name_ + "'";
+        db->ActionQuery(sql_query);
+    }
+
+    if (field_status(field[3]))
+    {
+        if (!field_status(field[0]))
+            throw QMException(_("Null network interface"));
+
+        auto it = ifs.find(guest_new.name);
+
+        if (it == ifs.end())
+            throw QMException(_("Something goes wrong"));
+
+        it->second[IFS_IPV4] = guest_new.ipv4;
 
         Gen_iface_json();
 

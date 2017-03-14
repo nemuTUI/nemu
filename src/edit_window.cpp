@@ -165,7 +165,7 @@ void EditVmWindow::Get_data_from_db()
 void EditVmWindow::Gen_iface_json()
 {
     MapStringVector old_ifaces = Read_ifaces_from_json(guest_old[SQL_IDX_MAC]);
-    VectorString ndrv;
+    VectorString ndrv, ipv4;
     size_t old_if_count = old_ifaces.size();
 
     if (old_if_count > ui_vm_ints)
@@ -173,7 +173,8 @@ void EditVmWindow::Gen_iface_json()
         size_t n = 0;
         for (auto it : old_ifaces)
         {
-            ndrv.push_back(it.second[1]);
+            ndrv.push_back(it.second[IFS_DRV]);
+            ipv4.push_back(it.second[IFS_IPV4]);
             ++n;
             if (n == ui_vm_ints)
                 break;
@@ -184,10 +185,16 @@ void EditVmWindow::Gen_iface_json()
         size_t count_diff = ui_vm_ints - old_if_count;
 
         for (auto it : old_ifaces)
-            ndrv.push_back(it.second[1]);
+        {
+            ndrv.push_back(it.second[IFS_DRV]);
+            ipv4.push_back(it.second[IFS_IPV4]);
+        }
 
         for (size_t i = 0; i < count_diff; ++i)
+        {
             ndrv.push_back(DEFAULT_NETDRV);
+            ipv4.push_back("");
+        }
     }
 
     guest_new.ints.clear();
@@ -195,7 +202,8 @@ void EditVmWindow::Gen_iface_json()
     for (auto &ifs : ifaces)
     {
         guest_new.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
-            ifs.second + "\",\"drv\":\"" + ndrv[i] + "\"},";
+            ifs.second + "\",\"drv\":\"" + ndrv[i] + "\",\"ip4\":\"" +
+            ipv4[i] + "\"},";
 
         i++;
     }

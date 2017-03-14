@@ -21,7 +21,7 @@ void AddVmWindow::Gen_iface_json()
     for (auto &ifs : ifaces)
     {
         guest.ints += "{\"name\":\"" + ifs.first + "\",\"mac\":\"" +
-            ifs.second + "\",\"drv\":\"" + guest.ndrv + "\"},";
+            ifs.second + "\",\"drv\":\"" + guest.ndrv + "\",\"ip4\":\"\"},";
     }
 
     guest.ints.erase(guest.ints.find_last_not_of(",") + 1);

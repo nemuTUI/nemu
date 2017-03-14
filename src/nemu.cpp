@@ -364,7 +364,7 @@ int main(void)
                     {
                         std::string guest = guests.at((guest_first + q_highlight) - 1);
 
-                        std::unique_ptr<QMFormWindow> edit_net_window(new EditNetWindow(cfg->db, cfg->vmdir, guest, 9, 39));
+                        std::unique_ptr<QMFormWindow> edit_net_window(new EditNetWindow(cfg->db, cfg->vmdir, guest, 11, 45));
                         edit_net_window->Init();
                         edit_net_window->Print();
                     } /* }}} */
