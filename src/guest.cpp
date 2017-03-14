@@ -294,7 +294,7 @@ void clear_unused_tap_ifaces()
         db->SelectQuery(if_query, &ifs);
 
         MapStringVector ints_map = Read_ifaces_from_json(ifs[0]);
-        for (auto &i : ints_map)
+        for (auto const &i : ints_map)
         {
             if (!i.second[IFS_IPV4].empty())
                 net_del_tap(i.first);
