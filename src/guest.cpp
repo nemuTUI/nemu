@@ -81,7 +81,8 @@ void start_guest(const std::string &vm_name,
     {
         qemu_cmd += " -net nic,macaddr=" + ifs.second[IFS_MAC] + ",model=" + ifs.second[IFS_DRV];
         qemu_cmd += " -net tap,ifname=" + ifs.first + ",script=no,downscript=no";
-        if (!ifs.second[IFS_IPV4].empty())
+        if ((!ifs.second[IFS_IPV4].empty()) && !(data->flags & START_FAKE) &&
+            (!net_iface_exists(ifs.first)))
         {
             if (net_add_tap(ifs.first))
                 net_set_ipaddr(ifs.first, ifs.second[IFS_IPV4]);

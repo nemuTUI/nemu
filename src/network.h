@@ -3,6 +3,7 @@
 
 namespace QManager {
 
+bool net_iface_exists(const std::string &name);
 bool net_add_tap(const std::string &name);
 bool net_del_tap(const std::string &name);
 bool net_set_ipaddr(const std::string &name, const std::string &addr);

@@ -71,6 +71,14 @@ bool net_del_tap(const std::string &name)
     return manage_tap(name, TAP_OFF);
 }
 
+bool net_iface_exists(const std::string &name)
+{
+    if (if_nametoindex(name.c_str()) == 0)
+        return false;
+
+    return true;
+}
+
 bool net_set_ipaddr(const std::string &name, const std::string &addr)
 {
     bool rc = true;
