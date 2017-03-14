@@ -10,7 +10,7 @@ DESCRIPTION="ncurses interface for QEMU"
 HOMEPAGE="https://unixdev.ru/nemu"
 SRC_URI="http://unixdev.ru/src/${P}.tar.gz"
 
-LICENSE="WTFPL-2"
+LICENSE="BSD-2"
 SLOT="0"
 KEYWORDS="amd64 x86"
 IUSE="+vnc"
