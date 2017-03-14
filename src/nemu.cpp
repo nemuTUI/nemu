@@ -404,10 +404,17 @@ int main(void)
                         }
                     } /* }}} */
 
+                    /* {{{ Delete unused TAP ifaces */
+                    else if (ch == MenuKeyU)
+                    {
+                        clear_unused_tap_ifaces();
+                    }
+                    /* }}} */
+
                     /* {{{ Print help */
                     else if (ch == KEY_F(1))
                     {
-                        std::unique_ptr<QMWindow> help_window(new HelpWindow(15, 40));
+                        std::unique_ptr<QMWindow> help_window(new HelpWindow(16, 40));
                         help_window->Init();
                         help_window->Print();
                     } /* }}} */

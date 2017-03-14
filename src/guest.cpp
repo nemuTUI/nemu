@@ -274,5 +274,33 @@ void kill_guest(const std::string &vm_name)
     close(fd);
 }
 
+void clear_unused_tap_ifaces()
+{
+    VectorString ifs, vms;
+    const std::string vms_query = "SELECT name FROM vms";
+    const struct config *cfg = get_cfg();
+
+    std::unique_ptr<QemuDb> db(new QemuDb(cfg->db));
+    db->SelectQuery(vms_query, &vms);
+
+    for (auto const &v : vms)
+    {
+        struct stat info;
+        std::string lock =  cfg->vmdir + "/" + v + "/qemu.pid";
+        if (stat(lock.c_str(), &info) == 0)
+            continue;
+
+        const std::string if_query = "SELECT mac FROM vms WHERE name='" + v + "'";
+        db->SelectQuery(if_query, &ifs);
+
+        MapStringVector ints_map = Read_ifaces_from_json(ifs[0]);
+        for (auto &i : ints_map)
+        {
+            if (!i.second[IFS_IPV4].empty())
+                net_del_tap(i.first);
+        }
+    }
+}
+
 } // namespace QManager
 /* vim:set ts=4 sw=4 fdm=marker: */

@@ -58,7 +58,8 @@ enum input_choices {
     MenuKeyE = 101, MenuKeyL = 108,
     MenuKeyY = 121, MenuKeyA = 97,
     MenuKeyI = 105, MenuKeyS = 115,
-    MenuKeyT = 116, MenuKeyM = 109
+    MenuKeyT = 116, MenuKeyM = 109,
+    MenuKeyU = 117
 };
 
 enum select_idx {

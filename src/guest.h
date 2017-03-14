@@ -16,6 +16,7 @@ void delete_guest(const std::string &vm_name,
 
 void connect_guest(const std::string &vm_name, const std::string &dbf);
 void kill_guest(const std::string &vm_name);
+void clear_unused_tap_ifaces();
 
 } // namespace QManager
 

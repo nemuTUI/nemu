@@ -212,7 +212,7 @@ void HelpWindow::Print()
 
     std::unique_ptr<VectorString> msg_(new VectorString); 
 
-    msg_->push_back(" nEMU v" + std::string(VERSION));
+    msg_->push_back("           nEMU v" + std::string(VERSION));
     msg_->push_back("");
     msg_->push_back(_(" r - start guest"));
     msg_->push_back(_(" t - start guest in temporary mode"));
@@ -225,6 +225,7 @@ void HelpWindow::Print()
     msg_->push_back(_(" l - clone guest"));
     msg_->push_back(_(" s - edit boot settings"));
     msg_->push_back(_(" m - show command"));
+    msg_->push_back(_(" u - delete unused tap interfaces"));
 
     for (auto &msg : *msg_)
     {
