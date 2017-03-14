@@ -280,8 +280,7 @@ static void addr_change(const std::string &name, int action, const std::string &
             if (cidr > 32 || !cidr)
                 throw std::runtime_error(_("Invalid CIDR: expected [1-32]"));
 
-            mask.s_addr = 0xfffffff;
-            mask.s_addr <<= 32 - cidr;
+            mask.s_addr = ~((1 << (32 - cidr)) - 1);
             mask.s_addr = htonl(mask.s_addr);
             brd.s_addr = addr.s_addr | (~mask.s_addr);
             req.i.ifa_prefixlen = cidr;
