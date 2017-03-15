@@ -301,7 +301,7 @@ static void addr_change(const std::string &name, int action, const std::string &
 
 static bool manage_tap(const std::string &name, int on_off)
 {
-    int fd;
+    int fd = -1;
     struct ifreq ifr;
     bool rc = true;
     std::string err;
