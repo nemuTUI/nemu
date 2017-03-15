@@ -20,3 +20,5 @@
 ## Environment Requirements
  * Linux host
  * app-emulation/qemu
+
+** Do not build from master now! It broken due to project code rewrite from C++ to C ***
