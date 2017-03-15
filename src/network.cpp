@@ -339,12 +339,11 @@ static bool manage_tap(const std::string &name, int on_off)
         std::unique_ptr<PopupWarning> Warn(new PopupWarning(e.what(), 3, 60, 7));
         Warn->Init();
         Warn->Print(Warn->window);
-        if (fd > 0)
-            close(fd);
         rc = false;
     }
     
-    close(fd);
+    if (fd > 0)
+        close(fd);
 
     return rc;
 }
