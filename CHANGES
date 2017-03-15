@@ -1,0 +1,82 @@
+v0.4.0 - 15 Mar 2017
+------------------------
+    - Change: switch to -drive, support for ide,scsi,virtio disk interfaces.
+    - Change: switch license to BSD-2-Clause.
+    - Feature: add serial redirect to TTY and socket.
+    - Feature: add -kernel and -append features.
+    - Feature: start VM in temporary mode (-snapshot).
+    - Feature: set host IPv4 for VM tap interfaces.
+
+    ! Old database is not supported, must create new, but
+    ! if upgraded from >= v0.2.* then run ./upgrade_db.sh script.
+
+v0.3.0 - 04 Mar 2017
+------------------------
+    - Change: form navigation improvments.
+    - Change: more symbols accepted for VM names.
+    - Cnahge: zero tap interfaces can be configured now.
+    - Feature: show QEMU PID in guest info window.
+    - Feature: add mouse override feature.
+    - Bugfix: fix crashes with gcc-4.9.*
+
+    ! Old database is not supported, must create new, but
+    ! if upgraded from v0.2.* then run ./upgrade_db.sh script.
+
+v0.2.1 - 25 Feb 2017
+------------------------
+    - Feature: Generate user config file.
+    - Bugfix: fix integer overflow on x86_32.
+
+v0.2.0 - 24 Feb 2017
+------------------------
+    - Change: no root required.
+    - Change: config file was restructured.
+    - Feature: tab completion for file system paths.
+    - Feature: BIOS file settings.
+    - Feature: install guest from disk image.
+    - Feature: handle window size change for main and guests windows.
+    - Bugfix: USB device selection fixed.
+
+    ! Old database is not supported, must create new.
+
+v0.1.8 - 13 January 2015
+------------------------
+    - Change: code refactoring.
+
+v0.1.7 - 29 December 2014
+-------------------------
+    - Feature: boot settings edit menu.
+
+v0.1.6 - 09 September 2014
+--------------------------
+    - Change: realtime VM window refresh.
+    - Feature: enable/disable host CPU.
+
+    ! Old database is not supported, must create new.
+
+v0.1.5 - 10 June 2014
+----------------------
+    - Feature: set flag "-cpu host" if kvm is enabled.
+
+v0.1.4 - 21 April 2014
+----------------------
+    - Feature: ability to edit interface mac address and driver.
+
+v0.1.3 - 18 April 2014
+----------------------
+    - Feature: variuos network drivers support.
+
+v0.1.2 - 15 April 2014
+----------------------
+    - Feature: add virtual disk to guest.
+    - Feature: show real vnc port.
+
+v0.1.1 - 11 April 2014
+----------------------
+    - Change: centered view.
+    - Feature: ability to bind vnc to any interfaces or only to localhost.
+    - Bugfix: vnc connect bug.
+
+v0.1.0 - 10 April 2014
+----------------------
+    - The first public version.
