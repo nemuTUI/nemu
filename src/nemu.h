@@ -24,7 +24,7 @@
 #define _(str) gettext(str)
 #define STRING_LITERAL(x) # x
 #define STRING(x) STRING_LITERAL(x)
-#define VERSION "0.4.0-dev"
+#define VERSION "0.4.0"
 #define DEFAULT_NETDRV "virtio"
 #define DEFAULT_DRVINT "virtio"
 
