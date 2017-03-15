@@ -21,4 +21,4 @@
  * Linux host
  * app-emulation/qemu
 
-## ** Do not build from master now! It broken due to project code rewrite from C++ to C **
+## ** Do not build from master now, use tags! It broken due to project code rewrite from C++ to C **
