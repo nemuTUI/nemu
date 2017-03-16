@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(nemu)
+project(nemu C)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
@@ -12,12 +12,7 @@ find_package(Threads REQUIRED)
 find_package(libusb-1.0 REQUIRED)
 find_package(UDev REQUIRED)
 
-#include_directories(${CURSES_INCLUDE_DIR}
-#                    ${SQLITE3_INCLUDE_DIR}
-#                    ${PROCPS_INCLUDE_DIRS}
-#                    "src")
-include_directories("src")
-
+include_directories(src)
 aux_source_directory(src SRC_LIST)
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
@@ -35,7 +30,7 @@ add_definitions(-DNM_USR_PREFIX=${USR_PREFIX})
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
     add_definitions(-DNM_OS_LINUX)
 elseif (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-    add_definitions(-DNM_OS_FREEBSD)
+    message(FATAL_ERROR "Build on ${CMAKE_SYSTEM_NAME} will be supported later")
 else()
     message(FATAL_ERROR "Build on ${CMAKE_SYSTEM_NAME} is not supported")
 endif()

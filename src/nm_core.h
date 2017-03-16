@@ -32,5 +32,7 @@
 #define NM_DEFAULT_NETDRV "virtio"
 #define NM_DEFAULT_DRVINT "virtio"
 
+#define NM_MAIN_CHOICES 3
+
 #endif /* NM_CORE_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */
