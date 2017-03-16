@@ -1,14 +1,14 @@
-#ifndef NM_MAIN_H_
-#define NM_MAIN_H_
+#ifndef NM_CORE_H_
+#define NM_CORE_H_
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE /* sigaction() */
+#if (NM_OS_LINUX)
+#include <nm_os_linux_core.h>
+#elif (NM_OS_FREEBSD)
+#include <nm_os_freebsd_core.h>
+#else
+#error "Build on this system is not supported"
 #endif
 
-#include <locale.h>
-#include <libintl.h>
-#include <stdint.h>
-#include <signal.h>
 #include <curses.h>
 
 #define NM_OK   0
@@ -32,5 +32,5 @@
 #define NM_DEFAULT_NETDRV "virtio"
 #define NM_DEFAULT_DRVINT "virtio"
 
-#endif /* NM_MAIN_H_ */
+#endif /* NM_CORE_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

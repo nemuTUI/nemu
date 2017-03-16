@@ -32,6 +32,14 @@ target_link_libraries(${PROJECT_NAME}
 set(USR_PREFIX "/usr" CACHE PATH "Executable and lang files directory prefix")
 add_definitions(-DNM_USR_PREFIX=${USR_PREFIX})
 
+if (CMAKE_SYSTEM_NAME STREQUAL Linux)
+    add_definitions(-DNM_OS_LINUX)
+elseif (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+    add_definitions(-DNM_OS_FREEBSD)
+else()
+    message(FATAL_ERROR "Build on ${CMAKE_SYSTEM_NAME} is not supported")
+endif()
+
 add_subdirectory(lang)
 add_dependencies(${PROJECT_NAME} lang)
 

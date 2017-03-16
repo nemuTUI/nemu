@@ -1,4 +1,4 @@
-#include <nm_main.h>
+#include <nm_core.h>
 
 static void signals_handler(int signal);
 static volatile sig_atomic_t redraw_window = 0;
