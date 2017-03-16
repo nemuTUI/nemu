@@ -36,12 +36,12 @@ add_subdirectory(lang)
 add_dependencies(${PROJECT_NAME} lang)
 
 include(CheckCCompilerFlag)
-CHECK_C_COMPILER_FLAG("-std=gnu99" COMPILER_SUPPORTS_GNU99)
+CHECK_C_COMPILER_FLAG("-std=c99" COMPILER_SUPPORTS_C99)
 set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS
     "-Wall -Wextra -pedantic -isystem ${LIBUSB_1_INCLUDE_DIRS} ")
 
-if(COMPILER_SUPPORTS_GNU99)
-    set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS "-std=gnu99")
+if(COMPILER_SUPPORTS_C99)
+    set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS "-std=c99")
 else()
     message(FATAL_ERROR "The compiler ${CMAKE_C_COMPILER} has no C99 support. Please use a different C compiler.")
 endif()

@@ -1,9 +1,15 @@
 #ifndef NM_MAIN_H_
 #define NM_MAIN_H_
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE /* sigaction() */
+#endif
+
 #include <locale.h>
 #include <libintl.h>
 #include <stdint.h>
+#include <signal.h>
+#include <curses.h>
 
 #define NM_OK   0
 #define NM_ERR -1
