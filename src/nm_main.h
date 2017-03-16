@@ -3,6 +3,7 @@
 
 #include <locale.h>
 #include <libintl.h>
+#include <stdint.h>
 
 #define NM_OK   0
 #define NM_ERR -1
