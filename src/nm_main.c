@@ -3,6 +3,7 @@
 #include <nm_menu.h>
 #include <nm_window.h>
 #include <nm_ncurses.h>
+#include <nm_cfg_file.h>
 
 static void signals_handler(int signal);
 static volatile sig_atomic_t redraw_window = 0;
@@ -12,11 +13,16 @@ int main(void)
     struct sigaction sa;
     uint32_t highlight = 1;
     uint32_t ch, nemu = 0;
+    const nm_cfg_t *cfg;
     nm_window_t *main_window = NULL;
 
     setlocale(LC_ALL,"");
     bindtextdomain(NM_PROGNAME, NM_LOCALE_PATH);
     textdomain(NM_PROGNAME);
+
+    nm_cfg_init();
+    cfg = nm_cfg_get();
+    exit(NM_OK); /* XXX tmp */
 
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
