@@ -1,6 +1,6 @@
 #include <nm_core.h>
 
-void nm_print_main_menu(WINDOW *w, uint32_t highlight)
+void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
 {
     const char *nm_main_chioces[] = {
         _("Manage guests"),

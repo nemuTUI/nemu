@@ -11,7 +11,7 @@ int main(void)
     struct sigaction sa;
     uint32_t highlight = 1;
     uint32_t ch, nemu = 0;
-    WINDOW *main_window = NULL;
+    nm_window_t *main_window = NULL;
 
     setlocale(LC_ALL,"");
     bindtextdomain(NM_PROGNAME, NM_LOCALE_PATH);

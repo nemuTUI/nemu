@@ -11,6 +11,8 @@
 
 #include <curses.h>
 
+typedef WINDOW nm_window_t;
+
 #define NM_OK   0
 #define NM_ERR -1
 

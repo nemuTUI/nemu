@@ -16,9 +16,9 @@ inline void nm_curses_deinit(void)
     endwin();
 }
 
-WINDOW *nm_init_window(int nlines, int ncols, int begin_y)
+nm_window_t *nm_init_window(int nlines, int ncols, int begin_y)
 {
-    WINDOW *w;
+    nm_window_t *w;
     int col;
 
     start_color();
@@ -29,7 +29,7 @@ WINDOW *nm_init_window(int nlines, int ncols, int begin_y)
     if (w == NULL)
     {
         /* TODO: print error */
-        exit(1);
+        exit(NM_ERR);
     }
 
     keypad(w, TRUE);

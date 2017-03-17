@@ -1,5 +1,4 @@
 #include <nm_core.h>
-#include <nm_ncurses.h>
 
 #define NM_MAIN_MSG "Use arrow keys to go up and down, "\
     "Press enter to select a choice, F10 - exit"
