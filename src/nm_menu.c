@@ -21,5 +21,7 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
         else
             mvwprintw(w, y, x, "%s", nm_main_chioces[n]);
     }
+
+   /* XXX wrefresh(w); */
 }
 /* vim:set ts=4 sw=4 fdm=marker: */

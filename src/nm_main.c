@@ -1,4 +1,5 @@
 #include <nm_core.h>
+#include <nm_main.h>
 #include <nm_menu.h>
 #include <nm_window.h>
 #include <nm_ncurses.h>
@@ -29,6 +30,11 @@ int main(void)
     {
         uint32_t choice = 0;
 
+        if (main_window)
+        {
+            delwin(main_window);
+            main_window = NULL;
+        }
         main_window = nm_init_window(10, 30, 7);
         nm_print_main_window();
         nm_print_main_menu(main_window, highlight);
@@ -59,13 +65,48 @@ int main(void)
                 nm_curses_deinit();
                 exit(NM_OK);
             }
-            
-            nm_print_main_menu(main_window, highlight);
+
+            if (redraw_window)
+            {
+                endwin();
+                refresh();
+                clear();
+                if (main_window)
+                {
+                    delwin(main_window);
+                    main_window = NULL;
+                }
+                main_window = nm_init_window(10, 30, 7);
+                nm_print_main_window();
+                nm_print_main_menu(main_window, highlight);
+                redraw_window = 0;
+            }
+            else
+                nm_print_main_menu(main_window, highlight);
 
             if (choice != 0)
                 break;
 
         } /* }}} User input */
+
+        /* {{{ Print VM list */
+        if (choice == NM_CHOICE_VM_LIST)
+        {
+            /* Print VM list here */
+        } /* }}} VM list */
+
+        /* {{{ Install VM window */
+        else if (choice == NM_CHOICE_VM_INST)
+        {
+            /* Print install VM here */
+        } /* }}} install VM */
+
+        /* {{{ exit nEMU */
+        else if (choice == NM_CHOICE_QUIT)
+        {
+            nm_curses_deinit();
+            exit(NM_OK);
+        } /* }}} */
     } /* }}} Main loop */
 
     return NM_OK;
