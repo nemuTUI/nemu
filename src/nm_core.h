@@ -35,6 +35,7 @@ typedef WINDOW nm_window_t;
 #define NM_DEFAULT_DRVINT "virtio"
 
 #define NM_MAIN_CHOICES 3
+#define nm_arr_len(p) (sizeof(p) / sizeof((p)[0]))
 
 #endif /* NM_CORE_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */
