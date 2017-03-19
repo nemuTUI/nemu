@@ -81,7 +81,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                             while ((ch = getchar()) != '\n' && ch != EOF) {}
                             break;
                         default:
-                            exit(1);
+                            exit(NM_OK);
                         }
                     }
                     else
