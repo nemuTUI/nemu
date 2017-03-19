@@ -4,6 +4,7 @@
 #include <nm_window.h>
 #include <nm_ncurses.h>
 #include <nm_cfg_file.h>
+#include <nm_utils.h>
 
 static void signals_handler(int signal);
 static volatile sig_atomic_t redraw_window = 0;
