@@ -1,4 +1,5 @@
 #include <nm_core.h>
+#include <nm_utils.h>
 #include <nm_ncurses.h>
 
 void nm_bug(const char *fmt, ...)
@@ -25,6 +26,16 @@ void *nm_alloc(size_t size)
     return p;
 }
 
+void *nm_calloc(size_t nmemb, size_t size)
+{
+    void *p;
+
+    if ((p = calloc(nmemb, size)) == NULL)
+        nm_bug(_("cmalloc: %s\n"), strerror(errno));
+
+    return p;
+}
+
 void *nm_realloc(void *p, size_t size)
 {
     void *p_new;
@@ -33,6 +44,40 @@ void *nm_realloc(void *p, size_t size)
         nm_bug(_("realloc: %s\n"), strerror(errno));
 
     return p_new;
+}
+
+void nm_map_file(nm_file_map_t *file)
+{
+    struct stat stat;
+
+    if ((file->fd = open(file->name->data, O_RDONLY)) == -1)
+    {
+        nm_bug(_("Cannot open file %s:%s"),
+            file->name->data, strerror(errno));
+    }
+
+    if (fstat(file->fd, &stat) == -1)
+    {
+        close(file->fd);
+        nm_bug(_("Cannot get file info %s:%s"),
+            file->name->data, strerror(errno));
+    }
+
+    file->size = stat.st_size;
+    file->mp = mmap(0, file->size, PROT_READ, MAP_PRIVATE, file->fd, 0);
+
+    if (file->mp == MAP_FAILED)
+    {
+        close(file->fd);
+        nm_bug(_("Cannot map file %s:%s"),
+            file->name->data, strerror(errno));
+    }
+}
+
+void nm_unmap_file(const nm_file_map_t *file)
+{
+    munmap(file->mp, file->size);
+    close(file->fd);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

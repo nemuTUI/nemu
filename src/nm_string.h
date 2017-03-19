@@ -12,6 +12,7 @@ typedef struct {
 void nm_str_alloc_text(nm_str_t *str, const char *src);
 void nm_str_alloc_str(nm_str_t *str, const nm_str_t *src);
 void nm_str_add_char(nm_str_t *str, char ch);
+void nm_str_add_char_opt(nm_str_t *str, char ch);
 void nm_str_add_text(nm_str_t *str, const char *src);
 void nm_str_add_str(nm_str_t *str, const nm_str_t *src);
 void nm_str_copy(nm_str_t *str, const nm_str_t *src);

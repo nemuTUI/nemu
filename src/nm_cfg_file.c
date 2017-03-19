@@ -2,6 +2,7 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_cfg_file.h>
+#include <nm_ini_parser.h>
 
 static nm_cfg_t cfg;
 
@@ -13,6 +14,7 @@ void nm_cfg_init(void)
     struct stat file_info;
     struct passwd *pw = getpwuid(getuid());
     nm_str_t cfg_path = NM_INIT_STR;
+    void *ini;
 
     if (!pw)
         nm_bug(_("Error get home directory: %s\n"), strerror(errno));
@@ -21,6 +23,9 @@ void nm_cfg_init(void)
     nm_str_add_text(&cfg_path, "/." NM_CFG_NAME);
 
     nm_generate_cfg(pw->pw_dir, &cfg_path);
+    ini = nm_ini_parser_init(&cfg_path);
+    nm_ini_parser_dump(ini);
+    nm_ini_parser_free(ini);
     
     nm_str_free(&cfg_path);
 }
