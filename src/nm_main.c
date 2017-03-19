@@ -1,10 +1,10 @@
 #include <nm_core.h>
 #include <nm_main.h>
 #include <nm_menu.h>
+#include <nm_string.h>
 #include <nm_window.h>
 #include <nm_ncurses.h>
 #include <nm_cfg_file.h>
-#include <nm_utils.h>
 
 static void signals_handler(int signal);
 static volatile sig_atomic_t redraw_window = 0;

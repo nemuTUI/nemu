@@ -5,10 +5,15 @@
 static void nm_str_alloc_mem(nm_str_t *str, const char *src, size_t len);
 static void nm_str_append_mem(nm_str_t *str, const char *src, size_t len);
 
-void nm_str_alloc(nm_str_t *str, const char *src)
+void nm_str_alloc_text(nm_str_t *str, const char *src)
 {
     size_t len = strlen(src);
     nm_str_alloc_mem(str, src, len);
+}
+
+void nm_str_alloc_str(nm_str_t *str, const nm_str_t *src)
+{
+    nm_str_alloc_mem(str, src->data, src->len);
 }
 
 void nm_str_add_char(nm_str_t *str, char ch)
@@ -25,6 +30,11 @@ void nm_str_add_text(nm_str_t *str, const char *src)
 void nm_str_add_str(nm_str_t *str, const nm_str_t *src)
 {
     nm_str_append_mem(str, src->data, src->len);
+}
+
+void nm_str_copy(nm_str_t *str, const nm_str_t *src)
+{
+    nm_str_alloc_mem(str, src->data, src->len);
 }
 
 void nm_str_free(nm_str_t *str)
