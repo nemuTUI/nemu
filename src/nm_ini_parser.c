@@ -41,8 +41,8 @@ void *nm_ini_parser_init(const nm_str_t *path)
 
     for (off_t n = 0; n < file.size; n++, buf_ini++)
     {
-        /* skip spaces */
-        if (*buf_ini == 0x20)
+        /* skip spaces and tabs */
+        if ((*buf_ini == 0x20) || (*buf_ini == '\t'))
             continue;
 
         if (*buf_ini == '[')
