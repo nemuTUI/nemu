@@ -106,13 +106,10 @@ static void nm_str_append_mem_opt(nm_str_t *str, const char *src, size_t len)
         nm_bug(_("Integer overflow"));
 
     len_needed = len + str->len;
-    if (len_needed + 1 < len_needed)
+    if ((len_needed + 1) * 10 < len_needed)
         nm_bug(_("Integer overflow"));
 
     len_needed++;
-
-    if (len_needed * 10 < len_needed)
-        nm_bug(_("Integer overflow"));
 
     if (len_needed > str->alloc_bytes)
     {
