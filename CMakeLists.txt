@@ -24,6 +24,11 @@ target_link_libraries(${PROJECT_NAME}
     ${LIBUSB_1_LIBRARIES}
     ${UDEV_LIBRARIES})
 
+option(NM_DEBUG "Build debug version" OFF)
+if (NM_DEBUG)
+  add_definitions(-DNM_DEBUG)
+endif()
+
 set(USR_PREFIX "/usr" CACHE PATH "Executable and lang files directory prefix")
 add_definitions(-DNM_USR_PREFIX=${USR_PREFIX})
 

@@ -24,7 +24,9 @@ void nm_cfg_init(void)
 
     nm_generate_cfg(pw->pw_dir, &cfg_path);
     ini = nm_ini_parser_init(&cfg_path);
+#if (NM_DEBUG)
     nm_ini_parser_dump(ini);
+#endif
     nm_ini_parser_free(ini);
     
     nm_str_free(&cfg_path);
