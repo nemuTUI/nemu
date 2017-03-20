@@ -8,6 +8,8 @@ static nm_cfg_t cfg;
 
 static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path);
 static void nm_get_input(const char *msg, nm_str_t *res);
+static inline void nm_get_param(const void *ini, const char *section,
+                                const char *value, nm_str_t *res);
 
 void nm_cfg_init(void)
 {
@@ -27,9 +29,22 @@ void nm_cfg_init(void)
 #if (NM_DEBUG)
     nm_ini_parser_dump(ini);
 #endif
+    nm_get_param(ini, "main", "vmdir", &cfg.vm_dir);
+    if (stat(cfg.vm_dir.data, &file_info) == -1)
+        nm_bug("%s: %s", cfg.vm_dir.data, strerror(errno));
+    if ((file_info.st_mode & S_IFMT) != S_IFDIR)
+        nm_bug(_("%s is not a directory"), cfg.vm_dir.data);
+    if (access(cfg.vm_dir.data, W_OK) != 0)
+        nm_bug(_("No write access to %s"), cfg.vm_dir.data);
+
     nm_ini_parser_free(ini);
     
     nm_str_free(&cfg_path);
+}
+
+const nm_cfg_t *nm_cfg_get(void)
+{
+    return &cfg;
 }
 
 static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
@@ -157,8 +172,13 @@ static void nm_get_input(const char *msg, nm_str_t *res)
     nm_str_free(&buf);
 }
 
-const nm_cfg_t *nm_cfg_get(void)
+static inline void nm_get_param(const void *ini, const char *section,
+                                const char *value, nm_str_t *res)
 {
-    return &cfg;
+    if (nm_ini_parser_find(ini, section, value, res) != NM_OK)
+        nm_bug(_("cfg error: %s->%s is missing"), section, value);
+    if (cfg.vm_dir.len == 0)
+        nm_bug(_("cfg error: %s->%s is empty"), section, value);
 }
+
 /* vim:set ts=4 sw=4 fdm=marker: */

@@ -53,6 +53,22 @@ void nm_str_free(nm_str_t *str)
     str->len = 0;
 }
 
+int nm_str_cmp_str_text(const nm_str_t *str, const char *text)
+{
+    if (strncmp(str->data, text, str->len) != 0)
+        return NM_ERR;
+
+    return NM_OK;
+}
+
+int nm_str_cmp_str_str(const nm_str_t *str1, const nm_str_t *str2)
+{
+    if (strncmp(str1->data, str2->data, str1->len) != 0)
+        return NM_ERR;
+
+    return NM_OK;
+}
+
 static void nm_str_alloc_mem(nm_str_t *str, const char *src, size_t len)
 {
     size_t len_needed;

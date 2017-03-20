@@ -125,6 +125,7 @@ void nm_ini_parser_dump(void *head)
     if (curr == NULL)
         return;
 
+    printf("-=ini cfg start=-\n");
     while (curr != NULL)
     {
         nm_ini_value_t *values = curr->values_head;
@@ -138,6 +139,7 @@ void nm_ini_parser_dump(void *head)
 
         curr = curr->next;
     }
+    printf("-=ini cfg end=-\n");
 }
 #endif
 
@@ -216,6 +218,46 @@ static void nm_ini_value_push(nm_ini_node_t *head, nm_str_t *name, nm_str_t *val
 fill_data:
     nm_str_copy(&curr->name, name);
     nm_str_copy(&curr->value, value);
+}
+
+int nm_ini_parser_find(const void *head, const char *section,
+                       const char *param, nm_str_t *res)
+{
+    const nm_ini_node_t *curr = head;
+    int ret = NM_ERR, found = 0;
+
+    if (curr == NULL)
+        nm_bug(_("NULL list head pointer"));
+
+    while (curr != NULL)
+    {
+        const nm_ini_value_t *values;
+
+        if (found)
+            break;
+
+        if (nm_str_cmp_str_text(&curr->name, section) == NM_OK)
+        {
+            values = curr->values_head;
+            found = 1;
+
+            while (values != NULL)
+            {
+                if (nm_str_cmp_str_text(&values->name, param) == NM_OK)
+                {
+                    ret = NM_OK;
+                    nm_str_copy(res, &values->value);
+                    break;
+                }
+
+                values = values->next;
+            }
+        }
+
+        curr = curr->next;
+    }
+
+    return ret;
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
