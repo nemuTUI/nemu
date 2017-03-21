@@ -1,17 +1,17 @@
 #include <nm_core.h>
 #include <nm_utils.h>
 #include <nm_string.h>
+#include <nm_ini_parser.h>
 
-typedef struct nm_ini_value_t nm_ini_value_t;
-typedef struct nm_ini_node_t nm_ini_node_t;
+typedef struct nm_ini_value_s nm_ini_value_t;
 
-struct nm_ini_value_t {
+struct nm_ini_value_s {
     nm_str_t name;
     nm_str_t value;
     nm_ini_value_t *next;
 };
 
-struct nm_ini_node_t {
+struct nm_ini_node_s {
     nm_str_t name;
     nm_ini_node_t *next;
     nm_ini_value_t *values_head;
@@ -118,9 +118,9 @@ void *nm_ini_parser_init(const nm_str_t *path)
 }
 
 #if (NM_DEBUG)
-void nm_ini_parser_dump(void *head)
+void nm_ini_parser_dump(const nm_ini_node_t *head)
 {
-    nm_ini_node_t *curr = head;
+    const nm_ini_node_t *curr = head;
 
     if (curr == NULL)
         return;
@@ -128,7 +128,7 @@ void nm_ini_parser_dump(void *head)
     printf("-=ini cfg start=-\n");
     while (curr != NULL)
     {
-        nm_ini_value_t *values = curr->values_head;
+        const nm_ini_value_t *values = curr->values_head;
 
         printf("section: %s\n", curr->name.data);
         while (values != NULL)
@@ -143,7 +143,7 @@ void nm_ini_parser_dump(void *head)
 }
 #endif
 
-void nm_ini_parser_free(void *head)
+void nm_ini_parser_free(nm_ini_node_t *head)
 {
     nm_ini_node_t *curr = head;
 
@@ -220,7 +220,7 @@ fill_data:
     nm_str_copy(&curr->value, value);
 }
 
-int nm_ini_parser_find(const void *head, const char *section,
+int nm_ini_parser_find(const nm_ini_node_t *head, const char *section,
                        const char *param, nm_str_t *res)
 {
     const nm_ini_node_t *curr = head;
@@ -236,14 +236,14 @@ int nm_ini_parser_find(const void *head, const char *section,
         if (found)
             break;
 
-        if (nm_str_cmp_str_text(&curr->name, section) == NM_OK)
+        if (nm_str_cmp_st(&curr->name, section) == NM_OK)
         {
             values = curr->values_head;
             found = 1;
 
             while (values != NULL)
             {
-                if (nm_str_cmp_str_text(&values->name, param) == NM_OK)
+                if (nm_str_cmp_st(&values->name, param) == NM_OK)
                 {
                     ret = NM_OK;
                     nm_str_copy(res, &values->value);

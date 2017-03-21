@@ -7,13 +7,14 @@
 
 #include <stdio.h>
 #include <locale.h>
-#include <stdint.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <libintl.h>
 #include <fcntl.h>
+#include <libgen.h>
+#include <inttypes.h>
 
 #include <pwd.h>
 #include <errno.h>

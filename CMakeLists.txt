@@ -26,7 +26,7 @@ target_link_libraries(${PROJECT_NAME}
 
 option(NM_DEBUG "Build debug version" OFF)
 if (NM_DEBUG)
-  add_definitions(-DNM_DEBUG)
+  add_definitions(-DNM_DEBUG -ggdb)
 endif()
 
 set(USR_PREFIX "/usr" CACHE PATH "Executable and lang files directory prefix")

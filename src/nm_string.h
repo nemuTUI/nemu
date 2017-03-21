@@ -16,9 +16,12 @@ void nm_str_add_char_opt(nm_str_t *str, char ch);
 void nm_str_add_text(nm_str_t *str, const char *src);
 void nm_str_add_str(nm_str_t *str, const nm_str_t *src);
 void nm_str_copy(nm_str_t *str, const nm_str_t *src);
+void nm_str_trunc(nm_str_t *str, size_t len);
 void nm_str_free(nm_str_t *str);
-int nm_str_cmp_str_text(const nm_str_t *str, const char *text);
-int nm_str_cmp_str_str(const nm_str_t *str1, const nm_str_t *str2);
+uint32_t nm_str_stoui(const nm_str_t *str);
+uint64_t nm_str_stoul(const nm_str_t *str);
+int nm_str_cmp_st(const nm_str_t *str, const char *text);
+int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2);
 
 #endif /* NM_STRING_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

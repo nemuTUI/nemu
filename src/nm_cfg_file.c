@@ -16,7 +16,8 @@ void nm_cfg_init(void)
     struct stat file_info;
     struct passwd *pw = getpwuid(getuid());
     nm_str_t cfg_path = NM_INIT_STR;
-    void *ini;
+    nm_str_t tmp_buf = NM_INIT_STR;
+    nm_ini_node_t *ini;
 
     if (!pw)
         nm_bug(_("Error get home directory: %s\n"), strerror(errno));
@@ -31,20 +32,45 @@ void nm_cfg_init(void)
 #endif
     nm_get_param(ini, "main", "vmdir", &cfg.vm_dir);
     if (stat(cfg.vm_dir.data, &file_info) == -1)
-        nm_bug("%s: %s", cfg.vm_dir.data, strerror(errno));
+        nm_bug("cfg: %s: %s", cfg.vm_dir.data, strerror(errno));
     if ((file_info.st_mode & S_IFMT) != S_IFDIR)
-        nm_bug(_("%s is not a directory"), cfg.vm_dir.data);
+        nm_bug(_("cfg: %s is not a directory"), cfg.vm_dir.data);
     if (access(cfg.vm_dir.data, W_OK) != 0)
-        nm_bug(_("No write access to %s"), cfg.vm_dir.data);
+        nm_bug(_("cfg: no write access to %s"), cfg.vm_dir.data);
+
+    nm_get_param(ini, "main", "db", &cfg.db_path);
+    nm_str_copy(&tmp_buf, &cfg.db_path);
+    if (access(dirname(tmp_buf.data), W_OK) != 0)
+        nm_bug(_("cfg: no write access to %s"), tmp_buf.data);
+    nm_str_trunc(&tmp_buf, 0);
+
+    nm_get_param(ini, "main", "list_max", &tmp_buf);
+    cfg.list_max = nm_str_stoui(&tmp_buf);
+    if ((cfg.list_max == 0) || (cfg.list_max > 100))
+    {
+        nm_bug(_("cfg: bad list_max value: %u, expected: [1-100]"),
+            cfg.list_max);
+    }
 
     nm_ini_parser_free(ini);
+    nm_cfg_free(); /* XXX tmp */
     
     nm_str_free(&cfg_path);
+    nm_str_free(&tmp_buf);
 }
 
 const nm_cfg_t *nm_cfg_get(void)
 {
     return &cfg;
+}
+
+void nm_cfg_free(void)
+{
+    nm_str_free(&cfg.vm_dir);
+    nm_str_free(&cfg.db_path);
+    nm_str_free(&cfg.vnc_bin);
+    nm_str_free(&cfg.qemu_system_path);
+    nm_str_free(&cfg.log_path);
 }
 
 static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
@@ -177,7 +203,7 @@ static inline void nm_get_param(const void *ini, const char *section,
 {
     if (nm_ini_parser_find(ini, section, value, res) != NM_OK)
         nm_bug(_("cfg error: %s->%s is missing"), section, value);
-    if (cfg.vm_dir.len == 0)
+    if (res->len == 0)
         nm_bug(_("cfg error: %s->%s is empty"), section, value);
 }
 
