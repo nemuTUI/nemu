@@ -52,6 +52,10 @@ void nm_cfg_init(void)
             cfg.list_max);
     }
 
+    nm_get_param(ini, "vnc", "binary", &cfg.vnc_bin);
+    if (stat(cfg.vnc_bin.data, &file_info) == -1)
+        nm_bug("cfg: %s: %s", cfg.vnc_bin.data, strerror(errno));
+
     nm_ini_parser_free(ini);
     nm_cfg_free(); /* XXX tmp */
     
