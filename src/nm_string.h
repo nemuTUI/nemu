@@ -18,6 +18,7 @@ void nm_str_add_str(nm_str_t *str, const nm_str_t *src);
 void nm_str_copy(nm_str_t *str, const nm_str_t *src);
 void nm_str_trunc(nm_str_t *str, size_t len);
 void nm_str_free(nm_str_t *str);
+void nm_str_dirname(const nm_str_t *str, nm_str_t *res);
 uint32_t nm_str_stoui(const nm_str_t *str);
 uint64_t nm_str_stoul(const nm_str_t *str);
 int nm_str_cmp_st(const nm_str_t *str, const char *text);

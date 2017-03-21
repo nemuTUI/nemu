@@ -39,8 +39,8 @@ void nm_cfg_init(void)
         nm_bug(_("cfg: no write access to %s"), cfg.vm_dir.data);
 
     nm_get_param(ini, "main", "db", &cfg.db_path);
-    nm_str_copy(&tmp_buf, &cfg.db_path);
-    if (access(dirname(tmp_buf.data), W_OK) != 0)
+    nm_str_dirname(&cfg.db_path, &tmp_buf);
+    if (access(tmp_buf.data, W_OK) != 0)
         nm_bug(_("cfg: no write access to %s"), tmp_buf.data);
     nm_str_trunc(&tmp_buf, 0);
 

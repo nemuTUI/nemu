@@ -113,6 +113,26 @@ uint64_t nm_str_stoul(const nm_str_t *str)
     return res;
 }
 
+void nm_str_dirname(const nm_str_t *str, nm_str_t *res)
+{
+    const char *data = nm_str_get(str);
+    size_t pos = str->len;
+
+    if (str->len == 0)
+        nm_bug(_("%s: zero length string"), __func__);
+
+    for (size_t n = (pos - 1); n > 0; n--)
+    {
+        if (data[n] == '/')
+        {
+            pos = n;
+            break;
+        }
+    }
+
+    nm_str_alloc_mem(res, data, pos);
+}
+
 static void nm_str_alloc_mem(nm_str_t *str, const char *src, size_t len)
 {
     size_t len_needed;

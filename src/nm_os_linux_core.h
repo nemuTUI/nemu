@@ -13,7 +13,6 @@
 #include <unistd.h>
 #include <libintl.h>
 #include <fcntl.h>
-#include <libgen.h>
 #include <inttypes.h>
 
 #include <pwd.h>
