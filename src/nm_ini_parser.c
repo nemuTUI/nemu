@@ -20,7 +20,7 @@ struct nm_ini_node_s {
 static nm_ini_node_t *nm_ini_node_push(nm_ini_node_t **head, nm_str_t *name);
 static void nm_ini_value_push(nm_ini_node_t *head, nm_str_t *name, nm_str_t *value);
 
-void *nm_ini_parser_init(const nm_str_t *path)
+nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
 {
     char *buf_ini;
     int look_for_sec_end = 0;
