@@ -30,7 +30,7 @@ void nm_cfg_init(void)
 #if (NM_DEBUG)
     nm_ini_parser_dump(ini);
 #endif
-    nm_get_param(ini, "main", "vmdir", &cfg.vm_dir);
+    nm_get_param(ini, NM_INI_S_MAIN, NM_INI_P_VM, &cfg.vm_dir);
     if (stat(cfg.vm_dir.data, &file_info) == -1)
         nm_bug("cfg: %s: %s", cfg.vm_dir.data, strerror(errno));
     if ((file_info.st_mode & S_IFMT) != S_IFDIR)
@@ -38,13 +38,13 @@ void nm_cfg_init(void)
     if (access(cfg.vm_dir.data, W_OK) != 0)
         nm_bug(_("cfg: no write access to %s"), cfg.vm_dir.data);
 
-    nm_get_param(ini, "main", "db", &cfg.db_path);
+    nm_get_param(ini, NM_INI_S_MAIN, NM_INI_P_DB, &cfg.db_path);
     nm_str_dirname(&cfg.db_path, &tmp_buf);
     if (access(tmp_buf.data, W_OK) != 0)
         nm_bug(_("cfg: no write access to %s"), tmp_buf.data);
     nm_str_trunc(&tmp_buf, 0);
 
-    nm_get_param(ini, "main", "list_max", &tmp_buf);
+    nm_get_param(ini, NM_INI_S_MAIN, NM_INI_P_LIST, &tmp_buf);
     cfg.list_max = nm_str_stoui(&tmp_buf);
     if ((cfg.list_max == 0) || (cfg.list_max > 100))
     {
@@ -52,7 +52,7 @@ void nm_cfg_init(void)
             cfg.list_max);
     }
 
-    nm_get_param(ini, "vnc", "binary", &cfg.vnc_bin);
+    nm_get_param(ini, NM_INI_S_VNC, NM_INI_P_VBIN, &cfg.vnc_bin);
     if (stat(cfg.vnc_bin.data, &file_info) == -1)
         nm_bug("cfg: %s: %s", cfg.vnc_bin.data, strerror(errno));
 
