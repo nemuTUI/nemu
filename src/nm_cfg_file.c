@@ -78,13 +78,13 @@ void nm_cfg_init(void)
         nm_bug(_("cfg: bad list_max value: %u, expected: [1-100]"),
             cfg.list_max);
     }
-
+#if (NM_WITH_VNC_CLIENT)
     /* Get the VNC client binary path */
     nm_get_param(ini, NM_INI_S_VNC, NM_INI_P_VBIN, &cfg.vnc_bin);
 
     if (stat(cfg.vnc_bin.data, &file_info) == -1)
         nm_bug("cfg: %s: %s", cfg.vnc_bin.data, strerror(errno));
-
+#endif
     /* Get the VNC listen value */
     nm_get_param(ini, NM_INI_S_VNC, NM_INI_P_VANY, &tmp_buf);
     cfg.vnc_listen_any = !!nm_str_stoui(&tmp_buf);
@@ -113,6 +113,7 @@ void nm_cfg_init(void)
         }
 
         nm_vect_end_zero(&cfg.qemu_targets); /* need for ncurses form */
+        nm_str_trunc(&tmp_buf, 0);
         nm_str_free(&qemu_bin);
 #if (NM_DEBUG)
         const char **tp = (const char **) cfg.qemu_targets.data;
@@ -122,6 +123,13 @@ void nm_cfg_init(void)
             printf(">> %s\n", *tp);
 #endif
     }
+
+    /* Get file log path */
+    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QLOG, &cfg.log_path);
+
+    nm_str_dirname(&cfg.log_path, &tmp_buf);
+    if (access(tmp_buf.data, W_OK) != 0)
+        nm_bug(_("cfg: no write access to %s"), tmp_buf.data);
 
     nm_ini_parser_free(ini);
     nm_cfg_free(); /* XXX tmp */
