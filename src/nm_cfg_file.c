@@ -132,8 +132,6 @@ void nm_cfg_init(void)
         nm_bug(_("cfg: no write access to %s"), tmp_buf.data);
 
     nm_ini_parser_free(ini);
-    nm_cfg_free(); /* XXX tmp */
-    
     nm_str_free(&cfg_path);
     nm_str_free(&tmp_buf);
 }

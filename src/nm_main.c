@@ -23,7 +23,6 @@ int main(void)
 
     nm_cfg_init();
     cfg = nm_cfg_get();
-    exit(NM_OK); /* XXX tmp */
 
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -70,6 +69,7 @@ int main(void)
 
             case KEY_F(10):
                 nm_curses_deinit();
+                nm_cfg_free();
                 exit(NM_OK);
             }
 
@@ -112,6 +112,7 @@ int main(void)
         else if (choice == NM_CHOICE_QUIT)
         {
             nm_curses_deinit();
+            nm_cfg_free();
             exit(NM_OK);
         } /* }}} */
     } /* }}} Main loop */
