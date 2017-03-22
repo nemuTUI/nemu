@@ -55,7 +55,7 @@ void nm_str_trunc(nm_str_t *str, size_t len)
 
 void nm_str_free(nm_str_t *str)
 {
-    if (str->data != 0)
+    if (str->data != NULL)
         free(str->data);
 
     str->data = NULL;

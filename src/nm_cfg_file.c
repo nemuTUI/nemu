@@ -1,6 +1,7 @@
 #include <nm_core.h>
 #include <nm_utils.h>
 #include <nm_string.h>
+#include <nm_vector.h>
 #include <nm_cfg_file.h>
 #include <nm_ini_parser.h>
 
@@ -10,18 +11,18 @@
 #define NM_DEFAULT_VNC    "/usr/bin/vncviewer"
 #define NM_DEFAULT_TARGET "x86_64,i386"
 
-#define NM_INI_S_MAIN   "main"
-#define NM_INI_S_VNC    "vnc"
-#define NM_INI_S_QEMU   "qemu"
+#define NM_INI_S_MAIN     "main"
+#define NM_INI_S_VNC      "vnc"
+#define NM_INI_S_QEMU     "qemu"
 
-#define NM_INI_P_VM     "vmdir"
-#define NM_INI_P_DB     "db"
-#define NM_INI_P_LIST   "list_max"
-#define NM_INI_P_VBIN   "binary"
-#define NM_INI_P_VANY   "listen_any"
-#define NM_INI_P_QBIN   "qemu_system_path"
-#define NM_INI_P_QTRG   "targets"
-#define NM_INI_P_QLOG   "log_cmd"
+#define NM_INI_P_VM       "vmdir"
+#define NM_INI_P_DB       "db"
+#define NM_INI_P_LIST     "list_max"
+#define NM_INI_P_VBIN     "binary"
+#define NM_INI_P_VANY     "listen_any"
+#define NM_INI_P_QBIN     "qemu_system_path"
+#define NM_INI_P_QTRG     "targets"
+#define NM_INI_P_QLOG     "log_cmd"
 
 static nm_cfg_t cfg;
 
@@ -71,6 +72,7 @@ void nm_cfg_init(void)
     nm_get_param(ini, NM_INI_S_MAIN, NM_INI_P_LIST, &tmp_buf);
 
     cfg.list_max = nm_str_stoui(&tmp_buf);
+    nm_str_trunc(&tmp_buf, 0);
     if ((cfg.list_max == 0) || (cfg.list_max > 100))
     {
         nm_bug(_("cfg: bad list_max value: %u, expected: [1-100]"),
@@ -82,6 +84,22 @@ void nm_cfg_init(void)
 
     if (stat(cfg.vnc_bin.data, &file_info) == -1)
         nm_bug("cfg: %s: %s", cfg.vnc_bin.data, strerror(errno));
+
+    /* Get the VNC listen value */
+    nm_get_param(ini, NM_INI_S_VNC, NM_INI_P_VANY, &tmp_buf);
+    cfg.vnc_listen_any = !!nm_str_stoui(&tmp_buf);
+    nm_str_trunc(&tmp_buf, 0);
+
+    /* Get QEMU binary path */
+    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QBIN, &cfg.qemu_system_path);
+
+    /* Get QEMU targets list */
+    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QTRG, &tmp_buf);
+    {
+        nm_vect_t v = NM_INIT_VECT;
+
+        nm_vect_free(&v);
+    }
 
     nm_ini_parser_free(ini);
     nm_cfg_free(); /* XXX tmp */
@@ -102,6 +120,7 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.vnc_bin);
     nm_str_free(&cfg.qemu_system_path);
     nm_str_free(&cfg.log_path);
+    nm_vect_free(&cfg.qemu_targets);
 }
 
 static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)

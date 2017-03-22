@@ -1,13 +1,15 @@
 #ifndef NM_CFG_FILE_H_
 #define NM_CFG_FILE_H_
 
+#include <nm_vector.h>
+
 typedef struct {
     nm_str_t vm_dir;
     nm_str_t db_path;
     nm_str_t vnc_bin;
     nm_str_t qemu_system_path;
     nm_str_t log_path;
-    char **qemu_targets;
+    nm_vect_t qemu_targets;
     uint32_t list_max;
     uint32_t vnc_listen_any:1;
 } nm_cfg_t;
