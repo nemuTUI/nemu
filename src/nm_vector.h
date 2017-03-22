@@ -10,6 +10,7 @@ typedef struct {
 /* NOTE: If inserting C string len must include \x00 */
 void nm_vect_insert(nm_vect_t *v, void *data, size_t len);
 void *nm_vect_at(const nm_vect_t *v, size_t index);
+void nm_vect_end_zero(nm_vect_t *v);
 void nm_vect_free(nm_vect_t *v);
 
 #define NM_INIT_VECT { 0, 0, 0, NULL }

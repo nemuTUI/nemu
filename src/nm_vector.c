@@ -13,10 +13,15 @@ void nm_vect_insert(nm_vect_t *v, void *data, size_t len)
     {
         v->data = nm_alloc(sizeof(void *) * NM_VECT_INIT_NMEMB);
         v->n_alloc = NM_VECT_INIT_NMEMB;
+        memset(v->data, 0, v->n_alloc * sizeof(void *));
     }
 
     if (v->n_memb == v->n_alloc)
-        v->data = nm_realloc(v->data, v->n_alloc * 2);
+    {
+        v->data = nm_realloc(v->data, sizeof(void *) * (v->n_alloc * 2));
+        memset(v->data + v->n_alloc, 0, v->n_alloc * sizeof(void *));
+        v->n_alloc *= 2;
+    }
 
     v->data[v->n_memb] = nm_calloc(1, len);
     memcpy(v->data[v->n_memb], data, len);
@@ -33,6 +38,16 @@ void *nm_vect_at(const nm_vect_t *v, size_t index)
         nm_bug(_("%s: invalid index"), __func__);
     
     return v->data[index];
+}
+
+void nm_vect_end_zero(nm_vect_t *v)
+{
+    if (v->n_alloc > v->n_memb)
+        return;
+
+    v->data = nm_realloc(v->data, sizeof(void *) * (v->n_alloc + 1));
+    v->data[v->n_alloc] = NULL;
+    v->n_alloc++;
 }
 
 void nm_vect_free(nm_vect_t *v)

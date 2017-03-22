@@ -97,7 +97,16 @@ void nm_cfg_init(void)
     nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QTRG, &tmp_buf);
     {
         nm_vect_t v = NM_INIT_VECT;
+#if 0
+        nm_vect_insert(&v, "test1", strlen("test1") + 1);
+        nm_vect_insert(&v, "test2", strlen("test2") + 1);
+        nm_vect_insert(&v, "test3", strlen("test3") + 1);
+        nm_vect_end_zero(&v);
 
+        const char **pp = (const char **) v.data;
+        for (; *pp != NULL; pp++)
+            printf("v: %s\n", *pp);
+#endif
         nm_vect_free(&v);
     }
 
