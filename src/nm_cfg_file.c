@@ -96,18 +96,31 @@ void nm_cfg_init(void)
     /* Get QEMU targets list */
     nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QTRG, &tmp_buf);
     {
-        nm_vect_t v = NM_INIT_VECT;
-#if 0
-        nm_vect_insert(&v, "test1", strlen("test1") + 1);
-        nm_vect_insert(&v, "test2", strlen("test2") + 1);
-        nm_vect_insert(&v, "test3", strlen("test3") + 1);
-        nm_vect_end_zero(&v);
+        char *token;
+        char *saveptr = tmp_buf.data;
+        nm_str_t qemu_bin = NM_INIT_STR;
 
-        const char **pp = (const char **) v.data;
-        for (; *pp != NULL; pp++)
-            printf("v: %s\n", *pp);
+        while ((token = strtok_r(saveptr, ",", &saveptr)))
+        {
+            nm_str_copy(&qemu_bin, &cfg.qemu_system_path);
+            nm_str_add_char(&qemu_bin, '-');
+            nm_str_add_text(&qemu_bin, token);
+
+            if (stat(qemu_bin.data, &file_info) == -1)
+                nm_bug(_("cfg: %s: %s"), qemu_bin.data, strerror(errno));
+
+            nm_vect_insert(&cfg.qemu_targets, token, strlen(token) + 1);
+        }
+
+        nm_vect_end_zero(&cfg.qemu_targets); /* need for ncurses form */
+        nm_str_free(&qemu_bin);
+#if (NM_DEBUG)
+        const char **tp = (const char **) cfg.qemu_targets.data;
+
+        printf("\nConfigured QEMU targets:\n");
+        for (; *tp != NULL; tp++)
+            printf(">> %s\n", *tp);
 #endif
-        nm_vect_free(&v);
     }
 
     nm_ini_parser_free(ini);
