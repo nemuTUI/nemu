@@ -25,8 +25,12 @@ target_link_libraries(${PROJECT_NAME}
     ${UDEV_LIBRARIES})
 
 option(NM_DEBUG "Build debug version" OFF)
+option(NM_WITH_VNC_CLIENT "Build with usage of external VNC client" ON)
 if (NM_DEBUG)
   add_definitions(-DNM_DEBUG -ggdb)
+endif()
+if (NM_WITH_VNC_CLIENT)
+  add_definitions(-DNM_WITH_VNC_CLIENT)
 endif()
 
 set(USR_PREFIX "/usr" CACHE PATH "Executable and lang files directory prefix")
