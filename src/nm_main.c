@@ -34,6 +34,7 @@ int main(void)
             if (res->len > 0)
                 printf("res: %s\n", res->data);
         }
+        printf("at test: %s\n", nm_vect_str_ctx(&vv, 1));
         nm_vect_free(&vv, nm_vect_free_str_cb);
     } /* XXX tmp */
     cfg = nm_cfg_get();

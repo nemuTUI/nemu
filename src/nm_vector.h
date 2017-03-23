@@ -19,8 +19,8 @@ void nm_vect_ins_str_cb(const void *unit_p, const void *ctx);
 void nm_vect_free_str_cb(const void *unit_p);
 
 #define NM_INIT_VECT { 0, 0, 0, NULL }
-#define nm_vect_str_get_ctx(p) ((nm_str_t *) p)->data
-#define nm_vect_str_get_len(p) ((nm_str_t *) p)->len
+#define nm_vect_str_ctx(p, idx) ((nm_str_t *) nm_vect_at(p, idx))->data
+#define nm_vect_str_len(p, idx) ((nm_str_t *) nm_vect_at(p, idx))->len
 
 #endif /* NM_VECTOR_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */
