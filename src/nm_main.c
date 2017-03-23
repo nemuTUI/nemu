@@ -24,23 +24,7 @@ int main(void)
 
     nm_cfg_init();
     nm_db_init();
-    { /* XXX tmp */
-        nm_vect_t vv = NM_INIT_VECT;
-        nm_db_select("select * from vms where name='windows'", &vv);
-        printf("res nmemb: %zu\n", vv.n_memb);
-        for (size_t n = 0; n < vv.n_memb; n++)
-        {
-            nm_str_t *res = (nm_str_t *) vv.data[n];
-            if (res->len > 0)
-                printf("res: %s\n", res->data);
-        }
-        printf("at test: %s\n", nm_vect_str_ctx(&vv, 1));
-        nm_vect_free(&vv, nm_vect_free_str_cb);
-    } /* XXX tmp */
     cfg = nm_cfg_get();
-    nm_cfg_free(); /* XXX tmp */
-    nm_db_close(); /* XXX tmp */
-    exit(NM_OK); /* XXX tmp */
 
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -87,6 +71,7 @@ int main(void)
 
             case KEY_F(10):
                 nm_curses_deinit();
+                nm_db_close();
                 nm_cfg_free();
                 exit(NM_OK);
             }
@@ -130,6 +115,7 @@ int main(void)
         else if (choice == NM_CHOICE_QUIT)
         {
             nm_curses_deinit();
+            nm_db_close();
             nm_cfg_free();
             exit(NM_OK);
         } /* }}} */
