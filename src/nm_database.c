@@ -71,14 +71,16 @@ void nm_db_close(void)
 static int nm_db_select_cb(void *v, int argc, char **argv,
                            __attribute__((unused)) char **unused)
 {
-    nm_str_t value = NM_INIT_STR;
     nm_vect_t *res = (nm_vect_t *) v;
+    nm_str_t value = NM_INIT_STR;
 
     for (int n = 0; n < argc; n++)
     {
         nm_str_alloc_text(&value, argv[n] ? argv[n] : "");
-        nm_vect_insert(res, &value, sizeof(nm_str_t));
+        nm_vect_insert(res, &value, sizeof(nm_str_t), nm_vect_ins_str_cb);
     }
+
+    nm_str_free(&value);
 
     return 0;
 }

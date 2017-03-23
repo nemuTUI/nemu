@@ -26,12 +26,15 @@ int main(void)
     nm_db_init();
     { /* XXX tmp */
         nm_vect_t vv = NM_INIT_VECT;
-        nm_db_select("select name from vms", &vv);
+        nm_db_select("select * from vms where name='windows'", &vv);
         printf("res nmemb: %zu\n", vv.n_memb);
         for (size_t n = 0; n < vv.n_memb; n++)
         {
-            printf("res: %s\n", nm_vect_str_get(vv.data[n]));
+            nm_str_t *res = (nm_str_t *) vv.data[n];
+            if (res->len > 0)
+                printf("res: %s\n", res->data);
         }
+        nm_vect_free(&vv, nm_vect_free_str_cb);
     } /* XXX tmp */
     cfg = nm_cfg_get();
     nm_cfg_free(); /* XXX tmp */

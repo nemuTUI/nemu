@@ -109,7 +109,7 @@ void nm_cfg_init(void)
             if (stat(qemu_bin.data, &file_info) == -1)
                 nm_bug(_("cfg: %s: %s"), qemu_bin.data, strerror(errno));
 
-            nm_vect_insert(&cfg.qemu_targets, token, strlen(token) + 1);
+            nm_vect_insert(&cfg.qemu_targets, token, strlen(token) + 1, NULL);
         }
 
         nm_vect_end_zero(&cfg.qemu_targets); /* need for ncurses form */
@@ -148,7 +148,7 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.vnc_bin);
     nm_str_free(&cfg.qemu_system_path);
     nm_str_free(&cfg.log_path);
-    nm_vect_free(&cfg.qemu_targets);
+    nm_vect_free(&cfg.qemu_targets, NULL);
 }
 
 static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)

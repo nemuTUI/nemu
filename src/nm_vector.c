@@ -4,7 +4,7 @@
 
 #define NM_VECT_INIT_NMEMB 10
 
-void nm_vect_insert(nm_vect_t *v, void *data, size_t len)
+void nm_vect_insert(nm_vect_t *v, void *data, size_t len, nm_vect_ins_cb_t cb)
 {
     if (v == NULL)
         nm_bug(_("%s: NULL vector pointer value"), __func__);
@@ -24,9 +24,22 @@ void nm_vect_insert(nm_vect_t *v, void *data, size_t len)
     }
 
     v->data[v->n_memb] = nm_calloc(1, len);
-    memcpy(v->data[v->n_memb], data, len);
+    if (cb != NULL)
+        cb(v->data[v->n_memb], data);
+    else
+        memcpy(v->data[v->n_memb], data, len);
 
     v->n_memb++;
+}
+
+void nm_vect_ins_str_cb(const void *unit_p, const void *ctx)
+{
+    nm_str_copy((nm_str_t *) unit_p, (nm_str_t *) ctx);
+}
+
+void nm_vect_free_str_cb(const void *unit_p)
+{
+    nm_str_free((nm_str_t *) unit_p);
 }
 
 void *nm_vect_at(const nm_vect_t *v, size_t index)
@@ -50,13 +63,17 @@ void nm_vect_end_zero(nm_vect_t *v)
     v->n_alloc++;
 }
 
-void nm_vect_free(nm_vect_t *v)
+void nm_vect_free(nm_vect_t *v, nm_vect_free_cb_t cb)
 {
     if (v == NULL)
         return;
 
     for (size_t n = 0; n < v->n_memb; n++)
+    {
+        if (cb != NULL)
+            cb(v->data[n]);
         free(v->data[n]);
+    }
 
     free(v->data);
 
