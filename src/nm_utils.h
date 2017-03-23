@@ -19,6 +19,11 @@ void nm_unmap_file(const nm_file_map_t *file);
 void nm_bug(const char *fmt, ...)
     __attribute__ ((format(printf, 1, 2)));
 
+#if (NM_DEBUG)
+void nm_debug(const char *fmt, ...)
+    __attribute__ ((format(printf, 1, 2)));
+#endif
+
 #define NM_INIT_FILE { NULL, -1, 0, NULL }
 
 #endif /* NM_UTILS_H_ */

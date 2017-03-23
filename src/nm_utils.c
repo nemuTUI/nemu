@@ -80,4 +80,21 @@ void nm_unmap_file(const nm_file_map_t *file)
     close(file->fd);
 }
 
+#if (NM_DEBUG)
+void nm_debug(const char *fmt, ...)
+{
+    va_list args;
+    FILE *fp;
+
+    if ((fp = fopen("/tmp/nemu_debug.log", "a+")) == NULL)
+        return;
+
+    va_start(args, fmt);
+    vfprintf(fp, fmt, args);
+    va_end(args);
+
+    fclose(fp);
+}
+#endif
+
 /* vim:set ts=4 sw=4 fdm=marker: */

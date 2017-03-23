@@ -125,21 +125,21 @@ void nm_ini_parser_dump(const nm_ini_node_t *head)
     if (curr == NULL)
         return;
 
-    printf("-=ini cfg start=-\n");
+    nm_debug("-=ini cfg start=-\n");
     while (curr != NULL)
     {
         const nm_ini_value_t *values = curr->values_head;
 
-        printf("section: %s\n", curr->name.data);
+        nm_debug("section: %s\n", curr->name.data);
         while (values != NULL)
         {
-            printf("\t%s = %s\n", values->name.data, values->value.data);
+            nm_debug("\t%s = %s\n", values->name.data, values->value.data);
             values = values->next;
         }
 
         curr = curr->next;
     }
-    printf("-=ini cfg end=-\n");
+    nm_debug("-=ini cfg end=-\n");
 }
 #endif
 

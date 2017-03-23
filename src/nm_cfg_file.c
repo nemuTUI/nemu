@@ -118,9 +118,9 @@ void nm_cfg_init(void)
 #if (NM_DEBUG)
         const char **tp = (const char **) cfg.qemu_targets.data;
 
-        printf("\nConfigured QEMU targets:\n");
+        nm_debug("\nConfigured QEMU targets:\n");
         for (; *tp != NULL; tp++)
-            printf(">> %s\n", *tp);
+            nm_debug(">> %s\n", *tp);
 #endif
     }
 
