@@ -14,6 +14,7 @@ void nm_vect_end_zero(nm_vect_t *v);
 void nm_vect_free(nm_vect_t *v);
 
 #define NM_INIT_VECT { 0, 0, 0, NULL }
+#define nm_vect_str_get(p) ((nm_str_t *) p)->data
 
 #endif /* NM_VECTOR_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

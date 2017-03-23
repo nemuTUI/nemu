@@ -9,8 +9,11 @@
 #error "Build on this system is not supported"
 #endif
 
+/* global external includes */
 #include <curses.h>
 
+/* global external typedefs */
+/** ncurses **/
 typedef WINDOW nm_window_t;
 
 #define NM_OK   0

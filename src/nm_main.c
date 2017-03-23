@@ -4,6 +4,7 @@
 #include <nm_string.h>
 #include <nm_window.h>
 #include <nm_ncurses.h>
+#include <nm_database.h>
 #include <nm_cfg_file.h>
 
 static void signals_handler(int signal);
@@ -22,7 +23,20 @@ int main(void)
     textdomain(NM_PROGNAME);
 
     nm_cfg_init();
+    nm_db_init();
+    { /* XXX tmp */
+        nm_vect_t vv = NM_INIT_VECT;
+        nm_db_select("select name from vms", &vv);
+        printf("res nmemb: %zu\n", vv.n_memb);
+        for (size_t n = 0; n < vv.n_memb; n++)
+        {
+            printf("res: %s\n", nm_vect_str_get(vv.data[n]));
+        }
+    } /* XXX tmp */
     cfg = nm_cfg_get();
+    nm_cfg_free(); /* XXX tmp */
+    nm_db_close(); /* XXX tmp */
+    exit(NM_OK); /* XXX tmp */
 
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
