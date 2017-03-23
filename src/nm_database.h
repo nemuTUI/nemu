@@ -5,6 +5,7 @@
 
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
+void nm_db_edit(const char *query);
 void nm_db_close(void);
 
 #endif /* NM_DATABASE_H_ */
