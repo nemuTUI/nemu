@@ -4,7 +4,7 @@
 
 #define NM_VECT_INIT_NMEMB 10
 
-void nm_vect_insert(nm_vect_t *v, void *data, size_t len, nm_vect_ins_cb_t cb)
+void nm_vect_insert(nm_vect_t *v, void *data, size_t len, nm_vect_ins_cb_pt cb)
 {
     if (v == NULL)
         nm_bug(_("%s: NULL vector pointer value"), __func__);
@@ -63,7 +63,7 @@ void nm_vect_end_zero(nm_vect_t *v)
     v->n_alloc++;
 }
 
-void nm_vect_free(nm_vect_t *v, nm_vect_free_cb_t cb)
+void nm_vect_free(nm_vect_t *v, nm_vect_free_cb_pt cb)
 {
     if (v == NULL)
         return;
