@@ -93,7 +93,9 @@ int main(void)
                 redraw_window = 0;
             }
             else
+            {
                 nm_print_main_menu(main_window, highlight);
+            }
 
             if (choice != 0)
                 break;
@@ -134,13 +136,58 @@ int main(void)
 
                 vms.v = &vms_v;
 
+                if (vm_window)
+                {
+                    delwin(vm_window);
+                    vm_window = NULL;
+                }
                 vm_window = nm_init_window(list_max + 4, 32, 7);
                 nm_print_vm_window();
                 nm_print_vm_menu(vm_window, &vms);
-                getch();
+
+                wtimeout(vm_window, 1000);
+
+                for (;;)
+                {
+                    ch = wgetch(vm_window);
+
+                    /* {{{ Back to main window */
+                    if (ch == KEY_F(10))
+                    {
+                        if (vm_window)
+                        {
+                            delwin(vm_window);
+                            vm_window = NULL;
+                        }
+                        /*refresh();
+                        endwin(); XXX*/
+
+                        break;
+                    } /* }}} */
+
+                    if (redraw_window)
+                    {
+                        endwin();
+                        refresh();
+                        clear();
+                        if (vm_window)
+                        {
+                            delwin(vm_window);
+                            vm_window = NULL;
+                        }
+                        vm_window = nm_init_window(list_max + 4, 32, 7);
+                        nm_print_vm_window();
+                        nm_print_vm_menu(vm_window, &vms);
+                        wtimeout(vm_window, 1000);
+                        redraw_window = 0;
+                    }
+                    else
+                    {
+                        nm_print_vm_menu(vm_window, &vms);
+                    }
+                }
                 nm_vect_free(&vms_v, NULL);
             }
-
             nm_vect_free(&vm_list, nm_vect_free_str_cb);
         } /* }}} VM list */
 
