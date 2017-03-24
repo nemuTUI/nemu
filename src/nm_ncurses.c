@@ -36,4 +36,15 @@ nm_window_t *nm_init_window(int nlines, int ncols, int begin_y)
 
     return w;
 }
+
+void nm_clear_screen(void)
+{
+    int x, y;
+
+    getmaxyx(stdscr, y, x);
+
+    for (int i = 0; i <= y; i++)
+        mvhline(i, 0, ' ', x);
+}
+
 /* vim:set ts=4 sw=4 fdm=marker: */

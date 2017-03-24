@@ -17,6 +17,7 @@ int main(void)
     uint32_t ch, nemu = 0;
     const nm_cfg_t *cfg;
     nm_window_t *main_window = NULL;
+    nm_window_t *vm_window = NULL;
 
     setlocale(LC_ALL,"");
     bindtextdomain(NM_PROGNAME, NM_LOCALE_PATH);
@@ -102,7 +103,32 @@ int main(void)
         /* {{{ Print VM list */
         if (choice == NM_CHOICE_VM_LIST)
         {
-            /* Print VM list here */
+            nm_vect_t vm_list = NM_INIT_VECT;
+            nm_db_select("SELECT name FROM vms ORDER BY name ASC", &vm_list);
+
+            if (vm_list.n_memb == 0)
+            {
+                nm_window_t *warn_window = nm_init_window(3, 20, 6);
+                nm_print_warn(warn_window, _(" No VMs installed"));
+                delwin(warn_window);
+            }
+            else
+            {
+                uint32_t list_max = cfg->list_max;
+                nm_vm_list_t vms = NM_INIT_VM_LITST;
+                vms.v = &vm_list;
+                vms.vm_first = 0;
+                vms.highlight = 1;
+
+                if (list_max > vm_list.n_memb)
+                    list_max = vm_list.n_memb;
+
+                vms.vm_last = list_max;
+                vm_window = nm_init_window(list_max + 4, 32, 7);
+                nm_print_vm_window();
+                nm_print_vm_menu(vm_window, &vms);
+                getch();
+            }
         } /* }}} VM list */
 
         /* {{{ Install VM window */
