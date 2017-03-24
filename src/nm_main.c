@@ -115,20 +115,33 @@ int main(void)
             else
             {
                 uint32_t list_max = cfg->list_max;
-                nm_vm_list_t vms = NM_INIT_VM_LITST;
-                vms.v = &vm_list;
-                vms.vm_first = 0;
+                nm_vm_list_t vms = NM_INIT_VMS_LIST;
+                nm_vect_t vms_v = NM_INIT_VECT;
+
                 vms.highlight = 1;
 
                 if (list_max > vm_list.n_memb)
                     list_max = vm_list.n_memb;
 
                 vms.vm_last = list_max;
+
+                for (size_t n = 0; n < vm_list.n_memb; n++)
+                {
+                    nm_vm_t vm = NM_INIT_VM;
+                    vm.name = nm_vect_str_ctx(&vm_list, n);
+                    nm_vect_insert(&vms_v, &vm, sizeof(vm), NULL);
+                }
+
+                vms.v = &vms_v;
+
                 vm_window = nm_init_window(list_max + 4, 32, 7);
                 nm_print_vm_window();
                 nm_print_vm_menu(vm_window, &vms);
                 getch();
+                nm_vect_free(&vms_v, NULL);
             }
+
+            nm_vect_free(&vm_list, nm_vect_free_str_cb);
         } /* }}} VM list */
 
         /* {{{ Install VM window */

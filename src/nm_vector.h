@@ -19,8 +19,12 @@ void nm_vect_ins_str_cb(const void *unit_p, const void *ctx);
 void nm_vect_free_str_cb(const void *unit_p);
 
 #define NM_INIT_VECT { 0, 0, NULL }
+
 #define nm_vect_str_ctx(p, idx) ((nm_str_t *) nm_vect_at(p, idx))->data
 #define nm_vect_str_len(p, idx) ((nm_str_t *) nm_vect_at(p, idx))->len
+#define nm_vect_vm_name(p, idx) ((nm_vm_t *) nm_vect_at(p, idx))->name
+#define nm_vect_vm_status(p, idx) ((nm_vm_t *) nm_vect_at(p, idx))->status
+#define nm_vect_set_vm_status(p, idx, s) ((nm_vm_t *) nm_vect_at(p, idx))->status = s
 
 #endif /* NM_VECTOR_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */
