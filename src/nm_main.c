@@ -197,6 +197,22 @@ int main(void)
                         }
                     }
 
+                    /* {{{ Nemu */
+                    else if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)
+                    {
+                        if (ch == 0x6e && !nemu)
+                             nemu++;
+                        if (ch == 0x45 && nemu == 1)
+                             nemu++;
+                        if (ch == 0x4d && nemu == 2)
+                             nemu++;
+                        if (ch == 0x55 && nemu == 3)
+                        {
+                            nm_print_nemu();
+                            nemu = 0;
+                        }
+                    } /* }}} */
+
                     /* {{{ Back to main window */
                     else if (ch == KEY_F(10))
                     {

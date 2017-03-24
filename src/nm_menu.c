@@ -62,6 +62,7 @@ void nm_print_vm_menu(nm_window_t *w, const nm_vm_list_t *vm)
         }
         else
         {
+            nm_vect_set_vm_status(vm->v, n, 0);
             wattron(w, COLOR_PAIR(1));
         }
 
