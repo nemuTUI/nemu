@@ -151,8 +151,54 @@ int main(void)
                 {
                     ch = wgetch(vm_window);
 
+                    if ((ch == KEY_UP) && (vms.highlight == 1) &&
+                        (vms.vm_first == 0) && (list_max < vms.v->n_memb))
+                    {
+                        vms.highlight = list_max;
+                        vms.vm_first = vms.v->n_memb - list_max;
+                        vms.vm_last = vms.v->n_memb;
+                    }
+
+                    else if (ch == KEY_UP)
+                    {
+                        if ((vms.highlight == 1) && (vms.v->n_memb <= list_max))
+                            vms.highlight = vms.v->n_memb;
+                        else if ((vms.highlight == 1) && (vms.vm_first != 0))
+                        {
+                            vms.vm_first--;
+                            vms.vm_last--;
+                        }
+                        else
+                        {
+                            vms.highlight--;
+                        }
+                    }
+
+                    else if ((ch == KEY_DOWN) && (vms.highlight == list_max) &&
+                             (vms.vm_last == vms.v->n_memb))
+                    {
+                        vms.highlight = 1;
+                        vms.vm_first = 0;
+                        vms.vm_last = list_max;
+                    }
+
+                    else if (ch == KEY_DOWN)
+                    {
+                        if ((vms.highlight == vms.v->n_memb) && (vms.v->n_memb <= list_max))
+                            vms.highlight = 1;
+                        else if ((vms.highlight == list_max) && (vms.vm_last < vms.v->n_memb))
+                        {
+                            vms.vm_first++;
+                            vms.vm_last++;
+                        }
+                        else
+                        {
+                            vms.highlight++;
+                        }
+                    }
+
                     /* {{{ Back to main window */
-                    if (ch == KEY_F(10))
+                    else if (ch == KEY_F(10))
                     {
                         if (vm_window)
                         {
