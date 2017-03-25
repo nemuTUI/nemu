@@ -89,13 +89,10 @@ int main(void)
                 }
                 main_window = nm_init_window(10, 30, 7);
                 nm_print_main_window();
-                nm_print_main_menu(main_window, highlight);
                 redraw_window = 0;
             }
-            else
-            {
-                nm_print_main_menu(main_window, highlight);
-            }
+
+            nm_print_main_menu(main_window, highlight);
 
             if (choice != 0)
                 break;
@@ -238,15 +235,12 @@ int main(void)
                             vm_window = NULL;
                         }
                         vm_window = nm_init_window(list_max + 4, 32, 7);
-                        nm_print_vm_window();
-                        nm_print_vm_menu(vm_window, &vms);
                         wtimeout(vm_window, 1000);
                         redraw_window = 0;
                     }
-                    else
-                    {
-                        nm_print_vm_menu(vm_window, &vms);
-                    }
+
+                    nm_print_vm_window();
+                    nm_print_vm_menu(vm_window, &vms);
                 }
                 nm_vect_free(&vms_v, NULL);
             }

@@ -2,8 +2,7 @@
 #include <nm_ncurses.h>
 
 #define NM_VM_MSG   "F1 - help, F10 - main menu "
-#define NM_MAIN_MSG "Use arrow keys to go up and down, "\
-    "Press enter to select a choice, F10 - exit"
+#define NM_MAIN_MSG "Enter - select a choice, F10 - exit"
 
 static void nm_print_window(const char *msg);
 
@@ -74,8 +73,8 @@ void nm_print_nemu(void)
         mvprintw(n, 0, "%s", nemu[n]);
 
     getch();
-    refresh();
-    nm_clear_screen();
+    /*XXX refresh();
+    nm_clear_screen();*/
 }
 
 static void nm_print_window(const char *msg)
