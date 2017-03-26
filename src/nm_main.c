@@ -127,7 +127,7 @@ int main(void)
                 for (size_t n = 0; n < vm_list.n_memb; n++)
                 {
                     nm_vm_t vm = NM_INIT_VM;
-                    vm.name = nm_vect_str_ctx(&vm_list, n);
+                    vm.name = (nm_str_t *) nm_vect_at(&vm_list, n);
                     nm_vect_insert(&vms_v, &vm, sizeof(vm), NULL);
                 }
 
@@ -193,6 +193,14 @@ int main(void)
                             vms.highlight++;
                         }
                     }
+
+                    /* {{{ Print VM info */
+                    else if (ch == NM_KEY_ENTER)
+                    {
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        nm_print_vm_info(vm);
+
+                    } /* }}} VM info */
 
                     /* {{{ Nemu */
                     else if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)

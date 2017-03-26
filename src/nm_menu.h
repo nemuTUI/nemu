@@ -12,7 +12,7 @@ typedef struct {
 } nm_vm_list_t;
 
 typedef struct {
-    const char *name;
+    const nm_str_t *name;
     uint32_t status:1;
 } nm_vm_t;
 

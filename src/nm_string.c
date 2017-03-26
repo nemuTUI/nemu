@@ -71,6 +71,14 @@ int nm_str_cmp_st(const nm_str_t *str, const char *text)
     return NM_OK;
 }
 
+int nm_str_cmp_tt(const char *text1, const char *text2)
+{
+    if (strncmp(text1, text2, strlen(text1)) != 0)
+        return NM_ERR;
+
+    return NM_OK;
+}
+
 int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2)
 {
     if (strncmp(str1->data, str2->data, str1->len) != 0)
