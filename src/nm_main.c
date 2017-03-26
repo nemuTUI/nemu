@@ -210,6 +210,14 @@ int main(void)
                         }
                     } /* }}} */
 
+                    /* {{{ Print help */
+                    else if (ch == KEY_F(1))
+                    {
+                        nm_window_t *help_window = nm_init_window(16, 40, 1);
+                        nm_print_help(help_window);
+                        delwin(help_window);
+                    } /* }}} help */
+
                     /* {{{ Back to main window */
                     else if (ch == KEY_F(10))
                     {

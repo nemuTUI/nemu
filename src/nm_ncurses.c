@@ -1,4 +1,5 @@
 #include <nm_core.h>
+#include <nm_utils.h>
 #include <nm_ncurses.h>
 
 inline void nm_ncurses_init(void)
@@ -27,10 +28,7 @@ nm_window_t *nm_init_window(int nlines, int ncols, int begin_y)
 
     w = newwin(nlines, ncols, begin_y, (col - ncols) / 2);
     if (w == NULL)
-    {
-        /* TODO: print error */
-        exit(NM_ERR);
-    }
+        nm_bug(_("%s: NULL pointer"), __func__);
 
     keypad(w, TRUE);
 

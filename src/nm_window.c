@@ -24,6 +24,35 @@ void nm_print_warn(nm_window_t *w, const char *msg)
     wgetch(w);
 }
 
+void nm_print_help(nm_window_t *w)
+{
+    const char *msg[] = {
+          "             nEMU v" NM_VERSION,
+          "",
+        _(" r - start guest"),
+        _(" t - start guest in temporary mode"),
+#if (NM_WITH_VNC_CLIENT)
+        _(" c - connect to guest via vnc"),
+#endif
+        _(" f - force stop guest"),
+        _(" d - delete guest"),
+        _(" e - edit guest settings"),
+        _(" i - edit network settings"),
+        _(" a - add virtual disk"),
+        _(" l - clone guest"),
+        _(" s - edit boot settings"),
+        _(" m - show command"),
+        _(" u - delete unused tap interfaces")
+    };
+
+    box(w, 0, 0);
+
+    for (size_t n = 0, y = 1; n < nm_arr_len(msg); n++, y++)
+        mvwprintw(w, y, 1, "%s", msg[n]);
+
+    wgetch(w);
+}
+
 void nm_print_nemu(void)
 {
     const char *nemu[] = {
@@ -73,8 +102,6 @@ void nm_print_nemu(void)
         mvprintw(n, 0, "%s", nemu[n]);
 
     getch();
-    /*XXX refresh();
-    nm_clear_screen();*/
 }
 
 static void nm_print_window(const char *msg)

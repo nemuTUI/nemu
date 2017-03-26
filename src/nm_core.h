@@ -20,6 +20,7 @@ typedef WINDOW nm_window_t;
 #define NM_ERR -1
 
 #define NM_PROGNAME "nemu"
+#define NM_VERSION  "1.0.0-dev"
 
 #define _(S) gettext(S)
 #define NM_STRING_NX(S) # S
@@ -33,7 +34,6 @@ typedef WINDOW nm_window_t;
 
 #define NM_LOCALE_PATH NM_STRING(NM_USR_PREFIX) NM_LOCALE
 
-#define NM_VERSION "0.5.0-dev"
 #define NM_DEFAULT_NETDRV "virtio"
 #define NM_DEFAULT_DRVINT "virtio"
 
