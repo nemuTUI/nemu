@@ -3,6 +3,7 @@
 
 #include <nm_string.h>
 #include <nm_vector.h>
+#include <nm_ncurses.h>
 
 typedef struct {
     nm_vect_t *v;

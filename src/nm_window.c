@@ -1,21 +1,20 @@
 #include <nm_core.h>
 #include <nm_string.h>
+#include <nm_window.h>
 #include <nm_ncurses.h>
 #include <nm_database.h>
 
 #define NM_VM_MSG   "F1 - help, F10 - main menu "
 #define NM_MAIN_MSG "Enter - select a choice, F10 - exit"
 
-static void nm_print_window(const char *msg);
-
 void nm_print_main_window(void)
 {
-    nm_print_window(_(NM_MAIN_MSG));
+    nm_print_title(_(NM_MAIN_MSG));
 }
 
 void nm_print_vm_window(void)
 {
-    nm_print_window(_(NM_VM_MSG));
+    nm_print_title(_(NM_VM_MSG));
 }
 
 void nm_print_warn(nm_window_t *w, const char *msg)
@@ -161,7 +160,7 @@ void nm_print_nemu(void)
     getch();
 }
 
-static void nm_print_window(const char *msg)
+void nm_print_title(const char *msg)
 {
     int col;
     size_t msg_len;

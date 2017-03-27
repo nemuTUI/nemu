@@ -212,12 +212,12 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                     }
                     else
                     {
-                        dir_created = true;
+                        dir_created = 1;
                     }
                 }
                 else
                 {
-                    dir_created = true;
+                    dir_created = 1;
                 }
             } while (!dir_created);
 

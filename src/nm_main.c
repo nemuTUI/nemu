@@ -4,6 +4,7 @@
 #include <nm_string.h>
 #include <nm_window.h>
 #include <nm_ncurses.h>
+#include <nm_add_vm.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 
@@ -270,7 +271,7 @@ int main(void)
         /* {{{ Install VM window */
         else if (choice == NM_CHOICE_VM_INST)
         {
-            /* Print install VM here */
+            nm_add_vm();
         } /* }}} install VM */
 
         /* {{{ exit nEMU */
