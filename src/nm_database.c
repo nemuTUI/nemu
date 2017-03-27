@@ -24,7 +24,7 @@ void nm_db_init(void)
     const char *query[] = {
         "PRAGMA user_version=3",
         "CREATE TABLE vms(id integer PRIMARY KEY AUTOINCREMENT, "
-            "name char(30), mem integer, smp integer, kvm integer, "
+            "name char, mem integer, smp integer, kvm integer, "
             "hcpu integer, vnc integer, arch char(32), iso char, "
             "install integer, usb integer, usbid char, bios char, kernel char, "
             "mouse_override integer, drive_interface char, kernel_append char, "
