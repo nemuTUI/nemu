@@ -33,8 +33,8 @@ void nm_db_init(void)
         "INSERT INTO lastval(id, mac, vnc) VALUES ('1', '244837814042624', '0')",
         "CREATE TABLE ifaces(id integer primary key autoincrement, "
             "vm_name char, if_name char, mac_addr char, ipv4_addr char, if_drv char)",
-        "CREATE TABLE drives(id integer primary key autoincrement "
-            ", vm_name char, drive_name char, drive_drv char, capacity integer)"
+        "CREATE TABLE drives(id integer primary key autoincrement, "
+            "vm_name char, drive_name char, drive_drv char, capacity integer)"
     };
 
     if (stat(cfg->db_path.data, &file_info) == -1)
