@@ -22,15 +22,19 @@ void nm_db_init(void)
     int rc;
 
     const char *query[] = {
-        "PRAGMA user_version=2",
+        "PRAGMA user_version=3",
         "CREATE TABLE vms(id integer PRIMARY KEY AUTOINCREMENT, "
-            "name char(30), mem integer, smp integer, hdd char, kvm integer, "
-            "hcpu integer, vnc integer, mac char, arch char(32), iso char, "
+            "name char(30), mem integer, smp integer, kvm integer, "
+            "hcpu integer, vnc integer, arch char(32), iso char, "
             "install integer, usb integer, usbid char, bios char, kernel char, "
             "mouse_override integer, drive_interface char, kernel_append char, "
             "tty_path char, socket_path char)",
         "CREATE TABLE lastval(id integer, mac integer, vnc integer)",
-        "INSERT INTO lastval(id, mac, vnc) VALUES ('1', '244837814042624', '0')"
+        "INSERT INTO lastval(id, mac, vnc) VALUES ('1', '244837814042624', '0')",
+        "CREATE TABLE ifaces(id integer primary key autoincrement, "
+            "vm_name char, if_name char, if_drv char, ipv4_addr char)",
+        "CREATE TABLE drives(id integer primary key autoincrement "
+            ", vm_name char, drive_name char, drive_drv char, capacity integer)"
     };
 
     if (stat(cfg->db_path.data, &file_info) == -1)
