@@ -1,13 +1,26 @@
 #ifndef NM_CORE_H_
 #define NM_CORE_H_
 
-#if (NM_OS_LINUX)
-#include <nm_os_linux_core.h>
-#elif (NM_OS_FREEBSD)
-#include <nm_os_freebsd_core.h>
-#else
-#error "Build on this system is not supported"
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
 #endif
+
+#include <stdio.h>
+#include <locale.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <libintl.h>
+#include <fcntl.h>
+#include <inttypes.h>
+
+#include <pwd.h>
+#include <errno.h>
+
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/mman.h>
 
 #define NM_OK   0
 #define NM_ERR -1
