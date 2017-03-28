@@ -141,6 +141,34 @@ void nm_str_dirname(const nm_str_t *str, nm_str_t *res)
     nm_str_alloc_mem(res, data, pos);
 }
 
+void nm_str_format(nm_str_t *str, const char *fmt, ...)
+{
+    int len = 0;
+    char *buf = NULL;
+    va_list args;
+
+    /* get required length */
+    va_start(args, fmt);
+    len = vsnprintf(buf, len, fmt, args);
+    va_end(args);
+
+    if (len < 0)
+        nm_bug(_("%s: invalid length: %d"), __func__, len);
+
+    len++; /* for \0 */
+
+    buf = nm_calloc(1, len);
+
+    va_start(args, fmt);
+    len = vsnprintf(buf, len, fmt, args);
+    if (len < 0)
+        nm_bug(_("%s: invalid length: %d"), __func__, len);
+    va_end(args);
+
+    nm_str_append_mem(str, buf, len);
+    free(buf);
+}
+
 static void nm_str_alloc_mem(nm_str_t *str, const char *src, size_t len)
 {
     size_t len_needed;
