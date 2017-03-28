@@ -18,7 +18,7 @@
 [![Alt Overview](http://img.youtube.com/vi/jOtCY--LEN8/1.jpg)](http://www.youtube.com/watch?v=jOtCY--LEN8)
 
 ## Environment Requirements
- * Linux host
+ * Linux/FreeBSD host
  * app-emulation/qemu
 
 ## ** Do not build from master now, use tags! It broken due to project code rewrite from C++ to C **
