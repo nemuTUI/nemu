@@ -9,6 +9,7 @@
 #include <locale.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 #include <libintl.h>

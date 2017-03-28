@@ -12,5 +12,9 @@ nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x);
 void nm_draw_form(nm_window_t *w, nm_form_t *form);
 void nm_form_free(nm_form_t *form, nm_field_t **fields);
 
+extern const char *nm_form_yes_no[];
+extern const char *nm_form_net_drv[];
+extern const char *nm_form_drive_drv[];
+
 #endif /* NM_FORM_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

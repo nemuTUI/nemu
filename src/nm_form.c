@@ -2,6 +2,18 @@
 #include <nm_form.h>
 #include <nm_utils.h>
 
+const char *nm_form_yes_no[] = {
+    "yes","no", NULL
+};
+
+const char *nm_form_net_drv[] = {
+    "virtio", "rtl8139", "e1000", NULL
+};
+
+const char *nm_form_drive_drv[] = {
+    "ide", "scsi", "virtio", NULL
+};
+
 void nm_form_free(nm_form_t *form, nm_field_t **fields)
 {
     if (fields == NULL)
@@ -31,6 +43,7 @@ nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x)
     set_form_sub(form, derwin(w, rows, cols, 2, begin_x));
     box(w, 0, 0);
     post_form(form);
+    curs_set(1);
 
     return form;
 }
