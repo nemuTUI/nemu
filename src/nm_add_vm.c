@@ -30,23 +30,9 @@ void nm_add_vm(void)
 
     fields[NM_ADD_VM_FIELDS_NUM] = NULL;
 
-#if 0
-    set_field_type(field[0], TYPE_REGEXP, "^[a-zA-Z0-9_-]* *$");
-    set_field_type(field[1], TYPE_ENUM, ArchList, false, false);
-    set_field_type(field[2], TYPE_INTEGER, 0, 1, cpu_count());
-    set_field_type(field[3], TYPE_INTEGER, 0, 64, total_memory());
-    set_field_type(field[4], TYPE_INTEGER, 0, 1, disk_free(vmdir_));
-    set_field_type(field[5], TYPE_ENUM, (char **)drive_ints, false, false);
-    set_field_type(field[6], TYPE_REGEXP, "^/.*");
-    set_field_type(field[7], TYPE_INTEGER, 1, 0, 64);
-    set_field_type(field[8], TYPE_ENUM, (char **)NetDrv, false, false);
-    set_field_type(field[9], TYPE_ENUM, (char **)YesNo, false, false);
-    set_field_type(field[10], TYPE_ENUM, UdevList, false, false);
-#endif
-
     set_field_type(fields[0], TYPE_REGEXP, "^[a-zA-Z0-9_-]* *$");
     set_field_type(fields[1], TYPE_ENUM, nm_cfg_get_arch(), false, false);
-    set_field_type(fields[2], TYPE_INTEGER, 0, 1, 1);
+    set_field_type(fields[2], TYPE_INTEGER, 0, 1, nm_hw_ncpus());
     set_field_type(fields[3], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
     set_field_type(fields[4], TYPE_INTEGER, 0, 1, 10);
     set_field_type(fields[5], TYPE_ENUM, nm_form_drive_drv, false, false);
@@ -70,7 +56,9 @@ void nm_add_vm(void)
     mvwaddstr(window, 2, 2, _("Name"));
     mvwaddstr(window, 4, 2, _("Architecture"));
 
-    nm_str_alloc_text(&buf, _("CPU cores [1-2]"));
+    nm_str_alloc_text(&buf, _("CPU cores [1-"));
+    nm_str_format(&buf, "%u", nm_hw_ncpus());
+    nm_str_add_char(&buf, ']');
     mvwaddstr(window, 6, 2, buf.data);
     nm_str_trunc(&buf, 0);
 

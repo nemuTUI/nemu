@@ -18,4 +18,13 @@ uint32_t nm_hw_total_ram(void)
     return ram;
 }
 
+uint32_t nm_hw_ncpus(void)
+{
+    uint32_t ncpus = 0;
+#if (NM_OS_LINUX)
+    ncpus = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+    return ncpus;
+}
+
 /* vim:set ts=4 sw=4 fdm=marker: */
