@@ -34,7 +34,7 @@ void nm_add_vm(void)
     set_field_type(fields[1], TYPE_ENUM, nm_cfg_get_arch(), false, false);
     set_field_type(fields[2], TYPE_INTEGER, 0, 1, nm_hw_ncpus());
     set_field_type(fields[3], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
-    set_field_type(fields[4], TYPE_INTEGER, 0, 1, 10);
+    set_field_type(fields[4], TYPE_INTEGER, 0, 1, nm_hw_disk_free());
     set_field_type(fields[5], TYPE_ENUM, nm_form_drive_drv, false, false);
     set_field_type(fields[6], TYPE_REGEXP, "^/.*");
     set_field_type(fields[7], TYPE_INTEGER, 1, 0, 64);
@@ -68,7 +68,9 @@ void nm_add_vm(void)
     mvwaddstr(window, 8, 2, buf.data);
     nm_str_trunc(&buf, 0);
 
-    nm_str_add_text(&buf, _("Disk [1-10]Gb"));
+    nm_str_add_text(&buf, _("Disk [1-"));
+    nm_str_format(&buf, "%u", nm_hw_disk_free());
+    nm_str_add_text(&buf, "]Gb");
     mvwaddstr(window, 10, 2, buf.data);
     nm_str_trunc(&buf, 0);
 
