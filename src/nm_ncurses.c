@@ -2,6 +2,11 @@
 #include <nm_utils.h>
 #include <nm_ncurses.h>
 
+#if (NM_DEBUG)
+/* ncurses must be compiled with --disable-leaks option */
+void _nc_freeall(void);
+#endif
+
 inline void nm_ncurses_init(void)
 {
     initscr();
@@ -15,6 +20,9 @@ inline void nm_curses_deinit(void)
     clear();
     refresh();
     endwin();
+#if (NM_DEBUG)
+    _nc_freeall();
+#endif
 }
 
 nm_window_t *nm_init_window(int nlines, int ncols, int begin_y)
