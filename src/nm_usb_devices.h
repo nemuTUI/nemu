@@ -19,3 +19,4 @@ void nm_usb_vect_free_cb(const void *unit_p);
 #define nm_usb_id(p) ((nm_usb_dev_t *) p)->id
 
 #endif /* NM_USB_DEVICES_H_ */
+/* vim:set ts=4 sw=4 fdm=marker: */

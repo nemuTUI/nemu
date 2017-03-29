@@ -13,7 +13,17 @@ static nm_window_t *window = NULL;
 static nm_form_t *form = NULL;
 
 enum {
-    NM_FIELD_NAME = 0
+    NM_FLD_VMNAME = 0,
+    NM_FLD_VMARCH,
+    NM_FLD_CPUNUM,
+    NM_FLD_RAMTOT,
+    NM_FLD_DISKSZ,
+    NM_FLD_DISKIN,
+    NM_FLD_SOURCE,
+    NM_FLD_IFSCNT,
+    NM_FLD_IFSDRV,
+    NM_FLD_USBUSE,
+    NM_FLD_USBDEV
 };
 
 void nm_add_vm(void)
@@ -45,28 +55,28 @@ void nm_add_vm(void)
 
     fields[NM_ADD_VM_FIELDS_NUM] = NULL;
 
-    set_field_type(fields[0], TYPE_REGEXP, "^[a-zA-Z0-9_-]* *$");
-    set_field_type(fields[1], TYPE_ENUM, nm_cfg_get_arch(), false, false);
-    set_field_type(fields[2], TYPE_INTEGER, 0, 1, nm_hw_ncpus());
-    set_field_type(fields[3], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
-    set_field_type(fields[4], TYPE_INTEGER, 0, 1, nm_hw_disk_free());
-    set_field_type(fields[5], TYPE_ENUM, nm_form_drive_drv, false, false);
-    set_field_type(fields[6], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[7], TYPE_INTEGER, 1, 0, 64);
-    set_field_type(fields[8], TYPE_ENUM, nm_form_net_drv, false, false);
-    set_field_type(fields[9], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_type(fields[10], TYPE_ENUM, NULL, false, false);
+    set_field_type(fields[NM_FLD_VMNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]* *$");
+    set_field_type(fields[NM_FLD_VMARCH], TYPE_ENUM, nm_cfg_get_arch(), false, false);
+    set_field_type(fields[NM_FLD_CPUNUM], TYPE_INTEGER, 0, 1, nm_hw_ncpus());
+    set_field_type(fields[NM_FLD_RAMTOT], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
+    set_field_type(fields[NM_FLD_DISKSZ], TYPE_INTEGER, 0, 1, nm_hw_disk_free());
+    set_field_type(fields[NM_FLD_DISKIN], TYPE_ENUM, nm_form_drive_drv, false, false);
+    set_field_type(fields[NM_FLD_SOURCE], TYPE_REGEXP, "^/.*");
+    set_field_type(fields[NM_FLD_IFSCNT], TYPE_INTEGER, 1, 0, 64);
+    set_field_type(fields[NM_FLD_IFSDRV], TYPE_ENUM, nm_form_net_drv, false, false);
+    set_field_type(fields[NM_FLD_USBUSE], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_USBDEV], TYPE_ENUM, NULL, false, false);
 
-    set_field_buffer(fields[1], 0, *nm_cfg_get()->qemu_targets.data);
-    set_field_buffer(fields[2], 0, "1");
-    set_field_buffer(fields[5], 0, NM_DEFAULT_DRVINT);
-    set_field_buffer(fields[7], 0, "1");
-    set_field_buffer(fields[8], 0, NM_DEFAULT_NETDRV);
-    set_field_buffer(fields[9], 0, "no");
-    field_opts_off(fields[0], O_STATIC);
-    field_opts_off(fields[6], O_STATIC);
-    field_opts_off(fields[10], O_STATIC);
-    set_max_field(fields[0], 30);
+    set_field_buffer(fields[NM_FLD_VMARCH], 0, *nm_cfg_get()->qemu_targets.data);
+    set_field_buffer(fields[NM_FLD_CPUNUM], 0, "1");
+    set_field_buffer(fields[NM_FLD_DISKIN], 0, NM_DEFAULT_DRVINT);
+    set_field_buffer(fields[NM_FLD_IFSCNT], 0, "1");
+    set_field_buffer(fields[NM_FLD_IFSDRV], 0, NM_DEFAULT_NETDRV);
+    set_field_buffer(fields[NM_FLD_USBUSE], 0, "no");
+    field_opts_off(fields[NM_FLD_VMNAME], O_STATIC);
+    field_opts_off(fields[NM_FLD_SOURCE], O_STATIC);
+    field_opts_off(fields[NM_FLD_USBDEV], O_STATIC);
+    set_max_field(fields[NM_FLD_VMNAME], 30);
 
     mvwaddstr(window, 2, 2, _("Name"));
     mvwaddstr(window, 4, 2, _("Architecture"));
