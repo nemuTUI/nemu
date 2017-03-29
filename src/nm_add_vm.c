@@ -31,15 +31,25 @@ void nm_add_vm(void)
     nm_field_t *fields[NM_ADD_VM_FIELDS_NUM + 1];
     nm_str_t buf = NM_INIT_STR;
     nm_vect_t usb_devs = NM_INIT_VECT;
+    nm_vect_t usb_names = NM_INIT_VECT;
 
     nm_usb_get_devs(&usb_devs);
-#if (NM_DEBUG)
     for (size_t n = 0; n < usb_devs.n_memb; n++)
     {
+        nm_vect_insert(&usb_names,
+                       nm_usb_name(usb_devs.data[n]).data,
+                       nm_usb_name(usb_devs.data[n]).len + 1,
+                       NULL);
+#if (NM_DEBUG)
         nm_debug("%s %s\n", nm_usb_id(usb_devs.data[n]).data,
                  nm_usb_name(usb_devs.data[n]).data);
-    }
 #endif
+    }
+
+    for (size_t n = 0; n < usb_names.n_memb; n++)
+        nm_debug("u: %s\n", (char *)usb_names.data[n]);
+
+    nm_vect_end_zero(&usb_names);
     
     nm_print_title(_(NM_EDIT_TITLE));
     window = nm_init_window(25, 67, 3);
@@ -65,7 +75,13 @@ void nm_add_vm(void)
     set_field_type(fields[NM_FLD_IFSCNT], TYPE_INTEGER, 1, 0, 64);
     set_field_type(fields[NM_FLD_IFSDRV], TYPE_ENUM, nm_form_net_drv, false, false);
     set_field_type(fields[NM_FLD_USBUSE], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_type(fields[NM_FLD_USBDEV], TYPE_ENUM, NULL, false, false);
+    set_field_type(fields[NM_FLD_USBDEV], TYPE_ENUM, usb_names.data, false, false);
+
+    if (usb_devs.n_memb == 0)
+    {
+        field_opts_off(fields[NM_FLD_USBUSE], O_ACTIVE);
+        field_opts_off(fields[NM_FLD_USBDEV], O_ACTIVE);
+    }
 
     set_field_buffer(fields[NM_FLD_VMARCH], 0, *nm_cfg_get()->qemu_targets.data);
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, "1");
@@ -112,6 +128,7 @@ void nm_add_vm(void)
     /* cleanup */
     nm_form_free(form, fields);
     nm_str_free(&buf);
+    nm_vect_free(&usb_names, NULL);
     nm_vect_free(&usb_devs, nm_usb_vect_free_cb);
 }
 
