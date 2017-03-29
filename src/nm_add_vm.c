@@ -5,16 +5,31 @@
 #include <nm_window.h>
 #include <nm_hw_info.h>
 #include <nm_cfg_file.h>
+#include <nm_usb_devices.h>
 
 #define NM_ADD_VM_FIELDS_NUM 11
 
 static nm_window_t *window = NULL;
 static nm_form_t *form = NULL;
 
+enum {
+    NM_FIELD_NAME = 0
+};
+
 void nm_add_vm(void)
 {
     nm_field_t *fields[NM_ADD_VM_FIELDS_NUM + 1];
     nm_str_t buf = NM_INIT_STR;
+    nm_vect_t usb_devs = NM_INIT_VECT;
+
+    nm_usb_get_devs(&usb_devs);
+#if (NM_DEBUG)
+    for (size_t n = 0; n < usb_devs.n_memb; n++)
+    {
+        nm_debug("%s %s\n", nm_usb_id(usb_devs.data[n]).data,
+                 nm_usb_name(usb_devs.data[n]).data);
+    }
+#endif
     
     nm_print_title(_(NM_EDIT_TITLE));
     window = nm_init_window(25, 67, 3);
@@ -87,6 +102,7 @@ void nm_add_vm(void)
     /* cleanup */
     nm_form_free(form, fields);
     nm_str_free(&buf);
+    nm_vect_free(&usb_devs, nm_usb_vect_free_cb);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

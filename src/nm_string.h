@@ -27,5 +27,8 @@ int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2);
 void nm_str_format(nm_str_t *str, const char *fmt, ...)
     __attribute__ ((format(printf, 2, 3)));
 
+void nm_str_vect_ins_cb(const void *unit_p, const void *ctx);
+void nm_str_vect_free_cb(const void *unit_p);
+
 #endif /* NM_STRING_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

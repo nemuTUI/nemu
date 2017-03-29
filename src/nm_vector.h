@@ -15,8 +15,6 @@ void nm_vect_insert(nm_vect_t *v, void *data, size_t len, nm_vect_ins_cb_pt cb);
 void *nm_vect_at(const nm_vect_t *v, size_t index);
 void nm_vect_end_zero(nm_vect_t *v);
 void nm_vect_free(nm_vect_t *v, nm_vect_free_cb_pt cb);
-void nm_vect_ins_str_cb(const void *unit_p, const void *ctx);
-void nm_vect_free_str_cb(const void *unit_p);
 
 #define NM_INIT_VECT { 0, 0, NULL }
 

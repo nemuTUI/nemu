@@ -169,6 +169,16 @@ void nm_str_format(nm_str_t *str, const char *fmt, ...)
     free(buf);
 }
 
+void nm_str_vect_ins_cb(const void *unit_p, const void *ctx)
+{
+    nm_str_copy((nm_str_t *) unit_p, (nm_str_t *) ctx);
+}
+
+void nm_str_vect_free_cb(const void *unit_p)
+{
+    nm_str_free((nm_str_t *) unit_p);
+}
+
 static void nm_str_alloc_mem(nm_str_t *str, const char *src, size_t len)
 {
     size_t len_needed;

@@ -32,16 +32,6 @@ void nm_vect_insert(nm_vect_t *v, void *data, size_t len, nm_vect_ins_cb_pt cb)
     v->n_memb++;
 }
 
-void nm_vect_ins_str_cb(const void *unit_p, const void *ctx)
-{
-    nm_str_copy((nm_str_t *) unit_p, (nm_str_t *) ctx);
-}
-
-void nm_vect_free_str_cb(const void *unit_p)
-{
-    nm_str_free((nm_str_t *) unit_p);
-}
-
 void *nm_vect_at(const nm_vect_t *v, size_t index)
 {
     if (v == NULL)

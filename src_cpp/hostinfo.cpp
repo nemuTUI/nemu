@@ -135,7 +135,7 @@ QManager::MapString *QManager::get_usb_list()
                 usb_name = vendor;
 
             if (get_product_string(product, sizeof(product), desc.idVendor, desc.idProduct) == 0)
-                usb_name += " product-unknown";
+                usb_name += "product-unknown";
             else
                 usb_name += product;
 

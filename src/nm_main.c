@@ -265,7 +265,7 @@ int main(void)
                 }
                 nm_vect_free(&vms_v, NULL);
             }
-            nm_vect_free(&vm_list, nm_vect_free_str_cb);
+            nm_vect_free(&vm_list, nm_str_vect_free_cb);
         } /* }}} VM list */
 
         /* {{{ Install VM window */

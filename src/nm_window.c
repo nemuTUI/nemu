@@ -74,7 +74,7 @@ void nm_print_vm_info(const nm_str_t *name)
              nm_vect_str_ctx(&vm, NM_SQL_VNC),
              nm_str_stoui(nm_vect_str(&vm, NM_SQL_VNC)) + 5900);
 
-    nm_vect_free(&vm, nm_vect_free_str_cb);
+    nm_vect_free(&vm, nm_str_vect_free_cb);
 
     refresh();
     getch();
