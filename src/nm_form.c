@@ -37,7 +37,7 @@ nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x)
     if (form == NULL)
          nm_bug("%s: %s", __func__, strerror(errno));
 
-    getmaxyx(stdscr, rows, cols);
+    refresh();
     scale_form(form, &rows, &cols);
     set_form_win(form, w);
     set_form_sub(form, derwin(w, rows, cols, 2, begin_x));

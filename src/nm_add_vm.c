@@ -46,9 +46,6 @@ void nm_add_vm(void)
 #endif
     }
 
-    for (size_t n = 0; n < usb_names.n_memb; n++)
-        nm_debug("u: %s\n", (char *)usb_names.data[n]);
-
     nm_vect_end_zero(&usb_names);
     
     nm_print_title(_(NM_EDIT_TITLE));
