@@ -14,6 +14,8 @@ const char *nm_form_drive_drv[] = {
     "ide", "scsi", "virtio", NULL
 };
 
+static int nm_append_path(nm_str_t *path);
+
 void nm_form_free(nm_form_t *form, nm_field_t **fields)
 {
     if (fields == NULL)
@@ -138,9 +140,9 @@ void nm_get_field_buf(nm_form_t *f, nm_str_t *res)
     nm_str_add_text(res, buf);
 }
 
-#if 0
-static int nm_append_path(const nm_str_t *path, nm_str_t *res)
+static int nm_append_path(nm_str_t *path)
 {
+#if 0
     DIR *dp;
     struct dirent *dir_ent;
     std::string input_dir = input;
@@ -212,9 +214,8 @@ static int nm_append_path(const nm_str_t *path, nm_str_t *res)
     }
 
     closedir(dp);
-
-    return true;
-}
 #endif
+    return NM_OK;
+}
 
 /* vim:set ts=4 sw=4 fdm=marker: */
