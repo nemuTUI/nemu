@@ -1,6 +1,9 @@
 #include <nm_core.h>
 #include <nm_form.h>
 #include <nm_utils.h>
+#include <nm_vector.h>
+
+#include <dirent.h>
 
 const char *nm_form_yes_no[] = {
     "yes","no", NULL
@@ -103,14 +106,12 @@ void nm_draw_form(nm_window_t *w, nm_form_t *form)
                 form_driver(form, REQ_END_FIELD);
 
                 nm_get_field_buf(form, &buf);
-                /*std::string input = trim_field_buffer(field_buffer(current_field(form), 0), false);
-                std::string result;
 
-                if (nm_append_path(input, result))
+                if (nm_append_path(&buf) == NM_OK)
                 {
-                    set_field_buffer(current_field(form), 0, result.c_str());
+                    set_field_buffer(current_field(form), 0, buf.data);
                     form_driver(form, REQ_END_FIELD);
-                }*/
+                }
                 nm_str_trunc(&buf, 0);
             }
             break;
@@ -142,31 +143,38 @@ void nm_get_field_buf(nm_form_t *f, nm_str_t *res)
 
 static int nm_append_path(nm_str_t *path)
 {
-#if 0
     DIR *dp;
     struct dirent *dir_ent;
-    std::string input_dir = input;
-    std::string input_file = input;
-    char *tdir = dirname(const_cast<char *>(input_dir.c_str()));
-    char *file = basename(const_cast<char *>(input_file.c_str()));
-    std::string dir = tdir, base;
-    VectorString matched;
+    nm_str_t dir = NM_INIT_STR;
+    nm_str_t file = NM_INIT_STR;
+    nm_str_t base = NM_INIT_STR;
+    nm_vect_t matched = NM_INIT_VECT;
     struct stat file_info;
+    int rc = NM_OK;
 
-    if ((dp = opendir(tdir)) == NULL)
-        return false;
+    nm_str_dirname(path, &dir);
+    nm_str_basename(path, &file);
+
+    nm_str_trunc(path, 0);
+
+    if ((dp = opendir(dir.data)) == NULL)
+    {
+        rc = NM_ERR;
+        goto out;
+    }
 
     while ((dir_ent = readdir(dp)) != NULL)
     {
-        if (memcmp(dir_ent->d_name, file, strlen(file)) == 0)
+        if (memcmp(dir_ent->d_name, file.data, file.len) == 0)
         {
             size_t path_len, arr_len;
 
-            matched.push_back(dir_ent->d_name);
+            nm_vect_insert(&matched, dir_ent->d_name,
+                           strlen(dir_ent->d_name) + 1, NULL);
 
-            if ((arr_len = matched.size()) > 1)
+            if ((arr_len = matched.n_memb) > 1)
             {
-                path_len = matched.at(arr_len - 2).size();
+                path_len = strlen((char *) matched.data[arr_len - 2]);
                 size_t eq_ch_num = 0;
                 size_t cur_path_len = strlen(dir_ent->d_name);
 
@@ -175,47 +183,68 @@ static int nm_append_path(nm_str_t *path)
                     if (n > cur_path_len)
                         break;
 
-                    if (matched.at(arr_len - 2).at(n) == dir_ent->d_name[n])
+                    if (((char *) matched.data[arr_len - 2])[n] == dir_ent->d_name[n])
                         eq_ch_num++;
                     else
                         break;
                 }
 
-                base = matched.at(arr_len - 2).substr(0, eq_ch_num);
+                ((char *) matched.data[arr_len - 2])[eq_ch_num] = '\0';
+                nm_str_alloc_text(&base, (char *) matched.data[arr_len - 2]);
             }
         }
     }
 
-    if (matched.size() == 0)
+    if (matched.n_memb == 0)
     {
         closedir(dp);
-        return false;
+        rc = NM_ERR;
+        goto out;
     }
 
-    if (matched.size() == 1)
+    nm_str_copy(path, &dir);
+
+    if (matched.n_memb == 1)
     {
-        if (dir == "/")
-            result = dir + matched.at(0);
+
+        if ((dir.len == 1) && (*dir.data == '/'))
+        {
+            nm_str_add_text(path, *matched.data);
+        }
         else
-            result = dir + '/' + matched.at(0);
+        {
+            nm_str_add_char(path, '/');
+            nm_str_add_text(path, *matched.data);
+        }
     }
     else
     {
-        if (dir == "/")
-            result = dir + base;
+        if ((dir.len == 1) && (*dir.data == '/'))
+        {
+            nm_str_add_str(path, &base);
+        }
         else
-            result = dir + '/' + base;
+        {
+            nm_str_add_char(path, '/');
+            nm_str_add_str(path, &base);
+        }
     }
 
-    if (stat(result.c_str(), &file_info) != -1)
+    if (stat(path->data, &file_info) != -1)
     {
         if ((file_info.st_mode & S_IFMT) == S_IFDIR)
-            result += '/';
+            nm_str_add_char(path, '/');
     }
 
     closedir(dp);
-#endif
-    return NM_OK;
+
+out:
+    nm_str_free(&dir);
+    nm_str_free(&file);
+    nm_str_free(&base);
+    nm_vect_free(&matched, NULL);
+
+    return rc;
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
