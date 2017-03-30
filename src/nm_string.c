@@ -143,13 +143,15 @@ void nm_str_dirname(const nm_str_t *str, nm_str_t *res)
 
 void nm_str_basename(const nm_str_t *str, nm_str_t *res)
 {
-    const char *data = nm_str_get(str);
+    nm_str_t path = NM_INIT_STR;
     char *path_end;
+
+    nm_str_copy(&path, str);
 
     if (str->len == 0)
         nm_bug(_("%s: zero length string"), __func__);
 
-    path_end = strrchr(data, '/');
+    path_end = strrchr(path.data, '/');
     if (path_end == NULL)
     {
         nm_str_copy(res, str);
@@ -158,13 +160,13 @@ void nm_str_basename(const nm_str_t *str, nm_str_t *res)
 
     if (path_end[1] == '\0')
     {
-        while ((path_end > data) && (path_end[-1] == '/'))
+        while ((path_end > path.data) && (path_end[-1] == '/'))
             --path_end;
 
-        if (path_end > data)
+        if (path_end > path.data)
         {
             *path_end-- = '\0';
-            while ((path_end > data) && (path_end[-1]) != '/')
+            while ((path_end > path.data) && (path_end[-1]) != '/')
                 --path_end;
         }
         else
@@ -179,6 +181,7 @@ void nm_str_basename(const nm_str_t *str, nm_str_t *res)
     }
 
     nm_str_alloc_mem(res, path_end, strlen(path_end));
+    nm_str_free(&path);
 }
 
 void nm_str_format(nm_str_t *str, const char *fmt, ...)
