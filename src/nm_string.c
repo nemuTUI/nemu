@@ -138,6 +138,9 @@ void nm_str_dirname(const nm_str_t *str, nm_str_t *res)
         }
     }
 
+    if ((pos == str->len) && (*data == '/'))
+        pos = 1;
+
     nm_str_alloc_mem(res, data, pos);
 }
 
