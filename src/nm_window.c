@@ -19,6 +19,7 @@ void nm_print_vm_window(void)
 
 void nm_print_warn(nm_window_t *w, const char *msg)
 {
+    curs_set(0);
     box(w, 0, 0);
     mvwprintw(w, 1, 1, "%s", msg);
     wrefresh(w);

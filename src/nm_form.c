@@ -3,6 +3,7 @@
 #include <nm_utils.h>
 #include <nm_vector.h>
 
+#include <time.h>
 #include <dirent.h>
 
 const char *nm_form_yes_no[] = {
@@ -53,9 +54,9 @@ nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x)
     return form;
 }
 
-void nm_draw_form(nm_window_t *w, nm_form_t *form)
+int nm_draw_form(nm_window_t *w, nm_form_t *form)
 {
-    int confirm = 0;
+    int confirm = NM_ERR;
     int ch;
     nm_str_t buf = NM_INIT_STR;
 
@@ -63,7 +64,7 @@ void nm_draw_form(nm_window_t *w, nm_form_t *form)
 
     while ((ch = wgetch(w)) != KEY_F(10))
     {
-        if (confirm)
+        if (confirm == NM_OK)
             break;
 
         switch(ch) {
@@ -105,7 +106,7 @@ void nm_draw_form(nm_window_t *w, nm_form_t *form)
                 form_driver(form, REQ_PREV_FIELD);
                 form_driver(form, REQ_END_FIELD);
 
-                nm_get_field_buf(form, &buf);
+                nm_get_field_buf(current_field(form), &buf);
 
                 if (nm_append_path(&buf) == NM_OK)
                 {
@@ -117,7 +118,7 @@ void nm_draw_form(nm_window_t *w, nm_form_t *form)
             break;
 
         case KEY_F(2):
-            confirm = 1;
+            confirm = NM_OK;
             form_driver(form, REQ_VALIDATION);
             break;
 
@@ -128,11 +129,13 @@ void nm_draw_form(nm_window_t *w, nm_form_t *form)
     }
 
     nm_str_free(&buf);
+
+    return confirm;
 }
 
-void nm_get_field_buf(nm_form_t *f, nm_str_t *res)
+void nm_get_field_buf(nm_field_t *f, nm_str_t *res)
 {
-    char *buf = field_buffer(current_field(f), 0);
+    char *buf = field_buffer(f, 0);
     char *s = strchr(buf, 0x20);
 
     if (s != NULL)
@@ -245,6 +248,47 @@ out:
     nm_vect_free(&matched, NULL);
 
     return rc;
+}
+
+void *nm_spinner(void *data)
+{
+    const char spin_chars[] ="/-\\|";
+    nm_spinner_data_t *dp = data;
+    struct timespec ts;
+
+    memset(&ts, 0, sizeof(ts));
+
+    ts.tv_nsec = 3e+7; /* 0.03sec */
+
+    if (dp == NULL)
+        nm_bug(_("%s: NULL pointer"), __func__);
+
+    for (uint32_t i = 0 ;; i++)
+    {
+        if (*dp->stop)
+            break;
+
+        curs_set(0);
+        mvaddch(dp->y, dp->x, spin_chars[i & 3]);
+        refresh();
+        nanosleep(&ts, NULL);
+    }
+
+    pthread_exit(NULL);
+}
+
+void nm_vm_free(nm_vm_t *vm)
+{
+    nm_str_free(&vm->name);
+    nm_str_free(&vm->arch);
+    nm_str_free(&vm->cpus);
+    nm_str_free(&vm->memo);
+    nm_str_free(&vm->srcp);
+    nm_str_free(&vm->vncp);
+    nm_str_free(&vm->usb.device);
+    nm_str_free(&vm->ifs.driver);
+    nm_str_free(&vm->drive.driver);
+    nm_str_free(&vm->drive.size);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
