@@ -21,6 +21,8 @@ static void nm_add_vm_field_names(nm_window_t *w);
 static void nm_add_vm_get_usb(nm_vect_t *devs, nm_vect_t *names);
 static void nm_add_vm_get_last(uint64_t *mac, uint32_t *vnc);
 static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs);
+static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac);
+static void nm_add_vm_to_fs(nm_vm_t *vm);
 
 enum {
     NM_FLD_VMNAME = 0,
@@ -86,7 +88,8 @@ void nm_add_vm(void)
     if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
-    //...
+    nm_add_vm_to_fs(&vm);
+    nm_add_vm_to_db(&vm, last_mac);
 
     done = 1;
     if (pthread_join(spin_th, NULL) != 0)
@@ -320,6 +323,41 @@ out:
     nm_vect_free(&err, NULL);
 
     return rc;
+}
+
+static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac)
+{
+    //...
+}
+
+static void nm_add_vm_to_fs(nm_vm_t *vm)
+{
+    nm_str_t vm_dir = NM_INIT_STR;
+    nm_str_t cmd = NM_INIT_STR;
+
+    nm_str_copy(&vm_dir, &nm_cfg_get()->vm_dir);
+    nm_str_add_char(&vm_dir, '/');
+    nm_str_add_str(&vm_dir, &vm->name);
+
+    if (mkdir(vm_dir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
+    {
+        nm_bug(_("%s: cannot create VM directory %s: %s"),
+               __func__, vm_dir.data, strerror(errno));
+    }
+
+    nm_str_alloc_text(&cmd, "qemu-img create -f qcow2 ");
+    nm_str_add_str(&cmd, &vm_dir);
+    nm_str_add_char(&cmd, '/');
+    nm_str_add_str(&cmd, &vm->name);
+    nm_str_add_text(&cmd, "_a.img ");
+    nm_str_add_str(&cmd, &vm->drive.size);
+    nm_str_add_text(&cmd, "G > /dev/null 2>&1");
+
+    if (system(cmd.data) != 0)
+        nm_bug(_("%s: cannot create image file"), __func__);
+
+    nm_str_free(&vm_dir);
+    nm_str_free(&cmd);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
