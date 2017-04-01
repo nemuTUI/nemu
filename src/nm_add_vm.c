@@ -5,6 +5,7 @@
 #include <nm_window.h>
 #include <nm_add_vm.h>
 #include <nm_hw_info.h>
+#include <nm_network.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_usb_devices.h>
@@ -85,7 +86,7 @@ void nm_add_vm(void)
     if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
-    //... work here
+    //...
 
     done = 1;
     if (pthread_join(spin_th, NULL) != 0)
