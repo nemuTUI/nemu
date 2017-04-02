@@ -7,6 +7,7 @@
 #include <nm_add_vm.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
+#include <nm_vm_control.h>
 
 static void signals_handler(int signal);
 static volatile sig_atomic_t redraw_window = 0;
@@ -108,9 +109,7 @@ int main(void)
 
             if (vm_list.n_memb == 0)
             {
-                nm_window_t *warn_window = nm_init_window(3, 20, 6);
-                nm_print_warn(warn_window, _(" No VMs installed"));
-                delwin(warn_window);
+                nm_print_warn(3, 6, _(" No VMs installed"));
             }
             else
             {
@@ -195,13 +194,23 @@ int main(void)
                         }
                     }
 
-                    /* {{{ Print VM info */
                     else if (ch == NM_KEY_ENTER)
                     {
                         const nm_str_t *vm = nm_vect_vm_name_cur(vms);
                         nm_print_vm_info(vm);
+                    }
 
-                    } /* }}} VM info */
+                    /* {{{ Start VM */
+                    else if (ch == NM_KEY_R)
+                    {
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (vm_status)
+                            nm_print_warn(3, 6, _("already running"));
+                        else
+                            nm_vm_start(vm, 0);
+                    } /* }}} start VM */
 
                     /* {{{ Nemu */
                     else if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)

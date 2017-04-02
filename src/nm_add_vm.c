@@ -322,12 +322,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs)
         if (res.n_memb > 0)
         {
             rc = NM_ERR;
-            size_t msg_len;
-
-            msg_len = mbstowcs(NULL, _(NM_FORM_VMNAME_MSG), strlen(_(NM_FORM_VMNAME_MSG)));
-            nm_window_t *err_window = nm_init_window(3, msg_len + 2, 2);
-            nm_print_warn(err_window, _(NM_FORM_VMNAME_MSG));
-            delwin(err_window);
+            nm_print_warn(3, 2, _(NM_FORM_VMNAME_MSG));
         }
 
         nm_vect_free(&res, NULL);
