@@ -4,8 +4,6 @@
 #include <nm_string.h>
 #include <nm_cfg_file.h>
 
-#define NM_VM_PID_FILE "qemu.pid"
-
 void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
 {
     const char *nm_main_chioces[] = {
