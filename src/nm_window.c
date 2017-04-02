@@ -106,9 +106,10 @@ void nm_print_vm_info(const nm_str_t *name)
                  nm_vect_str_ctx(&vm_net, NM_SQL_IF_MAC + idx_shift),
                  nm_vect_str_ctx(&vm_net, NM_SQL_IF_DRV + idx_shift));
     }
-    /* network }}} */
+    /* }}} network */
 
-    { /* {{{ print network interfaces info */
+    /* {{{ print drives info */
+    {
         size_t drives_count = vm_drive.n_memb / 4;
 
         for (size_t n = 0; n < drives_count; n++)
@@ -125,7 +126,7 @@ void nm_print_vm_info(const nm_str_t *name)
                      nm_vect_str_ctx(&vm_drive, NM_SQL_DRV_TYPE + idx_shift),
                      boot ? "*" : "");
         }
-    } /* drive }}} */
+    } /* }}} drives */
 
     /* {{{ Generate guest boot settings info */
     if (nm_vect_str_len(&vm, NM_SQL_BIOS))
