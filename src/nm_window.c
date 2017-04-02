@@ -35,7 +35,7 @@ void nm_print_vm_info(const nm_str_t *name)
     nm_str_t sql = NM_INIT_STR;
     int y = 1;
     int col = getmaxx(stdscr);
-    size_t ifs_count;
+    size_t ifs_count, drives_count;
 
     nm_str_add_text(&sql, "SELECT * FROM vms WHERE name='");
     nm_str_add_str(&sql, name);
@@ -109,24 +109,23 @@ void nm_print_vm_info(const nm_str_t *name)
     /* }}} network */
 
     /* {{{ print drives info */
+    drives_count = vm_drive.n_memb / 4;
+
+    for (size_t n = 0; n < drives_count; n++)
     {
-        size_t drives_count = vm_drive.n_memb / 4;
+        size_t idx_shift = 4 * n;
+        int boot = 0;
 
-        for (size_t n = 0; n < drives_count; n++)
-        {
-            size_t idx_shift = 4 * n;
-            int boot = 0;
+        if (nm_str_cmp_st(nm_vect_str(&vm_drive, NM_SQL_DRV_BOOT), NM_ENABLE) == NM_OK)
+            boot = 1;
 
-            if (nm_str_cmp_st(nm_vect_str(&vm_drive, NM_SQL_DRV_BOOT), NM_ENABLE) == NM_OK)
-                boot = 1;
-
-            mvprintw(y++, col / 4, "disk%zu%-7s%s [%sGb] [%s] %s", n, ":",
-                     nm_vect_str_ctx(&vm_drive, NM_SQL_DRV_NAME + idx_shift),
-                     nm_vect_str_ctx(&vm_drive, NM_SQL_DRV_SIZE + idx_shift),
-                     nm_vect_str_ctx(&vm_drive, NM_SQL_DRV_TYPE + idx_shift),
-                     boot ? "*" : "");
-        }
-    } /* }}} drives */
+        mvprintw(y++, col / 4, "disk%zu%-7s%s [%sGb] [%s] %s", n, ":",
+                 nm_vect_str_ctx(&vm_drive, NM_SQL_DRV_NAME + idx_shift),
+                 nm_vect_str_ctx(&vm_drive, NM_SQL_DRV_SIZE + idx_shift),
+                 nm_vect_str_ctx(&vm_drive, NM_SQL_DRV_TYPE + idx_shift),
+                 boot ? "*" : "");
+    }
+    /* }}} drives */
 
     /* {{{ Generate guest boot settings info */
     if (nm_vect_str_len(&vm, NM_SQL_BIOS))
