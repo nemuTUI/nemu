@@ -20,6 +20,7 @@ static void nm_add_vm_field_setup(const nm_vect_t *usb_names);
 static void nm_add_vm_field_names(nm_window_t *w);
 static void nm_add_vm_get_usb(nm_vect_t *devs, nm_vect_t *names);
 static void nm_add_vm_get_last(uint64_t *mac, uint32_t *vnc);
+static void nm_add_vm_update_last(uint64_t mac, const nm_str_t *vnc);
 static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs);
 static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac);
 static void nm_add_vm_to_fs(nm_vm_t *vm);
@@ -212,6 +213,24 @@ static void nm_add_vm_get_last(uint64_t *mac, uint32_t *vnc)
     nm_vect_free(&res, nm_str_vect_free_cb);
 }
 
+static void nm_add_vm_update_last(uint64_t mac, const nm_str_t *vnc)
+{
+    nm_str_t query = NM_INIT_STR;
+
+    nm_str_alloc_text(&query, "UPDATE lastval SET mac='");
+    nm_str_format(&query, "%" PRIu64 "'", mac);
+
+    nm_db_edit(query.data);
+    nm_str_trunc(&query, 0);
+
+    nm_str_alloc_text(&query, "UPDATE lastval SET vnc='");
+    nm_str_add_str(&query, vnc);
+    nm_str_add_char(&query, '\'');
+    nm_db_edit(query.data);
+
+    nm_str_free(&query);
+}
+
 static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs)
 {
     int rc = NM_OK;
@@ -327,7 +346,102 @@ out:
 
 static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac)
 {
-    //...
+    nm_str_t query = NM_INIT_STR;
+
+    /* {{{ insert main VM data */
+    nm_str_alloc_text(&query, "INSERT INTO vms("
+        "name, mem, smp, kvm, hcpu, vnc, arch, iso, install, mouse_override, usb");
+    if (vm->usb.enable)
+        nm_str_add_text(&query, ", usbid");
+    nm_str_add_text(&query, ") VALUES('");
+    nm_str_add_str(&query, &vm->name);
+    nm_str_add_text(&query, "', '");
+    nm_str_add_str(&query, &vm->memo);
+    nm_str_add_text(&query, "', '");
+    nm_str_add_str(&query, &vm->cpus);
+#if (NM_OS_LINUX) /* enable KVM and host CPU by default */
+    nm_str_add_text(&query, "', '" NM_ENABLE);
+    nm_str_add_text(&query, "', '" NM_ENABLE "', '");
+#else /* disable KVM on non Linux platform */
+    nm_str_add_text(&query, "', '" NM_DISABLE);
+    nm_str_add_text(&query, "', '" NM_DISABLE "', '");
+#endif
+    nm_str_add_str(&query, &vm->vncp);
+    nm_str_add_text(&query, "', '");
+    nm_str_add_str(&query, &vm->arch);
+    nm_str_add_text(&query, "', '");
+    nm_str_add_str(&query, &vm->srcp);
+    nm_str_add_text(&query, "', '" NM_ENABLE); /* not installed */
+    nm_str_add_text(&query, "', '" NM_DISABLE); /* mouse override */
+    if (vm->usb.enable)
+    {
+        nm_str_add_text(&query, "', '" NM_ENABLE "', '");
+        nm_str_add_str(&query, &vm->usb.device);
+    }
+    else
+    {
+        nm_str_add_text(&query, "', '" NM_DISABLE);
+    }
+    nm_str_add_text(&query, "')");
+
+    nm_db_edit(query.data);
+    /* }}} main VM data */
+
+    nm_str_trunc(&query, 0);
+
+    /* {{{ insert drive info */
+    nm_str_add_text(&query, "INSERT INTO drives("
+        "vm_name, drive_name, drive_drv, capacity, boot) VALUES('");
+    nm_str_add_str(&query, &vm->name);
+    nm_str_add_text(&query, "', '");
+    nm_str_add_str(&query, &vm->name);
+    nm_str_add_text(&query, "_a.img', '");
+    nm_str_add_str(&query, &vm->drive.driver);
+    nm_str_add_text(&query, "', '");
+    nm_str_add_str(&query, &vm->drive.size);
+    nm_str_add_text(&query, "', '" NM_ENABLE "')"); /* boot flag */
+
+    nm_db_edit(query.data);
+    /* }}} drive */
+
+    /* {{{ insert network interface info */
+    for (size_t n = 0; n < vm->ifs.count; n++)
+    {
+        nm_str_t if_name = NM_INIT_STR;
+        nm_str_t maddr = NM_INIT_STR;
+        nm_str_trunc(&query, 0);
+        mac++;
+
+        nm_net_mac_to_str(mac, &maddr);
+
+        nm_str_format(&if_name, "%s_eth%zu", vm->name.data, n);
+        if (if_name.len > 15) /* Linux tap iface max name len */
+        {
+            nm_str_trunc(&if_name, 14);
+            nm_str_format(&if_name, "%zu", n);
+        }
+
+        nm_str_add_text(&query, "INSERT INTO ifaces("
+            "vm_name, if_name, mac_addr, if_drv) VALUES('");
+        nm_str_add_str(&query, &vm->name);
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, &if_name);
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, &maddr);
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, &vm->ifs.driver);
+        nm_str_add_text(&query, "')");
+
+        nm_db_edit(query.data);
+
+        nm_str_free(&if_name);
+        nm_str_free(&maddr);
+    }
+    /* }}} network */
+
+    nm_add_vm_update_last(mac, &vm->vncp);
+
+    nm_str_free(&query);
 }
 
 static void nm_add_vm_to_fs(nm_vm_t *vm)

@@ -27,7 +27,7 @@ void nm_db_init(void)
             "name char(31), mem integer, smp integer, kvm integer, "
             "hcpu integer, vnc integer, arch char(32), iso char, "
             "install integer, usb integer, usbid char, bios char, kernel char, "
-            "mouse_override integer, drive_interface char, kernel_append char, "
+            "mouse_override integer, kernel_append char, "
             "tty_path char, socket_path char)",
         "CREATE TABLE lastval(id integer, mac integer, vnc integer)",
         "INSERT INTO lastval(id, mac, vnc) VALUES ('1', '244837814042624', '0')",

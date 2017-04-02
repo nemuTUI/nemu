@@ -49,9 +49,9 @@ void nm_print_vm_info(const nm_str_t *name)
     mvprintw(y++, col / 4, "%-12s%s", "cores: ", nm_vect_str_ctx(&vm, NM_SQL_SMP));
     mvprintw(y++, col / 4, "%-12s%s %s", "memory: ", nm_vect_str_ctx(&vm, NM_SQL_MEM), "Mb");
 
-    if (nm_str_cmp_st(nm_vect_str(&vm, NM_SQL_KVM), "1") == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&vm, NM_SQL_KVM), NM_ENABLE) == NM_OK)
     {
-        if (nm_str_cmp_st(nm_vect_str(&vm, NM_SQL_HCPU), "1") == NM_OK)
+        if (nm_str_cmp_st(nm_vect_str(&vm, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
             mvprintw(y++, col / 4, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
         else
             mvprintw(y++, col / 4, "%-12s%s", "kvm: ", "enabled");

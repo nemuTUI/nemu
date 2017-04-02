@@ -23,11 +23,14 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
+#define NM_PROGNAME "nemu"
+#define NM_VERSION  "1.0.0-dev"
+
 #define NM_OK   0
 #define NM_ERR -1
 
-#define NM_PROGNAME "nemu"
-#define NM_VERSION  "1.0.0-dev"
+#define NM_ENABLE  "1"
+#define NM_DISABLE "0"
 
 #define _(S) gettext(S)
 #define NM_STRING_NX(S) # S
