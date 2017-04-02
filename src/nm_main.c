@@ -109,7 +109,7 @@ int main(void)
 
             if (vm_list.n_memb == 0)
             {
-                nm_print_warn(3, 6, _(" No VMs installed"));
+                nm_print_warn(3, 6, _("No VMs installed"));
             }
             else
             {
