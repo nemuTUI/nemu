@@ -75,8 +75,6 @@ void nm_add_vm(void)
         goto out;
 
     nm_add_vm_get_last(&last_mac, &last_vnc);
-    last_vnc++;
-
     nm_str_format(&vm.vncp, "%u", last_vnc);
 
     if (nm_add_vm_get_data(&vm, &usb_devs) != NM_OK)
@@ -216,6 +214,7 @@ static void nm_add_vm_get_last(uint64_t *mac, uint32_t *vnc)
 static void nm_add_vm_update_last(uint64_t mac, const nm_str_t *vnc)
 {
     nm_str_t query = NM_INIT_STR;
+    uint32_t last_vnc = nm_str_stoui(vnc);
 
     nm_str_alloc_text(&query, "UPDATE lastval SET mac='");
     nm_str_format(&query, "%" PRIu64 "'", mac);
@@ -223,9 +222,8 @@ static void nm_add_vm_update_last(uint64_t mac, const nm_str_t *vnc)
     nm_db_edit(query.data);
     nm_str_trunc(&query, 0);
 
-    nm_str_alloc_text(&query, "UPDATE lastval SET vnc='");
-    nm_str_add_str(&query, vnc);
-    nm_str_add_char(&query, '\'');
+    last_vnc++;
+    nm_str_format(&query, "UPDATE lastval SET vnc='%u'", last_vnc);
     nm_db_edit(query.data);
 
     nm_str_free(&query);
