@@ -209,7 +209,7 @@ int main(void)
                         if (vm_status)
                             nm_print_warn(3, 6, _("already running"));
                         else
-                            nm_vm_start(vm, 0);
+                            nm_vmctl_start(vm, 0);
                     } /* }}} start VM */
 
                     /* {{{ Nemu */
