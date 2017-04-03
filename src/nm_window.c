@@ -19,10 +19,11 @@ void nm_print_vm_window(void)
     nm_print_title(_(NM_VM_MSG));
 }
 
-void nm_print_warn(int nlines, int begin_x, const char *msg)
+int nm_print_warn(int nlines, int begin_x, const char *msg)
 {
     size_t msg_len;
     nm_window_t *w;
+    int ch;
 
     msg_len = mbstowcs(NULL, msg, strlen(msg));
     w = nm_init_window(nlines, msg_len + 5, begin_x);
@@ -30,8 +31,10 @@ void nm_print_warn(int nlines, int begin_x, const char *msg)
     box(w, 0, 0);
     mvwprintw(w, 1, 1, " %s ", msg);
     wrefresh(w);
-    wgetch(w);
+    ch = wgetch(w);
     delwin(w);
+
+    return ch;
 }
 
 void nm_print_vm_info(const nm_str_t *name)

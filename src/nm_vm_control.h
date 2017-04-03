@@ -5,7 +5,9 @@
 #include <nm_vector.h>
 
 enum vmctl_flags {
-    VMCTL_START_TEMP = (1 << 1)
+    NM_VMCTL_TEMP = (1 << 1),
+    NM_VMCTL_INST = (1 << 2),
+    NM_VMCTL_INFO = (1 << 3)
 };
 
 typedef struct {
