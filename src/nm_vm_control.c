@@ -74,6 +74,35 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
     nm_vmctl_free_data(&vm);
 }
 
+void nm_vmctl_kill(const nm_str_t *name)
+{
+    pid_t pid;
+    int fd;
+    char buf[10];
+    nm_str_t pid_file = NM_INIT_STR;
+
+    nm_str_alloc_str(&pid_file, &nm_cfg_get()->vm_dir);
+    nm_str_add_char(&pid_file, '/');
+    nm_str_add_str(&pid_file, name);
+    nm_str_add_text(&pid_file, "/" NM_VM_PID_FILE);
+
+    if ((fd = open(pid_file.data, O_RDONLY)) == -1)
+        return;
+
+    if (read(fd, buf, sizeof(buf)) <= 0)
+    {
+         close(fd);
+         return;
+    }
+
+    pid = atoi(buf);
+    kill(pid, SIGTERM);
+
+    close(fd);
+
+    nm_str_free(&pid_file);
+}
+
 #if (NM_WITH_VNC_CLIENT)
 void nm_vmctl_connect(const nm_str_t *name)
 {

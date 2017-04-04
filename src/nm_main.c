@@ -212,6 +212,16 @@ int main(void)
                             nm_vmctl_start(vm, 0);
                     } /* }}} start VM */
 
+                    /* {{{ kill VM */
+                    else if (ch == NM_KEY_F)
+                    {
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (vm_status)
+                            nm_vmctl_kill(vm);
+                    } /* kill VM */
+
 #if (NM_WITH_VNC_CLIENT)
                     /* {{{ Connect to VM */
                     else if (ch == NM_KEY_C)
