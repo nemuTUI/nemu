@@ -50,9 +50,11 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
         int ch = nm_print_warn(3, 6, _("Already installed (y/n)"));
         if (ch == 'y')
         {
-            flags |= NM_VMCTL_INST;
             flags &= ~NM_VMCTL_TEMP;
             nm_str_t query = NM_INIT_STR;
+
+            nm_str_trunc(nm_vect_str(&vm.main, NM_SQL_INST), 0);
+            nm_str_add_text(nm_vect_str(&vm.main, NM_SQL_INST), NM_DISABLE);
 
             nm_str_alloc_text(&query, "UPDATE vms SET install='0' WHERE name='");
             nm_str_add_str(&query, name);
