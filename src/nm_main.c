@@ -142,7 +142,7 @@ int main(void)
                 nm_print_vm_window();
                 nm_print_vm_menu(vm_window, &vms);
 
-                wtimeout(vm_window, 1000);
+                wtimeout(vm_window, 500);
 
                 for (;;)
                 {
@@ -287,7 +287,7 @@ int main(void)
                             vm_window = NULL;
                         }
                         vm_window = nm_init_window(list_max + 4, 32, 7);
-                        wtimeout(vm_window, 1000);
+                        wtimeout(vm_window, 500);
                         redraw_window = 0;
                     }
 
