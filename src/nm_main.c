@@ -203,6 +203,7 @@ int main(void)
                     /* {{{ Start VM */
                     else if (ch == NM_KEY_R)
                     {
+                        nm_print_vm_menu(vm_window, &vms);
                         const nm_str_t *vm = nm_vect_vm_name_cur(vms);
                         int vm_status = nm_vect_vm_status_cur(vms);
 
@@ -215,6 +216,7 @@ int main(void)
                     /* {{{ kill VM */
                     else if (ch == NM_KEY_F)
                     {
+                        nm_print_vm_menu(vm_window, &vms);
                         const nm_str_t *vm = nm_vect_vm_name_cur(vms);
                         int vm_status = nm_vect_vm_status_cur(vms);
 
