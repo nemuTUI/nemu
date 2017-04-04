@@ -123,7 +123,6 @@ void nm_vmctl_connect(const nm_str_t *name)
     nm_str_add_str(&cmd, nm_vect_str(&vm, 0));
     nm_str_add_text(&cmd, " > /dev/null 2>&1 &");
 
-    nm_debug("vnc: %s\n", cmd.data);
     unused = system(cmd.data);
 
     nm_vect_free(&vm, nm_str_vect_free_cb);
