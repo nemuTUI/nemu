@@ -16,6 +16,7 @@ typedef struct {
 } nm_vmctl_data_t;
 
 void nm_vmctl_start(const nm_str_t *name, int flags);
+void nm_vmctl_delete(const nm_str_t *name);
 void nm_vmctl_kill(const nm_str_t *name);
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm);
 void nm_vmctl_free_data(nm_vmctl_data_t *vm);

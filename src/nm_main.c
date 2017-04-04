@@ -224,6 +224,30 @@ int main(void)
                             nm_vmctl_kill(vm);
                     } /* }}} kill VM */
 
+                    /* {{{ Delete VM */
+                    else if (ch == NM_KEY_D)
+                    {
+                        nm_print_vm_menu(vm_window, &vms);
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (vm_status)
+                        {
+                            nm_print_warn(3, 6, _("VM must be stopped"));
+                        }
+                        else
+                        {
+                            int ch = nm_print_warn(3, 6, _("Proceed? (y/n)"));
+                            if (ch == 'y')
+                            {
+                                nm_vmctl_delete(vm);
+                                /* TODO: get rid of exit from loop here */
+                                /* exit from loop to reread guests */
+                                break;
+                            }
+                        }
+                    } /*}}} delete VM */
+
 #if (NM_WITH_VNC_CLIENT)
                     /* {{{ Connect to VM */
                     else if (ch == NM_KEY_C)

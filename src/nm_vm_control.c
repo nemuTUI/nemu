@@ -76,6 +76,67 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
     nm_vmctl_free_data(&vm);
 }
 
+void nm_vmctl_delete(const nm_str_t *name)
+{
+    nm_str_t vmdir = NM_INIT_STR;
+    nm_str_t query = NM_INIT_STR;
+    nm_vect_t drives = NM_INIT_VECT;
+    int delete_ok = 1;
+
+    nm_str_alloc_str(&vmdir, &nm_cfg_get()->vm_dir);
+    nm_str_add_char(&vmdir, '/');
+    nm_str_add_str(&vmdir, name);
+    nm_str_add_char(&vmdir, '/');
+
+    nm_str_add_text(&query, "SELECT drive_name FROM drives WHERE vm_name='");
+    nm_str_add_str(&query, name);
+    nm_str_add_char(&query, '\'');
+    nm_db_select(query.data, &drives);
+    nm_str_trunc(&query, 0);
+
+    for (size_t n = 0; n < drives.n_memb; n++)
+    {
+        nm_str_t img_path = NM_INIT_STR;
+        nm_str_alloc_str(&img_path, &vmdir);
+        nm_str_add_str(&img_path, nm_vect_str(&drives, n));
+
+        if (unlink(img_path.data) == -1)
+            delete_ok = 0;
+
+        nm_str_free(&img_path);
+    }
+
+    if (delete_ok)
+    {
+        if (rmdir(vmdir.data) == -1)
+            delete_ok = 0;
+    }
+
+    nm_str_add_text(&query, "DELETE FROM drives WHERE vm_name='");
+    nm_str_add_str(&query, name);
+    nm_str_add_char(&query, '\'');
+    nm_db_edit(query.data);
+    nm_str_trunc(&query, 0);
+
+    nm_str_add_text(&query, "DELETE FROM ifaces WHERE vm_name='");
+    nm_str_add_str(&query, name);
+    nm_str_add_char(&query, '\'');
+    nm_db_edit(query.data);
+    nm_str_trunc(&query, 0);
+
+    nm_str_add_text(&query, "DELETE FROM vms WHERE name='");
+    nm_str_add_str(&query, name);
+    nm_str_add_char(&query, '\'');
+    nm_db_edit(query.data);
+
+    if (!delete_ok)
+        nm_print_warn(3, 6, _("Some files was not deleted!"));
+
+    nm_str_free(&vmdir);
+    nm_str_free(&query);
+    nm_vect_free(&drives, nm_str_vect_free_cb);
+}
+
 void nm_vmctl_kill(const nm_str_t *name)
 {
     pid_t pid;

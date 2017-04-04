@@ -26,7 +26,7 @@ int nm_print_warn(int nlines, int begin_x, const char *msg)
     int ch;
 
     msg_len = mbstowcs(NULL, msg, strlen(msg));
-    w = nm_init_window(nlines, msg_len + 5, begin_x);
+    w = nm_init_window(nlines, msg_len + 6, begin_x);
     curs_set(0);
     box(w, 0, 0);
     mvwprintw(w, 1, 1, " %s ", msg);
