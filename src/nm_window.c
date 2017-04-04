@@ -29,7 +29,7 @@ int nm_print_warn(int nlines, int begin_x, const char *msg)
     w = nm_init_window(nlines, msg_len + 6, begin_x);
     curs_set(0);
     box(w, 0, 0);
-    mvwprintw(w, 1, 1, " %s ", msg);
+    mvwprintw(w, 1, 2, " %s ", msg);
     wrefresh(w);
     ch = wgetch(w);
     delwin(w);
