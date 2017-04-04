@@ -74,6 +74,33 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
     nm_vmctl_free_data(&vm);
 }
 
+#if (NM_WITH_VNC_CLIENT)
+void nm_vmctl_connect(const nm_str_t *name)
+{
+    nm_str_t cmd = NM_INIT_STR;
+    nm_str_t query = NM_INIT_STR;
+    nm_vect_t vm = NM_INIT_VECT;
+    int unused __attribute__((unused));
+
+    nm_str_add_text(&query, "SELECT vnc FROM vms WHERE name='");
+    nm_str_add_str(&query, name);
+    nm_str_add_char(&query, '\'');
+    nm_db_select(query.data, &vm);
+
+    nm_str_alloc_str(&cmd, &nm_cfg_get()->vnc_bin);
+    nm_str_add_text(&cmd, " :");
+    nm_str_add_str(&cmd, nm_vect_str(&vm, 0));
+    nm_str_add_text(&cmd, " > /dev/null 2>&1 &");
+
+    nm_debug("vnc: %s\n", cmd.data);
+    unused = system(cmd.data);
+
+    nm_vect_free(&vm, nm_str_vect_free_cb);
+    nm_str_free(&query);
+    nm_str_free(&cmd);
+}
+#endif
+
 static void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
                              const nm_str_t *name, int flags)
 {
@@ -228,7 +255,7 @@ static void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_add_str(res, name);
         nm_str_add_text(res, " -device isa-serial,chardev=tty_");
         nm_str_add_str(res, name);
-    } /* TTY */
+    } /* }}} TTY */
 
     /* {{{ setup network interfaces */
     for (size_t n = 0; n < ifs_count; n++)

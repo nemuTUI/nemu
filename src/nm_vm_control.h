@@ -19,6 +19,9 @@ typedef struct {
 void nm_vmctl_start(const nm_str_t *name, int flags);
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm);
 void nm_vmctl_free_data(nm_vmctl_data_t *vm);
+#if (NM_WITH_VNC_CLIENT)
+void nm_vmctl_connect(const nm_str_t *name);
+#endif
 
 #define NM_VMCTL_INIT_DATA { NM_INIT_VECT, NM_INIT_VECT, NM_INIT_VECT }
 

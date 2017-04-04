@@ -212,6 +212,18 @@ int main(void)
                             nm_vmctl_start(vm, 0);
                     } /* }}} start VM */
 
+#if (NM_WITH_VNC_CLIENT)
+                    /* {{{ Connect to VM */
+                    else if (ch == NM_KEY_C)
+                    {
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (vm_status)
+                            nm_vmctl_connect(vm);
+                    } /* }}} conenct to VM */
+#endif
+
                     /* {{{ Nemu */
                     else if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)
                     {
