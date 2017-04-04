@@ -69,8 +69,8 @@ void nm_map_file(nm_file_map_t *file)
     if (file->mp == MAP_FAILED)
     {
         close(file->fd);
-        nm_bug(_("Cannot map file %s:%s"),
-            file->name->data, strerror(errno));
+        nm_bug(_("%s: cannot map file %s:%s"),
+            __func__, file->name->data, strerror(errno));
     }
 }
 

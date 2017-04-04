@@ -6,6 +6,7 @@
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
 
+static void nm_vmctl_log_last(const nm_str_t *cmd);
 static void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
                              const nm_str_t *name, int flags);
 
@@ -66,6 +67,8 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
     nm_vmctl_gen_cmd(&cmd, &vm, name, flags);
     if (cmd.len > 0)
         unused = system(cmd.data);
+
+    nm_vmctl_log_last(&cmd);
 
     nm_str_free(&cmd);
     nm_vmctl_free_data(&vm);
@@ -276,6 +279,24 @@ void nm_vmctl_free_data(nm_vmctl_data_t *vm)
     nm_vect_free(&vm->main, nm_str_vect_free_cb);
     nm_vect_free(&vm->ifs, nm_str_vect_free_cb);
     nm_vect_free(&vm->drives, nm_str_vect_free_cb);
+}
+
+static void nm_vmctl_log_last(const nm_str_t *cmd)
+{
+    FILE *fp;
+    const nm_cfg_t *cfg = nm_cfg_get();
+
+    if ((cmd->len == 0) || (!cfg->log_enabled))
+        return;
+
+    if ((fp = fopen(cfg->log_path.data, "w+")) == NULL)
+    {
+        nm_bug(_("%s: cannot open file %s:%s"),
+            __func__, cfg->log_path.data, strerror(errno));
+    }
+
+    fprintf(fp, "%s\n", cmd->data);
+    fclose(fp);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
