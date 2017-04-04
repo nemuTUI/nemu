@@ -22,6 +22,7 @@
 #define NM_INI_P_VANY     "listen_any"
 #define NM_INI_P_QBIN     "qemu_system_path"
 #define NM_INI_P_QTRG     "targets"
+#define NM_INI_P_QENL     "enable_log"
 #define NM_INI_P_QLOG     "log_cmd"
 
 static nm_cfg_t cfg;
@@ -124,12 +125,20 @@ void nm_cfg_init(void)
 #endif
     }
 
-    /* Get file log path */
-    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QLOG, &cfg.log_path);
+    /* Get log enable flag */
+    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QENL, &tmp_buf);
+    cfg.log_enabled = !!nm_str_stoui(&tmp_buf);
+    nm_str_trunc(&tmp_buf, 0);
 
-    nm_str_dirname(&cfg.log_path, &tmp_buf);
-    if (access(tmp_buf.data, W_OK) != 0)
-        nm_bug(_("cfg: no write access to %s"), tmp_buf.data);
+    if (cfg.log_enabled)
+    {
+        /* Get file log path */
+        nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QLOG, &cfg.log_path);
+
+        nm_str_dirname(&cfg.log_path, &tmp_buf);
+        if (access(tmp_buf.data, W_OK) != 0)
+            nm_bug(_("cfg: no write access to %s"), tmp_buf.data);
+    }
 
     nm_ini_parser_free(ini);
     nm_str_free(&cfg_path);
@@ -235,7 +244,9 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                 "qemu_system_path = /usr/bin/qemu-system\n\n");
             fprintf(cfg, "# Qemu system targets list, separated by comma.\n"
                 "targets = %s\n\n", targets.data);
-            fprintf(cfg, "# Log last qemu command. Empty value disable logging.\n"
+            fprintf(cfg, "# Log last QEMU command.\n"
+                "enable_log = 1\n\n");
+            fprintf(cfg, "# Log path.\n"
                 "log_cmd = /tmp/qemu_last_cmd.log\n");
             fclose(cfg);
 
