@@ -29,7 +29,7 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
    /* XXX wrefresh(w); */
 }
 
-void nm_print_vm_menu(nm_window_t *w, const nm_vm_list_t *vm)
+void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm)
 {
     int x = 2, y = 2;
     struct stat file_info;

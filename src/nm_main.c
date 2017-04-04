@@ -220,7 +220,7 @@ int main(void)
 
                         if (vm_status)
                             nm_vmctl_kill(vm);
-                    } /* kill VM */
+                    } /* }}} kill VM */
 
 #if (NM_WITH_VNC_CLIENT)
                     /* {{{ Connect to VM */
