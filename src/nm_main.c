@@ -6,6 +6,7 @@
 #include <nm_ncurses.h>
 #include <nm_add_vm.h>
 #include <nm_edit_vm.h>
+#include <nm_clone_vm.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
@@ -260,6 +261,26 @@ int main(void)
                             }
                         }
                     } /*}}} delete VM */
+
+                    /* {{{ Clone VM */
+                    else if (ch == NM_KEY_L)
+                    {
+                        nm_print_vm_menu(vm_window, &vms);
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (vm_status)
+                        {
+                            nm_print_warn(3, 6, _("VM must be stopped"));
+                        }
+                        else
+                        {
+                            nm_clone_vm(vm);
+                            /* TODO: get rid of exit from loop here */
+                            /* exit from loop to reread guests */
+                            break;
+                        }
+                    } /*}}} clone VM */
 
 #if (NM_WITH_VNC_CLIENT)
                     /* {{{ Connect to VM */
