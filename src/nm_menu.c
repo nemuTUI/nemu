@@ -45,8 +45,17 @@ void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm)
 
     for (size_t n = vm->vm_first, i = 0; n < vm->vm_last; n++, i++)
     {
+        nm_str_t vm_name = NM_INIT_STR;
+
         if (n >= vm->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
+
+        nm_str_alloc_text(&vm_name, nm_vect_vm_name(vm->v, n));
+        if (vm_name.len > 16)
+        {
+            nm_str_trunc(&vm_name, 16);
+            nm_str_add_text(&vm_name, "...");
+        }
 
         nm_str_alloc_str(&lock_path, &nm_cfg_get()->vm_dir);
         nm_str_add_char(&lock_path, '/');
@@ -67,18 +76,19 @@ void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm)
         if (vm->highlight == i + 1)
         {
             wattron(w, A_REVERSE);
-            mvwprintw(w, y, x, "%-20s%s", nm_vect_vm_name(vm->v, n),
+            mvwprintw(w, y, x, "%-20s%s", vm_name.data,
                 nm_vect_vm_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
             wattroff(w, A_REVERSE);
         }
         else
         {
-            mvwprintw(w, y, x, "%-20s%s", nm_vect_vm_name(vm->v, n),
+            mvwprintw(w, y, x, "%-20s%s", vm_name.data,
                 nm_vect_vm_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
         }
 
         y++;
         wrefresh(w);
+        nm_str_free(&vm_name);
     }
 
     nm_str_free(&lock_path);

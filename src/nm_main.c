@@ -5,6 +5,7 @@
 #include <nm_window.h>
 #include <nm_ncurses.h>
 #include <nm_add_vm.h>
+#include <nm_edit_vm.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
@@ -198,6 +199,12 @@ int main(void)
                     {
                         const nm_str_t *vm = nm_vect_vm_name_cur(vms);
                         nm_print_vm_info(vm);
+                    }
+
+                    else if (ch == NM_KEY_E)
+                    {
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        nm_edit_vm(vm);
                     }
 
                     /* {{{ Start VM */

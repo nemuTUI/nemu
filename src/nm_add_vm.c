@@ -18,7 +18,6 @@ static nm_field_t *fields[NM_ADD_VM_FIELDS_NUM + 1];
 
 static void nm_add_vm_field_setup(const nm_vect_t *usb_names);
 static void nm_add_vm_field_names(nm_window_t *w);
-static void nm_add_vm_get_usb(nm_vect_t *devs, nm_vect_t *names);
 static void nm_add_vm_get_last(uint64_t *mac, uint32_t *vnc);
 static void nm_add_vm_update_last(uint64_t mac, const nm_str_t *vnc);
 static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs);
@@ -51,7 +50,7 @@ void nm_add_vm(void)
     pthread_t spin_th;
     int done = 0;
 
-    nm_add_vm_get_usb(&usb_devs, &usb_names);
+    nm_vm_get_usb(&usb_devs, &usb_names);
 
     nm_print_title(_(NM_EDIT_TITLE));
     window = nm_init_window(25, 67, 3);
@@ -94,20 +93,6 @@ void nm_add_vm(void)
     if (pthread_join(spin_th, NULL) != 0)
         nm_bug(_("%s: cannot join thread"), __func__);
 
-#if (NM_DEBUG) /*XXX remove this later */
-    nm_debug("name: %s\n", vm.name.data);
-    nm_debug("arch: %s\n", vm.arch.data);
-    nm_debug("cpus: %s\n", vm.cpus.data);
-    nm_debug("memo: %s\n", vm.memo.data);
-    nm_debug("iso: %s\n", vm.srcp.data);
-    nm_debug("disk_sz: %s\n", vm.drive.size.data);
-    nm_debug("disk_drv: %s\n", vm.drive.driver.data);
-    nm_debug("usb: %u\n", vm.usb.enable);
-    nm_debug("usbid: %s\n", vm.usb.device.data);
-    nm_debug("ifs_sz: %u\n", vm.ifs.count);
-    nm_debug("ifs_drv: %s\n", vm.ifs.driver.data);
-#endif
-
 out:
     nm_vm_free(&vm);
     nm_form_free(form, fields);
@@ -115,9 +100,28 @@ out:
     nm_vect_free(&usb_devs, nm_usb_vect_free_cb);
 }
 
+void nm_vm_get_usb(nm_vect_t *devs, nm_vect_t *names)
+{
+    nm_usb_get_devs(devs);
+
+    for (size_t n = 0; n < devs->n_memb; n++)
+    {
+        nm_vect_insert(names,
+                       nm_usb_name(devs->data[n]).data,
+                       nm_usb_name(devs->data[n]).len + 1,
+                       NULL);
+#if (NM_DEBUG)
+        nm_debug("%s %s\n", nm_usb_id(devs->data[n]).data,
+                            nm_usb_name(devs->data[n]).data);
+#endif
+    }
+
+    nm_vect_end_zero(names);
+}
+
 static void nm_add_vm_field_setup(const nm_vect_t *usb_names)
 {
-    set_field_type(fields[NM_FLD_VMNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]* *$");
+    set_field_type(fields[NM_FLD_VMNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
     set_field_type(fields[NM_FLD_VMARCH], TYPE_ENUM, nm_cfg_get_arch(), false, false);
     set_field_type(fields[NM_FLD_CPUNUM], TYPE_INTEGER, 0, 1, nm_hw_ncpus());
     set_field_type(fields[NM_FLD_RAMTOT], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
@@ -144,7 +148,6 @@ static void nm_add_vm_field_setup(const nm_vect_t *usb_names)
     field_opts_off(fields[NM_FLD_VMNAME], O_STATIC);
     field_opts_off(fields[NM_FLD_SOURCE], O_STATIC);
     field_opts_off(fields[NM_FLD_USBDEV], O_STATIC);
-    set_max_field(fields[NM_FLD_VMNAME], 30);
 }
 
 static void nm_add_vm_field_names(nm_window_t *w)
@@ -179,25 +182,6 @@ static void nm_add_vm_field_names(nm_window_t *w)
     mvwaddstr(w, 22, 2, _("USB device"));
 
     nm_str_free(&buf);
-}
-
-static void nm_add_vm_get_usb(nm_vect_t *devs, nm_vect_t *names)
-{
-    nm_usb_get_devs(devs);
-
-    for (size_t n = 0; n < devs->n_memb; n++)
-    {
-        nm_vect_insert(names,
-                       nm_usb_name(devs->data[n]).data,
-                       nm_usb_name(devs->data[n]).len + 1,
-                       NULL);
-#if (NM_DEBUG)
-        nm_debug("%s %s\n", nm_usb_id(devs->data[n]).data,
-                            nm_usb_name(devs->data[n]).data);
-#endif
-    }
-
-    nm_vect_end_zero(names);
 }
 
 static void nm_add_vm_get_last(uint64_t *mac, uint32_t *vnc)
@@ -248,51 +232,35 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs)
     nm_get_field_buf(fields[NM_FLD_USBUSE], &usb_buf);
     nm_get_field_buf(fields[NM_FLD_USBDEV], &vm->usb.device);
 
-    nm_add_vm_check_data(_("Name"), vm->name, err);
-    nm_add_vm_check_data(_("Architecture"), vm->arch, err);
-    nm_add_vm_check_data(_("CPU cores"), vm->cpus, err);
-    nm_add_vm_check_data(_("Memory"), vm->memo, err);
-    nm_add_vm_check_data(_("Disk"), vm->drive.size, err);
-    nm_add_vm_check_data(_("Disk interface"), vm->drive.driver, err);
-    nm_add_vm_check_data(_("Path to ISO/IMG"), vm->srcp, err);
-    nm_add_vm_check_data(_("Network interfaces"), vm->ifs.driver, err);
-    nm_add_vm_check_data(_("Net driver"), vm->ifs.driver, err);
-    nm_add_vm_check_data(_("USB"), usb_buf, err);
+    nm_form_check_data(_("Name"), vm->name, err);
+    nm_form_check_data(_("Architecture"), vm->arch, err);
+    nm_form_check_data(_("CPU cores"), vm->cpus, err);
+    nm_form_check_data(_("Memory"), vm->memo, err);
+    nm_form_check_data(_("Disk"), vm->drive.size, err);
+    nm_form_check_data(_("Disk interface"), vm->drive.driver, err);
+    nm_form_check_data(_("Path to ISO/IMG"), vm->srcp, err);
+    nm_form_check_data(_("Network interfaces"), vm->ifs.driver, err);
+    nm_form_check_data(_("Net driver"), vm->ifs.driver, err);
+    nm_form_check_data(_("USB"), usb_buf, err);
 
-    if (err.n_memb != 0)
-    {
-        rc = NM_ERR;
-        int y = 1;
-        size_t msg_len;
-
-        msg_len = mbstowcs(NULL, _(NM_FORM_EMPTY_MSG), strlen(_(NM_FORM_EMPTY_MSG)));
-
-        nm_window_t *err_window = nm_init_window(4 + err.n_memb, msg_len + 2, 2);
-        curs_set(0);
-        box(err_window, 0, 0);
-        mvwprintw(err_window, y++, 1, "%s", _(NM_FORM_EMPTY_MSG));
-
-        for (size_t n = 0; n < err.n_memb; n++)
-            mvwprintw(err_window, ++y, 1, "%s", (char *) err.data[n]);
-
-        wrefresh(err_window);
-        wgetch(err_window);
-
-        delwin(err_window);
+    if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
-    }
 
     vm->ifs.count = nm_str_stoui(&ifs_buf);
 
-    if ((nm_str_cmp_st(&usb_buf, "yes") == NM_OK) &&
-        (vm->usb.device.len > 0))
-    {
+    if (nm_str_cmp_st(&usb_buf, "yes") == NM_OK)
         vm->usb.enable = 1;
-    }
 
     if (vm->usb.enable)
     {
         int found = 0;
+
+        if (vm->usb.device.len == 0)
+        {
+            rc = NM_ERR;
+            nm_print_warn(3, 2, _("usb device is empty"));
+            goto out;
+        }
 
         for (size_t n = 0; n < usb_devs->n_memb; n++)
         {
@@ -307,7 +275,11 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs)
         }
 
         if (!found)
-            nm_bug(_("%s: usb_id not found"), __func__);
+        {
+            rc = NM_ERR;
+            nm_print_warn(3, 2, _("usb_id not found"));
+            goto out;
+        }
     }
 
     { /* {{{ Check that VM name is not taken */

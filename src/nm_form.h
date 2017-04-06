@@ -30,6 +30,11 @@ typedef struct {
 } nm_vm_usb_t;
 
 typedef struct {
+    uint32_t enable:1;
+    uint32_t hostcpu_enable:1;
+} nm_vm_kvm_t;
+
+typedef struct {
     nm_str_t name;
     nm_str_t arch;
     nm_str_t cpus;
@@ -39,6 +44,8 @@ typedef struct {
     nm_vm_usb_t usb;
     nm_vm_drive_t drive;
     nm_vm_ifs_t ifs;
+    nm_vm_kvm_t kvm;
+    uint32_t mouse_sync:1;
 } nm_vm_t;
 
 typedef struct {
@@ -51,6 +58,8 @@ nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x);
 int nm_draw_form(nm_window_t *w, nm_form_t *form);
 void nm_form_free(nm_form_t *form, nm_field_t **fields);
 void nm_get_field_buf(nm_field_t *f, nm_str_t *res);
+void nm_vm_get_usb(nm_vect_t *devs, nm_vect_t *names);
+int nm_print_empty_fields(const nm_vect_t *v);
 void nm_vm_free(nm_vm_t *vm);
 void *nm_spinner(void *data);
 
@@ -58,7 +67,7 @@ extern const char *nm_form_yes_no[];
 extern const char *nm_form_net_drv[];
 extern const char *nm_form_drive_drv[];
 
-#define nm_add_vm_check_data(name, val, v)                    \
+#define nm_form_check_data(name, val, v)                      \
     {                                                         \
         if (val.len == 0)                                     \
             nm_vect_insert(&v, name, strlen(name) + 1, NULL); \
@@ -67,11 +76,13 @@ extern const char *nm_form_drive_drv[];
 #define NM_INIT_VM_DRIVE { NM_INIT_STR, NM_INIT_STR }
 #define NM_INIT_VM_IFS   { NM_INIT_STR, 0 }
 #define NM_INIT_VM_USB   { NM_INIT_STR, 0 }
+#define NM_INIT_VM_KVM   { 0, 0 }
 #define NM_INIT_SPINNER  { 0, 1, NULL }
 
 #define NM_INIT_VM { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                      NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                     NM_INIT_VM_USB, NM_INIT_VM_DRIVE, NM_INIT_VM_IFS }
+                     NM_INIT_VM_USB, NM_INIT_VM_DRIVE, NM_INIT_VM_IFS, \
+                     NM_INIT_VM_KVM, 0 }
 
 #endif /* NM_FORM_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

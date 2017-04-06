@@ -277,6 +277,32 @@ void *nm_spinner(void *data)
     pthread_exit(NULL);
 }
 
+int nm_print_empty_fields(const nm_vect_t *v)
+{
+    int y = 1;
+    size_t msg_len;
+
+    if (v->n_memb == 0)
+        return NM_OK;
+
+    msg_len = mbstowcs(NULL, _(NM_FORM_EMPTY_MSG), strlen(_(NM_FORM_EMPTY_MSG)));
+
+    nm_window_t *err_window = nm_init_window(4 + v->n_memb, msg_len + 2, 2);
+    curs_set(0);
+    box(err_window, 0, 0);
+    mvwprintw(err_window, y++, 1, "%s", _(NM_FORM_EMPTY_MSG));
+
+    for (size_t n = 0; n < v->n_memb; n++)
+        mvwprintw(err_window, ++y, 1, "%s", (char *) v->data[n]);
+
+    wrefresh(err_window);
+    wgetch(err_window);
+
+    delwin(err_window);
+
+    return NM_ERR;
+}
+
 void nm_vm_free(nm_vm_t *vm)
 {
     nm_str_free(&vm->name);
