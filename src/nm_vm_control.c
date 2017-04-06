@@ -7,8 +7,6 @@
 #include <nm_vm_control.h>
 
 static void nm_vmctl_log_last(const nm_str_t *cmd);
-static void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
-                             const nm_str_t *name, int flags);
 
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 {
@@ -192,8 +190,8 @@ void nm_vmctl_connect(const nm_str_t *name)
 }
 #endif
 
-static void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
-                             const nm_str_t *name, int flags)
+void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
+                      const nm_str_t *name, int flags)
 {
     nm_str_t vmdir = NM_INIT_STR;
     const nm_cfg_t *cfg = nm_cfg_get();

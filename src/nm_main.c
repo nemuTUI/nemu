@@ -207,6 +207,12 @@ int main(void)
                         nm_edit_vm(vm);
                     }
 
+                    else if (ch == NM_KEY_M)
+                    {
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        nm_print_cmd(vm);
+                    }
+
                     /* {{{ Start VM */
                     else if (ch == NM_KEY_R)
                     {
