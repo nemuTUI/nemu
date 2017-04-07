@@ -2,8 +2,12 @@
 #include <nm_utils.h>
 #include <nm_ncurses.h>
 
-#if defined (NM_OS_LINUX)
+#if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
 #include <sys/sendfile.h>
+#endif
+
+#if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
+static void nm_copy_file_sendfile(int in_fd, int out_fd);
 #endif
 
 void nm_bug(const char *fmt, ...)
@@ -86,8 +90,44 @@ void nm_unmap_file(const nm_file_map_t *file)
 
 void nm_copy_file(const nm_str_t *src, const nm_str_t *dst)
 {
-    //...
+    int in_fd, out_fd;
+
+    if ((in_fd = open(src->data, O_RDONLY)) == -1)
+    {
+        nm_bug("%s: cannot open file %s:%s",
+            __func__, src->data, strerror(errno));
+    }
+
+    if ((out_fd = open(dst->data, O_RDWR | O_CREAT)) == -1)
+    {
+        close(in_fd);
+        nm_bug("%s: cannot open file %s:%s",
+            __func__, dst->data, strerror(errno));
+    }
+
+#if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
+    nm_copy_file_sendfile(in_fd, out_fd);
+#endif
+
+    close(in_fd);
+    close(out_fd);
 }
+
+#if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
+static void nm_copy_file_sendfile(int in_fd, int out_fd)
+{
+    off_t offset = 0;
+    struct stat file_info;
+
+    memset(&file_info, 0, sizeof(file_info));
+
+    if (fstat(in_fd, &file_info) != 0)
+        nm_bug("%s: cannot get file info %d: %s", __func__, in_fd, strerror(errno));
+
+    if (sendfile(out_fd, in_fd, &offset, file_info.st_size) == -1)
+        nm_bug("%s: cannot copy file: %s", __func__, strerror(errno));
+}
+#endif
 
 #ifdef NM_DEBUG
 void nm_debug(const char *fmt, ...)
