@@ -117,7 +117,7 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
     return head;
 }
 
-#if (NM_DEBUG)
+#ifdef NM_DEBUG
 void nm_ini_parser_dump(const nm_ini_node_t *head)
 {
     const nm_ini_node_t *curr = head;

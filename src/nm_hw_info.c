@@ -4,14 +4,14 @@
 
 #include <sys/statvfs.h>
 
-#if (NM_OS_LINUX)
+#if defined (NM_OS_LINUX)
 #include <sys/sysinfo.h>
 #endif
 
 uint32_t nm_hw_total_ram(void)
 {
     uint32_t ram = 0;
-#if (NM_OS_LINUX)
+#if defined (NM_OS_LINUX)
     struct sysinfo info;
 
     memset(&info, 0, sizeof(info));
@@ -25,7 +25,7 @@ uint32_t nm_hw_total_ram(void)
 uint32_t nm_hw_ncpus(void)
 {
     uint32_t ncpus = 0;
-#if (NM_OS_LINUX)
+#if defined (NM_OS_LINUX)
     ncpus = sysconf(_SC_NPROCESSORS_ONLN);
 #endif
     return ncpus;

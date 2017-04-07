@@ -2,6 +2,10 @@
 #include <nm_utils.h>
 #include <nm_ncurses.h>
 
+#if defined (NM_OS_LINUX)
+#include <sys/sendfile.h>
+#endif
+
 void nm_bug(const char *fmt, ...)
 {
     va_list args;
@@ -80,7 +84,12 @@ void nm_unmap_file(const nm_file_map_t *file)
     close(file->fd);
 }
 
-#if (NM_DEBUG)
+void nm_copy_file(const nm_str_t *src, const nm_str_t *dst)
+{
+    //...
+}
+
+#ifdef NM_DEBUG
 void nm_debug(const char *fmt, ...)
 {
     va_list args;

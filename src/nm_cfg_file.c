@@ -48,7 +48,7 @@ void nm_cfg_init(void)
 
     nm_generate_cfg(pw->pw_dir, &cfg_path);
     ini = nm_ini_parser_init(&cfg_path);
-#if (NM_DEBUG)
+#ifdef NM_DEBUG
     nm_ini_parser_dump(ini);
 #endif
     /* Get VM storage directory path */
@@ -79,7 +79,7 @@ void nm_cfg_init(void)
         nm_bug(_("cfg: bad list_max value: %u, expected: [1-100]"),
             cfg.list_max);
     }
-#if (NM_WITH_VNC_CLIENT)
+#ifdef NM_WITH_VNC_CLIENT
     /* Get the VNC client binary path */
     nm_get_param(ini, NM_INI_S_VNC, NM_INI_P_VBIN, &cfg.vnc_bin);
 
@@ -116,7 +116,7 @@ void nm_cfg_init(void)
         nm_vect_end_zero(&cfg.qemu_targets); /* need for ncurses form */
         nm_str_trunc(&tmp_buf, 0);
         nm_str_free(&qemu_bin);
-#if (NM_DEBUG)
+#ifdef NM_DEBUG
         const char **tp = (const char **) cfg.qemu_targets.data;
 
         nm_debug("\nConfigured QEMU targets:\n");

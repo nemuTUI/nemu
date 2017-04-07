@@ -48,7 +48,7 @@ void nm_db_init(void)
     
     for (size_t n = 0; n < nm_arr_len(query); n++)
     {
-#if (NM_DEBUG)
+#ifdef NM_DEBUG
         nm_debug("%s: \"%s\"\n", __func__, query[n]);
 #endif
         if (sqlite3_exec(db_handler, query[n], NULL, NULL, &db_errmsg) != SQLITE_OK)
@@ -59,7 +59,7 @@ void nm_db_init(void)
 void nm_db_select(const char *query, nm_vect_t *v)
 {
     char *db_errmsg;
-#if (NM_DEBUG)
+#ifdef NM_DEBUG
     nm_debug("%s: \"%s\"\n", __func__, query);
 #endif
 
@@ -73,7 +73,7 @@ void nm_db_select(const char *query, nm_vect_t *v)
 void nm_db_edit(const char *query)
 {
     char *db_errmsg;
-#if (NM_DEBUG)
+#ifdef NM_DEBUG
     nm_debug("%s: \"%s\"\n", __func__, query);
 #endif
 
