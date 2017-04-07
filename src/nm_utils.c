@@ -10,9 +10,9 @@
 
 #if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
 static void nm_copy_file_sendfile(int in_fd, int out_fd);
-#endif
-
+#else
 static void nm_copy_file_default(int in_fd, int out_fd);
+#endif
 
 void nm_bug(const char *fmt, ...)
 {
@@ -133,8 +133,7 @@ static void nm_copy_file_sendfile(int in_fd, int out_fd)
     if (sendfile(out_fd, in_fd, &offset, file_info.st_size) == -1)
         nm_bug("%s: cannot copy file: %s", __func__, strerror(errno));
 }
-#endif
-
+#else
 static void nm_copy_file_default(int in_fd, int out_fd)
 {
     char *buf = nm_alloc(NM_BLKSIZE);
@@ -168,6 +167,7 @@ static void nm_copy_file_default(int in_fd, int out_fd)
 
     free(buf);
 }
+#endif
 
 #ifdef NM_DEBUG
 void nm_debug(const char *fmt, ...)
