@@ -1,5 +1,6 @@
 #include <nm_core.h>
 #include <nm_form.h>
+#include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
 
@@ -10,6 +11,10 @@ void nm_clone_vm(const nm_str_t *name)
 {
     nm_window_t *window = NULL;
     nm_str_t buf = NM_INIT_STR;
+    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
+    size_t msg_len;
+    pthread_t spin_th;
+    int done = 0;
 
     nm_print_title(_(NM_EDIT_TITLE));
     window = nm_init_window(7, 45, 3);
@@ -36,6 +41,19 @@ void nm_clone_vm(const nm_str_t *name)
     form = nm_post_form(window, fields, 10);
     if (nm_draw_form(window, form) != NM_OK)
         goto out;
+
+    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
+    sp_data.stop = &done;
+    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
+
+    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
+        nm_bug(_("%s: cannot create thread"), __func__);
+
+    /* --- */
+
+    done = 1;
+    if (pthread_join(spin_th, NULL) != 0)
+        nm_bug(_("%s: cannot join thread"), __func__);
 
 out:
     nm_form_free(form, fields);

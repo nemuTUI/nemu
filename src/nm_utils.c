@@ -2,6 +2,8 @@
 #include <nm_utils.h>
 #include <nm_ncurses.h>
 
+#define NM_BLKSIZE 131072 /* 128KiB */
+
 #if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
 #include <sys/sendfile.h>
 #endif
@@ -9,6 +11,8 @@
 #if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
 static void nm_copy_file_sendfile(int in_fd, int out_fd);
 #endif
+
+static void nm_copy_file_default(int in_fd, int out_fd);
 
 void nm_bug(const char *fmt, ...)
 {
@@ -94,19 +98,21 @@ void nm_copy_file(const nm_str_t *src, const nm_str_t *dst)
 
     if ((in_fd = open(src->data, O_RDONLY)) == -1)
     {
-        nm_bug("%s: cannot open file %s:%s",
+        nm_bug("%s: cannot open file %s: %s",
             __func__, src->data, strerror(errno));
     }
 
-    if ((out_fd = open(dst->data, O_RDWR | O_CREAT)) == -1)
+    if ((out_fd = open(dst->data, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
     {
         close(in_fd);
-        nm_bug("%s: cannot open file %s:%s",
+        nm_bug("%s: cannot open file %s: %s",
             __func__, dst->data, strerror(errno));
     }
 
 #if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
     nm_copy_file_sendfile(in_fd, out_fd);
+#else
+    nm_copy_file_default(in_fd, out_fd);
 #endif
 
     close(in_fd);
@@ -128,6 +134,40 @@ static void nm_copy_file_sendfile(int in_fd, int out_fd)
         nm_bug("%s: cannot copy file: %s", __func__, strerror(errno));
 }
 #endif
+
+static void nm_copy_file_default(int in_fd, int out_fd)
+{
+    char *buf = nm_alloc(NM_BLKSIZE);
+    ssize_t nread;
+
+    posix_fadvise(in_fd, 0, 0, POSIX_FADV_SEQUENTIAL);
+
+    while ((nread = read(in_fd, buf, NM_BLKSIZE)) > 0)
+    {
+        ssize_t nwrite;
+        char *bufsp = buf;
+
+        do {
+            nwrite = write(out_fd, bufsp, NM_BLKSIZE);
+
+            if (nwrite >= 0)
+            {
+                nread -= nwrite;
+                bufsp += nwrite;
+            }
+            else if (errno != EINTR)
+            {
+                nm_bug("%s: copy file failed: %s", __func__, strerror(errno));
+            }
+
+        } while (nread > 0);
+    }
+
+    if (nread != 0)
+        nm_bug("%s: copy was not compleete.", __func__);
+
+    free(buf);
+}
 
 #ifdef NM_DEBUG
 void nm_debug(const char *fmt, ...)
