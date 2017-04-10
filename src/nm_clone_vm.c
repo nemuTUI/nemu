@@ -92,6 +92,7 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
     nm_str_t new_vm_path = NM_INIT_STR;
     nm_str_t new_vm_dir = NM_INIT_STR;
     size_t drives_count;
+    char drv_ch = 'a';
 
     nm_str_copy(&new_vm_dir, &nm_cfg_get()->vm_dir);
     nm_str_add_char(&new_vm_dir, '/');
@@ -105,12 +106,8 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
 
     nm_str_copy(&new_vm_path, &nm_cfg_get()->vm_dir);
     nm_str_copy(&old_vm_path, &nm_cfg_get()->vm_dir);
-    nm_str_add_char(&new_vm_path, '/');
-    nm_str_add_char(&old_vm_path, '/');
-    nm_str_add_str(&new_vm_path, dst);
-    nm_str_add_str(&old_vm_path, src);
-    nm_str_add_char(&new_vm_path, '/');
-    nm_str_add_char(&old_vm_path, '/');
+    nm_str_format(&new_vm_path, "/%s/%s", dst->data, dst->data);
+    nm_str_format(&old_vm_path, "/%s/", src->data);
 
     drives_count = drives->n_memb / 4;
 
@@ -120,12 +117,13 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
         nm_str_t *drive_name = nm_vect_str(drives, NM_SQL_DRV_NAME + idx_shift);
 
         nm_str_add_str(&old_vm_path, drive_name);
-        nm_str_add_str(&new_vm_path, drive_name);
+        nm_str_format(&new_vm_path, "_%c.img", drv_ch);
 
         nm_copy_file(&old_vm_path, &new_vm_path);
 
         nm_str_trunc(&old_vm_path, old_vm_path.len - drive_name->len);
-        nm_str_trunc(&new_vm_path, new_vm_path.len - drive_name->len);
+        nm_str_trunc(&new_vm_path, new_vm_path.len - 6);
+        drv_ch++;
     }
 
     nm_str_free(&old_vm_path);
