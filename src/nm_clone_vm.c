@@ -3,12 +3,15 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_network.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
 
 static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
                               const nm_vect_t *drives);
+static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
+                              const nm_vmctl_data_t *vm);
 
 void nm_clone_vm(const nm_str_t *name)
 {
@@ -72,6 +75,7 @@ void nm_clone_vm(const nm_str_t *name)
         nm_bug(_("%s: cannot create thread"), __func__);
 
     nm_clone_vm_to_fs(name, &cl_name, &vm.drives);
+    nm_clone_vm_to_db(name, &cl_name, &vm);
 
     done = 1;
     if (pthread_join(spin_th, NULL) != 0)
@@ -128,6 +132,65 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
     nm_str_free(&old_vm_path);
     nm_str_free(&new_vm_path);
     nm_str_free(&new_vm_dir);
+}
+
+static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
+                              const nm_vmctl_data_t *vm)
+{
+    nm_str_t query = NM_INIT_STR;
+    uint64_t last_mac;
+    uint32_t last_vnc;
+    size_t ifs_count;
+
+    nm_str_alloc_text(&query, "INSERT INTO vms SELECT null, '");
+    nm_str_add_str(&query, dst);
+    nm_str_add_text(&query, "', mem, smp, kvm, hcpu, vnc, arch, iso, install, usb, "
+        "usbid, bios, kernel, mouse_override, kernel_append, tty_path, socket_path"
+        " FROM vms WHERE name='");
+    nm_str_add_str(&query, src);
+    nm_str_add_char(&query, '\'');
+
+    nm_db_edit(query.data);
+
+    /* {{{ insert network interface info */
+    ifs_count = vm->ifs.n_memb / 4;
+
+    for (size_t n = 0; n < ifs_count; n++)
+    {
+        size_t idx_shift = 4 * n;
+        nm_str_t if_name = NM_INIT_STR;
+        nm_str_t maddr = NM_INIT_STR;
+        nm_str_trunc(&query, 0);
+        last_mac++;
+
+        nm_net_mac_to_str(last_mac, &maddr);
+
+        nm_str_format(&if_name, "%s_eth%zu", dst->data, n);
+        if (if_name.len > 15) /* Linux tap iface max name len */
+        {
+            nm_str_trunc(&if_name, 14);
+            nm_str_format(&if_name, "%zu", n);
+        }
+
+        nm_str_add_text(&query, "INSERT INTO ifaces("
+            "vm_name, if_name, mac_addr, if_drv) VALUES('");
+        nm_str_add_str(&query, dst);
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, &if_name);
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, &maddr);
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
+        nm_str_add_text(&query, "')");
+
+        nm_db_edit(query.data);
+
+        nm_str_free(&if_name);
+        nm_str_free(&maddr);
+    }
+    /* }}} network */
+
+    nm_str_free(&query);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
