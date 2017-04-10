@@ -329,6 +329,47 @@ int nm_form_name_used(const nm_str_t *name)
     return rc;
 }
 
+void nm_form_get_last(uint64_t *mac, uint32_t *vnc)
+{
+    nm_vect_t res = NM_INIT_VECT;
+
+    if (vnc != NULL)
+    {
+        nm_db_select("SELECT mac,vnc FROM lastval", &res);
+        *vnc = nm_str_stoui(res.data[1]);
+    }
+    else
+    {
+        nm_db_select("SELECT mac FROM lastval", &res);
+    }
+
+    *mac = nm_str_stoul(res.data[0]);
+
+    nm_vect_free(&res, nm_str_vect_free_cb);
+}
+
+void nm_form_update_last(uint64_t mac, const nm_str_t *vnc)
+{
+    nm_str_t query = NM_INIT_STR;
+
+    nm_str_alloc_text(&query, "UPDATE lastval SET mac='");
+    nm_str_format(&query, "%" PRIu64 "'", mac);
+
+    nm_db_edit(query.data);
+
+    if (vnc != NULL)
+    {
+        uint32_t last_vnc = nm_str_stoui(vnc);
+        nm_str_trunc(&query, 0);
+
+        last_vnc++;
+        nm_str_format(&query, "UPDATE lastval SET vnc='%u'", last_vnc);
+        nm_db_edit(query.data);
+    }
+
+    nm_str_free(&query);
+}
+
 void nm_vm_free(nm_vm_t *vm)
 {
     nm_str_free(&vm->name);

@@ -20,8 +20,6 @@ static nm_field_t *fields[NM_EDIT_VM_FIELDS_NUM + 1];
 static void nm_edit_vm_field_setup(const nm_vect_t *usb_names, const nm_vmctl_data_t *cur);
 static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w);
 static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm_vect_t *usb_devs);
-static void nm_edit_vm_get_last(uint64_t *mac);
-static void nm_edit_vm_update_last(uint64_t mac);
 static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac);
 
 enum {
@@ -72,7 +70,7 @@ void nm_edit_vm(const nm_str_t *name)
     if (nm_draw_form(window, form) != NM_OK)
         goto out;
     
-    nm_edit_vm_get_last(&last_mac);
+    nm_form_get_last(&last_mac, NULL);
 
     if (nm_edit_vm_get_data(&vm, &cur_settings, &usb_devs) != NM_OK)
         goto out;
@@ -445,7 +443,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
                 nm_str_trunc(&query, 0);
             }
 
-            nm_edit_vm_update_last(mac);
+            nm_form_update_last(mac, NULL);
         }
     }
 
@@ -498,28 +496,6 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
 
         nm_db_edit(query.data);
     }
-
-    nm_str_free(&query);
-}
-
-static void nm_edit_vm_get_last(uint64_t *mac)
-{
-    nm_vect_t res = NM_INIT_VECT;
-
-    nm_db_select("SELECT mac FROM lastval", &res);
-    *mac = nm_str_stoul(res.data[0]);
-
-    nm_vect_free(&res, nm_str_vect_free_cb);
-}
-
-static void nm_edit_vm_update_last(uint64_t mac)
-{
-    nm_str_t query = NM_INIT_STR;
-
-    nm_str_alloc_text(&query, "UPDATE lastval SET mac='");
-    nm_str_format(&query, "%" PRIu64 "'", mac);
-
-    nm_db_edit(query.data);
 
     nm_str_free(&query);
 }

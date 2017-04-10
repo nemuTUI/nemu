@@ -18,8 +18,6 @@ static nm_field_t *fields[NM_ADD_VM_FIELDS_NUM + 1];
 
 static void nm_add_vm_field_setup(const nm_vect_t *usb_names);
 static void nm_add_vm_field_names(nm_window_t *w);
-static void nm_add_vm_get_last(uint64_t *mac, uint32_t *vnc);
-static void nm_add_vm_update_last(uint64_t mac, const nm_str_t *vnc);
 static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs);
 static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac);
 static void nm_add_vm_to_fs(nm_vm_t *vm);
@@ -73,7 +71,7 @@ void nm_add_vm(void)
     if (nm_draw_form(window, form) != NM_OK)
         goto out;
 
-    nm_add_vm_get_last(&last_mac, &last_vnc);
+    nm_form_get_last(&last_mac, &last_vnc);
     nm_str_format(&vm.vncp, "%u", last_vnc);
 
     if (nm_add_vm_get_data(&vm, &usb_devs) != NM_OK)
@@ -182,35 +180,6 @@ static void nm_add_vm_field_names(nm_window_t *w)
     mvwaddstr(w, 22, 2, _("USB device"));
 
     nm_str_free(&buf);
-}
-
-static void nm_add_vm_get_last(uint64_t *mac, uint32_t *vnc)
-{
-    nm_vect_t res = NM_INIT_VECT;
-
-    nm_db_select("SELECT mac,vnc FROM lastval", &res);
-    *mac = nm_str_stoul(res.data[0]);
-    *vnc = nm_str_stoui(res.data[1]);
-
-    nm_vect_free(&res, nm_str_vect_free_cb);
-}
-
-static void nm_add_vm_update_last(uint64_t mac, const nm_str_t *vnc)
-{
-    nm_str_t query = NM_INIT_STR;
-    uint32_t last_vnc = nm_str_stoui(vnc);
-
-    nm_str_alloc_text(&query, "UPDATE lastval SET mac='");
-    nm_str_format(&query, "%" PRIu64 "'", mac);
-
-    nm_db_edit(query.data);
-    nm_str_trunc(&query, 0);
-
-    last_vnc++;
-    nm_str_format(&query, "UPDATE lastval SET vnc='%u'", last_vnc);
-    nm_db_edit(query.data);
-
-    nm_str_free(&query);
 }
 
 static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs)
@@ -387,7 +356,7 @@ static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac)
     }
     /* }}} network */
 
-    nm_add_vm_update_last(mac, &vm->vncp);
+    nm_form_update_last(mac, &vm->vncp);
 
     nm_str_free(&query);
 }
