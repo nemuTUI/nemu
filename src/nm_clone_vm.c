@@ -7,14 +7,13 @@
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
 
-static nm_form_t *form = NULL;
-static nm_field_t *fields[2];
-
 static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
                               const nm_vect_t *drives);
 
 void nm_clone_vm(const nm_str_t *name)
 {
+    nm_form_t *form = NULL;
+    nm_field_t *fields[2];
     nm_window_t *window = NULL;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_str_t buf = NM_INIT_STR;
