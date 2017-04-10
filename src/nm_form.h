@@ -59,6 +59,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form);
 void nm_form_free(nm_form_t *form, nm_field_t **fields);
 void nm_get_field_buf(nm_field_t *f, nm_str_t *res);
 void nm_vm_get_usb(nm_vect_t *devs, nm_vect_t *names);
+int nm_form_name_used(const nm_str_t *name);
 int nm_print_empty_fields(const nm_vect_t *v);
 void nm_vm_free(nm_vm_t *vm);
 void *nm_spinner(void *data);

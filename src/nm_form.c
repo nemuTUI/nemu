@@ -2,6 +2,8 @@
 #include <nm_form.h>
 #include <nm_utils.h>
 #include <nm_vector.h>
+#include <nm_window.h>
+#include <nm_database.h>
 
 #include <time.h>
 #include <dirent.h>
@@ -301,6 +303,30 @@ int nm_print_empty_fields(const nm_vect_t *v)
     delwin(err_window);
 
     return NM_ERR;
+}
+
+int nm_form_name_used(const nm_str_t *name)
+{
+    int rc = NM_OK;
+
+    nm_vect_t res = NM_INIT_VECT;
+    nm_str_t query = NM_INIT_STR;
+
+    nm_str_alloc_text(&query, "SELECT id FROM vms WHERE name='");
+    nm_str_add_str(&query, name);
+    nm_str_add_char(&query, '\'');
+
+    nm_db_select(query.data, &res);
+    if (res.n_memb > 0)
+    {
+        rc = NM_ERR;
+        nm_print_warn(3, 2, _(NM_FORM_VMNAME_MSG));
+    }
+
+    nm_vect_free(&res, NULL);
+    nm_str_free(&query);
+
+    return rc;
 }
 
 void nm_vm_free(nm_vm_t *vm)

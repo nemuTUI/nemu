@@ -282,24 +282,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs)
         }
     }
 
-    { /* {{{ Check that VM name is not taken */
-        nm_vect_t res = NM_INIT_VECT;
-        nm_str_t query = NM_INIT_STR;
-
-        nm_str_alloc_text(&query, "SELECT id FROM vms WHERE name='");
-        nm_str_add_str(&query, &vm->name);
-        nm_str_add_char(&query, '\'');
-
-        nm_db_select(query.data, &res);
-        if (res.n_memb > 0)
-        {
-            rc = NM_ERR;
-            nm_print_warn(3, 2, _(NM_FORM_VMNAME_MSG));
-        }
-
-        nm_vect_free(&res, NULL);
-        nm_str_free(&query);
-    } /* }}} VM name */
+    rc = nm_form_name_used(&vm->name);
 
 out:
     nm_str_free(&ifs_buf);
