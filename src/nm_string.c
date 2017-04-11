@@ -121,6 +121,23 @@ uint64_t nm_str_stoul(const nm_str_t *str)
     return res;
 }
 
+int64_t nm_str_stol(const nm_str_t *str)
+{
+    int64_t res;
+    char *endp;
+    const char *data = nm_str_get(str);
+
+    res = strtoll(data, &endp, 10);
+
+    if (errno == ERANGE)
+        nm_bug(_("%s: integer overflow"), __func__);
+
+    if ((endp == data) || (*endp != '\0'))
+        nm_bug(_("%s: bad integer value=%s"), __func__, data);
+
+    return res;
+}
+
 void nm_str_dirname(const nm_str_t *str, nm_str_t *res)
 {
     const char *data = nm_str_get(str);

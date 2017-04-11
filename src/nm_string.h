@@ -22,6 +22,7 @@ void nm_str_dirname(const nm_str_t *str, nm_str_t *res);
 void nm_str_basename(const nm_str_t *str, nm_str_t *res);
 uint32_t nm_str_stoui(const nm_str_t *str);
 uint64_t nm_str_stoul(const nm_str_t *str);
+int64_t nm_str_stol(const nm_str_t *str);
 int nm_str_cmp_st(const nm_str_t *str, const char *text);
 int nm_str_cmp_tt(const char *text1, const char *text2);
 int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2);
