@@ -9,6 +9,7 @@
 #include <nm_clone_vm.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
+#include <nm_add_drive.h>
 #include <nm_vm_control.h>
 
 static void signals_handler(int signal);
@@ -212,6 +213,12 @@ int main(void)
                     {
                         const nm_str_t *vm = nm_vect_vm_name_cur(vms);
                         nm_print_cmd(vm);
+                    }
+
+                    else if (ch == NM_KEY_A)
+                    {
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        nm_add_drive(vm);
                     }
 
                     /* {{{ Start VM */
