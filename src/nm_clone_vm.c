@@ -141,10 +141,16 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     uint64_t last_mac;
     uint32_t last_vnc;
     size_t ifs_count;
+    size_t drives_count;
+    char drv_ch = 'a';
+
+    nm_form_get_last(&last_mac, &last_vnc);
 
     nm_str_alloc_text(&query, "INSERT INTO vms SELECT null, '");
     nm_str_add_str(&query, dst);
-    nm_str_add_text(&query, "', mem, smp, kvm, hcpu, vnc, arch, iso, install, usb, "
+    nm_str_add_text(&query, "', mem, smp, kvm, hcpu, '");
+    nm_str_format(&query, "%d", last_vnc);
+    nm_str_add_text(&query, "', arch, iso, install, usb, "
         "usbid, bios, kernel, mouse_override, kernel_append, tty_path, socket_path"
         " FROM vms WHERE name='");
     nm_str_add_str(&query, src);
@@ -187,8 +193,37 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
 
         nm_str_free(&if_name);
         nm_str_free(&maddr);
-    }
-    /* }}} network */
+    } /* }}} network */
+
+    /* {{{ insert drive info */
+    drives_count = vm->drives.n_memb / 4;
+
+    for (size_t n = 0; n < drives_count; n++)
+    {
+        size_t idx_shift = 4 * n;
+
+        nm_str_trunc(&query, 0);
+        nm_str_add_text(&query, "INSERT INTO drives("
+            "vm_name, drive_name, drive_drv, capacity, boot) VALUES('");
+        nm_str_add_str(&query, dst);
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, dst);
+        nm_str_format(&query, "_%c.img", drv_ch);
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift));
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, nm_vect_str(&vm->drives, NM_SQL_DRV_SIZE + idx_shift));
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, nm_vect_str(&vm->drives, NM_SQL_DRV_BOOT + idx_shift));
+        nm_str_add_text(&query, "')");
+
+        nm_db_edit(query.data);
+
+        drv_ch++;
+    } /* }}} drives */
+
+    nm_form_update_last_mac(last_mac);
+    nm_form_update_last_vnc(last_vnc);
 
     nm_str_free(&query);
 }

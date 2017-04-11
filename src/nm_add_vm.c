@@ -356,7 +356,8 @@ static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac)
     }
     /* }}} network */
 
-    nm_form_update_last(mac, &vm->vncp);
+    nm_form_update_last_mac(mac);
+    nm_form_update_last_vnc(nm_str_stoui(&vm->vncp));
 
     nm_str_free(&query);
 }

@@ -348,7 +348,7 @@ void nm_form_get_last(uint64_t *mac, uint32_t *vnc)
     nm_vect_free(&res, nm_str_vect_free_cb);
 }
 
-void nm_form_update_last(uint64_t mac, const nm_str_t *vnc)
+void nm_form_update_last_mac(uint64_t mac)
 {
     nm_str_t query = NM_INIT_STR;
 
@@ -357,15 +357,16 @@ void nm_form_update_last(uint64_t mac, const nm_str_t *vnc)
 
     nm_db_edit(query.data);
 
-    if (vnc != NULL)
-    {
-        uint32_t last_vnc = nm_str_stoui(vnc);
-        nm_str_trunc(&query, 0);
+    nm_str_free(&query);
+}
 
-        last_vnc++;
-        nm_str_format(&query, "UPDATE lastval SET vnc='%u'", last_vnc);
-        nm_db_edit(query.data);
-    }
+void nm_form_update_last_vnc(uint32_t vnc)
+{
+    nm_str_t query = NM_INIT_STR;
+
+    vnc++;
+    nm_str_format(&query, "UPDATE lastval SET vnc='%u'", vnc);
+    nm_db_edit(query.data);
 
     nm_str_free(&query);
 }

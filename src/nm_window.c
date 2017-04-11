@@ -126,8 +126,11 @@ void nm_print_vm_info(const nm_str_t *name)
         size_t idx_shift = 4 * n;
         int boot = 0;
 
-        if (nm_str_cmp_st(nm_vect_str(&vm.drives, NM_SQL_DRV_BOOT), NM_ENABLE) == NM_OK)
+        if (nm_str_cmp_st(nm_vect_str(&vm.drives, NM_SQL_DRV_BOOT + idx_shift),
+                NM_ENABLE) == NM_OK)
+        {
             boot = 1;
+        }
 
         mvprintw(y++, col / 4, "disk%zu%-7s%s [%sGb] [%s] %s", n, ":",
                  nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift),
