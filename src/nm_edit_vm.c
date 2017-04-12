@@ -155,7 +155,10 @@ static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w)
 {
     nm_str_t buf = NM_INIT_STR;
 
-    mvwaddstr(w, 1, 26, name->data);
+    nm_str_alloc_str(&buf, name);
+    nm_str_add_text(&buf, _(" settings"));
+    mvwaddstr(w, 1, 2, buf.data);
+    nm_str_trunc(&buf, 0);
 
     nm_str_add_text(&buf, _("CPU cores [1-"));
     nm_str_format(&buf, "%u", nm_hw_ncpus());

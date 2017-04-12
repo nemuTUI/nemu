@@ -385,4 +385,14 @@ void nm_vm_free(nm_vm_t *vm)
     nm_str_free(&vm->drive.size);
 }
 
+void nm_vm_free_boot(nm_vm_boot_t *vm)
+{
+    nm_str_free(&vm->tty);
+    nm_str_free(&vm->bios);
+    nm_str_free(&vm->socket);
+    nm_str_free(&vm->kernel);
+    nm_str_free(&vm->cmdline);
+    nm_str_free(&vm->inst_path);
+}
+
 /* vim:set ts=4 sw=4 fdm=marker: */

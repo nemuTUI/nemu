@@ -35,6 +35,16 @@ typedef struct {
 } nm_vm_kvm_t;
 
 typedef struct {
+    nm_str_t inst_path;
+    nm_str_t bios;
+    nm_str_t kernel;
+    nm_str_t cmdline;
+    nm_str_t tty;
+    nm_str_t socket;
+    uint32_t installed:1;
+} nm_vm_boot_t;
+
+typedef struct {
     nm_str_t name;
     nm_str_t arch;
     nm_str_t cpus;
@@ -65,6 +75,7 @@ void nm_form_update_last_mac(uint64_t mac);
 void nm_form_update_last_vnc(uint32_t vnc);
 int nm_print_empty_fields(const nm_vect_t *v);
 void nm_vm_free(nm_vm_t *vm);
+void nm_vm_free_boot(nm_vm_boot_t *vm);
 void *nm_spinner(void *data);
 
 extern const char *nm_form_yes_no[];
@@ -81,6 +92,9 @@ extern const char *nm_form_drive_drv[];
 #define NM_INIT_VM_IFS   { NM_INIT_STR, 0 }
 #define NM_INIT_VM_USB   { NM_INIT_STR, 0 }
 #define NM_INIT_VM_KVM   { 0, 0 }
+#define NM_INIT_VM_BOOT  { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
+                           NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
+                           0 }
 #define NM_INIT_SPINNER  { 0, 1, NULL }
 
 #define NM_INIT_VM { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
