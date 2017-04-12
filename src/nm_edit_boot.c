@@ -22,6 +22,8 @@ enum {
 
 static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur);
 static void nm_edit_boot_field_names(const nm_str_t *name, nm_window_t *w);
+static int nm_edit_boot_get_data(nm_vm_boot_t *vm);
+static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm);
 
 void nm_edit_boot(const nm_str_t *name)
 {
@@ -30,7 +32,6 @@ void nm_edit_boot(const nm_str_t *name)
     nm_vm_boot_t vm = NM_INIT_VM_BOOT;
     nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
-    nm_vect_t err = NM_INIT_VECT;
     size_t msg_len;
     pthread_t spin_th;
     int done = 0;
@@ -57,6 +58,22 @@ void nm_edit_boot(const nm_str_t *name)
     form = nm_post_form(window, fields, 18);
     if (nm_draw_form(window, form) != NM_OK)
         goto out;
+
+    if (nm_edit_boot_get_data(&vm) != NM_OK)
+        goto out;
+
+    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
+    sp_data.stop = &done;
+    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
+
+    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
+        nm_bug(_("%s: cannot create thread"), __func__);
+
+    nm_edit_boot_update_db(name, &vm);
+
+    done = 1;
+    if (pthread_join(spin_th, NULL) != 0)
+        nm_bug(_("%s: cannot join thread"), __func__);
 
 out:
     nm_vmctl_free_data(&cur_settings);
@@ -110,6 +127,63 @@ static void nm_edit_boot_field_names(const nm_str_t *name, nm_window_t *w)
     mvwaddstr(w, 16, 2, _("Serial socket"));
 
     nm_str_free(&buf);
+}
+
+static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
+{
+    int rc = NM_OK;
+    nm_vect_t err = NM_INIT_VECT;
+    nm_str_t inst = NM_INIT_STR;
+
+    nm_get_field_buf(fields[NM_FLD_INST], &inst);
+    nm_get_field_buf(fields[NM_FLD_SRCP], &vm->inst_path);
+    nm_get_field_buf(fields[NM_FLD_BIOS], &vm->bios);
+    nm_get_field_buf(fields[NM_FLD_KERN], &vm->kernel);
+    nm_get_field_buf(fields[NM_FLD_CMDL], &vm->cmdline);
+    nm_get_field_buf(fields[NM_FLD_TTYP], &vm->tty);
+    nm_get_field_buf(fields[NM_FLD_CMDL], &vm->cmdline);
+
+    if (field_status(fields[NM_FLD_INST]))
+        nm_form_check_data(_("OS Installed"), inst, err);
+
+    if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
+        goto out;
+
+    if (nm_str_cmp_st(&inst, "yes") == NM_OK)
+    {
+        vm->installed = 1;
+
+        if (vm->inst_path.len == 0)
+        {
+            nm_print_warn(3, 6, _("ISO/IMG path not set"));
+            rc = NM_ERR;
+            goto out;
+        }
+    }
+
+out:
+    nm_str_free(&inst);
+    nm_vect_free(&err, NULL);
+
+    return rc;
+}
+
+static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
+{
+    nm_str_t query = NM_INIT_STR;
+
+    if (field_status(fields[NM_FLD_INST]))
+    {
+        nm_str_alloc_text(&query, "UPDATE vms SET install='");
+        nm_str_add_text(&query, vm->installed ? NM_DISABLE : NM_ENABLE);
+        nm_str_add_text(&query, "' WHERE name='");
+        nm_str_add_str(&query, name);
+        nm_str_add_char(&query, '\'');
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    nm_str_free(&query);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

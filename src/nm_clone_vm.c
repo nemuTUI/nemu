@@ -146,7 +146,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
 
     nm_form_get_last(&last_mac, &last_vnc);
 
-    nm_str_alloc_text(&query, "INSERT INTO vms SELECT null, '");
+    nm_str_alloc_text(&query, "INSERT INTO vms SELECT NULL, '");
     nm_str_add_str(&query, dst);
     nm_str_add_text(&query, "', mem, smp, kvm, hcpu, '");
     nm_str_format(&query, "%d", last_vnc);

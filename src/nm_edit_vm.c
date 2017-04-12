@@ -350,7 +350,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     {
         nm_str_add_text(&query, "UPDATE vms SET smp='");
         nm_str_add_str(&query, &vm->cpus);
-        nm_str_add_text(&query, "' where name='");
+        nm_str_add_text(&query, "' WHERE name='");
         nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
         nm_str_add_char(&query, '\'');
         nm_db_edit(query.data);
@@ -361,7 +361,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     {
         nm_str_add_text(&query, "UPDATE vms SET mem='");
         nm_str_add_str(&query, &vm->memo);
-        nm_str_add_text(&query, "' where name='");
+        nm_str_add_text(&query, "' WHERE name='");
         nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
         nm_str_add_char(&query, '\'');
         nm_db_edit(query.data);
@@ -372,7 +372,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     {
         nm_str_add_text(&query, "UPDATE vms SET kvm='");
         nm_str_add_text(&query, vm->kvm.enable ? NM_ENABLE : NM_DISABLE);
-        nm_str_add_text(&query, "' where name='");
+        nm_str_add_text(&query, "' WHERE name='");
         nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
         nm_str_add_char(&query, '\'');
         nm_db_edit(query.data);
@@ -383,7 +383,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     {
         nm_str_add_text(&query, "UPDATE vms SET hcpu='");
         nm_str_add_text(&query, vm->kvm.hostcpu_enable ? NM_ENABLE : NM_DISABLE);
-        nm_str_add_text(&query, "' where name='");
+        nm_str_add_text(&query, "' WHERE name='");
         nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
         nm_str_add_char(&query, '\'');
         nm_db_edit(query.data);
@@ -454,7 +454,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     {
         nm_str_add_text(&query, "UPDATE drives SET drive_drv='");
         nm_str_add_str(&query, &vm->drive.driver);
-        nm_str_add_text(&query, "' where vm_name='");
+        nm_str_add_text(&query, "' WHERE vm_name='");
         nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
         nm_str_add_char(&query, '\'');
 
@@ -467,7 +467,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     {
         nm_str_add_text(&query, "UPDATE vms SET usb='");
         nm_str_add_text(&query, vm->usb.enable ? NM_ENABLE : NM_DISABLE);
-        nm_str_add_text(&query, "' where name='");
+        nm_str_add_text(&query, "' WHERE name='");
         nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
         nm_str_add_char(&query, '\'');
 
@@ -480,7 +480,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     {
         nm_str_add_text(&query, "UPDATE vms SET usbid='");
         nm_str_add_str(&query, &vm->usb.device);
-        nm_str_add_text(&query, "' where name='");
+        nm_str_add_text(&query, "' WHERE name='");
         nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
         nm_str_add_char(&query, '\'');
 
@@ -493,7 +493,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     {
         nm_str_add_text(&query, "UPDATE vms SET mouse_override='");
         nm_str_add_text(&query, vm->mouse_sync ? NM_ENABLE : NM_DISABLE);
-        nm_str_add_text(&query, "' where name='");
+        nm_str_add_text(&query, "' WHERE name='");
         nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
         nm_str_add_char(&query, '\'');
 
