@@ -141,7 +141,7 @@ static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
     nm_get_field_buf(fields[NM_FLD_KERN], &vm->kernel);
     nm_get_field_buf(fields[NM_FLD_CMDL], &vm->cmdline);
     nm_get_field_buf(fields[NM_FLD_TTYP], &vm->tty);
-    nm_get_field_buf(fields[NM_FLD_CMDL], &vm->cmdline);
+    nm_get_field_buf(fields[NM_FLD_SOCK], &vm->socket);
 
     if (field_status(fields[NM_FLD_INST]))
         nm_form_check_data(_("OS Installed"), inst, err);
@@ -179,6 +179,60 @@ static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
         nm_str_add_text(&query, "' WHERE name='");
         nm_str_add_str(&query, name);
         nm_str_add_char(&query, '\'');
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_SRCP]))
+    {
+        nm_str_add_text(&query, "UPDATE vms SET iso='");
+        nm_str_format(&query, "%s' WHERE name='%s'",
+            vm->inst_path.data, name->data);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_BIOS]))
+    {
+        nm_str_add_text(&query, "UPDATE vms SET bios='");
+        nm_str_format(&query, "%s' WHERE name='%s'",
+            vm->bios.data, name->data);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_KERN]))
+    {
+        nm_str_add_text(&query, "UPDATE vms SET kernel='");
+        nm_str_format(&query, "%s' WHERE name='%s'",
+            vm->kernel.data, name->data);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_CMDL]))
+    {
+        nm_str_add_text(&query, "UPDATE vms SET kernel_append='");
+        nm_str_format(&query, "%s' WHERE name='%s'",
+            vm->cmdline.data, name->data);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_TTYP]))
+    {
+        nm_str_add_text(&query, "UPDATE vms SET tty_path='");
+        nm_str_format(&query, "%s' WHERE name='%s'",
+            vm->tty.data, name->data);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_SOCK]))
+    {
+        nm_str_add_text(&query, "UPDATE vms SET socket_path='");
+        nm_str_format(&query, "%s' WHERE name='%s'",
+            vm->socket.data, name->data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }

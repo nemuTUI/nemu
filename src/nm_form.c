@@ -138,10 +138,15 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
 void nm_get_field_buf(nm_field_t *f, nm_str_t *res)
 {
     char *buf = field_buffer(f, 0);
-    char *s = strchr(buf, 0x20);
+    char *s = strrchr(buf, 0x20);
 
     if (s != NULL)
+    {
+        while ((s > buf) && (s[-1] == 0x20))
+            --s;
+
         *s = '\0';
+    }
 
     nm_str_add_text(res, buf);
 }
