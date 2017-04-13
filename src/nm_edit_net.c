@@ -22,7 +22,9 @@ static nm_field_t *fields[NM_NET_FIELDS_NUM + 1];
 static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm);
 static void nm_edit_net_field_names(const nm_str_t *name, nm_window_t *w);
 static int nm_edit_net_get_data(nm_iface_t *ifp);
+static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp);
 static inline void nm_edit_net_iface_free(nm_iface_t *ifp);
+static int nm_edit_net_maddr_busy(const nm_str_t *mac);
 
 enum {
     NM_FLD_INTN = 0,
@@ -64,6 +66,19 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
 
     if (nm_edit_net_get_data(&iface) != NM_OK)
         goto out;
+
+    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
+    sp_data.stop = &done;
+    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
+
+    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
+        nm_bug(_("%s: cannot create thread"), __func__);
+
+    nm_edit_net_update_db(name, &iface);
+
+    done = 1;
+    if (pthread_join(spin_th, NULL) != 0)
+        nm_bug(_("%s: cannot join thread"), __func__);
 out:
     nm_form_free(form, fields);
     nm_edit_net_iface_free(&iface);
@@ -142,9 +157,16 @@ static int nm_edit_net_get_data(nm_iface_t *ifp)
             rc = NM_ERR;
             goto out;
         }
+
+        if (nm_edit_net_maddr_busy(&ifp->maddr) != NM_OK)
+        {
+            nm_print_warn(3, 2, _("This mac is already used"));
+            rc = NM_ERR;
+            goto out;
+        }
     }
 
-    if (field_status(fields[NM_FLD_IPV4]))
+    if ((field_status(fields[NM_FLD_IPV4])) && (ifp->ipv4.len > 0))
     {
         nm_str_t err_msg = NM_INIT_STR;
         if (nm_net_verify_ipaddr4(&ifp->ipv4, NULL, &err_msg) != NM_OK)
@@ -162,12 +184,68 @@ out:
     return rc;
 }
 
+static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
+{
+    nm_str_t query = NM_INIT_STR;
+
+    if (field_status(fields[NM_FLD_NDRV]))
+    {
+        nm_str_alloc_text(&query, "UPDATE ifaces SET if_drv='");
+        nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
+            ifp->drv.data, name->data, ifp->name.data);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_MADR]))
+    {
+        nm_str_add_text(&query, "UPDATE ifaces SET mac_addr='");
+        nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
+            ifp->maddr.data, name->data, ifp->name.data);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_IPV4]))
+    {
+        nm_str_add_text(&query, "UPDATE ifaces SET ipv4_addr='");
+        nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
+            ifp->ipv4.data, name->data, ifp->name.data);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    nm_str_free(&query);
+}
+
 static inline void nm_edit_net_iface_free(nm_iface_t *ifp)
 {
     nm_str_free(&ifp->name);
     nm_str_free(&ifp->drv);
     nm_str_free(&ifp->maddr);
     nm_str_free(&ifp->ipv4);
+}
+
+/* TODO add this check in all genmaddr points */
+static int nm_edit_net_maddr_busy(const nm_str_t *mac)
+{
+    int rc = NM_OK;
+    nm_vect_t maddrs = NM_INIT_VECT;
+
+    nm_db_select("SELECT mac_addr FROM ifaces", &maddrs);
+
+    for (size_t n = 0; n < maddrs.n_memb; n++)
+    {
+        if (nm_str_cmp_ss(mac, nm_vect_str(&maddrs, n)) == NM_OK)
+        {
+            rc = NM_ERR;
+            break;
+        }
+    }
+
+    nm_vect_free(&maddrs, nm_str_vect_free_cb);
+
+    return rc;
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

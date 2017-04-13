@@ -43,11 +43,14 @@ int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
                           nm_str_t *err)
 {
     int rc = NM_OK;
-    char *token;
-    char *saveptr = src->data;
+    nm_str_t buf = NM_INIT_STR;
     nm_str_t addr = NM_INIT_STR;
+    char *token, *saveptr;
     nm_net_addr_t netaddr = NM_INIT_NETADDR;
     int n = 0;
+
+    nm_str_copy(&buf, src);
+    saveptr = buf.data;
 
     if (src->data[src->len - 1] == '/')
     {
@@ -93,8 +96,15 @@ int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
         goto out;
     }
 
+    if (net != NULL)
+    {
+        net->cidr = netaddr.cidr;
+        memcpy(&net->addr, &netaddr.addr, sizeof(struct in_addr));
+    }
+
 out:
     nm_str_free(&addr);
+    nm_str_free(&buf);
     return rc;
 }
 
