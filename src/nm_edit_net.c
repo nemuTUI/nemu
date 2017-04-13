@@ -144,6 +144,18 @@ static int nm_edit_net_get_data(nm_iface_t *ifp)
         }
     }
 
+    if (field_status(fields[NM_FLD_IPV4]))
+    {
+        nm_str_t err_msg = NM_INIT_STR;
+        if (nm_net_verify_ipaddr4(&ifp->ipv4, NULL, &err_msg) != NM_OK)
+        {
+            nm_print_warn(3, 2, err_msg.data);
+            rc = NM_ERR;
+            goto out;
+        }
+        nm_str_free(&err_msg);
+    }
+
 out:
     nm_vect_free(&err, NULL);
 

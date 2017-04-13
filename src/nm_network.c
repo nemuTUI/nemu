@@ -39,4 +39,63 @@ int nm_net_verify_mac(const nm_str_t *mac)
     return rc;
 }
 
+int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
+                          nm_str_t *err)
+{
+    int rc = NM_OK;
+    char *token;
+    char *saveptr = src->data;
+    nm_str_t addr = NM_INIT_STR;
+    nm_net_addr_t netaddr = NM_INIT_NETADDR;
+    int n = 0;
+
+    if (src->data[src->len - 1] == '/')
+    {
+        nm_str_alloc_text(err, _("Invalid address format: expected IPv4/CIDR"));
+        rc = NM_ERR;
+        goto out;
+    }
+
+    while ((token = strtok_r(saveptr, "/", &saveptr)))
+    {
+        switch (n) {
+        case 0:
+            nm_str_alloc_text(&addr, token);
+            break;
+        case 1:
+            {
+                nm_str_t buf = NM_INIT_STR;
+                nm_str_alloc_text(&buf, token);
+                netaddr.cidr = nm_str_stoui(&buf);
+                nm_str_free(&buf);
+            }
+            break;
+        default:
+            nm_str_alloc_text(err, _("Invalid address format: expected IPv4/CIDR"));
+            rc = NM_ERR;
+            goto out;
+        }
+        n++;
+    }
+
+    if ((addr.len == 0) ||
+        (inet_pton(AF_INET, addr.data, &netaddr.addr.s_addr) != 1))
+    {
+        nm_str_alloc_text(err, _("Invalid IPv4 address"));
+        rc = NM_ERR;
+        goto out;
+    }
+
+    if ((netaddr.cidr > 32) || (netaddr.cidr == 0))
+    {
+        nm_str_alloc_text(err, _("Invalid CIDR: expected [1-32]"));
+        rc = NM_ERR;
+        goto out;
+    }
+
+out:
+    nm_str_free(&addr);
+    return rc;
+}
+
 /* vim:set ts=4 sw=4 fdm=marker: */
