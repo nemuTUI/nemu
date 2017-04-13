@@ -233,7 +233,7 @@ int main(void)
 
                         if (vm_data.ifs.n_memb == 0)
                         {
-                            nm_print_warn(3, 6, _("null"));
+                            nm_print_warn(3, 6, _("No network configured"));
                         }
                         else
                         {

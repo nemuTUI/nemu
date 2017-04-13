@@ -117,10 +117,10 @@ static void nm_edit_boot_field_names(const nm_str_t *name, nm_window_t *w)
     nm_str_alloc_str(&buf, name);
     nm_str_add_text(&buf, _(" boot settings"));
 
-    mvwaddstr(w, 1, 2,  buf.data);
-    mvwaddstr(w, 4, 2,  _("OS Installed"));
-    mvwaddstr(w, 6, 2,  _("Path to ISO/IMG"));
-    mvwaddstr(w, 8, 2,  _("Path to BIOS"));
+    mvwaddstr(w, 1,  2,  buf.data);
+    mvwaddstr(w, 4,  2, _("OS Installed"));
+    mvwaddstr(w, 6,  2, _("Path to ISO/IMG"));
+    mvwaddstr(w, 8,  2, _("Path to BIOS"));
     mvwaddstr(w, 10, 2, _("Path to kernel"));
     mvwaddstr(w, 12, 2, _("Kernel cmdline"));
     mvwaddstr(w, 14, 2, _("Serial TTY"));
@@ -149,13 +149,13 @@ static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
 
-    if (nm_str_cmp_st(&inst, "yes") == NM_OK)
+    if (nm_str_cmp_st(&inst, "no") == NM_OK)
     {
         vm->installed = 1;
 
         if (vm->inst_path.len == 0)
         {
-            nm_print_warn(3, 6, _("ISO/IMG path not set"));
+            nm_print_warn(3, 2, _("ISO/IMG path not set"));
             rc = NM_ERR;
             goto out;
         }
@@ -175,7 +175,7 @@ static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
     if (field_status(fields[NM_FLD_INST]))
     {
         nm_str_alloc_text(&query, "UPDATE vms SET install='");
-        nm_str_add_text(&query, vm->installed ? NM_DISABLE : NM_ENABLE);
+        nm_str_add_text(&query, vm->installed ? NM_ENABLE : NM_DISABLE);
         nm_str_add_text(&query, "' WHERE name='");
         nm_str_add_str(&query, name);
         nm_str_add_char(&query, '\'');

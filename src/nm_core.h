@@ -15,6 +15,7 @@
 #include <libintl.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <regex.h>
 
 #include <pwd.h>
 #include <errno.h>
