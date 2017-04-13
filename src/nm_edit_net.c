@@ -138,7 +138,7 @@ static int nm_edit_net_get_data(nm_iface_t *ifp)
     {
         if (nm_net_verify_mac(&ifp->maddr) != NM_OK)
         {
-            nm_print_warn(3, 6, _("Invalid mac address"));
+            nm_print_warn(3, 2, _("Invalid mac address"));
             rc = NM_ERR;
             goto out;
         }
