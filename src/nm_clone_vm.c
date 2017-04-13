@@ -36,6 +36,7 @@ void nm_clone_vm(const nm_str_t *name)
     wbkgd(window, COLOR_PAIR(1));
 
     fields[0] = new_field(1, 30, 2, 1, 0, 0);
+    set_field_back(fields[0], A_UNDERLINE);
     fields[1] = NULL;
 
     set_field_type(fields[0], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");

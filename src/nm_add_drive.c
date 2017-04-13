@@ -45,7 +45,11 @@ void nm_add_drive(const nm_str_t *name)
     wbkgd(window, COLOR_PAIR(1));
 
     for (size_t n = 0; n < NM_DRIVE_FIELDS_NUM; ++n)
+    {
         fields[n] = new_field(1, 19, (n + 1) * 2, 1, 0, 0);
+        set_field_back(fields[n], A_UNDERLINE);
+    }
+
     fields[NM_DRIVE_FIELDS_NUM] = NULL;
 
     set_field_type(fields[NM_FLD_DRVSIZE], TYPE_INTEGER, 0, 1, nm_hw_disk_free());

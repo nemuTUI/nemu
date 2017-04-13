@@ -9,6 +9,7 @@
 #include <nm_clone_vm.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
+#include <nm_edit_net.h>
 #include <nm_add_drive.h>
 #include <nm_edit_boot.h>
 #include <nm_vm_control.h>
@@ -222,6 +223,24 @@ int main(void)
                     {
                         nm_edit_boot(nm_vect_vm_name_cur(vms));
                     }
+
+                    /* {{{ Edit network settings */
+                    else if (ch == NM_KEY_I)
+                    {
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        nm_vmctl_data_t vm_data = NM_VMCTL_INIT_DATA;
+                        nm_vmctl_get_data(vm, &vm_data);
+
+                        if (vm_data.ifs.n_memb == 0)
+                        {
+                            nm_print_warn(3, 6, _("null"));
+                        }
+                        else
+                        {
+                            nm_edit_net(vm, &vm_data);
+                        }
+                        nm_vmctl_free_data(&vm_data);
+                    } /* }}} net settings */
 
                     /* {{{ Start VM */
                     else if (ch == NM_KEY_R)
