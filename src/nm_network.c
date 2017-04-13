@@ -2,6 +2,54 @@
 #include <nm_utils.h>
 #include <nm_network.h>
 
+#include <sys/ioctl.h>
+#include <net/if.h>
+
+#if defined (NM_OS_LINUX)
+#include <sys/socket.h>
+#include <linux/if_tun.h>
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
+
+#define TUNDEV "/dev/net/tun"
+
+struct iplink_req {
+    struct nlmsghdr n;
+    struct ifinfomsg i;
+    char buf[1024];
+};
+
+struct ipaddr_req {
+    struct nlmsghdr n;
+    struct ifaddrmsg i;
+    char buf[256];
+};
+
+struct rtnl_handle {
+    int32_t sd;
+    uint32_t seq;
+    struct sockaddr_nl sa;
+};
+
+#if 0
+struct nlmsgerr {
+    int error;
+    struct nlmsghdr msg;
+};
+#endif
+
+#endif /* NM_OS_LINUX */
+
+enum tap_on_off {
+    NM_TAP_OFF = 0,
+    NM_TAP_ON
+};
+
+enum action {
+    NM_SET_LINK_UP,
+    NM_SET_LINK_ADDR
+};
+
 void nm_net_mac_to_str(uint64_t maddr, nm_str_t *res)
 {
     char buf[64] = {0};
