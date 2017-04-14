@@ -260,6 +260,19 @@ int main(void)
                             nm_vmctl_start(vm, 0);
                     } /* }}} start VM */
 
+                    /* {{{ Start VM in temporary mode */
+                    else if (ch == NM_KEY_T)
+                    {
+                        nm_print_vm_menu(vm_window, &vms);
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (vm_status)
+                            nm_print_warn(3, 6, _("already running"));
+                        else
+                            nm_vmctl_start(vm, NM_VMCTL_TEMP);
+                    } /* }}} start VM (temporary) */
+
                     /* {{{ kill VM */
                     else if (ch == NM_KEY_F)
                     {
