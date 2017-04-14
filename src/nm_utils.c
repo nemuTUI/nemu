@@ -33,7 +33,7 @@ void *nm_alloc(size_t size)
     void *p;
 
     if ((p = malloc(size)) == NULL)
-        nm_bug(_("malloc: %s\n"), strerror(errno));
+        nm_bug("malloc: %s\n", strerror(errno));
 
     return p;
 }
@@ -43,7 +43,7 @@ void *nm_calloc(size_t nmemb, size_t size)
     void *p;
 
     if ((p = calloc(nmemb, size)) == NULL)
-        nm_bug(_("cmalloc: %s\n"), strerror(errno));
+        nm_bug("cmalloc: %s\n", strerror(errno));
 
     return p;
 }
@@ -53,7 +53,7 @@ void *nm_realloc(void *p, size_t size)
     void *p_new;
 
     if ((p_new = realloc(p, size)) == NULL)
-        nm_bug(_("realloc: %s\n"), strerror(errno));
+        nm_bug("realloc: %s\n", strerror(errno));
 
     return p_new;
 }

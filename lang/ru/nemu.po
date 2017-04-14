@@ -1,276 +1,512 @@
-# Russian nemu lang file.
-# Copyright (C) 2017
-# This file is distributed under the same license as the name package.
-# Void <main@void.so>, 2017.
-#
-#, fuzzy
-msgid ""
-msgstr ""
-"Project-Id-Version: 0.2.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-04-09 22:20+0400\n"
-"PO-Revision-Date: 2017-02-24 HO:MI+ZONE\n"
-"Last-Translator: Void <mail@void.so>\n"
-"Language-Team: LANGUAGE <mail@void.org>\n"
-"Language: \n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+msgid "Enter - select a choice, F10 - exit"
+msgstr "Выбрать - ввод, выйти - F10"
 
-#: guest.cpp:21
-msgid "Already installed (y/n)"
-msgstr "Уже установлен (y/n)"
-
-#: qemu_manage.cpp:28
-msgid "Manage guests"
-msgstr "Управление гостями"
-
-#: qemu_manage.cpp:29
-msgid "Install guest"
-msgstr "Инсталлировать гостя"
-
-#: qemu_manage.cpp:31
-msgid "Add guest"
-msgstr "Добавить гостя"
-
-#: qemu_manage.cpp:97
-msgid "No guests here."
-msgstr "Нет гостей."
-
-#: qemu_manage.cpp:173
-msgid "Already running!"
-msgstr "Уже запущен!"
-
-#: qemu_manage.cpp:180
-msgid "Must be root."
-msgstr "Требуется root"
-
-#: qemu_manage.cpp:208 qemu_manage.cpp:251
-msgid "Stop guest before!"
-msgstr "Надо выключить!"
-
-#: qemu_manage.cpp:213
-msgid "Proceed? (y/n)"
-msgstr "Продолжить? (y/n)"
-
-#: windows.cpp:34
-msgid ""
-"Use arrow keys to go up and down, Press enter to select a choice, F10 - exit"
-msgstr "Для перемещения используйте стрелки, выбрать - ввод, выйти - F10"
-
-#: windows.cpp:40
 msgid "F1 - help, F10 - main menu "
-msgstr "F1-помощь, F10-главное меню"
+msgstr "F1 - помощь, F10 - главное меню"
 
-#: windows.cpp:135
 msgid "F10 - cancel, F2 - OK"
 msgstr "F10 - отмена, F2 - OK"
 
-#: windows.cpp:299 windows.cpp:553
-msgid "CPU cores [1-"
-msgstr "CPU ядра [1-"
-
-#: windows.cpp:300 windows.cpp:554
-msgid "Memory [64-"
-msgstr "Память [64-"
-
-#: windows.cpp:301
-msgid "Disk [1-"
-msgstr "Диск [1-"
-
-#: windows.cpp:303 windows.cpp:729
-msgid "Name"
-msgstr "Имя"
-
-msgid "Quit"
-msgstr "Выйти"
-
-#: windows.cpp:304
-msgid "Architecture"
-msgstr "Архитектура"
-
-#: windows.cpp:309 windows.cpp:559
-msgid "KVM [yes/no]"
-msgstr "KVM [yes/no]"
-
-#: windows.cpp:310
-msgid "Path to ISO/IMG"
-msgstr "Путь до ISO/IMG"
-
-msgid "Path to BIOS"
-msgstr "Путь до BIOS"
-
-#: windows.cpp:311 windows.cpp:560
-msgid "Network interfaces"
-msgstr "Сетевые интерфейсы"
-
-#: windows.cpp:312 windows.cpp:561
-msgid "USB [yes/no]"
-msgstr "USB [yes/no]"
-
-#: windows.cpp:313 windows.cpp:562
-msgid "USB device"
-msgstr "USB устройство"
-
-msgid "Disk interface"
-msgstr "Интерфейс дисков"
-
-#: windows.cpp:389
-msgid "Can't create guest dir"
-msgstr "Не могу создать директорию"
-
-#: windows.cpp:396
-msgid "Can't create img file"
-msgstr "Не могу создать образ"
-
-#: windows.cpp:405 windows.cpp:413
-msgid "Must fill all params"
-msgstr "Заполните все параметры"
-
-#: windows.cpp:441 windows.cpp:829
-msgid "This name is already used"
-msgstr "Это имя уже используется"
-
-#: windows.cpp:556
-msgid " settings:"
-msgstr " настройки:"
-
-#: windows.cpp:629
-msgid "Usb device was not selected."
-msgstr "Не выбрано USB устройство."
-
-#: windows.cpp:728
-msgid "Clone "
-msgstr "Клон "
-
-#: windows.cpp:853
-msgid " r - start guest"
-msgstr " r - включить гостя"
-
-#: windows.cpp:854
-msgid " c - connect to guest via vnc"
-msgstr " c - подключиться по vnc"
-
-#: windows.cpp:855
-msgid " f - force stop guest"
-msgstr " f - принудительное выключение"
-
+#: nm_window.c:217
 msgid " a - add virtual disk"
 msgstr " a - добавить виртуальный диск"
 
-#: windows.cpp:856
+#: nm_edit_boot.c:118
+msgid " boot settings"
+msgstr " настройка загрузки"
+
+#: nm_window.c:211
+msgid " c - connect to guest via vnc"
+msgstr " c - подключиться по vnc"
+
+#: nm_window.c:214
 msgid " d - delete guest"
 msgstr " d - удалить гостя"
 
-#: windows.cpp:857
+#: nm_window.c:215
 msgid " e - edit guest settings"
 msgstr " e - править натсройки гостя"
 
+#: nm_window.c:213
+msgid " f - force stop guest"
+msgstr " f - принудительное выключение"
+
+#: nm_window.c:216
 msgid " i - edit network settings"
 msgstr " i - править настройки сети"
 
-#: windows.cpp:858
+#: nm_window.c:218
 msgid " l - clone guest"
 msgstr " l - клонировать гостя"
 
-msgid " t - start guest in temporary mode"
-msgstr " t - включить гостя без сохранения"
-
+#: nm_window.c:220
 msgid " m - show command"
 msgstr " m - показать команду"
 
-msgid " u - delete unused tap interfaces"
-msgstr " u - удалить пустые tap интерфейсы"
+#: nm_edit_net.c:121
+msgid " network settings"
+msgstr " настройка сети"
 
-msgid "IPv4 address"
-msgstr "IPv4 адрес"
+#: nm_window.c:208
+msgid " r - start guest"
+msgstr " r - включить гостя"
 
-msgid "running command for "
-msgstr "команда для запуска "
-
-msgid "Size [1-"
-msgstr "Размер [1-"
-
-msgid "26 disks limit reached :("
-msgstr "Достигнут лимит 26 дисков :("
-
-msgid "Add disk to "
-msgstr "Диск для "
-
-msgid "Null disk size"
-msgstr "Не задан размер диска"
-
-msgid "Wrong disk size"
-msgstr "Неверный размер диска"
-
-msgid "Null guest name"
-msgstr "Не задано имя клона"
-
-msgid "Net driver"
-msgstr "Сетевой драйвер"
-
-msgid "Interface"
-msgstr "Интерфейс"
-
-msgid "Mac address"
-msgstr "Мак адрес"
-
-msgid "Null network interface"
-msgstr "Не выбран сетевой интерфейс"
-
-msgid "Something goes wrong"
-msgstr "Что-то пошло не так"
-
-msgid "Wrong mac address"
-msgstr "Неправильный мак адрес"
-
+#: nm_window.c:219
 msgid " s - edit boot settings"
 msgstr " s - править настройки загрузки"
 
-msgid "OS Installed"
-msgstr "ОС Установлена"
+#: nm_edit_vm.c:159
+msgid " settings"
+msgstr " настройки"
 
+#: nm_window.c:209
+msgid " t - start guest in temporary mode"
+msgstr " t - включить гостя без сохранения"
+
+#: nm_window.c:221
+msgid " u - delete unused tap interfaces"
+msgstr " u - удалить пустые tap интерфейсы"
+
+#: nm_form.c:28
+#, c-format
+msgid "%s NULL pointer fields"
+msgstr "%s нулевой указатель на поле"
+
+#: nm_form.c:271 nm_ncurses.c:39
+#, c-format
+msgid "%s: NULL pointer"
+msgstr "%s: нулевой указатель"
+
+#: nm_vector.c:10 nm_vector.c:38
+#, c-format
+msgid "%s: NULL vector pointer value"
+msgstr "%s: нулевой указатель на вектор"
+
+#: nm_string.c:102 nm_string.c:119 nm_string.c:136
+#, c-format
+msgid "%s: bad integer value=%s"
+msgstr "%s: некорректное значение=%s"
+
+#: nm_string.c:50
+#, c-format
+msgid "%s: bad length"
+msgstr "%s: некорректная длина"
+
+#: nm_add_vm.c:376 nm_clone_vm.c:107
+#, c-format
+msgid "%s: cannot create VM directory %s: %s"
+msgstr "%s: не могу создать директорию %s: %s"
+
+#: nm_add_drive.c:136 nm_add_vm.c:389
+#, c-format
+msgid "%s: cannot create image file"
+msgstr "%s: не согу создать файл диска"
+
+#: nm_add_drive.c:102 nm_add_vm.c:85 nm_clone_vm.c:76 nm_edit_boot.c:70
+#: nm_edit_net.c:75 nm_edit_vm.c:83
+#, c-format
+msgid "%s: cannot create thread"
+msgstr "%s: ошибка создания потока"
+
+#: nm_add_drive.c:109 nm_add_vm.c:92 nm_clone_vm.c:83 nm_edit_boot.c:76
+#: nm_edit_net.c:81 nm_edit_vm.c:89
+#, c-format
+msgid "%s: cannot join thread"
+msgstr "%s: не могу присоединить поток"
+
+#: nm_utils.c:84
+#, c-format
+msgid "%s: cannot map file %s:%s"
+msgstr "%s: не могу отобразить файл в память %s:%s"
+
+#: nm_network.c:198
+#, c-format
+msgid "%s: cannot open TUN device: %s"
+msgstr "%s: не могу открыть TUN устройство: %s"
+
+#: nm_vm_control.c:418
+#, c-format
+msgid "%s: cannot open file %s:%s"
+msgstr "%s: не могу открыть файл %s:%s "
+
+#: nm_database.c:44 nm_database.c:55 nm_database.c:69 nm_database.c:81
+#, c-format
+msgid "%s: database error: %s"
+msgstr "%s: ошибка быза данных: %s"
+
+#: nm_string.c:99 nm_string.c:116 nm_string.c:133
+#, c-format
+msgid "%s: integer overflow"
+msgstr "%s: целочисленное переполнение"
+
+#: nm_vector.c:41
+#, c-format
+msgid "%s: invalid index"
+msgstr "%s: некорректный индекс"
+
+#: nm_menu.c:51
+#, c-format
+msgid "%s: invalid index: %zu"
+msgstr "%s: некорректный индекс: %zu"
+
+#: nm_string.c:219 nm_string.c:228
+#, c-format
+msgid "%s: invalid length: %d"
+msgstr "%s: некорректная длина: %d"
+
+#: nm_usb_devices.c:36
+#, c-format
+msgid "%s: libusb_get_device_list failed"
+msgstr "%s: libusb_get_device_list не смогла"
+
+#: nm_usb_devices.c:30
+#, c-format
+msgid "%s: udev_hwdb_new failed"
+msgstr "%s: udev_hwdb_new не смогла"
+
+#: nm_usb_devices.c:27
+#, c-format
+msgid "%s: udev_new failed"
+msgstr "%s: udev_new не смогла"
+
+#: nm_string.c:147 nm_string.c:172
+#, c-format
+msgid "%s: zero length string"
+msgstr "%s: строка нулевой длины"
+
+#: nm_add_drive.c:93
+msgid "3 disks limit reached"
+msgstr "достигнут лимит трех дисков"
+
+#: nm_add_drive.c:60
+msgid "Add disk to "
+msgstr "Добавить диск к "
+
+#: nm_vm_control.c:49
+msgid "Already installed (y/n)"
+msgstr "Уже установлен (y/n)"
+
+#: nm_add_vm.c:156 nm_add_vm.c:205
+msgid "Architecture"
+msgstr "Архитектура"
+
+#: nm_ini_parser.c:115
+msgid "Bad INI file: missing \"]\" at section name"
+msgstr "Плохой INI файл: отсутствует \"]\" в имени секции"
+
+#: nm_add_vm.c:206 nm_edit_vm.c:207
+msgid "CPU cores"
+msgstr "CPU ядра"
+
+#: nm_add_vm.c:158 nm_edit_vm.c:163
+msgid "CPU cores [1-"
+msgstr "CPU ядра [1-"
+
+#: nm_cfg_file.c:209
+#, c-format
+msgid "Cannot create VM storage directory %s: %s\n"
+msgstr "Не смог создать директорию %s: %s\n"
+
+#: nm_utils.c:74
+#, c-format
+msgid "Cannot get file info %s:%s"
+msgstr "Не могу узнать информацию о файле %s:%s"
+
+#: nm_utils.c:67
+#, c-format
+msgid "Cannot open file %s:%s"
+msgstr "Не могу открыть файл %s:%s"
+
+#: nm_clone_vm.c:49
+msgid "Clone "
+msgstr "Клонировать "
+
+#: nm_cfg_file.c:170
+#, c-format
 msgid "Config file \"%s\" is not found.\n"
 msgstr "Конфигурационный файл \"%s\" не найден.\n"
 
+#: nm_add_drive.c:76 nm_add_vm.c:208
+msgid "Disk"
+msgstr "Диск"
+
+#: nm_add_drive.c:64 nm_add_vm.c:170
+msgid "Disk [1-"
+msgstr "Диск [1-"
+
+#: nm_add_drive.c:68 nm_add_vm.c:175 nm_add_vm.c:209 nm_edit_vm.c:177
+#: nm_edit_vm.c:217
+msgid "Disk interface"
+msgstr "Интерфейс дисков"
+
+#: nm_cfg_file.c:44
+#, c-format
+msgid "Error get home directory: %s\n"
+msgstr "Не смог узнать домашнюю директорию: %s\n"
+
+#: nm_cfg_file.c:273
+msgid "Error get user input data"
+msgstr "Не смог получить пользовательский ввод"
+
+#: nm_cfg_file.c:174
+#, c-format
+msgid ""
+"Generate cfg? (y/n)\n"
+"> "
+msgstr "Сгененировать файл? (y/n)\n> "
+
+#: nm_edit_vm.c:213
+msgid "Host CPU"
+msgstr ""
+
+#: nm_edit_vm.c:175
+msgid "Host CPU [yes/no]"
+msgstr ""
+
+#: nm_edit_vm.c:236 nm_edit_vm.c:251
+msgid "Host CPU requires KVM enabled"
+msgstr ""
+
+#: nm_edit_net.c:127
+msgid "IPv4 address"
+msgstr "IPv4 адрес"
+
+#: nm_vm_control.c:221
+msgid "ISO/IMG path is not set"
+msgstr ""
+
+#: nm_edit_boot.c:158
+msgid "ISO/IMG path not set"
+msgstr ""
+
+#: nm_menu.c:11
+msgid "Install guest"
+msgstr "Инсталлировать гостя"
+
+#: nm_string.c:295 nm_string.c:299
+msgid "Integer overflow"
+msgstr ""
+
+#: nm_string.c:250 nm_string.c:271 nm_string.c:275
+msgid "Integer overflow\n"
+msgstr ""
+
+#: nm_edit_net.c:124 nm_edit_net.c:143
+msgid "Interface"
+msgstr "Интерфейс"
+
+#: nm_network.c:169
+msgid "Invalid CIDR: expected [1-32]"
+msgstr ""
+
+#: nm_network.c:162
+msgid "Invalid IPv4 address"
+msgstr ""
+
+#: nm_network.c:132 nm_network.c:152
+msgid "Invalid address format: expected IPv4/CIDR"
+msgstr ""
+
+#: nm_edit_net.c:156
+msgid "Invalid mac address"
+msgstr ""
+
+#: nm_edit_vm.c:211
+msgid "KVM"
+msgstr ""
+
+#: nm_edit_vm.c:174
+msgid "KVM [yes/no]"
+msgstr ""
+
+#: nm_edit_boot.c:125
+msgid "Kernel cmdline"
+msgstr "Аргументы ядра"
+
+#: nm_edit_net.c:126 nm_edit_net.c:147
+msgid "Mac address"
+msgstr "Мак адрес"
+
+#: nm_string.c:319
+msgid "Malformed nm_str_t data"
+msgstr ""
+
+#: nm_menu.c:10
+msgid "Manage guests"
+msgstr "Управление гостями"
+
+#: nm_add_vm.c:207 nm_edit_vm.c:209
+msgid "Memory"
+msgstr "Память"
+
+#: nm_add_vm.c:164 nm_edit_vm.c:169
+msgid "Memory [4-"
+msgstr "Память [64-"
+
+#: nm_ini_parser.c:201 nm_ini_parser.c:230
+msgid "NULL list head pointer"
+msgstr ""
+
+#: nm_add_vm.c:155 nm_add_vm.c:204 nm_clone_vm.c:52 nm_clone_vm.c:60
+msgid "Name"
+msgstr "Имя"
+
+#: nm_add_vm.c:178 nm_add_vm.c:212 nm_edit_net.c:125 nm_edit_net.c:145
+msgid "Net driver"
+msgstr "Сетевой драйвер"
+
+#: nm_add_vm.c:177 nm_add_vm.c:211
+msgid "Network interfaces"
+msgstr "Сетевые интерфейсы"
+
+#: nm_main.c:117
+msgid "No VMs installed"
+msgstr "Нет гостей"
+
+#: nm_main.c:241
+msgid "No network configured"
+msgstr "Нет сетевых интерфейсов"
+
+#: nm_edit_boot.c:121 nm_edit_boot.c:147
+msgid "OS Installed"
+msgstr "ОС Установлена"
+
+#: nm_edit_boot.c:123
+msgid "Path to BIOS"
+msgstr "Путь до BIOS"
+
+#: nm_add_vm.c:176 nm_add_vm.c:210 nm_edit_boot.c:122
+msgid "Path to ISO/IMG"
+msgstr "Путь до ISO/IMG"
+
+#: nm_cfg_file.c:234
+msgid "Path to VNC client (enter \"/bin/false\" if you connect other way)"
+msgstr "Путь до VNC клиента (введите \"/bin/false\" если будете подключаться другим способом)"
+
+#: nm_edit_boot.c:124
+msgid "Path to kernel"
+msgstr "Путь до ядра"
+
+#: nm_main.c:300
+msgid "Proceed? (y/n)"
+msgstr "Продолжить? (y/n)"
+
+#: nm_cfg_file.c:235
+msgid "QEMU system targets list, separated by comma"
+msgstr "Список установленных целей QEMU, разделенных запятой"
+
+#: nm_menu.c:12
+msgid "Quit"
+msgstr "Выйти"
+
+#: nm_edit_boot.c:127
+msgid "Serial socket"
+msgstr "Serial сокет"
+
+#: nm_vm_control.c:305
+msgid "Socket is already used!"
+msgstr ""
+
+#: nm_vm_control.c:132
+msgid "Some files was not deleted!"
+msgstr ""
+
+#: nm_edit_vm.c:180 nm_edit_vm.c:221
+msgid "Sync mouse position"
+msgstr ""
+
+#: nm_vm_control.c:328
+msgid "TTY is missing!"
+msgstr ""
+
+#: nm_vm_control.c:336
+msgid "TTY is not terminal!"
+msgstr ""
+
+#: nm_edit_net.c:163
+msgid "This mac is already used"
+msgstr ""
+
+#: nm_cfg_file.c:211
+#, c-format
+msgid ""
+"Try again? (y/n)\n"
+"> "
+msgstr "Попробовать снова? (y/n)\n> "
+
+#: nm_add_vm.c:180 nm_edit_vm.c:179
+msgid "USB device"
+msgstr "USB устройство"
+
+#: nm_main.c:296 nm_main.c:320
+msgid "VM must be stopped"
+msgstr "Гость не выключен"
+
+#: nm_cfg_file.c:233
+msgid "VM settings database path"
+msgstr "Путь до файла с базой настроек виртуальных машин"
+
+#: nm_cfg_file.c:203
+msgid "VM storage directory"
+msgstr "Директория для хранения виртуальных машин"
+
+#: nm_add_drive.c:87
+msgid "Wrong disk size"
+msgstr "Неверный размер диска"
+
+#: nm_cfg_file.c:171
+#, c-format
 msgid "You can copy example from:\n"
 msgstr "Вы можете скопировать пример из файла:\n"
 
-msgid "and edit it manually or let the program generate it.\n\n"
+#: nm_main.c:258 nm_main.c:271
+msgid "already running"
+msgstr "гость уже работает"
+
+#: nm_cfg_file.c:173
+#, c-format
+msgid ""
+"and edit it manually or let the program generate it.\n"
+"\n"
 msgstr "и отредактировать его вручную, либо программа сгенерирует его сама.\n\n"
-
-msgid "Generate cfg? (y/n)\n> "
-msgstr "Сгененировать файл? (y/n)\n> "
-
-msgid "VM storage directory"
-msgstr "Директория для хранения виртуальных машин"
 
 msgid "%s [default: %s]\n> "
 msgstr "%s [по умолчанию: %s]\n> "
 
-msgid "Cannot create VM storage directory %s: %s\n"
-msgstr "Не смог создать директорию %s: %s\n"
+#: nm_cfg_file.c:296
+#, c-format
+msgid "cfg error: %s->%s is empty"
+msgstr ""
 
-msgid "Try again? (y/n)\n> "
-msgstr "Попробовать снова? (y/n)\n> "
+#: nm_cfg_file.c:294
+#, c-format
+msgid "cfg error: %s->%s is missing"
+msgstr ""
 
-msgid "VM settings database path"
-msgstr "Путь до файла с базой настроек виртуальных машин"
+#: nm_cfg_file.c:60
+#, c-format
+msgid "cfg: %s is not a directory"
+msgstr ""
 
-msgid "Path to VNC client (enter \"/bin/false\" if you connect other way)"
-msgstr "Путь до VNC клиента (введите \"/bin/false\" если будете подключаться другим способом)"
+#: nm_cfg_file.c:111
+#, c-format
+msgid "cfg: %s: %s"
+msgstr ""
 
-msgid "Qemu system targets list, separated by comma"
-msgstr "Список установленных целей QEMU, разделенных запятой"
+#: nm_cfg_file.c:79
+#, c-format
+msgid "cfg: bad list_max value: %u, expected: [1-100]"
+msgstr ""
 
-msgid "Sync mouse position"
-msgstr "Синхронизировать мышь"
+#: nm_cfg_file.c:62 nm_cfg_file.c:69 nm_cfg_file.c:140
+#, c-format
+msgid "cfg: no write access to %s"
+msgstr ""
 
-msgid "Path to kernel"
-msgstr "Путь до ядра"
+#: nm_add_vm.c:230 nm_edit_vm.c:271 nm_edit_vm.c:307
+msgid "usb device is empty"
+msgstr ""
 
-msgid "Kernel cmdline"
-msgstr "Аргументы ядра"
-
-msgid "Serial socket"
-msgstr "Serial сокет"
+#: nm_add_vm.c:249 nm_edit_vm.c:290 nm_edit_vm.c:326
+msgid "usb_id not found"
+msgstr ""

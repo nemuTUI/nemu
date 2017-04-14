@@ -173,7 +173,7 @@ static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w)
 
     mvwaddstr(w, 8,  2, _("KVM [yes/no]"));
     mvwaddstr(w, 10, 2, _("Host CPU [yes/no]"));
-    mvwaddstr(w, 12, 2, _("Interfaces"));
+    mvwaddstr(w, 12, 2, _("Network interfaces"));
     mvwaddstr(w, 14, 2, _("Disk interface"));
     mvwaddstr(w, 16, 2, _("USB [yes/no]"));
     mvwaddstr(w, 18, 2, _("USB device"));
@@ -212,7 +212,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm
     if (field_status(fields[NM_FLD_HOSCPU]))
         nm_form_check_data(_("Host CPU"), kvm, err);
     if (field_status(fields[NM_FLD_IFSCNT]))
-        nm_form_check_data(_("Interfaces"), ifs, err);
+        nm_form_check_data(_("Network interfaces"), ifs, err);
     if (field_status(fields[NM_FLD_DISKIN]))
         nm_form_check_data(_("Disk interface"), vm->drive.driver, err);
     if (field_status(fields[NM_FLD_USBUSE]))
