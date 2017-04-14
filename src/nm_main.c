@@ -224,6 +224,11 @@ int main(void)
                         nm_edit_boot(nm_vect_vm_name_cur(vms));
                     }
 
+                    else if (ch == NM_KEY_U)
+                    {
+                        nm_vmctl_clear_tap();
+                    }
+
                     /* {{{ Edit network settings */
                     else if (ch == NM_KEY_I)
                     {

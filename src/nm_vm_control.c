@@ -423,4 +423,54 @@ static void nm_vmctl_log_last(const nm_str_t *cmd)
     fclose(fp);
 }
 
+void nm_vmctl_clear_tap(void)
+{
+    nm_vect_t vms = NM_INIT_VECT;
+    nm_str_t query = NM_INIT_STR;
+    nm_str_t lock_path = NM_INIT_STR;
+
+    nm_db_select("SELECT name FROM vms", &vms);
+
+    for (size_t n = 0; n < vms.n_memb; n++)
+    {
+        struct stat file_info;
+        size_t ifs_count;
+        nm_vect_t ifaces = NM_INIT_VECT;
+
+        nm_str_alloc_str(&lock_path, &nm_cfg_get()->vm_dir);
+        nm_str_add_char(&lock_path, '/');
+        nm_str_add_str(&lock_path, nm_vect_str(&vms, n));
+        nm_str_add_text(&lock_path, "/" NM_VM_PID_FILE);
+
+        if (stat(lock_path.data, &file_info) == 0)
+            continue;
+
+        nm_str_add_text(&query, "SELECT if_name, mac_addr, if_drv, ipv4_addr "
+            "FROM ifaces WHERE vm_name='");
+        nm_str_add_str(&query, nm_vect_str(&vms, n));
+        nm_str_add_char(&query, '\'');
+
+        nm_db_select(query.data, &ifaces);
+        ifs_count = ifaces.n_memb / 4;
+
+        for (size_t ifn = 0; ifn < ifs_count; ifn++)
+        {
+            size_t idx_shift = 4 * ifn;
+            if ((nm_vect_str_len(&ifaces, NM_SQL_IF_IP4 + idx_shift) != 0) &&
+                (nm_net_iface_exists(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift)) == NM_OK))
+            {
+                nm_net_del_tap(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift));
+            }
+        }
+
+        nm_str_trunc(&lock_path, 0);
+        nm_str_trunc(&query, 0);
+        nm_vect_free(&ifaces, nm_str_vect_free_cb);
+    }
+
+    nm_str_free(&query);
+    nm_str_free(&lock_path);
+    nm_vect_free(&vms, nm_str_vect_free_cb);
+}
+
 /* vim:set ts=4 sw=4 fdm=marker: */
