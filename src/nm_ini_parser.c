@@ -32,7 +32,7 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
     nm_str_t par_value = NM_INIT_STR;
     nm_file_map_t file = NM_INIT_FILE;
     nm_ini_node_t *head = NULL;
-    nm_ini_node_t *curr_node;
+    nm_ini_node_t *curr_node = NULL;
 
     file.name = path;
 
