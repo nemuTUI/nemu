@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=2
+DB_ACTUAL_VERSION=3
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*\s=\s//')
 RC=0
 
@@ -23,6 +23,11 @@ update_ifs()
 
   return 0
 }
+
+if [ "$DB_CURRENT_VERSION" -lt 3 ]; then
+    echo "Database version less then 3 is not supported"
+    exit 1
+fi
 
 if [ "$DB_CURRENT_VERSION" = "$DB_ACTUAL_VERSION" ]; then
     echo "No need to upgrade."
