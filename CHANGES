@@ -11,9 +11,6 @@ v0.4.0 - 15 Mar 2017
     - Feature: start VM in temporary mode (-snapshot).
     - Feature: set host IPv4 for VM tap interfaces.
 
-    ! Old database is not supported, must create new, but
-    ! if upgraded from >= v0.2.* then run ./upgrade_db.sh script.
-
 v0.3.0 - 04 Mar 2017
 ------------------------
     - Change: form navigation improvments.
@@ -22,9 +19,6 @@ v0.3.0 - 04 Mar 2017
     - Feature: show QEMU PID in guest info window.
     - Feature: add mouse override feature.
     - Bugfix: fix crashes with gcc-4.9.*
-
-    ! Old database is not supported, must create new, but
-    ! if upgraded from v0.2.* then run ./upgrade_db.sh script.
 
 v0.2.1 - 25 Feb 2017
 ------------------------
@@ -41,8 +35,6 @@ v0.2.0 - 24 Feb 2017
     - Feature: handle window size change for main and guests windows.
     - Bugfix: USB device selection fixed.
 
-    ! Old database is not supported, must create new.
-
 v0.1.8 - 13 January 2015
 ------------------------
     - Change: code refactoring.
@@ -55,8 +47,6 @@ v0.1.6 - 09 September 2014
 --------------------------
     - Change: realtime VM window refresh.
     - Feature: enable/disable host CPU.
-
-    ! Old database is not supported, must create new.
 
 v0.1.5 - 10 June 2014
 ----------------------
