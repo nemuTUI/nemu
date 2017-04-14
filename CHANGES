@@ -1,3 +1,7 @@
+v0.1.0 - ? Apr 2017
+------------------------
+    - Change: the program is rewritten in C.
+
 v0.4.0 - 15 Mar 2017
 ------------------------
     - Change: switch to -drive, support for ide,scsi,virtio disk interfaces.
