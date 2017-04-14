@@ -51,6 +51,25 @@ endif()
 add_subdirectory(lang)
 add_dependencies(${PROJECT_NAME} lang)
 
+#configure install
+set(QEMU_CONFIG_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cfg.sample")
+set(QEMU_DB_UPGRADE_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/sh/upgrade_db.sh")
+install(TARGETS ${PROJECT_NAME} DESTINATION ${USR_PREFIX}/bin)
+install(FILES ${QEMU_CONFIG_SOURCE} DESTINATION
+    "${USR_PREFIX}/share/nemu/templates/config")
+install(FILES ${QEMU_DB_UPGRADE_SCRIPT} PERMISSIONS OWNER_EXECUTE OWNER_WRITE
+    OWNER_READ  GROUP_EXECUTE GROUP_READ WORLD_EXECUTE
+    WORLD_READ DESTINATION "${USR_PREFIX}/share/nemu/scripts")
+
+# uninstall target
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
 include(CheckCCompilerFlag)
 CHECK_C_COMPILER_FLAG("-std=c99" COMPILER_SUPPORTS_C99)
 set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS
