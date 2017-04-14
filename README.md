@@ -20,5 +20,3 @@
 ## Environment Requirements
  * Linux/FreeBSD host
  * QEMU
-
-## ** Do not build from master now, use tags! It broken due to project code rewrite from C++ to C **
