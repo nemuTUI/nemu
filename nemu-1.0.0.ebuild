@@ -13,7 +13,7 @@ SRC_URI="http://unixdev.ru/src/${P}.tar.gz"
 LICENSE="BSD-2"
 SLOT="0"
 KEYWORDS="amd64 x86"
-IUSE="+vnc debug"
+IUSE="+vnc-client debug"
 
 RDEPEND="
 	sys-libs/ncurses:0=[unicode]
@@ -22,11 +22,11 @@ RDEPEND="
 	|| ( sys-fs/eudev sys-fs/udev )"
 DEPEND="${RDEPEND}
 	app-emulation/qemu[vnc]
-	vnc? ( net-misc/tigervnc )"
+	vnc-client? ( net-misc/tigervnc )"
 
 src_configure() {
 	local mycmakeargs=(
-		-DNM_WITH_VNC_CLIENT=$(usex vnc)
+		-DNM_WITH_VNC_CLIENT=$(usex vnc-client)
 		-DNM_DEBUG=$(usex debug)
 	)
 	cmake-utils_src_configure
