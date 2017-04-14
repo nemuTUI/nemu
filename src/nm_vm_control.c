@@ -2,6 +2,7 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_network.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
@@ -359,7 +360,14 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
         nm_str_add_text(res, ",script=no,downscript=no");
 
-        /*TODO set tap iface and IP addr */
+        if ((!(flags & NM_VMCTL_INFO)) &&
+            (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) != 0) &&
+            (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK))
+        {
+            nm_net_add_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+            nm_net_set_ipaddr(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                              nm_vect_str(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
+        }
     } /* }}} ifaces */
 
     if (flags & NM_VMCTL_TEMP)
