@@ -10,11 +10,24 @@ find_package(Sqlite3 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(libusb-1.0 REQUIRED)
 find_package(UDev REQUIRED)
+if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+find_package(Intl REQUIRED)
+endif()
 
 include_directories(src)
 aux_source_directory(src SRC_LIST)
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
+if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+target_link_libraries(${PROJECT_NAME}
+    ${CURSES_LIBRARIES}
+    ${SQLITE3_LIBRARIES}
+    ${PROCPS_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${LIBUSB_1_LIBRARIES}
+    ${Intl_LIBRARIES}
+    ${UDEV_LIBRARIES})
+else()
 target_link_libraries(${PROJECT_NAME}
     ${CURSES_LIBRARIES}
     ${SQLITE3_LIBRARIES}
@@ -22,6 +35,7 @@ target_link_libraries(${PROJECT_NAME}
     ${CMAKE_THREAD_LIBS_INIT}
     ${LIBUSB_1_LIBRARIES}
     ${UDEV_LIBRARIES})
+endif()
 
 option(NM_DEBUG "Build debug version" OFF)
 option(NM_WITH_VNC_CLIENT "Build with usage of external VNC client" ON)
@@ -43,7 +57,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
       add_definitions(-DNM_WITH_SENDFILE)
     endif()
 elseif (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-    message(FATAL_ERROR "Build on ${CMAKE_SYSTEM_NAME} will be supported later")
+    add_definitions(-DNM_OS_FREEBSD -I/usr/local/include)
 else()
     message(FATAL_ERROR "Build on ${CMAKE_SYSTEM_NAME} is not supported")
 endif()

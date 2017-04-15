@@ -2,6 +2,7 @@
 #include <nm_utils.h>
 #include <nm_usb_devices.h>
 
+#if defined (NM_OS_LINUX)
 #include <libudev.h>
 #include <libusb.h>
 
@@ -13,9 +14,11 @@ static int nm_usb_get_product_str(char *buf, size_t size, uint16_t vid, uint16_t
 static inline void nm_usb_dev_free(nm_usb_dev_t *dev);
 
 static struct udev_hwdb *hwdb = NULL;
+#endif /* NM_OS_LINUX */
 
 void nm_usb_get_devs(nm_vect_t *v)
 {
+#if defined (NM_OS_LINUX)
     libusb_context *ctx = NULL;
     libusb_device **list = NULL;
     struct udev *udev = NULL;
@@ -67,6 +70,7 @@ void nm_usb_get_devs(nm_vect_t *v)
     udev_hwdb_unref(hwdb);
     udev_unref(udev);
     libusb_exit(ctx);
+#endif /* NM_OS_LINUX */
 }
 
 void nm_usb_vect_ins_cb(const void *unit_p, const void *ctx)
@@ -87,6 +91,7 @@ static inline void nm_usb_dev_free(nm_usb_dev_t *dev)
     nm_str_free(&dev->id);
 }
 
+#if defined (NM_OS_LINUX)
 static const char *nm_usb_hwdb_get(const char *modalias, const char *key)
 {
     struct udev_list_entry *entry;
@@ -145,5 +150,6 @@ static int nm_usb_get_product_str(char *buf, size_t size, uint16_t vid, uint16_t
 
     return snprintf(buf, size, "%s", cp);
 }
+#endif /* NM_OS_LINUX */
 
 /* vim:set ts=4 sw=4 fdm=marker: */
