@@ -73,6 +73,8 @@ void nm_usb_get_devs(nm_vect_t *v)
     udev_hwdb_unref(hwdb);
     udev_unref(udev);
     libusb_exit(ctx);
+#else
+    (void) v;
 #endif /* NM_OS_LINUX */
 }
 
@@ -88,13 +90,13 @@ void nm_usb_vect_free_cb(const void *unit_p)
     nm_str_free(&nm_usb_id(unit_p));
 }
 
+#if defined (NM_OS_LINUX)
 static inline void nm_usb_dev_free(nm_usb_dev_t *dev)
 {
     nm_str_free(&dev->name);
     nm_str_free(&dev->id);
 }
 
-#if defined (NM_OS_LINUX)
 static const char *nm_usb_hwdb_get(const char *modalias, const char *key)
 {
     struct udev_list_entry *entry;
