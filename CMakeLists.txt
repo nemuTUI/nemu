@@ -46,7 +46,11 @@ if (NM_WITH_VNC_CLIENT)
   add_definitions(-DNM_WITH_VNC_CLIENT)
 endif()
 
+if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+set(USR_PREFIX "/usr/local" CACHE PATH "Executable and lang files directory prefix")
+else()
 set(USR_PREFIX "/usr" CACHE PATH "Executable and lang files directory prefix")
+endif()
 add_definitions(-DNM_USR_PREFIX=${USR_PREFIX})
 
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
