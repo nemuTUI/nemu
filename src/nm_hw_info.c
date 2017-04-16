@@ -3,12 +3,13 @@
 #include <nm_string.h>
 #include <nm_cfg_file.h>
 
-#include <sys/statvfs.h>
-
 #if defined (NM_OS_LINUX)
+#include <sys/vfs.h>
 #include <sys/sysinfo.h>
 #elif defined (NM_OS_FREEBSD)
 #include <sys/sysctl.h>
+#include <sys/param.h>
+#include <sys/mount.h>
 #endif
 
 uint32_t nm_hw_total_ram(void)
@@ -57,13 +58,14 @@ uint32_t nm_hw_ncpus(void)
 
 uint32_t nm_hw_disk_free(void)
 {
-    uint32_t df = 0;
-    struct statvfs fsstat;
+    uint64_t df = 0;
+    struct statfs fsstat;
 
     memset(&fsstat, 0, sizeof(fsstat));
 
-    statvfs(nm_cfg_get()->vm_dir.data, &fsstat);
-    df = (fsstat.f_bsize * fsstat.f_bavail) / 1024 / 1024 / 1024;
+    if (statfs(nm_cfg_get()->vm_dir.data, &fsstat) != 0)
+        nm_bug("%s: statfs: %s", __func__, strerror(errno));
+    df = (fsstat.f_bsize * fsstat.f_bfree) / 1024 / 1024 / 1024;
 
     return df;
 }
