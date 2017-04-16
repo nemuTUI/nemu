@@ -214,7 +214,7 @@ static void nm_net_manage_tap(const nm_str_t *name, int on_off)
     if (on_off == NM_TAP_OFF)
     {
         if (ioctl(sock, SIOCIFDESTROY, &ifr) == -1)
-	    nm_bug("%s: ioctl(SIOCIFDESTROY): %s", __func__, strerror(errno));
+            nm_bug("%s: ioctl(SIOCIFDESTROY): %s", __func__, strerror(errno));
     }
     close(sock);
 #endif /* NM_OS_LINUX */
