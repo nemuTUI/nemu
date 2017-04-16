@@ -207,8 +207,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     if (!(flags & NM_VMCTL_INFO))
         nm_str_add_text(res, "( ");
 
-    nm_str_add_str(res, &cfg->qemu_system_path);
-    nm_str_add_char(res, '-');
+    nm_str_add_text(res, NM_STRING(NM_USR_PREFIX) "/bin/qemu-system-");
     nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_ARCH));
 
     /* {{{ Setup install source */

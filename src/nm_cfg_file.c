@@ -20,7 +20,6 @@
 #define NM_INI_P_LIST     "list_max"
 #define NM_INI_P_VBIN     "binary"
 #define NM_INI_P_VANY     "listen_any"
-#define NM_INI_P_QBIN     "qemu_system_path"
 #define NM_INI_P_QTRG     "targets"
 #define NM_INI_P_QENL     "enable_log"
 #define NM_INI_P_QLOG     "log_cmd"
@@ -91,9 +90,6 @@ void nm_cfg_init(void)
     cfg.vnc_listen_any = !!nm_str_stoui(&tmp_buf);
     nm_str_trunc(&tmp_buf, 0);
 
-    /* Get QEMU binary path */
-    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QBIN, &cfg.qemu_system_path);
-
     /* Get QEMU targets list */
     nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QTRG, &tmp_buf);
     {
@@ -103,14 +99,14 @@ void nm_cfg_init(void)
 
         while ((token = strtok_r(saveptr, ",", &saveptr)))
         {
-            nm_str_copy(&qemu_bin, &cfg.qemu_system_path);
-            nm_str_add_char(&qemu_bin, '-');
-            nm_str_add_text(&qemu_bin, token);
+            nm_str_format(&qemu_bin, "%s/bin/qemu-system-%s",
+                NM_STRING(NM_USR_PREFIX), token);
 
             if (stat(qemu_bin.data, &file_info) == -1)
                 nm_bug(_("cfg: %s: %s"), qemu_bin.data, strerror(errno));
 
             nm_vect_insert(&cfg.qemu_targets, token, strlen(token) + 1, NULL);
+            nm_str_trunc(&qemu_bin, 0);
         }
 
         nm_vect_end_zero(&cfg.qemu_targets); /* need for ncurses form */
@@ -155,7 +151,6 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.vm_dir);
     nm_str_free(&cfg.db_path);
     nm_str_free(&cfg.vnc_bin);
-    nm_str_free(&cfg.qemu_system_path);
     nm_str_free(&cfg.log_path);
     nm_vect_free(&cfg.qemu_targets, NULL);
 }
@@ -240,8 +235,6 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             fprintf(cfg, "[vnc]\n# Path to VNC client\nbinary = %s\n\n", vnc.data);
             fprintf(cfg, "# listen for vnc connections"
                 " (0 = only localhost, 1 = any address).\nlisten_any = 0\n\n");
-            fprintf(cfg, "[qemu]\n# path to qemu system binary without arch prefix.\n"
-                "qemu_system_path = /usr/bin/qemu-system\n\n");
             fprintf(cfg, "# Qemu system targets list, separated by comma.\n"
                 "targets = %s\n\n", targets.data);
             fprintf(cfg, "# Log last QEMU command.\n"

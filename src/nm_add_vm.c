@@ -377,7 +377,7 @@ static void nm_add_vm_to_fs(nm_vm_t *vm)
                __func__, vm_dir.data, strerror(errno));
     }
 
-    nm_str_alloc_text(&cmd, "qemu-img create -f qcow2 ");
+    nm_str_alloc_text(&cmd, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img create -f qcow2 ");
     nm_str_add_str(&cmd, &vm_dir);
     nm_str_add_char(&cmd, '/');
     nm_str_add_str(&cmd, &vm->name);

@@ -7,7 +7,6 @@ typedef struct {
     nm_str_t vm_dir;
     nm_str_t db_path;
     nm_str_t vnc_bin;
-    nm_str_t qemu_system_path;
     nm_str_t log_path;
     nm_vect_t qemu_targets;
     uint32_t list_max;
