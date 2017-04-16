@@ -2,6 +2,9 @@
 #include <nm_utils.h>
 #include <nm_usb_devices.h>
 
+/* Disable USB on FreeBSD while libudev-devd
+ * will not supports calls udev_hwdb_* */
+
 #if defined (NM_OS_LINUX)
 #include <libudev.h>
 #include <libusb.h>
