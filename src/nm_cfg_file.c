@@ -244,7 +244,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 #endif
             fprintf(cfg, "# listen for vnc connections"
                 " (0 = only localhost, 1 = any address).\nlisten_any = 0\n\n");
-            fprintf(cfg, "# Qemu system targets list, separated by comma.\n"
+            fprintf(cfg, "[qemu]\n# Qemu system targets list, separated by comma.\n"
                 "targets = %s\n\n", targets.data);
             fprintf(cfg, "# Log last QEMU command.\n"
                 "enable_log = 1\n\n");
