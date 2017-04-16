@@ -358,7 +358,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_add_text(res, " -net tap,ifname=");
         nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
         nm_str_add_text(res, ",script=no,downscript=no");
-
+#if defined (NM_OS_LINUX)
         if ((!(flags & NM_VMCTL_INFO)) &&
             (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) != 0) &&
             (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK))
@@ -367,6 +367,12 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
             nm_net_set_ipaddr(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
                               nm_vect_str(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
         }
+#elif defined (NM_OS_FREEBSD)
+        if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) == NM_OK)
+	{
+            nm_net_del_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+	}
+#endif /* NM_OS_LINUX */
     } /* }}} ifaces */
 
     if (flags & NM_VMCTL_TEMP)

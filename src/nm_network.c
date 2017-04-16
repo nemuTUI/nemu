@@ -33,6 +33,7 @@ struct rtnl_handle {
     struct sockaddr_nl sa;
 };
 
+static void nm_net_link_change(const nm_str_t *name, int action);
 static void nm_net_rtnl_open(struct rtnl_handle *rth);
 static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n);
 static int nm_net_add_attr(struct nlmsghdr *n, size_t mlen,
@@ -50,7 +51,6 @@ enum action {
 };
 
 static void nm_net_manage_tap(const nm_str_t *name, int on_off);
-static void nm_net_link_change(const nm_str_t *name, int action);
 static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *net,
                                int action);
 
@@ -186,11 +186,10 @@ out:
 static void nm_net_manage_tap(const nm_str_t *name, int on_off)
 {
     int fd = -1;
-#if defined (NM_OS_LINUX)
     struct ifreq ifr;
 
     memset(&ifr, 0, sizeof(ifr));
-
+#if defined (NM_OS_LINUX)
     ifr.ifr_flags |= (IFF_NO_PI | IFF_TAP);
     strncpy(ifr.ifr_name, name->data, IFNAMSIZ - 1);
 
@@ -205,6 +204,19 @@ static void nm_net_manage_tap(const nm_str_t *name, int on_off)
 
     if (on_off == NM_TAP_ON)
         nm_net_link_change(name, NM_SET_LINK_UP);
+#elif defined (NM_OS_FREEBSD)
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock == -1)
+        nm_bug("%s: socket: %s", __func__, strerror(errno));
+
+    strlcpy(ifr.ifr_name, name->data, sizeof(ifr.ifr_name));
+
+    if (on_off == NM_TAP_OFF)
+    {
+        if (ioctl(sock, SIOCIFDESTROY, &ifr) == -1)
+	    nm_bug("%s: ioctl(SIOCIFDESTROY): %s", __func__, strerror(errno));
+    }
+    close(sock);
 #endif /* NM_OS_LINUX */
     if (fd > 0)
         close(fd);
@@ -299,11 +311,9 @@ static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n)
         }
     }
 }
-#endif /* NM_OS_LINUX */
 
 static void nm_net_link_change(const nm_str_t *name, int action)
 {
-#if defined (NM_OS_LINUX)
     struct iplink_req req;
     struct rtnl_handle rth;
     uint32_t dev_index;
@@ -330,8 +340,8 @@ static void nm_net_link_change(const nm_str_t *name, int action)
     nm_net_rtnl_open(&rth);
     nm_net_rtnl_talk(&rth, &req.n);
     close(rth.sd);
-#endif /* NM_OS_LINUX */
 }
+#endif /* NM_OS_LINUX */
 
 static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *src,
                                int action)
@@ -386,6 +396,10 @@ static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *src,
     nm_net_rtnl_open(&rth);
     nm_net_rtnl_talk(&rth, &req.n);
     close(rth.sd);
+#else
+    (void) name;
+    (void) action;
+    (void) src;
 #endif /* NM_OS_LINUX */
 }
 
