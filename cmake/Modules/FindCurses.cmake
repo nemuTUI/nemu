@@ -85,7 +85,7 @@ endif()
 # prefix as the library was found, if still not found, try curses.h with the
 # default search paths.
 if(CURSES_CURSES_LIBRARY  AND  CURSES_NEED_NCURSES)
-  include(${CMAKE_CURRENT_LIST_DIR}/CMakePushCheckState.cmake)
+  include(CMakePushCheckState)
   cmake_push_check_state()
   set(CMAKE_REQUIRED_QUIET ${Curses_FIND_QUIETLY})
   CHECK_LIBRARY_EXISTS("${CURSES_CURSES_LIBRARY}"
