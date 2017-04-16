@@ -175,13 +175,17 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             FILE *cfg;
             char ch;
             nm_str_t db = NM_INIT_STR;
+#ifdef NM_WITH_VNC_CLIENT
             nm_str_t vnc = NM_INIT_STR;
+#endif
             nm_str_t vmdir = NM_INIT_STR;
             nm_str_t targets = NM_INIT_STR;
             int dir_created = 0;
 
             nm_str_alloc_text(&db, home);
+#ifdef NM_WITH_VNC_CLIENT
             nm_str_alloc_text(&vnc, NM_DEFAULT_VNC);
+#endif
             nm_str_alloc_text(&vmdir, home);
             nm_str_alloc_text(&targets, NM_DEFAULT_TARGET);
 
@@ -226,13 +230,17 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             } while (!dir_created);
 
             nm_get_input(_("VM settings database path"), &db);
+#ifdef NM_WITH_VNC_CLIENT
             nm_get_input(_("Path to VNC client (enter \"/bin/false\" if you connect other way)"), &vnc);
+#endif
             nm_get_input(_("QEMU system targets list, separated by comma"), &targets);
 
             fprintf(cfg, "[main]\n# VM storage directory\nvmdir = %s\n\n", vmdir.data);
             fprintf(cfg, "# VM settings database path\ndb = %s\n\n", db.data);
             fprintf(cfg, "# maximum guests numbers in list.\nlist_max = 10\n\n");
+#ifdef NM_WITH_VNC_CLIENT
             fprintf(cfg, "[vnc]\n# Path to VNC client\nbinary = %s\n\n", vnc.data);
+#endif
             fprintf(cfg, "# listen for vnc connections"
                 " (0 = only localhost, 1 = any address).\nlisten_any = 0\n\n");
             fprintf(cfg, "# Qemu system targets list, separated by comma.\n"
@@ -244,7 +252,9 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             fclose(cfg);
 
             nm_str_free(&db);
+#ifdef NM_WITH_VNC_CLIENT
             nm_str_free(&vnc);
+#endif
             nm_str_free(&vmdir);
             nm_str_free(&targets);
         }
