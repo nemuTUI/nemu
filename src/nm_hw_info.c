@@ -3,12 +3,12 @@
 #include <nm_string.h>
 #include <nm_cfg_file.h>
 
+#include <sys/statvfs.h>
+
 #if defined (NM_OS_LINUX)
-#include <sys/vfs.h>
 #include <sys/sysinfo.h>
 #elif defined (NM_OS_FREEBSD)
 #include <sys/sysctl.h>
-#include <sys/statvfs.h>
 #endif
 
 uint32_t nm_hw_total_ram(void)
