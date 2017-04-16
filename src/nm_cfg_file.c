@@ -238,7 +238,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             fprintf(cfg, "[main]\n# VM storage directory\nvmdir = %s\n\n", vmdir.data);
             fprintf(cfg, "# VM settings database path\ndb = %s\n\n", db.data);
             fprintf(cfg, "# maximum guests numbers in list.\nlist_max = 10\n\n");
-            fprintf(cfg, "[vnc\n]");
+            fprintf(cfg, "[vnc]\n");
 #ifdef NM_WITH_VNC_CLIENT
             fprintf(cfg, "# Path to VNC client\nbinary = %s\n\n", vnc.data);
 #endif
