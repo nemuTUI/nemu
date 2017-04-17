@@ -1,6 +1,7 @@
-v0.1.0 - ? Apr 2017
+v0.1.0 - 16 Apr 2017
 ------------------------
     - Change: the program is rewritten in C.
+    - Feature: FreeBSD host support.
 
 v0.4.0 - 15 Mar 2017
 ------------------------
