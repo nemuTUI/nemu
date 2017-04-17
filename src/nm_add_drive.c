@@ -128,7 +128,7 @@ static void nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
     nm_str_add_char(&vm_dir, '/');
     nm_str_add_str(&vm_dir, name);
 
-    nm_str_alloc_text(&cmd, "qemu-img create -f qcow2 ");
+    nm_str_alloc_text(&cmd, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img create -f qcow2 ");
     nm_str_format(&cmd, "%s/%s_%c.img %sG > /dev/null 2>&1",
         vm_dir.data, name->data, drv_ch, size->data);
 
