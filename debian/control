@@ -1,0 +1,21 @@
+Source: nemu
+Section: universe/utils
+Priority: extra
+Maintainer: Sergei Eremenko <finalitik@gmail.com>
+Build-Depends: debhelper (>= 9),
+               cmake,
+               libsqlite3-dev,
+               libusb-1.0-0-dev,
+               libudev-dev,
+               libncurses5-dev,
+               libncursesw5-dev
+Standards-Version: 3.9.6
+Homepage: https://unixdev.ru/nemu
+
+Package: nemu
+Architecture: any
+Recommends: vinagre
+Depends: qemu-kvm | qemu, ${shlibs:Depends}, ${misc:Depends}
+Description: nEMU - ncurses interface for QEMU
+ nEMU is text-based user interface application for hypervisor QEMU,
+ based on ncurses5 library
