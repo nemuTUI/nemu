@@ -369,9 +369,9 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         }
 #elif defined (NM_OS_FREEBSD)
         if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) == NM_OK)
-	{
+        {
             nm_net_del_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
-	}
+        }
 #endif /* NM_OS_LINUX */
     } /* }}} ifaces */
 
