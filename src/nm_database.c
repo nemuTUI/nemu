@@ -22,13 +22,13 @@ void nm_db_init(void)
     int rc;
 
     const char *query[] = {
-        "PRAGMA user_version=3",
+        "PRAGMA user_version=4",
         "CREATE TABLE vms(id integer PRIMARY KEY AUTOINCREMENT, "
             "name char(31), mem integer, smp integer, kvm integer, "
             "hcpu integer, vnc integer, arch char(32), iso char, "
             "install integer, usb integer, usbid char, bios char, kernel char, "
-            "mouse_override integer, kernel_append char, "
-            "tty_path char, socket_path char)",
+            "mouse_override integer, kernel_append char, tty_path char, "
+            "socket_path char, initrd char)",
         "CREATE TABLE lastval(id integer, mac integer, vnc integer)",
         "INSERT INTO lastval(id, mac, vnc) VALUES ('1', '244837814042624', '0')",
         "CREATE TABLE ifaces(id integer primary key autoincrement, "
