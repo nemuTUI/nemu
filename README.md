@@ -22,4 +22,4 @@
  * QEMU
 
 ## Packages
- Debian and Ubuntu packages: https://software.opensuse.org/download.html?project=home:SmartFinn:nEMU&package=nemu
+Debian and Ubuntu [packages](https://software.opensuse.org/download.html?project=home:SmartFinn:nEMU&package=nemu)
