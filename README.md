@@ -20,3 +20,6 @@
 ## Environment Requirements
  * Linux/FreeBSD host
  * QEMU
+
+## Packages
+ Debian and Ubuntu packages are available [here](https://software.opensuse.org/download.html?project=home:SmartFinn:nEMU&package=nemu) 
