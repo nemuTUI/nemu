@@ -6,23 +6,9 @@ if [ -z "$1" ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=3
+DB_ACTUAL_VERSION=4
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*\s=\s//')
 RC=0
-
-update_ifs()
-{
-  local vm vms netjs
-  vms=($(sqlite3 "$DB_PATH" -line 'SELECT name FROM vms;' | sed 's/.*\s=\s//'))
-
-  for vm in "${vms[@]}"; do
-    netjs=$(sqlite3 "$DB_PATH" -line "SELECT mac FROM vms WHERE name='${vm}';" | sed 's/.*\s=\s//') &&
-    netjs=$(echo "$netjs" | sed -r 's/("drv":"[a-z0-9]+")/\1,"ip4":""/g') &&
-    sqlite3 "$DB_PATH" -line "UPDATE vms SET mac = '${netjs}' WHERE name='${vm}';"
-  done
-
-  return 0
-}
 
 if [ "$DB_CURRENT_VERSION" -lt 3 ]; then
     echo "Database version less then 3 is not supported"
@@ -39,23 +25,10 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
     [ "$RC" = 1 ] && break;
 
     case "$DB_CURRENT_VERSION" in
-        ( 0 )
+        ( 3 )
             (
-            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD mouse_override integer;' &&
-            sqlite3 "$DB_PATH" -line 'UPDATE vms SET mouse_override = 0 WHERE mouse_override IS NULL;' &&
-            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=1'
-            ) || RC=1
-            ;;
-
-        ( 1 )
-            (
-            update_ifs &&
-            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD drive_interface char;' &&
-            sqlite3 "$DB_PATH" -line 'UPDATE vms SET drive_interface = "ide" WHERE drive_interface IS NULL;' &&
-            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD kernel_append char;' &&
-            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD tty_path char;' &&
-            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD socket_path char;' &&
-            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=2'
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD initrd char;' &&
+            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=4'
             ) || RC=1
             ;;
 
