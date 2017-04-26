@@ -27,7 +27,8 @@ enum select_main_idx {
     NM_SQL_KAPP,
     NM_SQL_TTY,
     NM_SQL_SOCK,
-    NM_SQL_INIT
+    NM_SQL_INIT,
+    NM_SQL_MACH
 };
 
 enum select_ifs_idx {

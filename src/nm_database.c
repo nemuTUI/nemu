@@ -28,7 +28,7 @@ void nm_db_init(void)
             "hcpu integer, vnc integer, arch char(32), iso char, "
             "install integer, usb integer, usbid char, bios char, kernel char, "
             "mouse_override integer, kernel_append char, tty_path char, "
-            "socket_path char, initrd char)",
+            "socket_path char, initrd char, machine char)",
         "CREATE TABLE lastval(id integer, mac integer, vnc integer)",
         "INSERT INTO lastval(id, mac, vnc) VALUES ('1', '244837814042624', '0')",
         "CREATE TABLE ifaces(id integer primary key autoincrement, "

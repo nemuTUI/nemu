@@ -28,6 +28,7 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
         ( 3 )
             (
             sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD initrd char;' &&
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD machine char;' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=4'
             ) || RC=1
             ;;
