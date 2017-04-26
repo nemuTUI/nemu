@@ -3,6 +3,7 @@
 #include <nm_menu.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_machine.h>
 #include <nm_ncurses.h>
 #include <nm_add_vm.h>
 #include <nm_edit_vm.h>
@@ -31,6 +32,7 @@ int main(void)
     textdomain(NM_PROGNAME);
 
     nm_cfg_init();
+    nm_mach_init();
     nm_db_init();
     cfg = nm_cfg_get();
 
