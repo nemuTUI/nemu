@@ -83,6 +83,7 @@ int main(void)
                 nm_curses_deinit();
                 nm_db_close();
                 nm_cfg_free();
+                nm_mach_free();
                 exit(NM_OK);
             }
 
@@ -419,6 +420,7 @@ int main(void)
             nm_curses_deinit();
             nm_db_close();
             nm_cfg_free();
+            nm_mach_free();
             exit(NM_OK);
         } /* }}} */
     } /* }}} Main loop */

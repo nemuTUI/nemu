@@ -9,12 +9,7 @@
 
 #define NM_PIPE_READLEN 4096
 
-#define nm_mach_name(p) ((nm_mach_data_t *) p)->mach
-#define nm_mach_desc(p) ((nm_mach_data_t *) p)->desc
-#define nm_mach_arch(p) ((nm_mach_t *) p)->arch
-#define nm_mach_list(p) ((nm_mach_t *) p)->mach_list
-
-static nm_vect_t nm_mach_list;
+static nm_vect_t nm_machs;
 
 static void nm_mach_get(const char *arch);
 static nm_vect_t *nm_mach_parse(const char *buf);
@@ -24,22 +19,31 @@ void nm_mach_init(void)
     const nm_vect_t *archs = &nm_cfg_get()->qemu_targets;
 
     for (size_t n = 0; n < archs->n_memb; n++)
-    {
         nm_mach_get(((char **) archs->data)[n]);
-    }
 
 #ifdef NM_DEBUG
-/*    for (size_t n = 0; n < nm_mach_list.n_memb; n++)
+    nm_debug("\n");
+    for (size_t n = 0; n < nm_machs.n_memb; n++)
     {
-        nm_debug("\nGet machine list for %s:",
-            (char *) nm_mach_arch(nm_mach_list.data[n]).data);
-    }*/
+        nm_vect_t *v = nm_mach_list(nm_machs.data[n]);
+        nm_debug("Get machine list for %s:\n",
+            nm_mach_arch(nm_machs.data[n]).data);
+
+        for (size_t n = 0; n < v->n_memb; n++)
+        {
+            nm_debug(">> mach: %s\n",   nm_mach_name(v->data[n]).data);
+            nm_debug(">> desc: %s\n\n", nm_mach_desc(v->data[n]).data);
+        }
+    }
 #endif
 }
 
 void nm_mach_free(void)
 {
-    //...
+    for (size_t n = 0; n < nm_machs.n_memb; n++)
+        nm_vect_free(nm_mach_list(nm_machs.data[n]), nm_mach_vect_free_mdata_cb);
+
+    nm_vect_free(&nm_machs, nm_mach_vect_free_mlist_cb);
 }
 
 static void nm_mach_get(const char *arch)
@@ -58,10 +62,6 @@ static void nm_mach_get(const char *arch)
 
     if (pipe(pipefd) == -1)
         nm_bug("%s: pipe: %s", __func__, strerror(errno));
-
-#ifdef NM_DEBUG
-    nm_debug("Get machine list for %s:\n", arch);
-#endif
 
     switch (fork()) {
     case (-1):  /* error*/
@@ -98,13 +98,13 @@ static void nm_mach_get(const char *arch)
                 }
             }
             buf[total_read] = '\0';
-            mach_list.mach_list = nm_mach_parse(buf);
+            mach_list.list = nm_mach_parse(buf);
             wait(NULL);
         }
         break;
     }
 
-    nm_vect_insert(&nm_mach_list, &mach_list,
+    nm_vect_insert(&nm_machs, &mach_list,
         sizeof(mach_list), nm_mach_vect_ins_mlist_cb);
 
     nm_str_free(&qemu_bin_path);
@@ -122,7 +122,7 @@ static nm_vect_t *nm_mach_parse(const char *buf)
     nm_str_t desc = NM_INIT_STR;
     nm_vect_t *v = NULL;
 
-    v = nm_alloc(sizeof(nm_vect_t));
+    v = nm_calloc(1, sizeof(nm_vect_t));
 
     /* skip first line */
     while (*bufp != '\n')
@@ -196,6 +196,7 @@ void nm_mach_vect_free_mdata_cb(const void *unit_p)
 void nm_mach_vect_free_mlist_cb(const void *unit_p)
 {
     nm_str_free(&nm_mach_arch(unit_p));
+    free(nm_mach_list(unit_p));
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
