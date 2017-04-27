@@ -9,8 +9,15 @@
 
 #define NM_PIPE_READLEN 4096
 
+#define nm_mach_name(p) ((nm_mach_data_t *) p)->mach
+#define nm_mach_desc(p) ((nm_mach_data_t *) p)->desc
+#define nm_mach_arch(p) ((nm_mach_t *) p)->arch
+#define nm_mach_list(p) ((nm_mach_t *) p)->mach_list
+
+static nm_vect_t nm_mach_list;
+
 static void nm_mach_get(const char *arch);
-static void nm_mach_parse(const char *buf);
+static nm_vect_t *nm_mach_parse(const char *buf);
 
 void nm_mach_init(void)
 {
@@ -20,6 +27,14 @@ void nm_mach_init(void)
     {
         nm_mach_get(((char **) archs->data)[n]);
     }
+
+#ifdef NM_DEBUG
+/*    for (size_t n = 0; n < nm_mach_list.n_memb; n++)
+    {
+        nm_debug("\nGet machine list for %s:",
+            (char *) nm_mach_arch(nm_mach_list.data[n]).data);
+    }*/
+#endif
 }
 
 void nm_mach_free(void)
@@ -33,6 +48,9 @@ static void nm_mach_get(const char *arch)
     char *buf = NULL;
     nm_str_t qemu_bin_path = NM_INIT_STR;
     nm_str_t qemu_bin_name = NM_INIT_STR;
+    nm_mach_t mach_list = NM_INIT_MLIST;
+
+    nm_str_alloc_text(&mach_list.arch, arch);
 
     nm_str_format(&qemu_bin_name, "qemu-system-%s", arch);
     nm_str_format(&qemu_bin_path, "%s/bin/%s",
@@ -80,24 +98,31 @@ static void nm_mach_get(const char *arch)
                 }
             }
             buf[total_read] = '\0';
-            nm_mach_parse(buf);
+            mach_list.mach_list = nm_mach_parse(buf);
             wait(NULL);
         }
         break;
     }
 
+    nm_vect_insert(&nm_mach_list, &mach_list,
+        sizeof(mach_list), nm_mach_vect_ins_mlist_cb);
+
     nm_str_free(&qemu_bin_path);
     nm_str_free(&qemu_bin_name);
+    nm_str_free(&mach_list.arch);
     free(buf);
 }
 
-static void nm_mach_parse(const char *buf)
+static nm_vect_t *nm_mach_parse(const char *buf)
 {
     const char *bufp = buf;
     int lookup_mach = 1;
     int lookup_desc = 0;
     nm_str_t mach = NM_INIT_STR;
     nm_str_t desc = NM_INIT_STR;
+    nm_vect_t *v = NULL;
+
+    v = nm_alloc(sizeof(nm_vect_t));
 
     /* skip first line */
     while (*bufp != '\n')
@@ -127,14 +152,18 @@ static void nm_mach_parse(const char *buf)
         }
         else if (lookup_desc && (*bufp == '\n'))
         {
-#ifdef NM_DEBUG
-            nm_debug(">> mach: %s\n", mach.data);
-            nm_debug(">> desc: %s\n\n", desc.data);
-#endif
+            nm_mach_data_t item = NM_INIT_MDATA;
+
+            nm_str_copy(&item.mach, &mach);
+            nm_str_copy(&item.desc, &desc);
+            nm_vect_insert(v, &item, sizeof(item), nm_mach_vect_ins_mdata_cb);
             nm_str_trunc(&mach, 0);
             nm_str_trunc(&desc, 0);
             lookup_desc = 0;
             lookup_mach = 1;
+
+            nm_str_free(&item.mach);
+            nm_str_free(&item.desc);
         }
 
         bufp++;
@@ -142,6 +171,31 @@ static void nm_mach_parse(const char *buf)
 
     nm_str_free(&mach);
     nm_str_free(&desc);
+
+    return v;
+}
+
+void nm_mach_vect_ins_mdata_cb(const void *unit_p, const void *ctx)
+{
+    nm_str_copy(&nm_mach_name(unit_p), &nm_mach_name(ctx));
+    nm_str_copy(&nm_mach_desc(unit_p), &nm_mach_desc(ctx));
+}
+
+void nm_mach_vect_ins_mlist_cb(const void *unit_p, const void *ctx)
+{
+    nm_str_copy(&nm_mach_arch(unit_p), &nm_mach_arch(ctx));
+    memcpy(&nm_mach_list(unit_p), &nm_mach_list(ctx), sizeof(nm_vect_t *));
+}
+
+void nm_mach_vect_free_mdata_cb(const void *unit_p)
+{
+    nm_str_free(&nm_mach_name(unit_p));
+    nm_str_free(&nm_mach_desc(unit_p));
+}
+
+void nm_mach_vect_free_mlist_cb(const void *unit_p)
+{
+    nm_str_free(&nm_mach_arch(unit_p));
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
