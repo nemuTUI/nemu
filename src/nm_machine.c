@@ -7,6 +7,8 @@
 
 #include <sys/wait.h>
 
+#define NM_PIPE_READLEN 4096
+
 static void nm_mach_get(const char *arch);
 
 void nm_mach_init(void)
@@ -27,7 +29,7 @@ void nm_mach_free(void)
 static void nm_mach_get(const char *arch)
 {
     int pipefd[2];
-    char buf[1000]; /* XXX use heap */
+    char *buf = NULL;
     nm_str_t qemu_bin_path = NM_INIT_STR;
     nm_str_t qemu_bin_name = NM_INIT_STR;
 
@@ -56,17 +58,38 @@ static void nm_mach_get(const char *arch)
         break;
 
     default:    /* parent */
-        close(pipefd[1]);
-        read(pipefd[0], buf, sizeof(buf));
+        {
+            char *bufp = NULL;
+            ssize_t nread;
+            size_t nalloc = NM_PIPE_READLEN * 2, total_read = 0;
+            close(pipefd[1]);
+
+            buf = nm_alloc(NM_PIPE_READLEN * 2);
+            bufp = buf;
+            while ((nread = read(pipefd[0], bufp, NM_PIPE_READLEN)) > 0)
+            {
+                total_read += nread;
+                bufp += nread;
+                if (total_read >= nalloc)
+                {
+                    nalloc *= 2;
+                    buf = nm_realloc(buf, nalloc);
+                    bufp = buf;
+                    bufp += total_read;
+                }
+            }
+            buf[total_read] = '\0';
 #ifdef NM_DEBUG
-        nm_debug("%s\n", buf);
+            nm_debug("%s\n", buf);
 #endif
-        wait(NULL);
+            wait(NULL);
+        }
         break;
     }
 
     nm_str_free(&qemu_bin_path);
     nm_str_free(&qemu_bin_name);
+    free(buf);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
