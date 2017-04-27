@@ -10,6 +10,7 @@
 #define NM_PIPE_READLEN 4096
 
 static void nm_mach_get(const char *arch);
+static void nm_mach_parse(const char *buf);
 
 void nm_mach_init(void)
 {
@@ -79,9 +80,7 @@ static void nm_mach_get(const char *arch)
                 }
             }
             buf[total_read] = '\0';
-#ifdef NM_DEBUG
-            nm_debug("%s\n", buf);
-#endif
+            nm_mach_parse(buf);
             wait(NULL);
         }
         break;
@@ -90,6 +89,59 @@ static void nm_mach_get(const char *arch)
     nm_str_free(&qemu_bin_path);
     nm_str_free(&qemu_bin_name);
     free(buf);
+}
+
+static void nm_mach_parse(const char *buf)
+{
+    const char *bufp = buf;
+    int lookup_mach = 1;
+    int lookup_desc = 0;
+    nm_str_t mach = NM_INIT_STR;
+    nm_str_t desc = NM_INIT_STR;
+
+    /* skip first line */
+    while (*bufp != '\n')
+        bufp++;
+
+    bufp++;
+
+    while (*bufp != '\0')
+    {
+        if (lookup_mach && (*bufp != 0x20))
+        {
+            nm_str_add_char_opt(&mach, *bufp);
+        }
+        else if (lookup_mach && (*bufp == 0x20))
+        {
+            lookup_mach = 0;
+        }
+
+        if (!lookup_mach && !lookup_desc && (*bufp != 0x20))
+        {
+            lookup_desc = 1;
+            nm_str_add_char_opt(&desc, *bufp);
+        }
+        else if (lookup_desc && (*bufp != '\n'))
+        {
+            nm_str_add_char_opt(&desc, *bufp);
+        }
+        else if (lookup_desc && (*bufp == '\n'))
+        {
+#ifdef NM_DEBUG
+            nm_debug(">> mach: %s\n", mach.data);
+            nm_debug(">> desc: %s\n\n", desc.data);
+#endif
+            nm_str_trunc(&mach, 0);
+            nm_str_trunc(&desc, 0);
+            lookup_desc = 0;
+            lookup_mach = 1;
+        }
+
+        bufp++;
+    }
+
+    nm_str_free(&mach);
+    nm_str_free(&desc);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
