@@ -31,8 +31,7 @@ void nm_mach_init(void)
 
         for (size_t n = 0; n < v->n_memb; n++)
         {
-            nm_debug(">> mach: %s\n",   nm_mach_name(v->data[n]).data);
-            nm_debug(">> desc: %s\n\n", nm_mach_desc(v->data[n]).data);
+            nm_debug(">> mach: %s\n", (char *) v->data[n]);
         }
     }
 #endif
@@ -41,7 +40,7 @@ void nm_mach_init(void)
 void nm_mach_free(void)
 {
     for (size_t n = 0; n < nm_machs.n_memb; n++)
-        nm_vect_free(nm_mach_list(nm_machs.data[n]), nm_mach_vect_free_mdata_cb);
+        nm_vect_free(nm_mach_list(nm_machs.data[n]), NULL);
 
     nm_vect_free(&nm_machs, nm_mach_vect_free_mlist_cb);
 }
@@ -117,9 +116,7 @@ static nm_vect_t *nm_mach_parse(const char *buf)
 {
     const char *bufp = buf;
     int lookup_mach = 1;
-    int lookup_desc = 0;
     nm_str_t mach = NM_INIT_STR;
-    nm_str_t desc = NM_INIT_STR;
     nm_vect_t *v = NULL;
 
     v = nm_calloc(1, sizeof(nm_vect_t));
@@ -141,56 +138,32 @@ static nm_vect_t *nm_mach_parse(const char *buf)
             lookup_mach = 0;
         }
 
-        if (!lookup_mach && !lookup_desc && (*bufp != 0x20))
+        if (!lookup_mach && (*bufp == '\n'))
         {
-            lookup_desc = 1;
-            nm_str_add_char_opt(&desc, *bufp);
-        }
-        else if (lookup_desc && (*bufp != '\n'))
-        {
-            nm_str_add_char_opt(&desc, *bufp);
-        }
-        else if (lookup_desc && (*bufp == '\n'))
-        {
-            nm_mach_data_t item = NM_INIT_MDATA;
+            nm_str_t item = NM_INIT_STR;
 
-            nm_str_copy(&item.mach, &mach);
-            nm_str_copy(&item.desc, &desc);
-            nm_vect_insert(v, &item, sizeof(item), nm_mach_vect_ins_mdata_cb);
+            nm_str_copy(&item, &mach);
+            nm_vect_insert(v, item.data, item.len + 1, NULL);
             nm_str_trunc(&mach, 0);
-            nm_str_trunc(&desc, 0);
-            lookup_desc = 0;
             lookup_mach = 1;
 
-            nm_str_free(&item.mach);
-            nm_str_free(&item.desc);
+            nm_str_free(&item);
         }
 
         bufp++;
     }
 
+    nm_vect_end_zero(v);
+
     nm_str_free(&mach);
-    nm_str_free(&desc);
 
     return v;
-}
-
-void nm_mach_vect_ins_mdata_cb(const void *unit_p, const void *ctx)
-{
-    nm_str_copy(&nm_mach_name(unit_p), &nm_mach_name(ctx));
-    nm_str_copy(&nm_mach_desc(unit_p), &nm_mach_desc(ctx));
 }
 
 void nm_mach_vect_ins_mlist_cb(const void *unit_p, const void *ctx)
 {
     nm_str_copy(&nm_mach_arch(unit_p), &nm_mach_arch(ctx));
     memcpy(&nm_mach_list(unit_p), &nm_mach_list(ctx), sizeof(nm_vect_t *));
-}
-
-void nm_mach_vect_free_mdata_cb(const void *unit_p)
-{
-    nm_str_free(&nm_mach_name(unit_p));
-    nm_str_free(&nm_mach_desc(unit_p));
 }
 
 void nm_mach_vect_free_mlist_cb(const void *unit_p)
