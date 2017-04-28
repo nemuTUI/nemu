@@ -7,19 +7,24 @@
 
 #include <sys/wait.h>
 
+#define NM_INIT_MLIST { NM_INIT_STR, NULL }
 #define NM_PIPE_READLEN 4096
 
-static nm_vect_t nm_machs;
+#define nm_mach_arch(p) ((nm_mach_t *) p)->arch
+#define nm_mach_list(p) ((nm_mach_t *) p)->list
 
-static void nm_mach_get(const char *arch);
+static nm_vect_t nm_machs = NM_INIT_VECT;
+
+static void nm_mach_init(void);
+static void nm_mach_get_data(const char *arch);
 static nm_vect_t *nm_mach_parse(const char *buf);
 
-void nm_mach_init(void)
+static void nm_mach_init(void)
 {
     const nm_vect_t *archs = &nm_cfg_get()->qemu_targets;
 
     for (size_t n = 0; n < archs->n_memb; n++)
-        nm_mach_get(((char **) archs->data)[n]);
+        nm_mach_get_data(((char **) archs->data)[n]);
 
 #ifdef NM_DEBUG
     nm_debug("\n");
@@ -37,6 +42,25 @@ void nm_mach_init(void)
 #endif
 }
 
+const char **nm_mach_get(const nm_str_t *arch)
+{
+    const char **v = NULL;
+
+    if (nm_machs.data == NULL)
+        nm_mach_init();
+
+    for (size_t n = 0; n < nm_machs.n_memb; n++)
+    {
+        if (nm_str_cmp_ss(nm_machs.data[n], arch) == NM_OK)
+        {
+            v = (const char **) nm_mach_list(nm_machs.data[n])->data;
+            break;
+        }
+    }
+
+    return v;
+}
+
 void nm_mach_free(void)
 {
     for (size_t n = 0; n < nm_machs.n_memb; n++)
@@ -45,7 +69,7 @@ void nm_mach_free(void)
     nm_vect_free(&nm_machs, nm_mach_vect_free_mlist_cb);
 }
 
-static void nm_mach_get(const char *arch)
+static void nm_mach_get_data(const char *arch)
 {
     int pipefd[2];
     char *buf = NULL;

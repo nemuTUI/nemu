@@ -3,6 +3,7 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_machine.h>
 #include <nm_database.h>
 #include <nm_vm_control.h>
 
@@ -83,6 +84,10 @@ out:
 
 static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
 {
+    const char **machs = NULL;
+
+    machs = nm_mach_get(nm_vect_str(&cur->main, NM_SQL_ARCH));
+
     for (size_t n = 1; n < NM_BOOT_FIELDS_NUM; n++)
         field_opts_off(fields[n], O_STATIC);
 

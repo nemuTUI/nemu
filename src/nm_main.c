@@ -32,7 +32,6 @@ int main(void)
     textdomain(NM_PROGNAME);
 
     nm_cfg_init();
-    nm_mach_init();
     nm_db_init();
     cfg = nm_cfg_get();
 
