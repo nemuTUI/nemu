@@ -46,19 +46,22 @@ void nm_add_vm(void)
     uint32_t last_vnc;
     size_t msg_len;
     pthread_t spin_th;
-    int done = 0;
+    int done = 0, mult = 2;
 
     nm_vm_get_usb(&usb_devs, &usb_names);
 
     nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(25, 67, 3);
+    if (getmaxy(stdscr) <= 28)
+        mult = 1;
+
+    window = nm_init_window((mult == 2) ? 25 : 15, 67, 3);
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
 
     for (size_t n = 0; n < NM_ADD_VM_FIELDS_NUM; ++n)
     {
-        fields[n] = new_field(1, 38, n * 2, 5, 0, 0);
+        fields[n] = new_field(1, 38, n * mult, 5, 0, 0);
         set_field_back(fields[n], A_UNDERLINE);
     }
 
@@ -150,34 +153,38 @@ static void nm_add_vm_field_setup(const nm_vect_t *usb_names)
 
 static void nm_add_vm_field_names(nm_window_t *w)
 {
+    int y = 2, mult = 2;
     nm_str_t buf = NM_INIT_STR;
 
-    mvwaddstr(w, 2, 2, _("Name"));
-    mvwaddstr(w, 4, 2, _("Architecture"));
+    if (getmaxy(stdscr) <= 28)
+        mult = 1;
+
+    mvwaddstr(w, y, 2, _("Name"));
+    mvwaddstr(w, y += mult, 2, _("Architecture"));
 
     nm_str_alloc_text(&buf, _("CPU cores [1-"));
     nm_str_format(&buf, "%u", nm_hw_ncpus());
     nm_str_add_char(&buf, ']');
-    mvwaddstr(w, 6, 2, buf.data);
+    mvwaddstr(w, y += mult, 2, buf.data);
     nm_str_trunc(&buf, 0);
 
     nm_str_add_text(&buf, _("Memory [4-"));
     nm_str_format(&buf, "%u", nm_hw_total_ram());
     nm_str_add_text(&buf, "]Mb");
-    mvwaddstr(w, 8, 2, buf.data);
+    mvwaddstr(w, y += mult, 2, buf.data);
     nm_str_trunc(&buf, 0);
 
     nm_str_add_text(&buf, _("Disk [1-"));
     nm_str_format(&buf, "%u", nm_hw_disk_free());
     nm_str_add_text(&buf, "]Gb");
-    mvwaddstr(w, 10, 2, buf.data);
+    mvwaddstr(w, y += mult, 2, buf.data);
 
-    mvwaddstr(w, 12, 2, _("Disk interface"));
-    mvwaddstr(w, 14, 2, _("Path to ISO/IMG"));
-    mvwaddstr(w, 16, 2, _("Network interfaces"));
-    mvwaddstr(w, 18, 2, _("Net driver"));
-    mvwaddstr(w, 20, 2, _("USB [yes/no]"));
-    mvwaddstr(w, 22, 2, _("USB device"));
+    mvwaddstr(w, y += mult, 2, _("Disk interface"));
+    mvwaddstr(w, y += mult, 2, _("Path to ISO/IMG"));
+    mvwaddstr(w, y += mult, 2, _("Network interfaces"));
+    mvwaddstr(w, y += mult, 2, _("Net driver"));
+    mvwaddstr(w, y += mult, 2, _("USB [yes/no]"));
+    mvwaddstr(w, y += mult, 2, _("USB device"));
 
     nm_str_free(&buf);
 }
