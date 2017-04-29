@@ -35,19 +35,22 @@ void nm_edit_boot(const nm_str_t *name)
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     size_t msg_len;
     pthread_t spin_th;
-    int done = 0;
+    int done = 0, mult = 2;
 
     nm_vmctl_get_data(name, &cur_settings);
 
     nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(19, 67, 3);
+    if (getmaxy(stdscr) <= 28)
+        mult = 1;
+
+    window = nm_init_window((mult == 2) ? 19 : 11, 67, 3);
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
 
     for (size_t n = 0; n < NM_BOOT_FIELDS_NUM; ++n)
     {
-        fields[n] = new_field(1, 41, (n + 1) * 2, 5, 0, 0);
+        fields[n] = new_field(1, 41, (n + 1) * mult, 5, 0, 0);
         set_field_back(fields[n], A_UNDERLINE);
     }
 
@@ -117,19 +120,26 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
 
 static void nm_edit_boot_field_names(const nm_str_t *name, nm_window_t *w)
 {
+    int y = 4, mult = 2;
     nm_str_t buf = NM_INIT_STR;
+
+    if (getmaxy(stdscr) <= 28)
+    {
+        mult = 1;
+        y = 3;
+    }
 
     nm_str_alloc_str(&buf, name);
     nm_str_add_text(&buf, _(" boot settings"));
 
     mvwaddstr(w, 1,  2,  buf.data);
-    mvwaddstr(w, 4,  2, _("OS Installed"));
-    mvwaddstr(w, 6,  2, _("Path to ISO/IMG"));
-    mvwaddstr(w, 8,  2, _("Path to BIOS"));
-    mvwaddstr(w, 10, 2, _("Path to kernel"));
-    mvwaddstr(w, 12, 2, _("Kernel cmdline"));
-    mvwaddstr(w, 14, 2, _("Serial TTY"));
-    mvwaddstr(w, 16, 2, _("Serial socket"));
+    mvwaddstr(w, y,  2, _("OS Installed"));
+    mvwaddstr(w, y += mult, 2, _("Path to ISO/IMG"));
+    mvwaddstr(w, y += mult, 2, _("Path to BIOS"));
+    mvwaddstr(w, y += mult, 2, _("Path to kernel"));
+    mvwaddstr(w, y += mult, 2, _("Kernel cmdline"));
+    mvwaddstr(w, y += mult, 2, _("Serial TTY"));
+    mvwaddstr(w, y += mult, 2, _("Serial socket"));
 
     nm_str_free(&buf);
 }
