@@ -44,20 +44,23 @@ void nm_edit_vm(const nm_str_t *name)
     uint64_t last_mac;
     size_t msg_len;
     pthread_t spin_th;
-    int done = 0;
+    int done = 0, mult = 2;
 
     nm_vm_get_usb(&usb_devs, &usb_names);
     nm_vmctl_get_data(name, &cur_settings);
 
     nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(23, 67, 3);
+    if (getmaxy(stdscr) <= 28)
+        mult = 1;
+
+    window = nm_init_window((mult == 2) ? 23 : 14, 67, 3);
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
 
     for (size_t n = 0; n < NM_EDIT_VM_FIELDS_NUM; ++n)
     {
-        fields[n] = new_field(1, 38, (n + 1) * 2, 5, 0, 0);
+        fields[n] = new_field(1, 38, (n + 1) * mult, 5, 0, 0);
         set_field_back(fields[n], A_UNDERLINE);
     }
 
@@ -153,7 +156,14 @@ static void nm_edit_vm_field_setup(const nm_vect_t *usb_names, const nm_vmctl_da
 
 static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w)
 {
+    int y = 4, mult = 2;
     nm_str_t buf = NM_INIT_STR;
+
+    if (getmaxy(stdscr) <= 28)
+    {
+        mult = 1;
+        y = 3;
+    }
 
     nm_str_alloc_str(&buf, name);
     nm_str_add_text(&buf, _(" settings"));
@@ -163,21 +173,21 @@ static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w)
     nm_str_add_text(&buf, _("CPU cores [1-"));
     nm_str_format(&buf, "%u", nm_hw_ncpus());
     nm_str_add_char(&buf, ']');
-    mvwaddstr(w, 4, 2, buf.data);
+    mvwaddstr(w, y, 2, buf.data);
     nm_str_trunc(&buf, 0);
 
     nm_str_add_text(&buf, _("Memory [4-"));
     nm_str_format(&buf, "%u", nm_hw_total_ram());
     nm_str_add_text(&buf, "]Mb");
-    mvwaddstr(w, 6, 2, buf.data);
+    mvwaddstr(w, y += mult, 2, buf.data);
 
-    mvwaddstr(w, 8,  2, _("KVM [yes/no]"));
-    mvwaddstr(w, 10, 2, _("Host CPU [yes/no]"));
-    mvwaddstr(w, 12, 2, _("Network interfaces"));
-    mvwaddstr(w, 14, 2, _("Disk interface"));
-    mvwaddstr(w, 16, 2, _("USB [yes/no]"));
-    mvwaddstr(w, 18, 2, _("USB device"));
-    mvwaddstr(w, 20, 2, _("Sync mouse position"));
+    mvwaddstr(w, y += mult, 2, _("KVM [yes/no]"));
+    mvwaddstr(w, y += mult, 2, _("Host CPU [yes/no]"));
+    mvwaddstr(w, y += mult, 2, _("Network interfaces"));
+    mvwaddstr(w, y += mult, 2, _("Disk interface"));
+    mvwaddstr(w, y += mult, 2, _("USB [yes/no]"));
+    mvwaddstr(w, y += mult, 2, _("USB device"));
+    mvwaddstr(w, y += mult, 2, _("Sync mouse position"));
 
     nm_str_free(&buf);
 }
