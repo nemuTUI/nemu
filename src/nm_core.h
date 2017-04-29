@@ -31,7 +31,7 @@
 #include <sys/mman.h>
 
 #define NM_PROGNAME "nemu"
-#define NM_VERSION  "1.0.0"
+#define NM_VERSION  "1.1.0-dev"
 
 #define NM_OK   0
 #define NM_ERR -1
