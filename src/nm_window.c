@@ -141,12 +141,16 @@ void nm_print_vm_info(const nm_str_t *name)
     /* }}} drives */
 
     /* {{{ Generate guest boot settings info */
+    if (nm_vect_str_len(&vm.main, NM_SQL_MACH))
+        mvprintw(y++, col / 6, "%-12s%s", "machine: ", nm_vect_str_ctx(&vm.main, NM_SQL_MACH));
     if (nm_vect_str_len(&vm.main, NM_SQL_BIOS))
         mvprintw(y++, col / 6, "%-12s%s", "bios: ", nm_vect_str_ctx(&vm.main, NM_SQL_BIOS));
     if (nm_vect_str_len(&vm.main, NM_SQL_KERN))
         mvprintw(y++, col / 6, "%-12s%s", "kernel: ", nm_vect_str_ctx(&vm.main, NM_SQL_KERN));
     if (nm_vect_str_len(&vm.main, NM_SQL_KAPP))
         mvprintw(y++, col / 6, "%-12s%s", "cmdline: ", nm_vect_str_ctx(&vm.main, NM_SQL_KAPP));
+    if (nm_vect_str_len(&vm.main, NM_SQL_INIT))
+        mvprintw(y++, col / 6, "%-12s%s", "initrd: ", nm_vect_str_ctx(&vm.main, NM_SQL_INIT));
     if (nm_vect_str_len(&vm.main, NM_SQL_TTY))
         mvprintw(y++, col / 6, "%-12s%s", "tty: ", nm_vect_str_ctx(&vm.main, NM_SQL_TTY));
     if (nm_vect_str_len(&vm.main, NM_SQL_SOCK))

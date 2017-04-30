@@ -276,6 +276,12 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_BIOS));
     }
 
+    if (nm_vect_str_len(&vm->main, NM_SQL_MACH))
+    {
+        nm_str_add_text(res, " -M ");
+        nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_MACH));
+    }
+
     if (nm_vect_str_len(&vm->main, NM_SQL_KERN))
     {
         nm_str_add_text(res, " -kernel ");
@@ -287,6 +293,12 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
             nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_KAPP));
             nm_str_add_char(res, '"');
         }
+    }
+
+    if (nm_vect_str_len(&vm->main, NM_SQL_INIT))
+    {
+        nm_str_add_text(res, " -initrd ");
+        nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_INIT));
     }
 
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_OVER), NM_ENABLE) == NM_OK)

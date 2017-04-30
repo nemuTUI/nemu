@@ -36,9 +36,11 @@ typedef struct {
 
 typedef struct {
     nm_str_t inst_path;
+    nm_str_t mach;
     nm_str_t bios;
     nm_str_t kernel;
     nm_str_t cmdline;
+    nm_str_t initrd;
     nm_str_t tty;
     nm_str_t socket;
     uint32_t installed:1;
@@ -94,7 +96,7 @@ extern const char *nm_form_drive_drv[];
 #define NM_INIT_VM_KVM   { 0, 0 }
 #define NM_INIT_VM_BOOT  { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                            NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                           0 }
+                           NM_INIT_STR, NM_INIT_STR, 0 }
 #define NM_INIT_SPINNER  { 0, 1, NULL }
 
 #define NM_INIT_VM { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \

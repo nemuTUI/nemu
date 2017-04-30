@@ -394,6 +394,8 @@ void nm_vm_free_boot(nm_vm_boot_t *vm)
 {
     nm_str_free(&vm->tty);
     nm_str_free(&vm->bios);
+    nm_str_free(&vm->mach);
+    nm_str_free(&vm->initrd);
     nm_str_free(&vm->socket);
     nm_str_free(&vm->kernel);
     nm_str_free(&vm->cmdline);
