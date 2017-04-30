@@ -387,6 +387,12 @@ msgstr "Путь до VNC клиента (введите \"/bin/false\" если
 msgid "Path to kernel"
 msgstr "Путь до ядра"
 
+msgid "Path to initrd"
+msgstr "Путь до initrd"
+
+msgid "Machine type"
+msgstr "Тип машины"
+
 #: nm_main.c:300
 msgid "Proceed? (y/n)"
 msgstr "Продолжить? (y/n)"
