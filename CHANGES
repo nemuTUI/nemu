@@ -1,3 +1,9 @@
+v0.1.1 - 30 Apr 2017
+------------------------
+    - Feature: initrd support.
+    - Feature: set the emulated machine type.
+    - Feature: small terminal size support (e.g. 80x25).
+
 v0.1.0 - 16 Apr 2017
 ------------------------
     - Change: the program is rewritten in C.
