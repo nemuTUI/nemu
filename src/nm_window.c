@@ -220,8 +220,10 @@ void nm_print_help(nm_window_t *w)
         _(" i - edit network settings"),
         _(" a - add virtual disk"),
         _(" l - clone guest"),
-        _(" s - edit boot settings"),
+        _(" b - edit boot settings"),
         _(" m - show command"),
+        _(" s - take snapshot"),
+        _(" x - manage snapshots"),
         _(" u - delete unused tap interfaces")
     };
 
