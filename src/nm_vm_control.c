@@ -394,6 +394,8 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     nm_str_add_str(res, &vmdir);
     nm_str_add_text(res, NM_VM_PID_FILE);
 
+    nm_str_format(res, " -qmp unix:%sqmp.sock,server,nowait", vmdir.data);
+
     if (cfg->vnc_listen_any)
         nm_str_add_text(res, " -vnc :");
     else
