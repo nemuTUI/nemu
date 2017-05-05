@@ -214,6 +214,7 @@ void nm_print_help(nm_window_t *w)
 #if (NM_WITH_VNC_CLIENT)
         _(" c - connect to guest via vnc"),
 #endif
+        _(" p - powerdown guest"),
         _(" f - force stop guest"),
         _(" d - delete guest"),
         _(" e - edit guest settings"),

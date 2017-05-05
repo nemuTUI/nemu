@@ -36,7 +36,7 @@ nm_window_t *nm_init_window(int nlines, int ncols, int begin_y)
 
     w = newwin(nlines, ncols, begin_y, (col - ncols) / 2);
     if (w == NULL)
-        nm_bug(_("%s: NULL pointer"), __func__);
+        nm_bug(_("%s: cannot create window"), __func__);
 
     keypad(w, TRUE);
 

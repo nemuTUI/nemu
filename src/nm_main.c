@@ -14,6 +14,7 @@
 #include <nm_add_drive.h>
 #include <nm_edit_boot.h>
 #include <nm_vm_control.h>
+#include <nm_qmp_control.h>
 
 static void signals_handler(int signal);
 static volatile sig_atomic_t redraw_window = 0;
@@ -275,6 +276,17 @@ int main(void)
                             nm_vmctl_start(vm, NM_VMCTL_TEMP);
                     } /* }}} start VM (temporary) */
 
+                    /* {{{ Poweroff VM */
+                    else if (ch == NM_KEY_P)
+                    {
+                        nm_print_vm_menu(vm_window, &vms);
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (vm_status)
+                            nm_qmp_vm_shut(vm);
+                    } /* }}} Poweroff VM */
+
                     /* {{{ kill VM */
                     else if (ch == NM_KEY_F)
                     {
@@ -362,9 +374,9 @@ int main(void)
                     else if (ch == KEY_F(1))
                     {
 #ifdef NM_WITH_VNC_CLIENT
-                        nm_window_t *help_window = nm_init_window(18, 40, 1);
+                        nm_window_t *help_window = nm_init_window(19, 77, 1);
 #else
-                        nm_window_t *help_window = nm_init_window(17, 40, 1);
+                        nm_window_t *help_window = nm_init_window(18, 77, 1);
 #endif
                         nm_print_help(help_window);
                         delwin(help_window);
