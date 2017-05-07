@@ -103,10 +103,10 @@ static int nm_qmp_talk(int sd, const char *cmd, size_t len)
             memset(buf, 0, NM_QMP_READLEN);
             nread = read(sd, buf, NM_QMP_READLEN);
             if (nread > 1)
-	    {
+            {
                 buf[nread - 2] = '\0';
                 nm_str_add_text(&answer, buf);
-	    }
+            }
         }
         else /* nothing happens for 0.1 second */
             read_done = 1;
