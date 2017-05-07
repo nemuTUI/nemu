@@ -2,13 +2,13 @@
 ===========
 
 ## Features
- * Install guest
- * Delete guest
- * Clone guest
- * Show guest status
- * Start/stop guest
- * Connect to guest via vnc
- * Show/Edit guest hardware parametrs
+ * Install VM
+ * Delete VM
+ * Clone VM
+ * Show VM status
+ * Start/stop/shutdown/reset VM
+ * Connect to VM via vnc
+ * Show/Edit VM hardware parametrs
  * USB support
  * Network via tap interfaces
 
