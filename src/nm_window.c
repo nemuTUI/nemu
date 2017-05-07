@@ -1,4 +1,5 @@
 #include <nm_core.h>
+#include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
 #include <nm_ncurses.h>
@@ -206,7 +207,8 @@ void nm_print_vm_info(const nm_str_t *name)
 
 void nm_print_help(nm_window_t *w)
 {
-    const char *msg[] = {
+    int curr_p = 1;
+    const char *msg_p1[] = {
           "             nEMU v" NM_VERSION,
           "",
         _(" r - start guest"),
@@ -223,17 +225,79 @@ void nm_print_help(nm_window_t *w)
         _(" l - clone guest"),
         _(" b - edit boot settings"),
         _(" m - show command"),
-        _(" s - take snapshot"),
-        _(" x - manage snapshots"),
-        _(" u - delete unused tap interfaces")
+        "",
+        _(" Page 1. \"->\" - next, \"<-\" - prev")
     };
 
-    box(w, 0, 0);
+    const char *msg_p2[] = {
+          "             nEMU v" NM_VERSION,
+          "",
+        _(" s - take snapshot"),
+        _(" x - manage snapshots"),
+        _(" u - delete unused tap interfaces"),
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+#if (NM_WITH_VNC_CLIENT)
+          "",
+#endif
+        _(" Page 2. \"->\" - next, \"<-\" - prev")
+    };
 
-    for (size_t n = 0, y = 1; n < nm_arr_len(msg); n++, y++)
-        mvwprintw(w, y, 1, "%s", msg[n]);
+    for (;;)
+    {
+        int ch;
+        int x, y;
+        const char **curr_page = NULL;
+        size_t lines;
 
-    wgetch(w);
+        switch (curr_p) {
+        case 1:
+            curr_page = msg_p1;
+            lines = nm_arr_len(msg_p1);
+            break;
+        case 2:
+            curr_page = msg_p2;
+            lines = nm_arr_len(msg_p2);
+            break;
+        default:
+            nm_bug("%s, no such page: %d", __func__, curr_p);
+        }
+
+        box(w, 0, 0);
+        for (size_t n = 0, y = 1; n < lines; n++, y++)
+            mvwprintw(w, y, 1, "%s", curr_page[n]);
+
+        ch = wgetch(w);
+        nm_debug("ch: %x\n", ch);
+        if (ch != KEY_LEFT && ch != KEY_RIGHT)
+            break;
+
+        switch (ch) {
+        case KEY_LEFT:
+            curr_p--;
+            break;
+        case KEY_RIGHT:
+            curr_p++;
+            break;
+        }
+
+        if (curr_p == 0)
+            curr_p = 2;
+        if (curr_p == 3)
+            curr_p = 1;
+
+        getmaxyx(w, y, x);
+
+        for (int i = 0; i <= y; i++)
+            mvwhline(w, i, 0, ' ', x);
+    }
 }
 
 void nm_print_nemu(void)

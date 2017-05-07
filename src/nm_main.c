@@ -374,9 +374,9 @@ int main(void)
                     else if (ch == KEY_F(1))
                     {
 #ifdef NM_WITH_VNC_CLIENT
-                        nm_window_t *help_window = nm_init_window(19, 40, 1);
-#else
                         nm_window_t *help_window = nm_init_window(18, 40, 1);
+#else
+                        nm_window_t *help_window = nm_init_window(17, 40, 1);
 #endif
                         nm_print_help(help_window);
                         delwin(help_window);

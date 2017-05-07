@@ -8,8 +8,10 @@
 #include <sys/un.h>
 #include <sys/socket.h>
 
-#define NM_QMP_CMD_INIT    "{\"execute\":\"qmp_capabilities\"}"
-#define NM_QMP_CMD_VM_SHUT "{\"execute\":\"system_powerdown\"}"
+#define NM_QMP_CMD_INIT     "{\"execute\":\"qmp_capabilities\"}"
+#define NM_QMP_CMD_VM_SHUT  "{\"execute\":\"system_powerdown\"}"
+#define NM_QMP_CMD_VM_QUIT  "{\"execute\":\"quit\"}"
+#define NM_QMP_CMD_VM_RESET "{\"execute\":\"system_reset\"}"
 
 #define NM_INIT_QMP { .sd = -1 }
 #define NM_QMP_READLEN 1024
