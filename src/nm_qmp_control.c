@@ -21,11 +21,27 @@ typedef struct {
     struct sockaddr_un sock;
 } nm_qmp_handle_t;
 
+static void nm_qmp_vm_exec(const nm_str_t *name, const char *cmd);
 static int nm_qmp_init_cmd(nm_qmp_handle_t *h);
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path);
 static int nm_qmp_talk(int sd, const char *cmd, size_t len);
 
 void nm_qmp_vm_shut(const nm_str_t *name)
+{
+    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_SHUT);
+}
+
+void nm_qmp_vm_stop(const nm_str_t *name)
+{
+    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_QUIT);
+}
+
+void nm_qmp_vm_reset(const nm_str_t *name)
+{
+    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_RESET);
+}
+
+static void nm_qmp_vm_exec(const nm_str_t *name, const char *cmd)
 {
     nm_str_t sock_path = NM_INIT_STR;
     nm_qmp_handle_t qmp = NM_INIT_QMP;
@@ -38,7 +54,7 @@ void nm_qmp_vm_shut(const nm_str_t *name)
     if (nm_qmp_init_cmd(&qmp) == NM_ERR)
         goto out;
 
-    nm_qmp_talk(qmp.sd, NM_QMP_CMD_VM_SHUT, strlen(NM_QMP_CMD_VM_SHUT));
+    nm_qmp_talk(qmp.sd, cmd, strlen(cmd));
     close(qmp.sd);
 
 out:
@@ -109,6 +125,8 @@ static int nm_qmp_talk(int sd, const char *cmd, size_t len)
                 buf[nread - 2] = '\0';
                 nm_str_add_text(&answer, buf);
             }
+            else if (nread == 0) /* socket closed */
+                read_done = 1;
         }
         else /* nothing happens for 0.1 second */
             read_done = 1;

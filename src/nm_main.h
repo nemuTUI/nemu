@@ -16,6 +16,7 @@ enum nm_key {
     NM_KEY_E = 101,
     NM_KEY_F = 102,
     NM_KEY_I = 105,
+    NM_KEY_K = 107,
     NM_KEY_L = 108,
     NM_KEY_M = 109,
     NM_KEY_P = 112,
@@ -24,7 +25,8 @@ enum nm_key {
     NM_KEY_T = 116,
     NM_KEY_U = 117,
     NM_KEY_X = 120,
-    NM_KEY_Y = 121
+    NM_KEY_Y = 121,
+    NM_KEY_Z = 122
 };
 
 #endif /* NM_MAIN_H_ */

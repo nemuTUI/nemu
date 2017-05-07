@@ -287,8 +287,30 @@ int main(void)
                             nm_qmp_vm_shut(vm);
                     } /* }}} Poweroff VM */
 
-                    /* {{{ kill VM */
+                    /* {{{ stop VM */
                     else if (ch == NM_KEY_F)
+                    {
+                        nm_print_vm_menu(vm_window, &vms);
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (vm_status)
+                            nm_qmp_vm_stop(vm);
+                    } /* }}} stop VM */
+
+                    /* {{{ reset VM */
+                    else if (ch == NM_KEY_Z)
+                    {
+                        nm_print_vm_menu(vm_window, &vms);
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (vm_status)
+                            nm_qmp_vm_reset(vm);
+                    } /* }}} reset VM */
+
+                    /* {{{ kill VM */
+                    else if (ch == NM_KEY_K)
                     {
                         nm_print_vm_menu(vm_window, &vms);
                         const nm_str_t *vm = nm_vect_vm_name_cur(vms);
