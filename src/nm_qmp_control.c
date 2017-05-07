@@ -72,11 +72,13 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
 
 static int nm_qmp_talk(int sd, const char *cmd, size_t len)
 {
+    nm_str_t answer = NM_INIT_STR;
     char buf[NM_QMP_READLEN] = {0};
     ssize_t nread;
     struct timeval tv;
     fd_set readset;
     int ret, read_done = 0;
+    int rc = NM_OK;
 
     tv.tv_sec = 0;
     tv.tv_usec = 100000; /* 0.1 s */
@@ -102,15 +104,37 @@ static int nm_qmp_talk(int sd, const char *cmd, size_t len)
             nread = read(sd, buf, NM_QMP_READLEN);
             if (nread > 0)
                 buf[NM_QMP_READLEN - 1] = '\0';
-#ifdef NM_DEBUG
-            nm_debug("QMP: %s", buf);
-#endif
+            nm_str_add_text(&answer, buf);
         }
-        else /* notning happens for 0.1 second */
+        else /* nothing happens for 0.1 second */
             read_done = 1;
     }
 
-    return NM_OK;
+#ifdef NM_DEBUG
+    nm_debug("QMP: %s", answer.data);
+#endif
+    {
+        /* {"return": {}} from answer means OK */
+        const char *regex = ".*\\{\"return\":\\s\\{\\}\\}.*";
+        regex_t reg;
+
+        if (regcomp(&reg, regex, REG_EXTENDED) != 0)
+        {
+            nm_bug("%s: regcomp failed", __func__);
+        }
+
+        if (regexec(&reg, answer.data, 0, NULL, 0) != 0)
+        {
+            nm_print_warn(3, 6, "QMP: execute error");
+            rc = NM_ERR;
+        }
+
+        regfree(&reg);
+    }
+
+    nm_str_free(&answer);
+
+    return rc;
 }
 
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path)
