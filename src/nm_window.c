@@ -255,7 +255,7 @@ void nm_print_help(nm_window_t *w)
         int ch;
         int x, y;
         const char **curr_page = NULL;
-        size_t lines;
+        size_t lines = 0;
 
         switch (curr_p) {
         case 1:
@@ -275,7 +275,6 @@ void nm_print_help(nm_window_t *w)
             mvwprintw(w, y, 1, "%s", curr_page[n]);
 
         ch = wgetch(w);
-        nm_debug("ch: %x\n", ch);
         if (ch != KEY_LEFT && ch != KEY_RIGHT)
             break;
 
