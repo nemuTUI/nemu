@@ -114,7 +114,8 @@ static int nm_qmp_talk(int sd, const char *cmd, size_t len)
     nm_debug("QMP: %s", answer.data);
 #endif
     {
-        /* {"return": {}} from answer means OK */
+        /* {"return": {}} from answer means OK
+         * TODO: use JSON parser instead, e.g: json-c */
         const char *regex = ".*\\{\"return\":\\s\\{\\}\\}.*";
         regex_t reg;
 
