@@ -1,8 +1,10 @@
 #include <nm_core.h>
+#include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
 #include <nm_cfg_file.h>
 
+#include <sys/time.h>
 #include <sys/un.h>
 #include <sys/socket.h>
 
@@ -10,6 +12,7 @@
 #define NM_QMP_CMD_VM_SHUT "{\"execute\":\"system_powerdown\"}"
 
 #define NM_INIT_QMP { .sd = -1 }
+#define NM_QMP_READLEN 1024
 
 typedef struct {
     int sd;
@@ -46,14 +49,21 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
 
     if ((h->sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
     {
-        nm_print_warn(3, 6, _("cannot create socket for QMP connection"));
+        nm_print_warn(3, 6, _("QMP: cannot create socket"));
+        return NM_ERR;
+    }
+
+    if (fcntl(h->sd, F_SETFL, O_NONBLOCK) == -1)
+    {
+        close(h->sd);
+        nm_print_warn(3, 6, _("QMP: cannot set socket options"));
         return NM_ERR;
     }
 
     if (connect(h->sd, (struct sockaddr *) &h->sock, len) == -1)
     {
         close(h->sd);
-        nm_print_warn(3, 6, _("cannot connect to QMP socket"));
+        nm_print_warn(3, 6, _("QMP: cannot connect to socket"));
         return NM_ERR;
     }
 
@@ -62,11 +72,42 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
 
 static int nm_qmp_talk(int sd, const char *cmd, size_t len)
 {
+    char buf[NM_QMP_READLEN] = {0};
+    ssize_t nread;
+    struct timeval tv;
+    fd_set readset;
+    int ret, read_done = 0;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000; /* 0.1 s */
+
+    FD_ZERO(&readset);
+    FD_SET(sd, &readset);
+
     if (write(sd, cmd, len) == -1)
     {
         close(sd);
         nm_print_warn(3, 6, _("error send message to QMP socket"));
         return NM_ERR;
+    }
+
+    while (!read_done)
+    {
+        ret = select(sd + 1, &readset, NULL, NULL, &tv);
+        if (ret == -1)
+            nm_bug("%s: select error: %s", __func__, strerror(errno));
+        else if (ret && FD_ISSET(sd, &readset)) /* data is available */
+        {
+            memset(buf, 0, NM_QMP_READLEN);
+            nread = read(sd, buf, NM_QMP_READLEN);
+            if (nread > 0)
+                buf[NM_QMP_READLEN - 1] = '\0';
+#ifdef NM_DEBUG
+            nm_debug("QMP: %s", buf);
+#endif
+        }
+        else /* notning happens for 0.1 second */
+            read_done = 1;
     }
 
     return NM_OK;
