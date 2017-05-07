@@ -113,7 +113,11 @@ static int nm_qmp_talk(int sd, const char *cmd, size_t len)
     }
 
     if (answer.len == 0)
+    {
+        nm_print_warn(3, 6, "QMP: no answer");
+        rc = NM_ERR;
         goto out;
+    }
 
 #ifdef NM_DEBUG
     nm_debug("QMP: %s\n", answer.data);
