@@ -218,7 +218,7 @@ void nm_print_help(nm_window_t *w)
 #endif
         _(" p - powerdown vm"),
         _(" z - reset vm"),
-        _(" f - stop vm"),
+        _(" f - force stop vm"),
         _(" d - delete vm"),
         _(" e - edit vm settings"),
         _(" i - edit network settings"),
