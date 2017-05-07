@@ -102,21 +102,27 @@ static int nm_qmp_talk(int sd, const char *cmd, size_t len)
         {
             memset(buf, 0, NM_QMP_READLEN);
             nread = read(sd, buf, NM_QMP_READLEN);
-            if (nread > 0)
-                buf[NM_QMP_READLEN - 1] = '\0';
-            nm_str_add_text(&answer, buf);
+            if (nread > 1)
+	    {
+                buf[nread - 2] = '\0';
+                nm_str_add_text(&answer, buf);
+	    }
         }
         else /* nothing happens for 0.1 second */
             read_done = 1;
     }
 
+    if (answer.len == 0)
+        goto out;
+
 #ifdef NM_DEBUG
-    nm_debug("QMP: %s", answer.data);
+    nm_debug("QMP: %s\n", answer.data);
 #endif
+
     {
         /* {"return": {}} from answer means OK
          * TODO: use JSON parser instead, e.g: json-c */
-        const char *regex = ".*\\{\"return\":\\s\\{\\}\\}.*";
+        const char *regex = ".*\\{\"return\":[[:space:]]\\{\\}\\}.*";
         regex_t reg;
 
         if (regcomp(&reg, regex, REG_EXTENDED) != 0)
@@ -133,6 +139,7 @@ static int nm_qmp_talk(int sd, const char *cmd, size_t len)
         regfree(&reg);
     }
 
+out:
     nm_str_free(&answer);
 
     return rc;
