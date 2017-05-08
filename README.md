@@ -22,5 +22,5 @@
  * QEMU
 
 ## Packages
-Debian and Ubuntu [packages](https://software.opensuse.org/download.html?project=home%3ASmartFinn%3AnEMU&package=nemu)
-Gentoo: emerge app-emulation/nemu
+ * Debian and Ubuntu [packages](https://software.opensuse.org/download.html?project=home%3ASmartFinn%3AnEMU&package=nemu)
+ * Gentoo: emerge app-emulation/nemu
