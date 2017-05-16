@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=4
+DB_ACTUAL_VERSION=5
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*\s=\s//')
 RC=0
 
@@ -30,6 +30,15 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD initrd char;' &&
             sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD machine char;' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=4'
+            ) || RC=1
+            ;;
+        
+        ( 4 )
+            (
+            sqlite3 "$DB_PATH" -line 'CREATE TABLE snapshots(id integer primary key autoincrement, '`
+               `'vm_name char, backing_drive char, snap_idx integer, '`
+               `'active integer, TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)' &&
+            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=5'
             ) || RC=1
             ;;
 
