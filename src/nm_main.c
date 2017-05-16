@@ -10,6 +10,7 @@
 #include <nm_clone_vm.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
+#include <nm_snapshot.h>
 #include <nm_edit_net.h>
 #include <nm_add_drive.h>
 #include <nm_edit_boot.h>
@@ -275,6 +276,19 @@ int main(void)
                         else
                             nm_vmctl_start(vm, NM_VMCTL_TEMP);
                     } /* }}} start VM (temporary) */
+
+                    /* {{{ Create drive snapshot */
+                    else if (ch == NM_KEY_S)
+                    {
+                        nm_print_vm_menu(vm_window, &vms);
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (vm_status)
+                            nm_snapshot_create(vm);
+                        else
+                            nm_print_warn(3, 6, _("VM must be running"));
+                    } /* }}} drive snapshot */
 
                     /* {{{ Poweroff VM */
                     else if (ch == NM_KEY_P)
