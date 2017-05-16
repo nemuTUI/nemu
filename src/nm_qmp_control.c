@@ -21,7 +21,7 @@ typedef struct {
     struct sockaddr_un sock;
 } nm_qmp_handle_t;
 
-static void nm_qmp_vm_exec(const nm_str_t *name, const char *cmd);
+static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd);
 static int nm_qmp_init_cmd(nm_qmp_handle_t *h);
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path);
 static int nm_qmp_talk(int sd, const char *cmd, size_t len);
@@ -41,25 +41,29 @@ void nm_qmp_vm_reset(const nm_str_t *name)
     nm_qmp_vm_exec(name, NM_QMP_CMD_VM_RESET);
 }
 
-void nm_qmp_vm_snapshot(const nm_str_t *name, const nm_str_t *drive,
+int nm_qmp_vm_snapshot(const nm_str_t *name, const nm_str_t *drive,
                         const nm_str_t *path)
 {
     nm_str_t qmp_query = NM_INIT_STR;
+    int rc;
 
     nm_str_format(&qmp_query,
         "{\"execute\":\"blockdev-snapshot-sync\",\"arguments\":{\"device\":\"%s\","
         "\"snapshot-file\":\"%s\",\"format\":\"qcow2\"}}",
         drive->data, path->data);
 
-    nm_qmp_vm_exec(name, qmp_query.data);
+    rc = nm_qmp_vm_exec(name, qmp_query.data);
 
     nm_str_free(&qmp_query);
+
+    return rc;
 }
 
-static void nm_qmp_vm_exec(const nm_str_t *name, const char *cmd)
+static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd)
 {
     nm_str_t sock_path = NM_INIT_STR;
     nm_qmp_handle_t qmp = NM_INIT_QMP;
+    int rc = NM_ERR;
 
     nm_qmp_sock_path(name, &sock_path);
 
@@ -69,11 +73,12 @@ static void nm_qmp_vm_exec(const nm_str_t *name, const char *cmd)
     if (nm_qmp_init_cmd(&qmp) == NM_ERR)
         goto out;
 
-    nm_qmp_talk(qmp.sd, cmd, strlen(cmd));
+    rc = nm_qmp_talk(qmp.sd, cmd, strlen(cmd));
     close(qmp.sd);
 
 out:
     nm_str_free(&sock_path);
+    return rc;
 }
 
 static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
