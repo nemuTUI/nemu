@@ -12,13 +12,26 @@ enum {
     NM_FLD_SNAPNAME,
 };
 
+typedef struct {
+    nm_str_t drive;
+    nm_str_t snap_name;
+} nm_snap_data_t;
+
+#define NM_INIT_SNAP { NM_INIT_STR, NM_INIT_STR }
+
+static void nm_snapshot_get_drives(const nm_str_t *name, nm_vect_t *v);
+static int nm_snapshot_get_data(nm_snap_data_t *data);
+
+static nm_field_t *fields[NM_SNAP_FIELDS_NUM + 1];
+
 void nm_snapshot_create(const nm_str_t *name)
 {
     nm_form_t *form = NULL;
     nm_window_t *window = NULL;
-    nm_field_t *fields[NM_SNAP_FIELDS_NUM + 1];
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     nm_str_t buf = NM_INIT_STR;
+    nm_vect_t drives = NM_INIT_VECT;
+    nm_snap_data_t data = NM_INIT_SNAP;
     size_t msg_len;
     pthread_t spin_th;
     int done = 0;
@@ -36,11 +49,11 @@ void nm_snapshot_create(const nm_str_t *name)
     }
 
     fields[NM_SNAP_FIELDS_NUM] = NULL;
+    field_opts_off(fields[NM_FLD_SNAPNAME], O_STATIC);
 
-    /*set_field_type(fields[NM_FLD_DRVSIZE], TYPE_INTEGER, 0, 1, nm_hw_disk_free());
-    set_field_type(fields[NM_FLD_DRVTYPE], TYPE_ENUM, nm_form_drive_drv, false, false);
-
-    set_field_buffer(fields[NM_FLD_DRVTYPE], 0, NM_DEFAULT_DRVINT);*/
+    nm_snapshot_get_drives(name, &drives);
+    set_field_type(fields[NM_FLD_SNAPDISK], TYPE_ENUM, drives.data, false, false);
+    set_field_buffer(fields[NM_FLD_SNAPDISK], 0, *drives.data);
 
     nm_str_alloc_text(&buf, _("Snapshot "));
     nm_str_add_str(&buf, name);
@@ -50,6 +63,9 @@ void nm_snapshot_create(const nm_str_t *name)
 
     form = nm_post_form(window, fields, 22);
     if (nm_draw_form(window, form) != NM_OK)
+        goto out;
+
+    if (nm_snapshot_get_data(&data) != NM_OK)
         goto out;
 
     msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
@@ -66,8 +82,54 @@ void nm_snapshot_create(const nm_str_t *name)
         nm_bug(_("%s: cannot join thread"), __func__);
 
 out:
+    nm_vect_free(&drives, NULL);
     nm_form_free(form, fields);
+    nm_str_free(&data.drive);
+    nm_str_free(&data.snap_name);
     nm_str_free(&buf);
+}
+
+static void nm_snapshot_get_drives(const nm_str_t *name, nm_vect_t *v)
+{
+    nm_str_t query = NM_INIT_STR;
+    nm_vect_t drives = NM_INIT_VECT;
+
+    nm_str_format(&query, "SELECT drive_name FROM drives WHERE vm_name='%s'",
+        name->data);
+
+    nm_db_select(query.data, &drives);
+
+    if (drives.n_memb == 0)
+        nm_bug("%s: cannot find any drives", __func__);
+
+    for (size_t n = 0; n < drives.n_memb; n++)
+    {
+        nm_str_t *drive = (nm_str_t *) drives.data[n];
+        nm_vect_insert(v, drive->data, drive->len + 1, NULL);
+    }
+
+    nm_vect_end_zero(v);
+
+    nm_str_free(&query);
+    nm_vect_free(&drives, nm_str_vect_free_cb);
+}
+
+static int nm_snapshot_get_data(nm_snap_data_t *data)
+{
+    int rc = NM_OK;
+    nm_vect_t err = NM_INIT_VECT;
+
+    nm_get_field_buf(fields[NM_FLD_SNAPDISK], &data->drive);
+    nm_get_field_buf(fields[NM_FLD_SNAPNAME], &data->snap_name);
+
+    nm_form_check_data(_("Drive"), data->drive, err);
+    nm_form_check_data(_("Snapshot name"), data->snap_name, err);
+
+    rc = nm_print_empty_fields(&err);
+
+    nm_vect_free(&err, NULL);
+
+    return rc;
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
