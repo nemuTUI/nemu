@@ -42,14 +42,14 @@ void nm_qmp_vm_reset(const nm_str_t *name)
 }
 
 void nm_qmp_vm_snapshot(const nm_str_t *name, const nm_str_t *drive,
-                        const nm_str_t *path, const nm_str_t *snap_name)
+                        const nm_str_t *path)
 {
     nm_str_t qmp_query = NM_INIT_STR;
 
     nm_str_format(&qmp_query,
         "{\"execute\":\"blockdev-snapshot-sync\",\"arguments\":{\"device\":\"%s\","
-        "\"%s\":\"%s\",\"format\":\"qcow2\"}}",
-        drive->data, path->data, snap_name->data);
+        "\"snapshot-file\":\"%s\",\"format\":\"qcow2\"}}",
+        drive->data, path->data);
 
     nm_qmp_vm_exec(name, qmp_query.data);
 
