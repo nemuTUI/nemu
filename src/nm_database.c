@@ -36,7 +36,7 @@ void nm_db_init(void)
         "CREATE TABLE drives(id integer primary key autoincrement, "
             "vm_name char, drive_name char, drive_drv char, capacity integer, boot integer)",
         "CREATE TABLE snapshots(id integer primary key autoincrement, "
-            "vm_name char, backing_drive char, snap_idx integer, active integer, "
+            "vm_name char, snap_name char, backing_drive char, snap_idx integer, active integer, "
             "TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)"
     };
 
