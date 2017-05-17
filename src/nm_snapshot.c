@@ -36,8 +36,7 @@ static int nm_snapshot_get_data(nm_snap_data_t *data);
 static int nm_snapshot_to_fs(const nm_str_t *name, const nm_snap_data_t *data);
 static void nm_snapshot_to_db(const nm_str_t *name, const nm_snap_data_t *data, int idx);
 static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
-                                    const nm_str_t *snapshot, const nm_vect_t *snaps,
-                                    const nm_vect_t *data);
+                                    const nm_str_t *snapshot, const nm_vect_t *snaps);
 
 static nm_field_t *fields_c[NM_SNAP_FIELDS_NUM + 1];
 
@@ -217,7 +216,7 @@ void nm_snapshot_revert(const nm_str_t *name)
         goto out;
     }
 
-    nm_snapshot_revert_data(name, drive, &buf, &choices, &snaps);
+    nm_snapshot_revert_data(name, drive, &buf, &choices);
 
 out:
     nm_form_free(snap_form, fields_snap);
@@ -229,11 +228,10 @@ out:
 }
 
 static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
-                                    const nm_str_t *snapshot, const nm_vect_t *snaps,
-                                    const nm_vect_t *data)
+                                    const nm_str_t *snapshot, const nm_vect_t *snaps)
 {
     int found = 0;
-    size_t snaps_count = 0;
+    size_t cur_snap = 0;
     nm_str_t query = NM_INIT_STR;
 
     for (size_t n = 0; n < snaps->n_memb; n++)
@@ -241,6 +239,7 @@ static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
         if (nm_str_cmp_st(snapshot, snaps->data[n]) == NM_OK)
         {
             found = 1;
+            cur_snap = (n - 1);
             break;
         }
     }
@@ -265,36 +264,22 @@ static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
             name->data, snapshot->data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
-    }
 
-    snaps_count = data->n_memb / 7;
-    if (nm_str_cmp_st(snapshot, NM_SNAP_INIT_NAME) == NM_OK)
-    {
-        for (size_t n = 0; n < snaps_count; n++)
-        {
-            size_t idx_shift = 7 * n;
-        }
+        nm_str_format(&query,
+            "DELETE FROM snapshots WHERE vm_name='%s' "
+            "AND backing_drive='%s' AND snap_idx > %zu",
+            name->data, drive, cur_snap);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
     }
     else
     {
-        int delete_next = 0;
-        for (size_t n = 0; n < snaps_count; n++)
-        {
-            size_t idx_shift = 7 * n;
-
-            if (!delete_next)
-            {
-                if (nm_str_cmp_ss(snapshot,
-                        nm_vect_str(data, NM_SQL_SNAP_NAME + idx_shift)) == NM_OK)
-                {
-                    delete_next = 1;
-                }
-            }
-            else
-            {
-                //...
-            }
-        }
+        nm_str_format(&query,
+            "DELETE FROM snapshots WHERE vm_name='%s' "
+            "AND backing_drive='%s'",
+            name->data, drive);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
     }
 
 out:
