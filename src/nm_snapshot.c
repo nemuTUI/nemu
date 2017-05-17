@@ -8,10 +8,20 @@
 #include <nm_qmp_control.h>
 
 #define NM_SNAP_FIELDS_NUM 2
+#define NM_SNAP_INIT_NAME "init"
 
 enum {
     NM_FLD_SNAPDISK = 0,
     NM_FLD_SNAPNAME,
+};
+
+enum {
+    nm_SQL_SNAP_ID = 0,
+    NM_SQL_SNAP_VM,
+    NM_SQL_SNAP_NAME,
+    NM_SQL_SNAP_BACK,
+    NM_SQL_SNAP_NUM,
+    NM_SQL_SNAP_TIME = 6
 };
 
 typedef struct {
@@ -25,6 +35,9 @@ static void nm_snapshot_get_drives(const nm_str_t *name, nm_vect_t *v);
 static int nm_snapshot_get_data(nm_snap_data_t *data);
 static int nm_snapshot_to_fs(const nm_str_t *name, const nm_snap_data_t *data);
 static void nm_snapshot_to_db(const nm_str_t *name, const nm_snap_data_t *data, int idx);
+static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
+                                    const nm_str_t *snapshot, const nm_vect_t *snaps,
+                                    const nm_vect_t *data);
 
 static nm_field_t *fields_c[NM_SNAP_FIELDS_NUM + 1];
 
@@ -98,21 +111,18 @@ void nm_snapshot_revert(const nm_str_t *name)
 {
     nm_vect_t drives = NM_INIT_VECT;
     nm_vect_t snaps = NM_INIT_VECT;
+    nm_vect_t choices = NM_INIT_VECT;
+    nm_vect_t err = NM_INIT_VECT;
+    nm_form_t *snap_form = NULL;
+    nm_field_t *fields_snap[2];
     const char *drive = NULL;
     nm_window_t *select_window = NULL;
     nm_window_t *revert_window = NULL;
     nm_snapshot_get_drives(name, &drives);
     nm_str_t query = NM_INIT_STR;
+    nm_str_t buf = NM_INIT_STR;
     size_t snaps_count = 0;
-    int pos_y = 15;
-
-    enum {
-        NM_SQL_SNAP_VM = 1,
-        NM_SQL_SNAP_NAME,
-        NM_SQL_SNAP_BACK,
-        NM_SQL_SNAP_NUM,
-        NM_SQL_SNAP_TIME = 6
-    };
+    int pos_y = 11, pos_x = 6;
 
     if (drives.n_memb == 1) /* XXX > 1 */
     {
@@ -136,21 +146,24 @@ void nm_snapshot_revert(const nm_str_t *name)
         goto out;
     }
 
+    nm_vect_insert(&choices, NM_SNAP_INIT_NAME,
+        sizeof(NM_SNAP_INIT_NAME), NULL);
+
     nm_print_title(_(NM_EDIT_TITLE));
 
     snaps_count = snaps.n_memb / 7;
-    mvprintw(pos_y, 1, "init -> ");
-    for (size_t n = 0, pos_x = 5; n < snaps_count; n++)
+    mvprintw(pos_y, 2, NM_SNAP_INIT_NAME " -> ");
+    for (size_t n = 0; n < snaps_count; n++)
     {
         size_t idx_shift = 7 * n;
 
-        if (pos_x != 5)
+        if (pos_x != 6)
             mvprintw(pos_y, pos_x, " -> ");
 
         if (pos_x >= (getmaxx(stdscr) - 20))
         {
             pos_y++;
-            pos_x = 1;
+            pos_x = 2;
         }
         else
         {
@@ -165,14 +178,128 @@ void nm_snapshot_revert(const nm_str_t *name)
         pos_x += nm_vect_str_len(&snaps, NM_SQL_SNAP_TIME + idx_shift);
         mvprintw(pos_y, pos_x, ")");
         pos_x++;
+
+        nm_vect_insert(&choices,
+            nm_vect_str_ctx(&snaps, NM_SQL_SNAP_NAME + idx_shift),
+            nm_vect_str_len(&snaps, NM_SQL_SNAP_NAME + idx_shift) + 1,
+            NULL);
     }
 
-    getch();
+    nm_vect_end_zero(&choices);
+
+    revert_window = nm_init_window(7, 45, 3);
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    wbkgd(revert_window, COLOR_PAIR(1));
+
+    fields_snap[0] = new_field(1, 30, 2, 1, 0, 0);
+    set_field_back(fields_snap[0], A_UNDERLINE);
+    fields_snap[1] = NULL;
+
+    set_field_type(fields_snap[0], TYPE_ENUM, choices.data, false, false);
+    set_field_buffer(fields_snap[0], 0, *choices.data);
+
+    nm_str_add_text(&buf, _("Revert "));
+    nm_str_add_str(&buf, name);
+    mvwaddstr(revert_window, 1, 2, buf.data);
+    mvwaddstr(revert_window, 4, 2, _("Snapshot"));
+    nm_str_trunc(&buf, 0);
+
+    snap_form = nm_post_form(revert_window, fields_snap, 11);
+    if (nm_draw_form(revert_window, snap_form) != NM_OK)
+        goto out;
+
+    nm_get_field_buf(fields_snap[0], &buf);
+    nm_form_check_data(_("Snapshot"), buf, err);
+
+    if (nm_print_empty_fields(&err) == NM_ERR)
+    {
+        nm_vect_free(&err, NULL);
+        goto out;
+    }
+
+    nm_snapshot_revert_data(name, drive, &buf, &choices, &snaps);
 
 out:
+    nm_form_free(snap_form, fields_snap);
     nm_vect_free(&drives, NULL);
+    nm_vect_free(&choices, NULL);
     nm_vect_free(&snaps, nm_str_vect_free_cb);
     nm_str_free(&query);
+    nm_str_free(&buf);
+}
+
+static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
+                                    const nm_str_t *snapshot, const nm_vect_t *snaps,
+                                    const nm_vect_t *data)
+{
+    int found = 0;
+    size_t snaps_count = 0;
+    nm_str_t query = NM_INIT_STR;
+
+    for (size_t n = 0; n < snaps->n_memb; n++)
+    {
+        if (nm_str_cmp_st(snapshot, snaps->data[n]) == NM_OK)
+        {
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found && (nm_str_cmp_st(snapshot, NM_SNAP_INIT_NAME) == NM_ERR))
+    {
+        nm_print_warn(3, 2, _("Invalid snapshot name"));
+        goto out;
+    }
+
+    nm_str_format(&query,
+        "UPDATE snapshots SET active='0' WHERE vm_name='%s' and backing_drive='%s'",
+        name->data, drive);
+    nm_db_edit(query.data);
+
+    nm_str_trunc(&query, 0);
+
+    if (nm_str_cmp_st(snapshot, NM_SNAP_INIT_NAME) == NM_ERR)
+    {
+        nm_str_format(&query,
+            "UPDATE snapshots SET active='1' WHERE vm_name='%s' and snap_name='%s'",
+            name->data, snapshot->data);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    snaps_count = data->n_memb / 7;
+    if (nm_str_cmp_st(snapshot, NM_SNAP_INIT_NAME) == NM_OK)
+    {
+        for (size_t n = 0; n < snaps_count; n++)
+        {
+            size_t idx_shift = 7 * n;
+        }
+    }
+    else
+    {
+        int delete_next = 0;
+        for (size_t n = 0; n < snaps_count; n++)
+        {
+            size_t idx_shift = 7 * n;
+
+            if (!delete_next)
+            {
+                if (nm_str_cmp_ss(snapshot,
+                        nm_vect_str(data, NM_SQL_SNAP_NAME + idx_shift)) == NM_OK)
+                {
+                    delete_next = 1;
+                }
+            }
+            else
+            {
+                //...
+            }
+        }
+    }
+
+out:
+    nm_str_free(&query);
+    return;
 }
 
 static void nm_snapshot_get_drives(const nm_str_t *name, nm_vect_t *v)
