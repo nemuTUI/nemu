@@ -7,7 +7,7 @@ fi
 
 DB_PATH="$1"
 DB_ACTUAL_VERSION=5
-DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*\s=\s//')
+DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 RC=0
 
 if [ "$DB_CURRENT_VERSION" -lt 3 ]; then
@@ -47,7 +47,7 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             exit 1
     esac
     
-    DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*\s=\s//')
+    DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 done
 
 [ "$RC" = 0 ] && echo "database upgrade complete."
