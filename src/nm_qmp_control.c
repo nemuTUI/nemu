@@ -21,31 +21,52 @@ typedef struct {
     struct sockaddr_un sock;
 } nm_qmp_handle_t;
 
-static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd);
+static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
+                          struct timeval *tv);
 static int nm_qmp_init_cmd(nm_qmp_handle_t *h);
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path);
-static int nm_qmp_talk(int sd, const char *cmd, size_t len);
+static int nm_qmp_talk(int sd, const char *cmd,
+                       size_t len, struct timeval *tv);
 
 void nm_qmp_vm_shut(const nm_str_t *name)
 {
-    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_SHUT);
+    struct timeval tv;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000; /* 0.1 s */
+
+    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_SHUT, &tv);
 }
 
 void nm_qmp_vm_stop(const nm_str_t *name)
 {
-    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_QUIT);
+    struct timeval tv;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000; /* 0.1 s */
+
+    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_QUIT, &tv);
 }
 
 void nm_qmp_vm_reset(const nm_str_t *name)
 {
-    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_RESET);
+    struct timeval tv;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000; /* 0.1 s */
+
+    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_RESET, &tv);
 }
 
 int nm_qmp_vm_snapshot(const nm_str_t *name, const nm_str_t *drive,
-                        const nm_str_t *path)
+                       const nm_str_t *path)
 {
     nm_str_t qmp_query = NM_INIT_STR;
+    struct timeval tv;
     int rc;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 500000; /* 0.5 s */
 
     nm_str_format(&qmp_query,
         "{\"execute\":\"blockdev-snapshot-sync\",\"arguments\":{\"device\":\"%s\","
@@ -54,14 +75,15 @@ int nm_qmp_vm_snapshot(const nm_str_t *name, const nm_str_t *drive,
 #if NM_DEBUG
     nm_debug("exec qmp: %s\n", qmp_query.data);
 #endif
-    rc = nm_qmp_vm_exec(name, qmp_query.data);
+    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
 
     nm_str_free(&qmp_query);
 
     return rc;
 }
 
-static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd)
+static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
+                          struct timeval *tv)
 {
     nm_str_t sock_path = NM_INIT_STR;
     nm_qmp_handle_t qmp = NM_INIT_QMP;
@@ -75,7 +97,7 @@ static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd)
     if (nm_qmp_init_cmd(&qmp) == NM_ERR)
         goto out;
 
-    rc = nm_qmp_talk(qmp.sd, cmd, strlen(cmd));
+    rc = nm_qmp_talk(qmp.sd, cmd, strlen(cmd), tv);
     close(qmp.sd);
 
 out:
@@ -86,6 +108,10 @@ out:
 static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
 {
     socklen_t len = sizeof(h->sock);
+    struct timeval tv;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000; /* 0.1 s */
 
     if ((h->sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
     {
@@ -107,21 +133,18 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
         return NM_ERR;
     }
 
-    return nm_qmp_talk(h->sd, NM_QMP_CMD_INIT, strlen(NM_QMP_CMD_INIT));
+    return nm_qmp_talk(h->sd, NM_QMP_CMD_INIT, strlen(NM_QMP_CMD_INIT), &tv);
 }
 
-static int nm_qmp_talk(int sd, const char *cmd, size_t len)
+static int nm_qmp_talk(int sd, const char *cmd,
+                       size_t len, struct timeval *tv)
 {
     nm_str_t answer = NM_INIT_STR;
     char buf[NM_QMP_READLEN] = {0};
     ssize_t nread;
-    struct timeval tv;
     fd_set readset;
     int ret, read_done = 0;
     int rc = NM_OK;
-
-    tv.tv_sec = 0;
-    tv.tv_usec = 100000; /* 0.1 s */
 
     FD_ZERO(&readset);
     FD_SET(sd, &readset);
@@ -135,7 +158,7 @@ static int nm_qmp_talk(int sd, const char *cmd, size_t len)
 
     while (!read_done)
     {
-        ret = select(sd + 1, &readset, NULL, NULL, &tv);
+        ret = select(sd + 1, &readset, NULL, NULL, tv);
         if (ret == -1)
             nm_bug("%s: select error: %s", __func__, strerror(errno));
         else if (ret && FD_ISSET(sd, &readset)) /* data is available */
@@ -150,7 +173,7 @@ static int nm_qmp_talk(int sd, const char *cmd, size_t len)
             else if (nread == 0) /* socket closed */
                 read_done = 1;
         }
-        else /* nothing happens for 0.1 second */
+        else /* timeout, nothing happens */
             read_done = 1;
     }
 
