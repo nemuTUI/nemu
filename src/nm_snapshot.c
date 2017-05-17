@@ -37,6 +37,7 @@ static int nm_snapshot_to_fs(const nm_str_t *name, const nm_snap_data_t *data);
 static void nm_snapshot_to_db(const nm_str_t *name, const nm_snap_data_t *data, int idx);
 static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
                                     const nm_str_t *snapshot, const nm_vect_t *snaps);
+static const char *nm_snapshot_select_drive(const nm_vect_t *drives);
 
 static nm_field_t *fields_c[NM_SNAP_FIELDS_NUM + 1];
 
@@ -115,7 +116,6 @@ void nm_snapshot_revert(const nm_str_t *name)
     nm_form_t *snap_form = NULL;
     nm_field_t *fields_snap[2];
     const char *drive = NULL;
-    nm_window_t *select_window = NULL;
     nm_window_t *revert_window = NULL;
     nm_snapshot_get_drives(name, &drives);
     nm_str_t query = NM_INIT_STR;
@@ -125,10 +125,11 @@ void nm_snapshot_revert(const nm_str_t *name)
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     pthread_t spin_th;
 
-    if (drives.n_memb == 1) /* XXX > 1 */
+    if (drives.n_memb > 1)
     {
-        /* get drive from user input
-         * drive = nm_snapshot_select_drive() */
+        drive = nm_snapshot_select_drive(&drives);
+        if (drive == NULL)
+            goto out;
     }
     else
     {
@@ -238,6 +239,60 @@ out:
     nm_vect_free(&snaps, nm_str_vect_free_cb);
     nm_str_free(&query);
     nm_str_free(&buf);
+}
+
+static const char *nm_snapshot_select_drive(const nm_vect_t *drives)
+{
+    char *drive = NULL;
+    nm_form_t *form = NULL;
+    nm_window_t *window = NULL;
+    nm_field_t *fields[2];
+    nm_vect_t err = NM_INIT_VECT;
+    nm_str_t buf = NM_INIT_STR;
+
+    nm_print_title(_(NM_EDIT_TITLE));
+    window = nm_init_window(7, 45, 3);
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    wbkgd(window, COLOR_PAIR(1));
+
+    fields[0] = new_field(1, 30, 2, 1, 0, 0);
+    set_field_back(fields[0], A_UNDERLINE);
+    fields[1] = NULL;
+
+    set_field_type(fields[0], TYPE_ENUM, drives->data, false, false);
+    set_field_buffer(fields[0], 0, *drives->data);
+
+    mvwaddstr(window, 1, 2, _("Select drive"));
+    mvwaddstr(window, 4, 2, _("Drive"));
+
+    form = nm_post_form(window, fields, 11);
+    if (nm_draw_form(window, form) != NM_OK)
+        goto out;
+
+    nm_get_field_buf(fields[0], &buf);
+    nm_form_check_data(_("Drive"), buf, err);
+
+    if (nm_print_empty_fields(&err) == NM_ERR)
+    {
+        nm_vect_free(&err, NULL);
+        goto out;
+    }
+
+    for (size_t n = 0; n < drives->n_memb; n++)
+    {
+        char *d = drives->data[n];
+        if (nm_str_cmp_st(&buf, d) == NM_OK)
+        {
+            drive = d;
+            break;
+        }
+    }
+
+out:
+    nm_form_free(form, fields);
+    nm_str_free(&buf);
+
+    return drive;
 }
 
 static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
