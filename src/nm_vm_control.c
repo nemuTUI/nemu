@@ -240,12 +240,36 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     for (size_t n = 0; n < drives_count; n++)
     {
         size_t idx_shift = 4 * n;
+        nm_str_t snap_name = NM_INIT_STR;
+        nm_str_t snap_query = NM_INIT_STR;
+        nm_vect_t snap_res = NM_INIT_VECT;
+        const nm_str_t *drive_img = nm_vect_str(&vm->drives, NM_SQL_DRV_NAME + idx_shift);
+
+        nm_str_format(&snap_query,
+            "SELECT snap_idx FROM snapshots WHERE vm_name='%s' "
+            "AND backing_drive='%s' AND active='1'",
+            name->data, drive_img->data);
+
+        nm_db_select(snap_query.data, &snap_res);
 
         nm_str_add_text(res, " -drive file=");
         nm_str_add_str(res, &vmdir);
-        nm_str_add_str(res, nm_vect_str(&vm->drives, NM_SQL_DRV_NAME + idx_shift));
+        if (snap_res.n_memb == 0)
+        {
+            nm_str_add_str(res, drive_img);
+        }
+        else
+        {
+            nm_str_format(&snap_name, "%s.snap%s",
+                drive_img->data, ((nm_str_t *)snap_res.data[0])->data);
+            nm_str_add_str(res, &snap_name);
+        }
         nm_str_add_text(res, ",media=disk,if=");
         nm_str_add_str(res, nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift));
+
+        nm_str_free(&snap_name);
+        nm_str_free(&snap_query);
+        nm_vect_free(&snap_res, nm_str_vect_free_cb);
     }
 
     nm_str_add_text(res, " -m ");
