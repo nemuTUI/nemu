@@ -26,7 +26,7 @@ static int nm_snapshot_get_data(nm_snap_data_t *data);
 static int nm_snapshot_to_fs(const nm_str_t *name, const nm_snap_data_t *data);
 static void nm_snapshot_to_db(const nm_str_t *name, const nm_snap_data_t *data, int idx);
 
-static nm_field_t *fields[NM_SNAP_FIELDS_NUM + 1];
+static nm_field_t *fields_c[NM_SNAP_FIELDS_NUM + 1];
 
 void nm_snapshot_create(const nm_str_t *name)
 {
@@ -48,16 +48,16 @@ void nm_snapshot_create(const nm_str_t *name)
 
     for (size_t n = 0; n < NM_SNAP_FIELDS_NUM; ++n)
     {
-        fields[n] = new_field(1, 19, (n + 1) * 2, 1, 0, 0);
-        set_field_back(fields[n], A_UNDERLINE);
+        fields_c[n] = new_field(1, 19, (n + 1) * 2, 1, 0, 0);
+        set_field_back(fields_c[n], A_UNDERLINE);
     }
 
-    fields[NM_SNAP_FIELDS_NUM] = NULL;
-    field_opts_off(fields[NM_FLD_SNAPNAME], O_STATIC);
+    fields_c[NM_SNAP_FIELDS_NUM] = NULL;
+    field_opts_off(fields_c[NM_FLD_SNAPNAME], O_STATIC);
 
     nm_snapshot_get_drives(name, &drives);
-    set_field_type(fields[NM_FLD_SNAPDISK], TYPE_ENUM, drives.data, false, false);
-    set_field_buffer(fields[NM_FLD_SNAPDISK], 0, *drives.data);
+    set_field_type(fields_c[NM_FLD_SNAPDISK], TYPE_ENUM, drives.data, false, false);
+    set_field_buffer(fields_c[NM_FLD_SNAPDISK], 0, *drives.data);
 
     nm_str_alloc_text(&buf, _("Snapshot "));
     nm_str_add_str(&buf, name);
@@ -65,7 +65,7 @@ void nm_snapshot_create(const nm_str_t *name)
     mvwaddstr(window, 4, 2, _("Drive"));
     mvwaddstr(window, 6, 2, _("Snapshot name"));
 
-    form = nm_post_form(window, fields, 22);
+    form = nm_post_form(window, fields_c, 22);
     if (nm_draw_form(window, form) != NM_OK)
         goto out;
 
@@ -88,10 +88,15 @@ void nm_snapshot_create(const nm_str_t *name)
 
 out:
     nm_vect_free(&drives, NULL);
-    nm_form_free(form, fields);
+    nm_form_free(form, fields_c);
     nm_str_free(&data.drive);
     nm_str_free(&data.snap_name);
     nm_str_free(&buf);
+}
+
+void nm_snapshot_revert(const nm_str_t *name)
+{
+    //...
 }
 
 static void nm_snapshot_get_drives(const nm_str_t *name, nm_vect_t *v)
@@ -124,8 +129,8 @@ static int nm_snapshot_get_data(nm_snap_data_t *data)
     int rc = NM_OK;
     nm_vect_t err = NM_INIT_VECT;
 
-    nm_get_field_buf(fields[NM_FLD_SNAPDISK], &data->drive);
-    nm_get_field_buf(fields[NM_FLD_SNAPNAME], &data->snap_name);
+    nm_get_field_buf(fields_c[NM_FLD_SNAPDISK], &data->drive);
+    nm_get_field_buf(fields_c[NM_FLD_SNAPNAME], &data->snap_name);
 
     nm_form_check_data(_("Drive"), data->drive, err);
     nm_form_check_data(_("Snapshot name"), data->snap_name, err);

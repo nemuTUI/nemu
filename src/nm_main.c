@@ -290,6 +290,19 @@ int main(void)
                             nm_print_warn(3, 6, _("VM must be running"));
                     } /* }}} drive snapshot */
 
+                    /* {{{ Revert to snapshot */
+                    else if (ch == NM_KEY_X)
+                    {
+                        nm_print_vm_menu(vm_window, &vms);
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (!vm_status)
+                            nm_snapshot_revert(vm);
+                        else
+                            nm_print_warn(3, 6, _("VM must be stopped"));
+                    } /* }}} revert to snapshot */
+
                     /* {{{ Poweroff VM */
                     else if (ch == NM_KEY_P)
                     {

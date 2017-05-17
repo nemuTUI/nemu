@@ -233,7 +233,7 @@ void nm_print_help(nm_window_t *w)
           "             nEMU v" NM_VERSION,
           "",
         _(" s - take snapshot"),
-        _(" x - manage snapshots"),
+        _(" x - revert snapshot"),
         _(" k - kill vm process"),
         _(" m - show command"),
         _(" u - delete unused tap interfaces"),
