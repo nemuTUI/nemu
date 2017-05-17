@@ -51,7 +51,9 @@ int nm_qmp_vm_snapshot(const nm_str_t *name, const nm_str_t *drive,
         "{\"execute\":\"blockdev-snapshot-sync\",\"arguments\":{\"device\":\"%s\","
         "\"snapshot-file\":\"%s\",\"format\":\"qcow2\"}}",
         drive->data, path->data);
-
+#if NM_DEBUG
+    nm_debug("exec qmp: %s\n", qmp_query.data);
+#endif
     rc = nm_qmp_vm_exec(name, qmp_query.data);
 
     nm_str_free(&qmp_query);

@@ -4,6 +4,8 @@
 #include <nm_string.h>
 #include <nm_window.h>
 #include <nm_database.h>
+#include <nm_cfg_file.h>
+#include <nm_qmp_control.h>
 
 #define NM_SNAP_FIELDS_NUM 2
 
@@ -21,6 +23,7 @@ typedef struct {
 
 static void nm_snapshot_get_drives(const nm_str_t *name, nm_vect_t *v);
 static int nm_snapshot_get_data(nm_snap_data_t *data);
+static int nm_snapshot_to_fs(const nm_str_t *name, const nm_snap_data_t *data);
 
 static nm_field_t *fields[NM_SNAP_FIELDS_NUM + 1];
 
@@ -75,7 +78,10 @@ void nm_snapshot_create(const nm_str_t *name)
     if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
-    /*XXX action here */
+    if (nm_snapshot_to_fs(name, &data) == NM_OK)
+    {
+        //...
+    }
 
     done = 1;
     if (pthread_join(spin_th, NULL) != 0)
@@ -128,6 +134,70 @@ static int nm_snapshot_get_data(nm_snap_data_t *data)
     rc = nm_print_empty_fields(&err);
 
     nm_vect_free(&err, NULL);
+
+    return rc;
+}
+
+static int nm_snapshot_to_fs(const nm_str_t *name, const nm_snap_data_t *data)
+{
+    int rc = NM_OK;
+    nm_str_t query = NM_INIT_STR;
+    nm_str_t snap_path = NM_INIT_STR;
+    nm_str_t interface = NM_INIT_STR;
+    nm_vect_t drive = NM_INIT_VECT;
+    nm_vect_t snaps = NM_INIT_VECT;
+    char drive_idx = 0, snap_idx = 0;
+
+    nm_str_format(&query,
+        "SELECT drive_drv FROM drives WHERE vm_name='%s' AND drive_name='%s'",
+        name->data, data->drive.data);
+
+    nm_db_select(query.data, &drive);
+
+    if (drive.n_memb == 0)
+        nm_bug("%s: cannot drive info", __func__);
+
+    /* FIXME this is bad but it works.
+     * Take disk interface from qmp query
+     * "query-block" and parse it with json-c */
+    if (nm_str_cmp_st(drive.data[0], nm_form_drive_drv[0]) == NM_OK)
+        nm_str_add_text(&interface, "ide0-hd");
+    else if (nm_str_cmp_st(drive.data[0], nm_form_drive_drv[1]) == NM_OK)
+        nm_str_add_text(&interface, "scsi0-hd");
+    else if (nm_str_cmp_st(drive.data[0], nm_form_drive_drv[2]) == NM_OK)
+        nm_str_add_text(&interface, "virtio");
+    else
+        nm_bug("%s: something goes wrong", __func__);
+
+    drive_idx = data->drive.data[data->drive.len - 5];
+    nm_str_format(&interface, "%d", drive_idx - 97);
+
+    nm_str_trunc(&query, 0);
+    nm_str_format(&query,
+        "SELECT id FROM snapshots WHERE vm_name='%s' AND backing_drive='%s'",
+        name->data, data->drive.data);
+
+    nm_db_select(query.data, &snaps);
+
+    snap_idx = snaps.n_memb;
+
+    nm_str_alloc_str(&snap_path, &nm_cfg_get()->vm_dir);
+    nm_str_add_char(&snap_path, '/');
+    nm_str_add_str(&snap_path, name);
+    nm_str_add_char(&snap_path, '/');
+    nm_str_add_str(&snap_path, &data->drive);
+    nm_str_format(&snap_path, ".snap%d", snap_idx);
+
+    rc = snap_idx;
+
+    if (nm_qmp_vm_snapshot(name, &interface, &snap_path) == NM_ERR)
+        rc = NM_ERR;
+
+    nm_str_free(&query);
+    nm_str_free(&snap_path);
+    nm_str_free(&interface);
+    nm_vect_free(&drive, nm_str_vect_free_cb);
+    nm_vect_free(&snaps, nm_str_vect_free_cb);
 
     return rc;
 }
