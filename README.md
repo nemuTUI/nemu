@@ -8,6 +8,7 @@
  * Show VM status
  * Start/stop/shutdown/reset VM
  * Connect to VM via vnc
+ * Snapshots
  * Show/Edit VM settings
  * USB support
  * Network via tap interfaces
