@@ -143,7 +143,7 @@ void nm_snapshot_revert(const nm_str_t *name)
 
     if (snaps.n_memb == 0)
     {
-        nm_print_warn(3, 6, _("No snapshots"));
+        nm_print_warn(3, 6, _("There are no snapshots"));
         goto out;
     }
 
