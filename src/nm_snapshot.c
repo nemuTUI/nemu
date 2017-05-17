@@ -96,7 +96,83 @@ out:
 
 void nm_snapshot_revert(const nm_str_t *name)
 {
-    //...
+    nm_vect_t drives = NM_INIT_VECT;
+    nm_vect_t snaps = NM_INIT_VECT;
+    const char *drive = NULL;
+    nm_window_t *select_window = NULL;
+    nm_window_t *revert_window = NULL;
+    nm_snapshot_get_drives(name, &drives);
+    nm_str_t query = NM_INIT_STR;
+    size_t snaps_count = 0;
+    int pos_y = 15;
+
+    enum {
+        NM_SQL_SNAP_VM = 1,
+        NM_SQL_SNAP_NAME,
+        NM_SQL_SNAP_BACK,
+        NM_SQL_SNAP_NUM,
+        NM_SQL_SNAP_TIME = 6
+    };
+
+    if (drives.n_memb == 1) /* XXX > 1 */
+    {
+        /* get drive from user input
+         * drive = nm_snapshot_select_drive() */
+    }
+    else
+    {
+        drive = (const char *) drives.data[0];
+    }
+
+    nm_str_format(&query,
+        "SELECT * FROM snapshots WHERE vm_name='%s' AND backing_drive='%s'"
+        " ORDER BY snap_idx ASC",
+        name->data, drive);
+    nm_db_select(query.data, &snaps);
+
+    if (snaps.n_memb == 0)
+    {
+        nm_print_warn(3, 6, _("No snapshots"));
+        goto out;
+    }
+
+    nm_print_title(_(NM_EDIT_TITLE));
+
+    snaps_count = snaps.n_memb / 7;
+    mvprintw(pos_y, 1, "init -> ");
+    for (size_t n = 0, pos_x = 5; n < snaps_count; n++)
+    {
+        size_t idx_shift = 7 * n;
+
+        if (pos_x != 5)
+            mvprintw(pos_y, pos_x, " -> ");
+
+        if (pos_x >= (getmaxx(stdscr) - 20))
+        {
+            pos_y++;
+            pos_x = 1;
+        }
+        else
+        {
+            pos_x += 4;
+        }
+
+        mvprintw(pos_y, pos_x, nm_vect_str_ctx(&snaps, NM_SQL_SNAP_NAME + idx_shift));
+        pos_x += nm_vect_str_len(&snaps, NM_SQL_SNAP_NAME + idx_shift);
+        mvprintw(pos_y, pos_x, "(");
+        pos_x++;
+        mvprintw(pos_y, pos_x, nm_vect_str_ctx(&snaps, NM_SQL_SNAP_TIME + idx_shift));
+        pos_x += nm_vect_str_len(&snaps, NM_SQL_SNAP_TIME + idx_shift);
+        mvprintw(pos_y, pos_x, ")");
+        pos_x++;
+    }
+
+    getch();
+
+out:
+    nm_vect_free(&drives, NULL);
+    nm_vect_free(&snaps, nm_str_vect_free_cb);
+    nm_str_free(&query);
 }
 
 static void nm_snapshot_get_drives(const nm_str_t *name, nm_vect_t *v)
