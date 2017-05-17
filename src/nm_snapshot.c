@@ -24,6 +24,7 @@ typedef struct {
 static void nm_snapshot_get_drives(const nm_str_t *name, nm_vect_t *v);
 static int nm_snapshot_get_data(nm_snap_data_t *data);
 static int nm_snapshot_to_fs(const nm_str_t *name, const nm_snap_data_t *data);
+static void nm_snapshot_to_db(const nm_str_t *name, const nm_snap_data_t *data, int idx);
 
 static nm_field_t *fields[NM_SNAP_FIELDS_NUM + 1];
 
@@ -37,7 +38,7 @@ void nm_snapshot_create(const nm_str_t *name)
     nm_snap_data_t data = NM_INIT_SNAP;
     size_t msg_len;
     pthread_t spin_th;
-    int done = 0;
+    int done = 0, snap_idx = 0;
 
     nm_print_title(_(NM_EDIT_TITLE));
     window = nm_init_window(9, 45, 3);
@@ -78,10 +79,8 @@ void nm_snapshot_create(const nm_str_t *name)
     if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
-    if (nm_snapshot_to_fs(name, &data) == NM_OK)
-    {
-        //...
-    }
+    if ((snap_idx = nm_snapshot_to_fs(name, &data)) != NM_ERR)
+        nm_snapshot_to_db(name, &data, snap_idx);
 
     done = 1;
     if (pthread_join(spin_th, NULL) != 0)
@@ -200,6 +199,26 @@ static int nm_snapshot_to_fs(const nm_str_t *name, const nm_snap_data_t *data)
     nm_vect_free(&snaps, nm_str_vect_free_cb);
 
     return rc;
+}
+
+static void nm_snapshot_to_db(const nm_str_t *name, const nm_snap_data_t *data, int idx)
+{
+    nm_str_t query = NM_INIT_STR;
+
+    nm_str_format(&query,
+        "UPDATE snapshots SET active='0' WHERE vm_name='%s' and backing_drive='%s'",
+        name->data, data->drive.data);
+    nm_db_edit(query.data);
+
+    nm_str_trunc(&query, 0);
+    nm_str_add_text(&query, "INSERT INTO snapshots("
+        "vm_name, snap_name, backing_drive, snap_idx, active) VALUES('");
+    nm_str_format(&query, "%s', '%s', '%s', '%d', '1')",
+        name->data, data->snap_name.data, data->drive.data, idx);
+
+    nm_db_edit(query.data);
+
+    nm_str_free(&query);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
