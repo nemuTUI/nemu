@@ -120,8 +120,10 @@ void nm_snapshot_revert(const nm_str_t *name)
     nm_snapshot_get_drives(name, &drives);
     nm_str_t query = NM_INIT_STR;
     nm_str_t buf = NM_INIT_STR;
-    size_t snaps_count = 0;
-    int pos_y = 11, pos_x = 6;
+    size_t snaps_count = 0, msg_len;
+    int pos_y = 11, pos_x = 6, done = 0;
+    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
+    pthread_t spin_th;
 
     if (drives.n_memb == 1) /* XXX > 1 */
     {
@@ -216,7 +218,18 @@ void nm_snapshot_revert(const nm_str_t *name)
         goto out;
     }
 
+    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
+    sp_data.stop = &done;
+    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
+
+    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
+        nm_bug(_("%s: cannot create thread"), __func__);
+
     nm_snapshot_revert_data(name, drive, &buf, &choices);
+
+    done = 1;
+    if (pthread_join(spin_th, NULL) != 0)
+        nm_bug(_("%s: cannot join thread"), __func__);
 
 out:
     nm_form_free(snap_form, fields_snap);
@@ -233,13 +246,14 @@ static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
     int found = 0;
     size_t cur_snap = 0;
     nm_str_t query = NM_INIT_STR;
+    nm_str_t vmdir = NM_INIT_STR;
 
     for (size_t n = 0; n < snaps->n_memb; n++)
     {
         if (nm_str_cmp_st(snapshot, snaps->data[n]) == NM_OK)
         {
             found = 1;
-            cur_snap = (n - 1);
+            cur_snap = n;
             break;
         }
     }
@@ -268,7 +282,7 @@ static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
         nm_str_format(&query,
             "DELETE FROM snapshots WHERE vm_name='%s' "
             "AND backing_drive='%s' AND snap_idx > %zu",
-            name->data, drive, cur_snap);
+            name->data, drive, cur_snap - 1);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }
@@ -282,8 +296,27 @@ static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
         nm_str_trunc(&query, 0);
     }
 
+    nm_str_alloc_str(&vmdir, &nm_cfg_get()->vm_dir);
+    nm_str_add_char(&vmdir, '/');
+    nm_str_add_str(&vmdir, name);
+
+    nm_debug("-> %zu, %zu\n", cur_snap, snaps->n_memb);
+    for (; cur_snap < snaps->n_memb; cur_snap++)
+    {
+        nm_str_t snap_path = NM_INIT_STR;
+
+        nm_str_format(&snap_path, "%s/%s.snap%zu",
+            vmdir.data, drive, cur_snap);
+
+        unlink(snap_path.data);
+        nm_debug("rm: %s\n", snap_path.data);
+
+        nm_str_free(&snap_path);
+    }
+
 out:
     nm_str_free(&query);
+    nm_str_free(&vmdir);
     return;
 }
 
