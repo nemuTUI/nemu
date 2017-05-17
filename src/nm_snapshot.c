@@ -300,7 +300,6 @@ static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
     nm_str_add_char(&vmdir, '/');
     nm_str_add_str(&vmdir, name);
 
-    nm_debug("-> %zu, %zu\n", cur_snap, snaps->n_memb);
     for (; cur_snap < snaps->n_memb; cur_snap++)
     {
         nm_str_t snap_path = NM_INIT_STR;
@@ -309,7 +308,6 @@ static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
             vmdir.data, drive, cur_snap);
 
         unlink(snap_path.data);
-        nm_debug("rm: %s\n", snap_path.data);
 
         nm_str_free(&snap_path);
     }
