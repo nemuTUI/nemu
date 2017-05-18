@@ -4,7 +4,7 @@
 ## Features
  * Install VM
  * Delete VM
- * Clone VM
+ * Clone VM ( Broken in 1.1.0, fixed in master )
  * Show VM status
  * Start/stop/shutdown/reset VM
  * Connect to VM via vnc
