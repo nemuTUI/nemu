@@ -124,14 +124,24 @@ static void nm_copy_file_sendfile(int in_fd, int out_fd)
 {
     off_t offset = 0;
     struct stat file_info;
+    int rc;
 
     memset(&file_info, 0, sizeof(file_info));
 
     if (fstat(in_fd, &file_info) != 0)
         nm_bug("%s: cannot get file info %d: %s", __func__, in_fd, strerror(errno));
 
-    if (sendfile(out_fd, in_fd, &offset, file_info.st_size) == -1)
-        nm_bug("%s: cannot copy file: %s", __func__, strerror(errno));
+    while (offset < file_info.st_size)
+    {
+        if ((rc = sendfile(out_fd, in_fd, &offset, file_info.st_size)) == -1)
+            nm_bug("%s: cannot copy file: %s", __func__, strerror(errno));
+
+        if (rc == 0)
+            break;
+    }
+
+    if (offset != file_info.st_size)
+            nm_bug("%s: incomplete transfer from sendfile", __func__);
 }
 #else
 static void nm_copy_file_default(int in_fd, int out_fd)
