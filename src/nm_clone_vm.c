@@ -152,8 +152,8 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     nm_str_add_text(&query, "', mem, smp, kvm, hcpu, '");
     nm_str_format(&query, "%d", last_vnc);
     nm_str_add_text(&query, "', arch, iso, install, usb, "
-        "usbid, bios, kernel, mouse_override, kernel_append, tty_path, socket_path"
-        " FROM vms WHERE name='");
+        "usbid, bios, kernel, mouse_override, kernel_append, tty_path, socket_path,"
+        "initrd, machine FROM vms WHERE name='");
     nm_str_add_str(&query, src);
     nm_str_add_char(&query, '\'');
 
