@@ -8,7 +8,6 @@
 #include <nm_qmp_control.h>
 
 #define NM_SNAP_FIELDS_NUM 2
-#define NM_SNAP_INIT_NAME "init"
 
 enum {
     NM_FLD_SNAPDISK = 0,
@@ -121,7 +120,7 @@ void nm_snapshot_revert(const nm_str_t *name)
     nm_str_t query = NM_INIT_STR;
     nm_str_t buf = NM_INIT_STR;
     size_t snaps_count = 0, msg_len;
-    int pos_y = 11, pos_x = 6, done = 0;
+    int pos_y = 11, pos_x = 2, done = 0;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     pthread_t spin_th;
 
@@ -148,28 +147,17 @@ void nm_snapshot_revert(const nm_str_t *name)
         goto out;
     }
 
-    nm_vect_insert(&choices, NM_SNAP_INIT_NAME,
-        sizeof(NM_SNAP_INIT_NAME), NULL);
-
     nm_print_title(_(NM_EDIT_TITLE));
 
     snaps_count = snaps.n_memb / 7;
-    mvprintw(pos_y, 2, NM_SNAP_INIT_NAME " -> ");
     for (size_t n = 0; n < snaps_count; n++)
     {
         size_t idx_shift = 7 * n;
-
-        if (pos_x != 6)
-            mvprintw(pos_y, pos_x, " -> ");
 
         if (pos_x >= (getmaxx(stdscr) - 20))
         {
             pos_y++;
             pos_x = 2;
-        }
-        else
-        {
-            pos_x += 4;
         }
 
         mvprintw(pos_y, pos_x, nm_vect_str_ctx(&snaps, NM_SQL_SNAP_NAME + idx_shift));
@@ -178,14 +166,16 @@ void nm_snapshot_revert(const nm_str_t *name)
         pos_x++;
         mvprintw(pos_y, pos_x, nm_vect_str_ctx(&snaps, NM_SQL_SNAP_TIME + idx_shift));
         pos_x += nm_vect_str_len(&snaps, NM_SQL_SNAP_TIME + idx_shift);
-        mvprintw(pos_y, pos_x, ")");
-        pos_x++;
+        mvprintw(pos_y, pos_x, ") -> ");
+        pos_x += 5;
 
         nm_vect_insert(&choices,
             nm_vect_str_ctx(&snaps, NM_SQL_SNAP_NAME + idx_shift),
             nm_vect_str_len(&snaps, NM_SQL_SNAP_NAME + idx_shift) + 1,
             NULL);
     }
+
+    mvprintw(pos_y, pos_x, "current");
 
     nm_vect_end_zero(&choices);
 
@@ -313,7 +303,7 @@ static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
         }
     }
 
-    if (!found && (nm_str_cmp_st(snapshot, NM_SNAP_INIT_NAME) == NM_ERR))
+    if (!found)
     {
         nm_print_warn(3, 2, _("Invalid snapshot name"));
         goto out;
@@ -326,11 +316,11 @@ static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
 
     nm_str_trunc(&query, 0);
 
-    if (nm_str_cmp_st(snapshot, NM_SNAP_INIT_NAME) == NM_ERR)
+    if (cur_snap > 0)
     {
         nm_str_format(&query,
-            "UPDATE snapshots SET active='1' WHERE vm_name='%s' and snap_name='%s'",
-            name->data, snapshot->data);
+            "UPDATE snapshots SET active='1' WHERE vm_name='%s' and snap_idx='%zu'",
+            name->data, cur_snap - 1);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
 
