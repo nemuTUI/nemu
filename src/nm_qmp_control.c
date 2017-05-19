@@ -65,7 +65,7 @@ int nm_qmp_vm_snapshot(const nm_str_t *name, const nm_str_t *drive,
     struct timeval tv;
     int rc;
 
-    tv.tv_sec = 0;
+    tv.tv_sec = 1;
     tv.tv_usec = 500000; /* 0.5 s */
 
     nm_str_format(&qmp_query,
