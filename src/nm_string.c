@@ -65,7 +65,7 @@ void nm_str_free(nm_str_t *str)
 
 int nm_str_cmp_st(const nm_str_t *str, const char *text)
 {
-    if (strncmp(str->data, text, str->len) != 0)
+    if (strcmp(str->data, text) != 0)
         return NM_ERR;
 
     return NM_OK;
@@ -73,7 +73,7 @@ int nm_str_cmp_st(const nm_str_t *str, const char *text)
 
 int nm_str_cmp_tt(const char *text1, const char *text2)
 {
-    if (strncmp(text1, text2, strlen(text1)) != 0)
+    if (strcmp(text1, text2) != 0)
         return NM_ERR;
 
     return NM_OK;
@@ -81,7 +81,7 @@ int nm_str_cmp_tt(const char *text1, const char *text2)
 
 int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2)
 {
-    if (strncmp(str1->data, str2->data, str1->len) != 0)
+    if (strcmp(str1->data, str2->data) != 0)
         return NM_ERR;
 
     return NM_OK;
