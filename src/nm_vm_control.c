@@ -80,6 +80,8 @@ void nm_vmctl_delete(const nm_str_t *name)
     nm_str_t vmdir = NM_INIT_STR;
     nm_str_t query = NM_INIT_STR;
     nm_vect_t drives = NM_INIT_VECT;
+    nm_vect_t snaps = NM_INIT_VECT;
+    size_t snaps_count;
     int delete_ok = 1;
 
     nm_str_alloc_str(&vmdir, &nm_cfg_get()->vm_dir);
@@ -105,6 +107,29 @@ void nm_vmctl_delete(const nm_str_t *name)
         nm_str_free(&img_path);
     }
 
+    /* delete snapshots */
+    nm_str_add_text(&query, "SELECT backing_drive, snap_idx FROM snapshots WHERE vm_name='");
+    nm_str_add_str(&query, name);
+    nm_str_add_char(&query, '\'');
+    nm_db_select(query.data, &snaps);
+    nm_str_trunc(&query, 0);
+
+    snaps_count = snaps.n_memb / 2;
+    for (size_t n = 0; n < snaps_count; n++)
+    {
+        size_t idx_shift = 2 * n;
+        nm_str_t snap_path = NM_INIT_STR;
+
+        nm_str_alloc_str(&snap_path, &vmdir);
+        nm_str_add_str(&snap_path, nm_vect_str(&snaps, 0 + idx_shift));
+        nm_str_format(&snap_path, ".snap%s", nm_vect_str_ctx(&snaps, 1 + idx_shift));
+
+        if (unlink(snap_path.data) == -1)
+            delete_ok = 0;
+
+        nm_str_free(&snap_path);
+    }
+
     if (delete_ok)
     {
         if (rmdir(vmdir.data) == -1)
@@ -112,6 +137,12 @@ void nm_vmctl_delete(const nm_str_t *name)
     }
 
     nm_str_add_text(&query, "DELETE FROM drives WHERE vm_name='");
+    nm_str_add_str(&query, name);
+    nm_str_add_char(&query, '\'');
+    nm_db_edit(query.data);
+    nm_str_trunc(&query, 0);
+
+    nm_str_add_text(&query, "DELETE FROM snapshots WHERE vm_name='");
     nm_str_add_str(&query, name);
     nm_str_add_char(&query, '\'');
     nm_db_edit(query.data);
@@ -134,6 +165,7 @@ void nm_vmctl_delete(const nm_str_t *name)
     nm_str_free(&vmdir);
     nm_str_free(&query);
     nm_vect_free(&drives, nm_str_vect_free_cb);
+    nm_vect_free(&snaps, nm_str_vect_free_cb);
 }
 
 void nm_vmctl_kill(const nm_str_t *name)
