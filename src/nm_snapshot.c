@@ -31,7 +31,7 @@ typedef struct {
 #define NM_INIT_SNAP { NM_INIT_STR, NM_INIT_STR }
 
 static void nm_snapshot_get_drives(const nm_str_t *name, nm_vect_t *v);
-static int nm_snapshot_get_data(nm_snap_data_t *data);
+static int nm_snapshot_get_data(const nm_str_t *name, nm_snap_data_t *data);
 static int nm_snapshot_to_fs(const nm_str_t *name, const nm_snap_data_t *data);
 static void nm_snapshot_to_db(const nm_str_t *name, const nm_snap_data_t *data, int idx);
 static void nm_snapshot_revert_data(const nm_str_t *name, const char *drive,
@@ -76,12 +76,13 @@ void nm_snapshot_create(const nm_str_t *name)
     mvwaddstr(window, 1, 2, buf.data);
     mvwaddstr(window, 4, 2, _("Drive"));
     mvwaddstr(window, 6, 2, _("Snapshot name"));
+    nm_str_trunc(&buf, 0);
 
     form = nm_post_form(window, fields_c, 22);
     if (nm_draw_form(window, form) != NM_OK)
         goto out;
 
-    if (nm_snapshot_get_data(&data) != NM_OK)
+    if (nm_snapshot_get_data(name, &data) != NM_OK)
         goto out;
 
     msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
@@ -388,9 +389,11 @@ static void nm_snapshot_get_drives(const nm_str_t *name, nm_vect_t *v)
     nm_vect_free(&drives, nm_str_vect_free_cb);
 }
 
-static int nm_snapshot_get_data(nm_snap_data_t *data)
+static int nm_snapshot_get_data(const nm_str_t *name, nm_snap_data_t *data)
 {
     int rc = NM_OK;
+    nm_str_t query = NM_INIT_STR;
+    nm_vect_t names = NM_INIT_VECT;
     nm_vect_t err = NM_INIT_VECT;
 
     nm_get_field_buf(fields_c[NM_FLD_SNAPDISK], &data->drive);
@@ -399,10 +402,27 @@ static int nm_snapshot_get_data(nm_snap_data_t *data)
     nm_form_check_data(_("Drive"), data->drive, err);
     nm_form_check_data(_("Snapshot name"), data->snap_name, err);
 
-    rc = nm_print_empty_fields(&err);
+    if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
+    {
+        nm_vect_free(&err, NULL);
+        goto out;
+    }
 
-    nm_vect_free(&err, NULL);
+    nm_str_format(&query,
+        "SELECT * FROM snapshots WHERE vm_name='%s'"
+        " AND backing_drive='%s' AND snap_name='%s'",
+        name->data, data->drive.data, data->snap_name.data);
+    nm_db_select(query.data, &names);
 
+    if (names.n_memb != 0)
+    {
+        nm_print_warn(3, 6, _("This name is already taken"));
+        rc = NM_ERR;
+    }
+
+out:
+    nm_vect_free(&names, nm_str_vect_free_cb);
+    nm_str_free(&query);
     return rc;
 }
 
