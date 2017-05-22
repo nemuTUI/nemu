@@ -223,6 +223,11 @@ int main(void)
                         nm_add_drive(nm_vect_vm_name_cur(vms));
                     }
 
+                    else if (ch == NM_KEY_V)
+                    {
+                        nm_del_drive(nm_vect_vm_name_cur(vms));
+                    }
+
                     else if (ch == NM_KEY_B)
                     {
                         nm_edit_boot(nm_vect_vm_name_cur(vms));

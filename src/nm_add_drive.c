@@ -116,6 +116,61 @@ out:
     nm_str_free(&buf);
 }
 
+void nm_del_drive(const nm_str_t *name)
+{
+    nm_str_t query = NM_INIT_STR;
+    nm_str_t drive_path = NM_INIT_STR;
+    nm_vect_t v = NM_INIT_VECT;
+    nm_vect_t drives = NM_INIT_VECT;
+    const char *drive = NULL;
+
+    nm_str_format(&query,
+        "SELECT drive_name FROM drives WHERE vm_name='%s' "
+        "AND boot='0'", name->data);
+
+    nm_db_select(query.data, &v);
+    nm_str_trunc(&query, 0);
+
+    if (v.n_memb == 0)
+    {
+        nm_print_warn(3, 6, _("No additional disks"));
+        goto out;
+    }
+
+    for (size_t n = 0; n < v.n_memb; n++)
+    {
+        nm_str_t *drive = (nm_str_t *) v.data[n];
+        nm_vect_insert(&drives, drive->data, drive->len + 1, NULL);
+    }
+
+    nm_vect_end_zero(&drives);
+
+    if ((drive = nm_form_select_drive(&drives)) == NULL)
+    {
+        nm_print_warn(3, 2, _("Incorrect disk name"));
+        goto out;
+    }
+
+    nm_str_alloc_str(&drive_path, &nm_cfg_get()->vm_dir);
+    nm_str_format(&drive_path, "/%s/%s", name->data, drive);
+
+    if (unlink(drive_path.data) == -1)
+        nm_print_warn(3, 2, _("Cannot delete drive from fylesystem"));
+
+    nm_str_format(&query,
+        "DELETE FROM drives WHERE vm_name='%s' "
+        "AND drive_name='%s'",
+        name->data, drive);
+
+    nm_db_edit(query.data);
+
+out:
+    nm_str_free(&query);
+    nm_str_free(&drive_path);
+    nm_vect_free(&v, nm_str_vect_free_cb);
+    nm_vect_free(&drives, NULL);
+}
+
 static void nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
                                const nm_vect_t *drives)
 {

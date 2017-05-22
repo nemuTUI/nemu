@@ -76,6 +76,7 @@ void nm_form_get_last(uint64_t *mac, uint32_t *vnc);
 void nm_form_update_last_mac(uint64_t mac);
 void nm_form_update_last_vnc(uint32_t vnc);
 int nm_print_empty_fields(const nm_vect_t *v);
+const char *nm_form_select_drive(const nm_vect_t *drives);
 void nm_vm_free(nm_vm_t *vm);
 void nm_vm_free_boot(nm_vm_boot_t *vm);
 void *nm_spinner(void *data);
