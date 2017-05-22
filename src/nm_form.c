@@ -24,14 +24,14 @@ static int nm_append_path(nm_str_t *path);
 
 void nm_form_free(nm_form_t *form, nm_field_t **fields)
 {
-    if (fields == NULL)
-        nm_bug(_("%s NULL pointer fields"), __func__);
-    
     unpost_form(form);
     free_form(form);
 
-    for (; *fields; fields++)
-        free_field(*fields);
+    if (fields)
+    {
+        for (; *fields; fields++)
+            free_field(*fields);
+    }
 
     curs_set(0);
 }

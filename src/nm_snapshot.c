@@ -113,7 +113,7 @@ void nm_snapshot_revert(const nm_str_t *name)
     nm_vect_t choices = NM_INIT_VECT;
     nm_vect_t err = NM_INIT_VECT;
     nm_form_t *snap_form = NULL;
-    nm_field_t *fields_snap[2];
+    nm_field_t *fields_snap[2] = {NULL};
     const char *drive = NULL;
     nm_window_t *revert_window = NULL;
     nm_snapshot_get_drives(name, &drives);
