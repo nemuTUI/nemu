@@ -24,8 +24,11 @@ static int nm_append_path(nm_str_t *path);
 
 void nm_form_free(nm_form_t *form, nm_field_t **fields)
 {
-    unpost_form(form);
-    free_form(form);
+    if (form)
+    {
+        unpost_form(form);
+        free_form(form);
+    }
 
     if (fields)
     {
