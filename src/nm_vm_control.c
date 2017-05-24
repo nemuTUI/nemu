@@ -130,6 +130,22 @@ void nm_vmctl_delete(const nm_str_t *name)
         nm_str_free(&snap_path);
     }
 
+    { /* delete pid file if exists */
+        nm_str_t qmp_path = NM_INIT_STR;
+        struct stat qmp_info;
+
+        nm_str_copy(&qmp_path, &vmdir);
+        nm_str_add_text(&qmp_path, NM_VM_PID_FILE);
+
+        if (stat(qmp_path.data, &qmp_info) != -1)
+        {
+            if (unlink(qmp_path.data) == -1)
+                delete_ok = 0;
+        }
+
+        nm_str_free(&qmp_path);
+    }
+
     if (delete_ok)
     {
         if (rmdir(vmdir.data) == -1)
@@ -236,11 +252,10 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     nm_str_add_str(&vmdir, name);
     nm_str_add_char(&vmdir, '/');
 
-    if (!(flags & NM_VMCTL_INFO))
-        nm_str_add_text(res, "( ");
-
     nm_str_add_text(res, NM_STRING(NM_USR_PREFIX) "/bin/qemu-system-");
     nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_ARCH));
+
+    nm_str_add_text(res,  " -daemonize");
 
     /* {{{ Setup install source */
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_INST), NM_ENABLE) == NM_OK)
@@ -450,7 +465,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     nm_str_add_str(res, &vmdir);
     nm_str_add_text(res, NM_VM_PID_FILE);
 
-    nm_str_format(res, " -qmp unix:%sqmp.sock,server,nowait", vmdir.data);
+    nm_str_format(res, " -qmp unix:%s%s,server,nowait", vmdir.data, NM_VM_QMP_FILE);
 
     if (cfg->vnc_listen_any)
         nm_str_add_text(res, " -vnc :");
@@ -458,13 +473,6 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_add_text(res, " -vnc 127.0.0.1:");
 
     nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_VNC));
-
-    if (!(flags & NM_VMCTL_INFO))
-    {
-        nm_str_add_text(res, " > /dev/null 2>&1; rm -f ");
-        nm_str_add_str(res, &vmdir);
-        nm_str_add_text(res, NM_VM_PID_FILE " )&");
-    }
 
 #if (NM_DEBUG)
     nm_debug("cmd=%s\n", res->data);

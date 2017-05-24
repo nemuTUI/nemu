@@ -162,15 +162,20 @@ void nm_print_vm_info(const nm_str_t *name)
     {
         int fd;
         nm_str_t pid_path = NM_INIT_STR;
+        nm_str_t qmp_path = NM_INIT_STR;
         ssize_t nread;
+        struct stat qmp_info;
         char pid[10];
 
         nm_str_copy(&pid_path, &nm_cfg_get()->vm_dir);
         nm_str_add_char(&pid_path, '/');
         nm_str_add_str(&pid_path, name);
+        nm_str_copy(&qmp_path, &pid_path);
         nm_str_add_text(&pid_path, "/" NM_VM_PID_FILE);
+        nm_str_add_text(&qmp_path, "/" NM_VM_QMP_FILE);
 
-        if ((fd = open(pid_path.data, O_RDONLY)) != -1)
+        if ((stat(qmp_path.data, &qmp_info) != -1) &&
+            (fd = open(pid_path.data, O_RDONLY)) != -1)
         {
             if ((nread = read(fd, pid, sizeof(pid))) > 0)
             {
@@ -182,6 +187,7 @@ void nm_print_vm_info(const nm_str_t *name)
         }
 
         nm_str_free(&pid_path);
+        nm_str_free(&qmp_path);
     } /* }}} PID */
 
     /* {{{ Print host IP addresses for TAP ints */

@@ -60,7 +60,7 @@ void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm)
         nm_str_alloc_str(&lock_path, &nm_cfg_get()->vm_dir);
         nm_str_add_char(&lock_path, '/');
         nm_str_add_text(&lock_path, nm_vect_vm_name(vm->v, n));
-        nm_str_add_text(&lock_path, "/" NM_VM_PID_FILE);
+        nm_str_add_text(&lock_path, "/" NM_VM_QMP_FILE);
 
         if (stat(lock_path.data, &file_info) != -1)
         {

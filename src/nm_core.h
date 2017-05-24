@@ -54,6 +54,7 @@
 #define NM_DEFAULT_NETDRV "virtio"
 #define NM_DEFAULT_DRVINT "virtio"
 #define NM_VM_PID_FILE "qemu.pid"
+#define NM_VM_QMP_FILE "qmp.sock"
 
 #define NM_MAIN_CHOICES 3
 #define nm_arr_len(p) (sizeof(p) / sizeof((p)[0]))
