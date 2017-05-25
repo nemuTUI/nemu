@@ -61,7 +61,7 @@ nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x)
 
 int nm_draw_form(nm_window_t *w, nm_form_t *form)
 {
-    int confirm = NM_ERR;
+    int confirm = NM_ERR, rc = NM_OK;
     int ch;
     nm_str_t buf = NM_INIT_STR;
 
@@ -124,7 +124,8 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
 
         case KEY_F(2):
             confirm = NM_OK;
-            form_driver(form, REQ_VALIDATION);
+            if (form_driver(form, REQ_VALIDATION) != E_OK)
+                rc = NM_ERR;
             break;
 
         default:
@@ -133,7 +134,11 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
         }
     }
 
-    nm_str_free(&buf);
+    if ((confirm == NM_OK) && (rc == NM_ERR))
+    {
+        confirm = NM_ERR;
+        nm_print_warn(3, 2, _("Contents of field is invalid"));
+    }
 
     return confirm;
 }
