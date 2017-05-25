@@ -134,6 +134,8 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
         }
     }
 
+    nm_str_free(&buf);
+
     if ((confirm == NM_OK) && (rc == NM_ERR))
     {
         confirm = NM_ERR;
