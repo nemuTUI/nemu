@@ -42,7 +42,7 @@ void nm_clone_vm(const nm_str_t *name)
     set_field_type(fields[0], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
 
     nm_str_alloc_str(&buf, name);
-    nm_str_add_char(&buf, '_');
+    nm_str_add_text(&buf, "-clone");
     set_field_buffer(fields[0], 0, buf.data);
     nm_str_trunc(&buf, 0);
 
