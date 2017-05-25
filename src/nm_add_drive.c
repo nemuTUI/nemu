@@ -34,7 +34,6 @@ void nm_add_drive(const nm_str_t *name)
     size_t msg_len;
     pthread_t spin_th;
     int done = 0;
-    int64_t drive_size;
 
     nm_vmctl_get_data(name, &vm);
 
@@ -78,13 +77,6 @@ void nm_add_drive(const nm_str_t *name)
     if (nm_print_empty_fields(&err) == NM_ERR)
     {
         nm_vect_free(&err, NULL);
-        goto out;
-    }
-
-    drive_size = nm_str_stol(&drv_size);
-    if ((drive_size > nm_hw_disk_free()) || (drive_size < 1))
-    {
-        nm_print_warn(3, 2, _("Wrong disk size"));
         goto out;
     }
 
