@@ -22,20 +22,27 @@ case "$OS" in
             echo "Additional group for KVM device is missing" >&2
             exit 1
         fi
-        
+
         USB_GROUP=$(ls -la /dev/bus/usb/001/001 | cut -d ' ' -f 4)
         if [ "$USB_GROUP" = "root" ]; then
             echo "Additional group for USB devices is missing" >&2
             exit 1
         fi
-        
-        gpasswd -a $USER $KVM_GROUP && \
-        gpasswd -a $USER $USB_GROUP && \
+
+        if ! id -nG $USER | grep -qw $KVM_GROUP; then
+          gpasswd -a $USER $KVM_GROUP
+          [ "$?" -ne 0 ] && echo "[ERR]" && exit 1
+        fi
+        if ! id -nG $USER | grep -qw $USB_GROUP; then
+          gpasswd -a $USER $USB_GROUP
+          [ "$?" -ne 0 ] && echo "[ERR]" && exit 1
+        fi
+
         ls -1 /usr/bin/qemu-system-* | xargs -n1 setcap CAP_NET_ADMIN=ep && \
         setcap CAP_NET_ADMIN=ep /usr/bin/nemu && \
         echo "[OK]"
         ;;
-    
+
     ( * )
         echo "Unsupported" >&2
         ;;
