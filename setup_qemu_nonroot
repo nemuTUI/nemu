@@ -1,3 +1,0 @@
-gpasswd -a user kvm
-gpasswd -a user usb
-ls -1 /usr/bin/qemu-system-* | xargs -n1 setcap CAP_NET_ADMIN=ep
