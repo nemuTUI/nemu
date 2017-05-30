@@ -434,13 +434,14 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     {
         size_t idx_shift = 4 * n;
 
-        nm_str_add_text(res, " -net nic,macaddr=");
-        nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
-        nm_str_add_text(res, ",model=");
+        nm_str_add_text(res, " -device ");
         nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
-        nm_str_add_text(res, " -net tap,ifname=");
+        nm_str_add_text(res, ",mac=");
+        nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
+        nm_str_format(res, ",netdev=netdev%zu -netdev tap,ifname=", n);
         nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
-        nm_str_add_text(res, ",script=no,downscript=no");
+        nm_str_format(res, ",script=no,downscript=no,id=netdev%zu", n);
+
 #if defined (NM_OS_LINUX)
         if ((!(flags & NM_VMCTL_INFO)) &&
             (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) != 0) &&
