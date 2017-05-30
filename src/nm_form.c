@@ -13,7 +13,7 @@ const char *nm_form_yes_no[] = {
 };
 
 const char *nm_form_net_drv[] = {
-    "virtio", "rtl8139", "e1000", NULL
+    "virtio", "rtl8139", "e1000", "vmxnet3", NULL
 };
 
 const char *nm_form_drive_drv[] = {
