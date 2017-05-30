@@ -9,15 +9,24 @@
 #include <dirent.h>
 
 const char *nm_form_yes_no[] = {
-    "yes","no", NULL
+    "yes",
+    "no",
+    NULL
 };
 
 const char *nm_form_net_drv[] = {
-    "virtio", "rtl8139", "e1000", "vmxnet3", NULL
+    "virtio-net-pci",
+    "rtl8139",
+    "e1000",
+    "vmxnet3",
+    NULL
 };
 
 const char *nm_form_drive_drv[] = {
-    "ide", "scsi", "virtio", NULL
+    "ide",
+    "scsi",
+    "virtio",
+    NULL
 };
 
 static int nm_append_path(nm_str_t *path);
