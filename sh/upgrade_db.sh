@@ -38,6 +38,9 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'CREATE TABLE snapshots(id integer primary key autoincrement, '`
                `'vm_name char, snap_name char, backing_drive char, snap_idx integer, '`
                `'active integer, TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)' &&
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE ifaces ADD vhost integer;' &&
+            sqlite3 "$DB_PATH" -line 'UPDATE ifaces SET vhost="0";' &&
+            sqlite3 "$DB_PATH" -line 'UPDATE ifaces SET if_drv="virtio-net-pci" WHERE if_drv="virtio";' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=5'
             ) || RC=1
             ;;

@@ -441,6 +441,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_format(res, ",netdev=netdev%zu -netdev tap,ifname=", n);
         nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
         nm_str_format(res, ",script=no,downscript=no,id=netdev%zu", n);
+        /* ,vhost=on */
 
 #if defined (NM_OS_LINUX)
         if ((!(flags & NM_VMCTL_INFO)) &&
