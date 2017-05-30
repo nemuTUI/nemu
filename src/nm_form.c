@@ -109,6 +109,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
             break;
 
         case KEY_BACKSPACE:
+        case 127:
             form_driver(form, REQ_DEL_PREV);
             break;
 
