@@ -341,7 +341,7 @@ msgstr "Память"
 
 #: nm_add_vm.c:164 nm_edit_vm.c:169
 msgid "Memory [4-"
-msgstr "Память [64-"
+msgstr "Память [4-"
 
 #: nm_ini_parser.c:201 nm_ini_parser.c:230
 msgid "NULL list head pointer"
