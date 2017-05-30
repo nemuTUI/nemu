@@ -32,7 +32,7 @@ void nm_db_init(void)
         "CREATE TABLE lastval(id integer, mac integer, vnc integer)",
         "INSERT INTO lastval(id, mac, vnc) VALUES ('1', '244837814042624', '0')",
         "CREATE TABLE ifaces(id integer primary key autoincrement, "
-            "vm_name char, if_name char, mac_addr char, ipv4_addr char, if_drv char)",
+            "vm_name char, if_name char, mac_addr char, ipv4_addr char, if_drv char, vhost integer)",
         "CREATE TABLE drives(id integer primary key autoincrement, "
             "vm_name char, drive_name char, drive_drv char, capacity integer, boot integer)",
         "CREATE TABLE snapshots(id integer primary key autoincrement, "

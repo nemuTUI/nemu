@@ -402,14 +402,14 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
 
     if (field_status(fields[NM_FLD_IFSCNT]))
     {
-        size_t cur_count = cur->ifs.n_memb / 4;
+        size_t cur_count = cur->ifs.n_memb / NM_IFS_IDX_COUNT;
 
         if (vm->ifs.count < cur_count)
         {
 
             for (; cur_count > vm->ifs.count; cur_count--)
             {
-                size_t idx_shift = 4 * (cur_count - 1);
+                size_t idx_shift = NM_IFS_IDX_COUNT * (cur_count - 1);
 
                 nm_str_add_text(&query, "DELETE FROM ifaces WHERE vm_name='");
                 nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
@@ -441,13 +441,13 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
                 }
 
                 nm_str_add_text(&query, "INSERT INTO ifaces("
-                    "vm_name, if_name, mac_addr, if_drv) VALUES('");
+                    "vm_name, if_name, mac_addr, if_drv, vhost) VALUES('");
                 nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
                 nm_str_add_text(&query, "', '");
                 nm_str_add_str(&query, &if_name);
                 nm_str_add_text(&query, "', '");
                 nm_str_add_str(&query, &maddr);
-                nm_str_add_text(&query, "', '" NM_DEFAULT_NETDRV "')");
+                nm_str_add_text(&query, "', '" NM_DEFAULT_NETDRV "', '1')");
 
                 nm_db_edit(query.data);
                 

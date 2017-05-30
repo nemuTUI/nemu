@@ -105,26 +105,28 @@ void nm_print_vm_info(const nm_str_t *name)
              nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC)) + 5900);
 
     /* {{{ print network interfaces info */
-    ifs_count = vm.ifs.n_memb / 4;
+    ifs_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
 
     for (size_t n = 0; n < ifs_count; n++)
     {
-        size_t idx_shift = 4 * n;
+        size_t idx_shift = NM_IFS_IDX_COUNT * n;
 
-        mvprintw(y++, col / 6 , "eth%zu%-8s%s [%s] [%s]",
+        mvprintw(y++, col / 6 , "eth%zu%-8s%s [%s %s%s]",
                  n, ":",
                  nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
                  nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_MAC + idx_shift),
-                 nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_DRV + idx_shift));
+                 nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_DRV + idx_shift),
+                 (nm_str_cmp_st(nm_vect_str(&vm.ifs, NM_SQL_IF_VHO + idx_shift),
+                    NM_ENABLE) == NM_OK) ? "+vhost" : "");
     }
     /* }}} network */
 
     /* {{{ print drives info */
-    drives_count = vm.drives.n_memb / 4;
+    drives_count = vm.drives.n_memb / NM_DRV_IDX_COUNT;
 
     for (size_t n = 0; n < drives_count; n++)
     {
-        size_t idx_shift = 4 * n;
+        size_t idx_shift = NM_DRV_IDX_COUNT * n;
         int boot = 0;
 
         if (nm_str_cmp_st(nm_vect_str(&vm.drives, NM_SQL_DRV_BOOT + idx_shift),
@@ -133,7 +135,7 @@ void nm_print_vm_info(const nm_str_t *name)
             boot = 1;
         }
 
-        mvprintw(y++, col / 6, "disk%zu%-7s%s [%sGb] [%s] %s", n, ":",
+        mvprintw(y++, col / 6, "disk%zu%-7s%s [%sGb %s] %s", n, ":",
                  nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift),
                  nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_SIZE + idx_shift),
                  nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_TYPE + idx_shift),
@@ -194,7 +196,7 @@ void nm_print_vm_info(const nm_str_t *name)
     y++;
     for (size_t n = 0; n < ifs_count; n++)
     {
-        size_t idx_shift = 4 * n;
+        size_t idx_shift = NM_IFS_IDX_COUNT * n;
 
         if (!nm_vect_str_len(&vm.ifs, NM_SQL_IF_IP4 + idx_shift))
             continue;

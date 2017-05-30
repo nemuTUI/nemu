@@ -35,7 +35,8 @@ enum select_ifs_idx {
     NM_SQL_IF_NAME = 0,
     NM_SQL_IF_MAC,
     NM_SQL_IF_DRV,
-    NM_SQL_IF_IP4
+    NM_SQL_IF_IP4,
+    NM_SQL_IF_VHO
 };
 
 enum select_drive_idx {
@@ -44,6 +45,9 @@ enum select_drive_idx {
     NM_SQL_DRV_SIZE,
     NM_SQL_DRV_BOOT
 };
+
+#define NM_IFS_IDX_COUNT 5
+#define NM_DRV_IDX_COUNT 4
 
 #endif /* NM_DATABASE_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

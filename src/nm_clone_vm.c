@@ -113,11 +113,11 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
     nm_str_format(&new_vm_path, "/%s/%s", dst->data, dst->data);
     nm_str_format(&old_vm_path, "/%s/", src->data);
 
-    drives_count = drives->n_memb / 4;
+    drives_count = drives->n_memb / NM_DRV_IDX_COUNT;
 
     for (size_t n = 0; n < drives_count; n++)
     {
-        size_t idx_shift = 4 * n;
+        size_t idx_shift = NM_DRV_IDX_COUNT * n;
         nm_str_t *drive_name = nm_vect_str(drives, NM_SQL_DRV_NAME + idx_shift);
 
         nm_str_add_str(&old_vm_path, drive_name);
@@ -160,11 +160,11 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     nm_db_edit(query.data);
 
     /* {{{ insert network interface info */
-    ifs_count = vm->ifs.n_memb / 4;
+    ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
 
     for (size_t n = 0; n < ifs_count; n++)
     {
-        size_t idx_shift = 4 * n;
+        size_t idx_shift = NM_IFS_IDX_COUNT * n;
         nm_str_t if_name = NM_INIT_STR;
         nm_str_t maddr = NM_INIT_STR;
         nm_str_trunc(&query, 0);
@@ -180,7 +180,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         }
 
         nm_str_add_text(&query, "INSERT INTO ifaces("
-            "vm_name, if_name, mac_addr, if_drv) VALUES('");
+            "vm_name, if_name, mac_addr, if_drv, vhost) VALUES('");
         nm_str_add_str(&query, dst);
         nm_str_add_text(&query, "', '");
         nm_str_add_str(&query, &if_name);
@@ -197,11 +197,11 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     } /* }}} network */
 
     /* {{{ insert drive info */
-    drives_count = vm->drives.n_memb / 4;
+    drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
 
     for (size_t n = 0; n < drives_count; n++)
     {
-        size_t idx_shift = 4 * n;
+        size_t idx_shift = NM_DRV_IDX_COUNT * n;
 
         nm_str_trunc(&query, 0);
         nm_str_add_text(&query, "INSERT INTO drives("

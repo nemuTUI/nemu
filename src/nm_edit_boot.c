@@ -141,8 +141,8 @@ static void nm_edit_boot_field_names(const nm_str_t *name, nm_window_t *w)
     nm_str_alloc_str(&buf, name);
     nm_str_add_text(&buf, _(" boot settings"));
 
-    mvwaddstr(w, 1,  2,  buf.data);
-    mvwaddstr(w, y,  2, _("OS Installed"));
+    mvwaddstr(w, 1,         2,  buf.data);
+    mvwaddstr(w, y,         2, _("OS Installed"));
     mvwaddstr(w, y += mult, 2, _("Path to ISO/IMG"));
     mvwaddstr(w, y += mult, 2, _("Machine type"));
     mvwaddstr(w, y += mult, 2, _("Path to BIOS"));

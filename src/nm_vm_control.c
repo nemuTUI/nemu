@@ -19,7 +19,7 @@ void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
     nm_db_select(query.data, &vm->main);
 
     nm_str_trunc(&query, 0);
-    nm_str_add_text(&query, "SELECT if_name, mac_addr, if_drv, ipv4_addr "
+    nm_str_add_text(&query, "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost "
         "FROM ifaces WHERE vm_name='");
     nm_str_add_str(&query, name);
     nm_str_add_text(&query, "' ORDER BY if_name ASC");
@@ -244,8 +244,8 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 {
     nm_str_t vmdir = NM_INIT_STR;
     const nm_cfg_t *cfg = nm_cfg_get();
-    size_t drives_count = vm->drives.n_memb / 4;
-    size_t ifs_count = vm->ifs.n_memb / 4;
+    size_t drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
+    size_t ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
 
     nm_str_alloc_str(&vmdir, &cfg->vm_dir);
     nm_str_add_char(&vmdir, '/');
@@ -286,7 +286,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 
     for (size_t n = 0; n < drives_count; n++)
     {
-        size_t idx_shift = 4 * n;
+        size_t idx_shift = NM_DRV_IDX_COUNT * n;
         nm_str_t snap_name = NM_INIT_STR;
         nm_str_t snap_query = NM_INIT_STR;
         nm_vect_t snap_res = NM_INIT_VECT;
@@ -432,7 +432,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     /* {{{ setup network interfaces */
     for (size_t n = 0; n < ifs_count; n++)
     {
-        size_t idx_shift = 4 * n;
+        size_t idx_shift = NM_IFS_IDX_COUNT * n;
 
         nm_str_add_text(res, " -device ");
         nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
@@ -441,7 +441,8 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_format(res, ",netdev=netdev%zu -netdev tap,ifname=", n);
         nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
         nm_str_format(res, ",script=no,downscript=no,id=netdev%zu", n);
-        /* ,vhost=on */
+        if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO), NM_ENABLE) == NM_OK)
+            nm_str_add_text(res, ",vhost=on");
 
 #if defined (NM_OS_LINUX)
         if ((!(flags & NM_VMCTL_INFO)) &&
@@ -536,11 +537,11 @@ void nm_vmctl_clear_tap(void)
         nm_str_add_char(&query, '\'');
 
         nm_db_select(query.data, &ifaces);
-        ifs_count = ifaces.n_memb / 4;
+        ifs_count = ifaces.n_memb / NM_IFS_IDX_COUNT;
 
         for (size_t ifn = 0; ifn < ifs_count; ifn++)
         {
-            size_t idx_shift = 4 * ifn;
+            size_t idx_shift = NM_IFS_IDX_COUNT * ifn;
             if ((nm_vect_str_len(&ifaces, NM_SQL_IF_IP4 + idx_shift) != 0) &&
                 (nm_net_iface_exists(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift)) == NM_OK))
             {
