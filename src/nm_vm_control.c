@@ -441,7 +441,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_format(res, ",netdev=netdev%zu -netdev tap,ifname=", n);
         nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
         nm_str_format(res, ",script=no,downscript=no,id=netdev%zu", n);
-        if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO), NM_ENABLE) == NM_OK)
+        if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift), NM_ENABLE) == NM_OK)
             nm_str_add_text(res, ",vhost=on");
 
 #if defined (NM_OS_LINUX)
