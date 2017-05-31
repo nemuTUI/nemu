@@ -18,9 +18,10 @@
 #include <nm_qmp_control.h>
 
 static void signals_handler(int signal);
+static void nm_process_args(int argc, char **argv);
 static volatile sig_atomic_t redraw_window = 0;
 
-int main(void)
+int main(int argc, char **argv)
 {
     struct sigaction sa;
     uint32_t highlight = 1;
@@ -32,6 +33,8 @@ int main(void)
     setlocale(LC_ALL,"");
     bindtextdomain(NM_PROGNAME, NM_LOCALE_PATH);
     textdomain(NM_PROGNAME);
+
+    nm_process_args(argc, argv);
 
     nm_cfg_init();
     nm_db_init();
@@ -499,6 +502,32 @@ static void signals_handler(int signal)
     case SIGWINCH:
         redraw_window = 1;
         break;
+    }
+}
+
+static void nm_process_args(int argc, char **argv)
+{
+    int opt;
+
+    static const struct option longopts[] = {
+        { "version", no_argument, NULL, 'v' },
+        { "help",    no_argument, NULL, 'h' },
+        { NULL,      0,           NULL,  0  }
+    };
+
+    while ((opt = getopt_long(argc, argv, "vh", longopts, NULL)) != -1)
+    {
+        switch (opt) {
+        case 'v':
+            printf("nEMU %s\n", NM_VERSION);
+            exit(NM_OK);
+            break;
+        case 'h':
+            printf("%s\n", _("-v, --version:   print version"));
+            printf("%s\n", _("-h, --help:      print help"));
+            exit(NM_OK);
+            break;
+        }
     }
 }
 /* vim:set ts=4 sw=4 fdm=marker: */

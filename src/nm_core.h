@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <inttypes.h>
 #include <regex.h>
+#include <getopt.h>
 
 #include <pwd.h>
 #include <errno.h>
