@@ -12,8 +12,13 @@
 #define NM_NET_FIELDS_NUM 4
 #endif
 
+#if defined (NM_OS_LINUX)
 #define NM_INIT_NET_IF { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                          NM_INIT_STR, NM_INIT_STR }
+#else
+#define NM_INIT_NET_IF { NM_INIT_STR, NM_INIT_STR, \
+                         NM_INIT_STR, NM_INIT_STR }
+#endif
 
 typedef struct {
     nm_str_t name;
@@ -59,7 +64,7 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
 #if defined (NM_OS_LINUX)
     window = nm_init_window((mult == 2) ? 15 : 9, 51, 3);
 #else
-    window = nm_init_window((mult == 2) ? 13 : 7, 51, 3);
+    window = nm_init_window((mult == 2) ? 13 : 8, 51, 3);
 #endif
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
@@ -249,6 +254,8 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
             nm_print_warn(3, 2, _("vhost can be enabled only on virtio-net"));
         }
     }
+#else
+    (void) name;
 #endif /* NM_OS_LINUX */
 
 out:
