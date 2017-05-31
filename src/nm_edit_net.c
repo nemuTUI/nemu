@@ -6,7 +6,12 @@
 #include <nm_database.h>
 #include <nm_vm_control.h>
 
+#if defined (NM_OS_LINUX)
 #define NM_NET_FIELDS_NUM 5
+#else
+#define NM_NET_FIELDS_NUM 4
+#endif
+
 #define NM_INIT_NET_IF { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                          NM_INIT_STR, NM_INIT_STR }
 
@@ -15,7 +20,9 @@ typedef struct {
     nm_str_t drv;
     nm_str_t maddr;
     nm_str_t ipv4;
+#if defined (NM_OS_LINUX)
     nm_str_t vhost;
+#endif
 } nm_iface_t;
 
 static nm_field_t *fields[NM_NET_FIELDS_NUM + 1];
@@ -49,7 +56,11 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
     if (getmaxy(stdscr) <= 28)
         mult = 1;
 
+#if defined (NM_OS_LINUX)
     window = nm_init_window((mult == 2) ? 15 : 9, 51, 3);
+#else
+    window = nm_init_window((mult == 2) ? 13 : 7, 51, 3);
+#endif
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
@@ -109,7 +120,9 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm)
     set_field_type(fields[NM_FLD_NDRV], TYPE_ENUM, nm_form_net_drv, false, false);
     set_field_type(fields[NM_FLD_MADR], TYPE_REGEXP, ".*");
     set_field_type(fields[NM_FLD_IPV4], TYPE_REGEXP, ".*");
+#if defined (NM_OS_LINUX)
     set_field_type(fields[NM_FLD_VHST], TYPE_ENUM, nm_form_yes_no, false, false);
+#endif
 
     field_opts_off(fields[NM_FLD_MADR], O_STATIC);
     field_opts_off(fields[NM_FLD_IPV4], O_STATIC);
@@ -138,7 +151,9 @@ static void nm_edit_net_field_names(const nm_str_t *name, nm_window_t *w)
     mvwaddstr(w, y += mult, 2, _("Net driver"));
     mvwaddstr(w, y += mult, 2, _("Mac address"));
     mvwaddstr(w, y += mult, 2, _("IPv4 address"));
+#if defined (NM_OS_LINUX)
     mvwaddstr(w, y += mult, 2, _("Enable vhost"));
+#endif
 
     nm_str_free(&buf);
 }
@@ -152,7 +167,9 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
     nm_get_field_buf(fields[NM_FLD_NDRV], &ifp->drv);
     nm_get_field_buf(fields[NM_FLD_MADR], &ifp->maddr);
     nm_get_field_buf(fields[NM_FLD_IPV4], &ifp->ipv4);
+#if defined (NM_OS_LINUX)
     nm_get_field_buf(fields[NM_FLD_VHST], &ifp->vhost);
+#endif
 
     if (field_status(fields[NM_FLD_INTN]))
         nm_form_check_data(_("Interface"), ifp->name, err);
@@ -160,8 +177,10 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
         nm_form_check_data(_("Net driver"), ifp->drv, err);
     if (field_status(fields[NM_FLD_MADR]))
         nm_form_check_data(_("Mac address"), ifp->maddr, err);
+#if defined (NM_OS_LINUX)
     if (field_status(fields[NM_FLD_VHST]))
         nm_form_check_data(_("Enable vhost"), ifp->vhost, err);
+#endif
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
@@ -195,6 +214,7 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
         nm_str_free(&err_msg);
     }
 
+#if defined (NM_OS_LINUX)
     /* Do not allow to enable vhost on non virtio net device */
     if ((field_status(fields[NM_FLD_VHST])) &&
         (nm_str_cmp_st(&ifp->vhost, "yes") == NM_OK))
@@ -229,6 +249,7 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
             nm_print_warn(3, 2, _("vhost can be enabled only on virtio-net"));
         }
     }
+#endif /* NM_OS_LINUX */
 
 out:
     nm_vect_free(&err, NULL);
@@ -248,6 +269,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
 
+#if defined (NM_OS_LINUX)
         /* disable vhost if driver is not virtio-net */
         if (nm_str_cmp_st(&ifp->drv, NM_DEFAULT_NETDRV) != NM_OK)
         {
@@ -257,6 +279,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
             nm_db_edit(query.data);
             nm_str_trunc(&query, 0);
         }
+#endif
     }
 
     if (field_status(fields[NM_FLD_MADR]))
@@ -277,6 +300,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
         nm_str_trunc(&query, 0);
     }
 
+#if defined (NM_OS_LINUX)
     if (field_status(fields[NM_FLD_VHST]))
     {
         nm_str_alloc_text(&query, "UPDATE ifaces SET vhost='");
@@ -285,6 +309,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
             name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
+#endif
 
     nm_str_free(&query);
 }
@@ -295,7 +320,9 @@ static inline void nm_edit_net_iface_free(nm_iface_t *ifp)
     nm_str_free(&ifp->drv);
     nm_str_free(&ifp->maddr);
     nm_str_free(&ifp->ipv4);
+#if defined (NM_OS_LINUX)
     nm_str_free(&ifp->vhost);
+#endif
 }
 
 /* TODO add this check in all genmaddr points */
