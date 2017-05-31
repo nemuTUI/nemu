@@ -523,8 +523,8 @@ static void nm_process_args(int argc, char **argv)
             exit(NM_OK);
             break;
         case 'h':
-            printf("%s\n", _("-v, --version:   print version"));
-            printf("%s\n", _("-h, --help:      print help"));
+            printf("%s\n", _("-v, --version:   show version"));
+            printf("%s\n", _("-h, --help:      show help"));
             exit(NM_OK);
             break;
         }
