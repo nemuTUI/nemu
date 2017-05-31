@@ -116,13 +116,14 @@ void nm_snapshot_revert(const nm_str_t *name)
     nm_field_t *fields_snap[2] = {NULL};
     const char *drive = NULL;
     nm_window_t *revert_window = NULL;
-    nm_snapshot_get_drives(name, &drives);
     nm_str_t query = NM_INIT_STR;
     nm_str_t buf = NM_INIT_STR;
     size_t snaps_count = 0, msg_len;
     int pos_y = 11, pos_x = 2, done = 0;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     pthread_t spin_th;
+
+    nm_snapshot_get_drives(name, &drives);
 
     if (drives.n_memb > 1)
     {
