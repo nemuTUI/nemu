@@ -16,19 +16,19 @@ msgid " boot settings"
 msgstr " настройка загрузки"
 
 #: nm_window.c:211
-msgid " c - connect to guest via vnc"
+msgid " c - connect to vm via vnc"
 msgstr " c - подключиться по vnc"
 
 #: nm_window.c:214
-msgid " d - delete guest"
+msgid " d - delete vm"
 msgstr " d - удалить гостя"
 
 #: nm_window.c:215
-msgid " e - edit guest settings"
+msgid " e - edit vm settings"
 msgstr " e - править натсройки гостя"
 
 #: nm_window.c:213
-msgid " f - force stop guest"
+msgid " f - force stop vm"
 msgstr " f - принудительное выключение"
 
 #: nm_window.c:216
@@ -36,7 +36,7 @@ msgid " i - edit network settings"
 msgstr " i - править настройки сети"
 
 #: nm_window.c:218
-msgid " l - clone guest"
+msgid " l - clone vm"
 msgstr " l - клонировать гостя"
 
 #: nm_window.c:220
@@ -48,19 +48,37 @@ msgid " network settings"
 msgstr " настройка сети"
 
 #: nm_window.c:208
-msgid " r - start guest"
+msgid " r - start vm"
 msgstr " r - включить гостя"
 
+msgid " z - reset vm"
+msgstr " z - перезагрузить гостя"
+
+msgid " p - powerdown vm"
+msgstr " p - выключить гостя"
+
+msgid " s - take snapshot"
+msgstr " s - сделать снепшот"
+
+msgid " x - revert snapshot"
+msgstr " x - откатиться на снепшот"
+
+msgid " k - kill vm process"
+msgstr " k - убить процесс с гостем"
+
+msgid " v - delete virtual disk"
+msgstr " v - удалить виртуальный диск"
+
 #: nm_window.c:219
-msgid " s - edit boot settings"
-msgstr " s - править настройки загрузки"
+msgid " b - edit boot settings"
+msgstr " b - править настройки загрузки"
 
 #: nm_edit_vm.c:159
 msgid " settings"
 msgstr " настройки"
 
 #: nm_window.c:209
-msgid " t - start guest in temporary mode"
+msgid " t - start vm in temporary mode"
 msgstr " t - включить гостя без сохранения"
 
 #: nm_window.c:221
@@ -516,3 +534,24 @@ msgstr ""
 #: nm_add_vm.c:249 nm_edit_vm.c:290 nm_edit_vm.c:326
 msgid "usb_id not found"
 msgstr ""
+
+msgid "There are no snapshots"
+msgstr "Нет доступных снепшотов"
+
+msgid "Snapshot"
+msgstr "Снепшот"
+
+msgid "Snapshot "
+msgstr "Снепшот "
+
+msgid "Revert "
+msgstr "Откатить "
+
+msgid "Drive"
+msgstr "Диск"
+
+msgid "Snapshot name"
+msgstr "Имя снепшота"
+
+msgid "Enable vhost"
+msgstr "Включить vhost"
