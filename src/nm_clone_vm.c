@@ -188,6 +188,8 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         nm_str_add_str(&query, &maddr);
         nm_str_add_text(&query, "', '");
         nm_str_add_str(&query, nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift));
         nm_str_add_text(&query, "')");
 
         nm_db_edit(query.data);
