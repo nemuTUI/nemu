@@ -63,6 +63,9 @@ msgstr " s - сделать снепшот"
 msgid " x - revert snapshot"
 msgstr " x - откатиться на снепшот"
 
+msgid " o - start vm with legacy cdrom"
+msgstr " o - включить гостя с ключом -cdrom"
+
 msgid " k - kill vm process"
 msgstr " k - убить процесс с гостем"
 
