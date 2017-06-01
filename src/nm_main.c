@@ -285,6 +285,19 @@ int main(int argc, char **argv)
                             nm_vmctl_start(vm, NM_VMCTL_TEMP);
                     } /* }}} start VM (temporary) */
 
+                    /* {{{ Start VM with legacy cdrom command */
+                    else if (ch == NM_KEY_O)
+                    {
+                        nm_print_vm_menu(vm_window, &vms);
+                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        int vm_status = nm_vect_vm_status_cur(vms);
+
+                        if (vm_status)
+                            nm_print_warn(3, 6, _("already running"));
+                        else
+                            nm_vmctl_start(vm, NM_VMCTL_LGCD);
+                    } /* }}} start VM (legacy cdrom) */
+
                     /* {{{ Create drive snapshot */
                     else if (ch == NM_KEY_S)
                     {

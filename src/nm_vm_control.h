@@ -6,7 +6,8 @@
 
 enum vmctl_flags {
     NM_VMCTL_TEMP = (1 << 1),
-    NM_VMCTL_INFO = (1 << 2)
+    NM_VMCTL_INFO = (1 << 2),
+    NM_VMCTL_LGCD = (1 << 3)
 };
 
 typedef struct {
