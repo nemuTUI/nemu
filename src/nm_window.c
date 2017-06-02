@@ -168,6 +168,7 @@ void nm_print_vm_info(const nm_str_t *name)
         ssize_t nread;
         struct stat qmp_info;
         char pid[10];
+        int pid_num = 0;
 
         nm_str_copy(&pid_path, &nm_cfg_get()->vm_dir);
         nm_str_add_char(&pid_path, '/');
@@ -183,7 +184,8 @@ void nm_print_vm_info(const nm_str_t *name)
             {
                 y++;
                 pid[nread - 1] = '\0';
-                mvprintw(y++, col / 6, "%-12s%s", "pid: ", pid);
+                pid_num = atoi(pid);
+                mvprintw(y++, col / 6, "%-12s%d", "pid: ", pid_num);
             }
             close(fd);
         }
