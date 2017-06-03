@@ -493,7 +493,13 @@ int main(int argc, char **argv)
         else if (choice == NM_CHOICE_VM_INST)
         {
             nm_add_vm();
-        } /* }}} install VM */
+        } /* }}} Install VM */
+
+        /* {{{ Import drive image */
+        else if (choice == NM_CHOICE_VM_IMPORT)
+        {
+            nm_import_vm();
+        } /* }}} Import */
 
         /* {{{ exit nEMU */
         else if (choice == NM_CHOICE_QUIT)

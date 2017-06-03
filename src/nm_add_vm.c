@@ -11,16 +11,19 @@
 #include <nm_usb_devices.h>
 
 #define NM_ADD_VM_FIELDS_NUM 11
+#define NM_INSTALL_VM 0
+#define NM_IMPORT_VM  1
 
 static nm_window_t *window = NULL;
 static nm_form_t *form = NULL;
 static nm_field_t *fields[NM_ADD_VM_FIELDS_NUM + 1];
 
-static void nm_add_vm_field_setup(const nm_vect_t *usb_names);
-static void nm_add_vm_field_names(nm_window_t *w);
-static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs);
-static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac);
-static void nm_add_vm_to_fs(nm_vm_t *vm);
+static void nm_add_vm_field_setup(const nm_vect_t *usb_names, int import);
+static void nm_add_vm_field_names(nm_window_t *w, int import);
+static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs, int import);
+static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac, int import);
+static void nm_add_vm_to_fs(nm_vm_t *vm, int import);
+static void nm_add_vm_main(int import);
 
 enum {
     NM_FLD_VMNAME = 0,
@@ -36,7 +39,17 @@ enum {
     NM_FLD_USBDEV
 };
 
+void nm_import_vm(void)
+{
+    nm_add_vm_main(NM_IMPORT_VM);
+}
+
 void nm_add_vm(void)
+{
+    nm_add_vm_main(NM_INSTALL_VM);
+}
+
+static void nm_add_vm_main(int import)
 {
     nm_vm_t vm = NM_INIT_VM;
     nm_vect_t usb_devs = NM_INIT_VECT;
@@ -67,8 +80,8 @@ void nm_add_vm(void)
 
     fields[NM_ADD_VM_FIELDS_NUM] = NULL;
 
-    nm_add_vm_field_setup(&usb_names);
-    nm_add_vm_field_names(window);
+    nm_add_vm_field_setup(&usb_names, import);
+    nm_add_vm_field_names(window, import);
 
     form = nm_post_form(window, fields, 21);
     if (nm_draw_form(window, form) != NM_OK)
@@ -77,7 +90,7 @@ void nm_add_vm(void)
     nm_form_get_last(&last_mac, &last_vnc);
     nm_str_format(&vm.vncp, "%u", last_vnc);
 
-    if (nm_add_vm_get_data(&vm, &usb_devs) != NM_OK)
+    if (nm_add_vm_get_data(&vm, &usb_devs, import) != NM_OK)
         goto out;
 
     msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
@@ -87,8 +100,8 @@ void nm_add_vm(void)
     if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
-    nm_add_vm_to_fs(&vm);
-    nm_add_vm_to_db(&vm, last_mac);
+    nm_add_vm_to_fs(&vm, import);
+    nm_add_vm_to_db(&vm, last_mac, import);
 
     done = 1;
     if (pthread_join(spin_th, NULL) != 0)
@@ -120,7 +133,7 @@ void nm_vm_get_usb(nm_vect_t *devs, nm_vect_t *names)
     nm_vect_end_zero(names);
 }
 
-static void nm_add_vm_field_setup(const nm_vect_t *usb_names)
+static void nm_add_vm_field_setup(const nm_vect_t *usb_names, int import)
 {
     set_field_type(fields[NM_FLD_VMNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
     set_field_type(fields[NM_FLD_VMARCH], TYPE_ENUM, nm_cfg_get_arch(), false, false);
@@ -139,11 +152,15 @@ static void nm_add_vm_field_setup(const nm_vect_t *usb_names)
         field_opts_off(fields[NM_FLD_USBUSE], O_ACTIVE);
         field_opts_off(fields[NM_FLD_USBDEV], O_ACTIVE);
     }
+    if (import)
+        field_opts_off(fields[NM_FLD_DISKSZ], O_ACTIVE);
 
     set_field_buffer(fields[NM_FLD_VMARCH], 0, *nm_cfg_get()->qemu_targets.data);
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, "1");
     set_field_buffer(fields[NM_FLD_DISKIN], 0, NM_DEFAULT_DRVINT);
     set_field_buffer(fields[NM_FLD_IFSCNT], 0, "1");
+    if (import)
+        set_field_buffer(fields[NM_FLD_DISKSZ], 0, "unused");
     set_field_buffer(fields[NM_FLD_IFSDRV], 0, NM_DEFAULT_NETDRV);
     set_field_buffer(fields[NM_FLD_USBUSE], 0, "no");
     field_opts_off(fields[NM_FLD_VMNAME], O_STATIC);
@@ -151,7 +168,7 @@ static void nm_add_vm_field_setup(const nm_vect_t *usb_names)
     field_opts_off(fields[NM_FLD_USBDEV], O_STATIC);
 }
 
-static void nm_add_vm_field_names(nm_window_t *w)
+static void nm_add_vm_field_names(nm_window_t *w, int import)
 {
     int y = 2, mult = 2;
     nm_str_t buf = NM_INIT_STR;
@@ -180,7 +197,10 @@ static void nm_add_vm_field_names(nm_window_t *w)
     mvwaddstr(w, y += mult, 2, buf.data);
 
     mvwaddstr(w, y += mult, 2, _("Disk interface"));
-    mvwaddstr(w, y += mult, 2, _("Path to ISO/IMG"));
+    if (import)
+        mvwaddstr(w, y += mult, 2, _("Path to disk image"));
+    else
+        mvwaddstr(w, y += mult, 2, _("Path to ISO/IMG"));
     mvwaddstr(w, y += mult, 2, _("Network interfaces"));
     mvwaddstr(w, y += mult, 2, _("Net driver"));
     mvwaddstr(w, y += mult, 2, _("USB [yes/no]"));
@@ -189,7 +209,8 @@ static void nm_add_vm_field_names(nm_window_t *w)
     nm_str_free(&buf);
 }
 
-static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs)
+static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs,
+                              int import)
 {
     int rc = NM_OK;
     nm_str_t ifs_buf = NM_INIT_STR;
@@ -201,7 +222,8 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs)
     nm_get_field_buf(fields[NM_FLD_CPUNUM], &vm->cpus);
     nm_get_field_buf(fields[NM_FLD_RAMTOT], &vm->memo);
     nm_get_field_buf(fields[NM_FLD_SOURCE], &vm->srcp);
-    nm_get_field_buf(fields[NM_FLD_DISKSZ], &vm->drive.size);
+    if (!import)
+        nm_get_field_buf(fields[NM_FLD_DISKSZ], &vm->drive.size);
     nm_get_field_buf(fields[NM_FLD_DISKIN], &vm->drive.driver);
     nm_get_field_buf(fields[NM_FLD_IFSCNT], &ifs_buf);
     nm_get_field_buf(fields[NM_FLD_IFSDRV], &vm->ifs.driver);
@@ -212,7 +234,8 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs)
     nm_form_check_data(_("Architecture"), vm->arch, err);
     nm_form_check_data(_("CPU cores"), vm->cpus, err);
     nm_form_check_data(_("Memory"), vm->memo, err);
-    nm_form_check_data(_("Disk"), vm->drive.size, err);
+    if (!import)
+        nm_form_check_data(_("Disk"), vm->drive.size, err);
     nm_form_check_data(_("Disk interface"), vm->drive.driver, err);
     nm_form_check_data(_("Path to ISO/IMG"), vm->srcp, err);
     nm_form_check_data(_("Network interfaces"), vm->ifs.driver, err);
@@ -268,7 +291,7 @@ out:
     return rc;
 }
 
-static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac)
+static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac, int import)
 {
     nm_str_t query = NM_INIT_STR;
 
@@ -294,8 +317,15 @@ static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac)
     nm_str_add_text(&query, "', '");
     nm_str_add_str(&query, &vm->arch);
     nm_str_add_text(&query, "', '");
-    nm_str_add_str(&query, &vm->srcp);
-    nm_str_add_text(&query, "', '" NM_ENABLE); /* not installed */
+    if (!import)
+    {
+        nm_str_add_str(&query, &vm->srcp);
+        nm_str_add_text(&query, "', '" NM_ENABLE); /* not installed */
+    }
+    else
+    {
+        nm_str_add_text(&query, "', '" NM_DISABLE); /* no need to install */
+    }
     nm_str_add_text(&query, "', '" NM_DISABLE); /* mouse override */
     if (vm->usb.enable)
     {
@@ -378,10 +408,10 @@ static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac)
     nm_str_free(&query);
 }
 
-static void nm_add_vm_to_fs(nm_vm_t *vm)
+static void nm_add_vm_to_fs(nm_vm_t *vm, int import)
 {
     nm_str_t vm_dir = NM_INIT_STR;
-    nm_str_t cmd = NM_INIT_STR;
+    nm_str_t buf = NM_INIT_STR;
 
     nm_str_copy(&vm_dir, &nm_cfg_get()->vm_dir);
     nm_str_add_char(&vm_dir, '/');
@@ -393,19 +423,30 @@ static void nm_add_vm_to_fs(nm_vm_t *vm)
                __func__, vm_dir.data, strerror(errno));
     }
 
-    nm_str_alloc_text(&cmd, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img create -f qcow2 ");
-    nm_str_add_str(&cmd, &vm_dir);
-    nm_str_add_char(&cmd, '/');
-    nm_str_add_str(&cmd, &vm->name);
-    nm_str_add_text(&cmd, "_a.img ");
-    nm_str_add_str(&cmd, &vm->drive.size);
-    nm_str_add_text(&cmd, "G > /dev/null 2>&1");
+    if (!import)
+    {
+        nm_str_alloc_text(&buf, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img create -f qcow2 ");
+        nm_str_add_str(&buf, &vm_dir);
+        nm_str_add_char(&buf, '/');
+        nm_str_add_str(&buf, &vm->name);
+        nm_str_add_text(&buf, "_a.img ");
+        nm_str_add_str(&buf, &vm->drive.size);
+        nm_str_add_text(&buf, "G > /dev/null 2>&1");
 
-    if (system(cmd.data) != 0)
-        nm_bug(_("%s: cannot create image file"), __func__);
+        if (system(buf.data) != 0)
+            nm_bug(_("%s: cannot create image file"), __func__);
+    }
+    else
+    {
+        nm_str_copy(&buf, &vm_dir);
+        nm_str_add_char(&buf, '/');
+        nm_str_add_str(&buf, &vm->name);
+        nm_str_add_text(&buf, "_a.img");
+        nm_copy_file(&vm->srcp, &buf);
+    }
 
     nm_str_free(&vm_dir);
-    nm_str_free(&cmd);
+    nm_str_free(&buf);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

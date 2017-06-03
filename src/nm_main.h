@@ -4,6 +4,7 @@
 enum {
     NM_CHOICE_VM_LIST = 1,
     NM_CHOICE_VM_INST,
+    NM_CHOICE_VM_IMPORT,
     NM_CHOICE_QUIT
 };
 
