@@ -539,7 +539,7 @@ void nm_vmctl_clear_tap(void)
         if (stat(lock_path.data, &file_info) == 0)
             continue;
 
-        nm_str_add_text(&query, "SELECT if_name, mac_addr, if_drv, ipv4_addr "
+        nm_str_add_text(&query, "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost "
             "FROM ifaces WHERE vm_name='");
         nm_str_add_str(&query, nm_vect_str(&vms, n));
         nm_str_add_char(&query, '\'');
