@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 
 #define NM_BLKSIZE 131072 /* 128KiB */
+#define NM_SOCK_READLEN 256
 
 #if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
 #include <sys/sendfile.h>
@@ -239,7 +240,7 @@ int nm_spawn_process(const nm_str_t *p)
         {
             int wstatus = 0;
             pid_t w_rc;
-            char buf[256] = {0};
+            char buf[NM_SOCK_READLEN] = {0};
 
             close(fd[1]);
             w_rc = waitpid(child_pid, &wstatus, 0);
