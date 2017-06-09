@@ -246,7 +246,7 @@ int nm_spawn_process(const nm_str_t *p)
             if ((w_rc == child_pid) && (WEXITSTATUS(wstatus) != 0))
             {
                 nm_str_t err_msg = NM_INIT_STR;
-                while (read(fd[0], buf, sizeof(buf - 1)) > 0)
+                while (read(fd[0], buf, sizeof(buf) - 1) > 0)
                 {
                     nm_str_add_text(&err_msg, buf);
                     memset(&buf, 0, sizeof(buf));
