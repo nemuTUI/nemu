@@ -431,10 +431,13 @@ static void nm_add_vm_to_fs(nm_vm_t *vm, int import)
         nm_str_add_str(&buf, &vm->name);
         nm_str_add_text(&buf, "_a.img ");
         nm_str_add_str(&buf, &vm->drive.size);
-        nm_str_add_text(&buf, "G > /dev/null 2>&1");
+        nm_str_add_text(&buf, "G");
 
-        if (system(buf.data) != 0)
+        if (nm_spawn_process(&buf) != NM_OK)
+        {
+            rmdir(vm_dir.data);
             nm_bug(_("%s: cannot create image file"), __func__);
+        }
     }
     else
     {
