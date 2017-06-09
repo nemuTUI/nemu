@@ -3,7 +3,6 @@
 #include <nm_vector.h>
 #include <nm_ncurses.h>
 
-#include <time.h>
 #include <sys/wait.h>
 
 #define NM_BLKSIZE 131072 /* 128KiB */
