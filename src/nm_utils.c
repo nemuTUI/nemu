@@ -1,6 +1,10 @@
 #include <nm_core.h>
 #include <nm_utils.h>
+#include <nm_vector.h>
 #include <nm_ncurses.h>
+
+#include <time.h>
+#include <sys/wait.h>
 
 #define NM_BLKSIZE 131072 /* 128KiB */
 
@@ -178,6 +182,68 @@ static void nm_copy_file_default(int in_fd, int out_fd)
     free(buf);
 }
 #endif
+
+int nm_spawn_process(const nm_str_t *p)
+{
+    int rc = NM_OK;
+    pid_t child_pid = 0;
+    nm_vect_t argv = NM_INIT_VECT;
+    nm_str_t path = NM_INIT_STR;
+    nm_str_t tmp_p = NM_INIT_STR;
+
+    nm_str_copy(&tmp_p, p);
+
+    {
+        int n = 0;
+        char *token;
+        char *saveptr = tmp_p.data;
+
+        while ((token = strtok_r(saveptr, " ", &saveptr)))
+        {
+            if (n == 0)
+                nm_str_alloc_text(&path, token);
+
+            nm_vect_insert(&argv, token, strlen(token) + 1, NULL);
+
+            n++;
+        }
+    }
+
+    nm_vect_end_zero(&argv);
+
+    switch (child_pid = fork()) {
+    case (-1):  /* error*/
+        nm_bug("%s: fork: %s", __func__, strerror(errno));
+        break;
+
+    case (0):   /* child */
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+
+        execvp(path.data, (char *const *) argv.data);
+        nm_bug("%s: unreachable reached", __func__);
+        break;
+
+    default:    /* parent */
+        {
+            int wstatus = 0;
+            pid_t w_rc;
+
+            w_rc = waitpid(child_pid, &wstatus, 0);
+            if ((w_rc == child_pid) && (WEXITSTATUS(wstatus) != 0))
+            {
+                rc = NM_ERR;
+                break;
+            }
+        }
+    }
+
+    nm_vect_free(&argv, NULL);
+    nm_str_free(&path);
+    nm_str_free(&tmp_p);
+
+    return rc;
+}
 
 #ifdef NM_DEBUG
 void nm_debug(const char *fmt, ...)

@@ -39,7 +39,6 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
 {
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_str_t cmd = NM_INIT_STR;
-    int unused __attribute__((unused));
 
     nm_vmctl_get_data(name, &vm);
 
@@ -67,7 +66,24 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
 
     nm_vmctl_gen_cmd(&cmd, &vm, name, flags);
     if (cmd.len > 0)
-        unused = system(cmd.data);
+    {
+        if (nm_spawn_process(&cmd) != NM_OK)
+        {
+            nm_str_t qmp_path = NM_INIT_STR;
+            struct stat qmp_info;
+
+            nm_str_format(&qmp_path, "%s/%s/%s",
+                nm_cfg_get()->vm_dir.data, name->data, NM_VM_QMP_FILE);
+
+            /* must delete qmp sock file if exists */
+            if (stat(qmp_path.data, &qmp_info) != -1)
+                unlink(qmp_path.data);
+
+            nm_str_free(&qmp_path);
+
+            nm_print_warn(3, 6, _("start failed"));
+        }
+    }
 
     nm_vmctl_log_last(&cmd);
 
