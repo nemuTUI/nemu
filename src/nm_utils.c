@@ -2,8 +2,10 @@
 #include <nm_utils.h>
 #include <nm_vector.h>
 #include <nm_ncurses.h>
+#include <nm_vm_control.h>
 
 #include <sys/wait.h>
+#include <sys/socket.h>
 
 #define NM_BLKSIZE 131072 /* 128KiB */
 
@@ -185,10 +187,14 @@ static void nm_copy_file_default(int in_fd, int out_fd)
 int nm_spawn_process(const nm_str_t *p)
 {
     int rc = NM_OK;
+    int fd[2];
     pid_t child_pid = 0;
     nm_vect_t argv = NM_INIT_VECT;
     nm_str_t path = NM_INIT_STR;
     nm_str_t tmp_p = NM_INIT_STR;
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd) == -1)
+        nm_bug("%s: error create socketpair: %s", __func__, strerror(errno));
 
     nm_str_copy(&tmp_p, p);
 
@@ -217,7 +223,13 @@ int nm_spawn_process(const nm_str_t *p)
 
     case (0):   /* child */
         close(STDOUT_FILENO);
-        close(STDERR_FILENO);
+        close(fd[0]);
+
+        if (fd[1] != STDERR_FILENO)
+        {
+            if (dup2(fd[1], STDERR_FILENO) != STDERR_FILENO)
+                nm_bug("%s: dup2 error: %s", __func__, strerror(errno));
+        }
 
         execvp(path.data, (char *const *) argv.data);
         nm_bug("%s: unreachable reached", __func__);
@@ -227,13 +239,27 @@ int nm_spawn_process(const nm_str_t *p)
         {
             int wstatus = 0;
             pid_t w_rc;
+            char buf[256] = {0};
 
+            close(fd[1]);
             w_rc = waitpid(child_pid, &wstatus, 0);
             if ((w_rc == child_pid) && (WEXITSTATUS(wstatus) != 0))
             {
+                nm_str_t err_msg = NM_INIT_STR;
+                while (read(fd[0], buf, sizeof(buf - 1)) > 0)
+                {
+                    nm_str_add_text(&err_msg, buf);
+                    memset(&buf, 0, sizeof(buf));
+                }
+                nm_vmctl_log_last(&err_msg);
+#if NM_DEBUG
+                nm_debug("exec_error: %s", err_msg.data);
+#endif
+                nm_str_free(&err_msg);
                 rc = NM_ERR;
                 break;
             }
+            close(fd[0]);
         }
     }
 

@@ -7,8 +7,6 @@
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
 
-static void nm_vmctl_log_last(const nm_str_t *cmd);
-
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 {
     nm_str_t query = NM_INIT_STR;
@@ -81,11 +79,13 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
 
             nm_str_free(&qmp_path);
 
-            nm_print_warn(3, 6, _("start failed"));
+            nm_print_warn(3, 6, _("start failed, error was logged"));
+        }
+        else
+        {
+            nm_vmctl_log_last(&cmd);
         }
     }
-
-    nm_vmctl_log_last(&cmd);
 
     nm_str_free(&cmd);
     nm_vmctl_free_data(&vm);
@@ -515,12 +515,12 @@ void nm_vmctl_free_data(nm_vmctl_data_t *vm)
     nm_vect_free(&vm->drives, nm_str_vect_free_cb);
 }
 
-static void nm_vmctl_log_last(const nm_str_t *cmd)
+void nm_vmctl_log_last(const nm_str_t *msg)
 {
     FILE *fp;
     const nm_cfg_t *cfg = nm_cfg_get();
 
-    if ((cmd->len == 0) || (!cfg->log_enabled))
+    if ((msg->len == 0) || (!cfg->log_enabled))
         return;
 
     if ((fp = fopen(cfg->log_path.data, "w+")) == NULL)
@@ -529,7 +529,7 @@ static void nm_vmctl_log_last(const nm_str_t *cmd)
             __func__, cfg->log_path.data, strerror(errno));
     }
 
-    fprintf(fp, "%s\n", cmd->data);
+    fprintf(fp, "%s\n", msg->data);
     fclose(fp);
 }
 
