@@ -94,7 +94,6 @@ static void nm_mach_get_data(const char *arch)
     case (0):   /* child */
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[0]);
-        close(pipefd[1]);
         execl(qemu_bin_path.data, qemu_bin_name.data, "-M", "help", NULL);
         nm_bug("%s: unreachable reached", __func__);
         break;
@@ -104,6 +103,8 @@ static void nm_mach_get_data(const char *arch)
             char *bufp = NULL;
             ssize_t nread;
             size_t nalloc = NM_PIPE_READLEN * 2, total_read = 0;
+            int wstatus = 0;
+
             close(pipefd[1]);
 
             buf = nm_alloc(NM_PIPE_READLEN * 2);
@@ -122,7 +123,14 @@ static void nm_mach_get_data(const char *arch)
             }
             buf[total_read] = '\0';
             mach_list.list = nm_mach_parse(buf);
-            wait(NULL);
+
+            waitpid(-1, &wstatus, 0);
+            if (WEXITSTATUS(wstatus) != 0)
+            {
+                nm_bug(_("%s: %s returns %d"), __func__,
+                    qemu_bin_name.data, WEXITSTATUS(wstatus));
+
+            }
         }
         break;
     }
