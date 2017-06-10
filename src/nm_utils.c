@@ -258,7 +258,6 @@ int nm_spawn_process(const nm_str_t *p)
 #endif
                 nm_str_free(&err_msg);
                 rc = NM_ERR;
-                break;
             }
             close(fd[0]);
         }
