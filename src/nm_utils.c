@@ -200,18 +200,15 @@ int nm_spawn_process(const nm_str_t *p)
     nm_str_copy(&tmp_p, p);
 
     {
-        int n = 0;
         char *token;
         char *saveptr = tmp_p.data;
 
         while ((token = strtok_r(saveptr, " ", &saveptr)))
         {
-            if (n == 0)
+            if (argv.n_memb == 0)
                 nm_str_alloc_text(&path, token);
 
             nm_vect_insert(&argv, token, strlen(token) + 1, NULL);
-
-            n++;
         }
     }
 
