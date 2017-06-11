@@ -1,3 +1,14 @@
+v1.2.0 -
+------------------------
+    - Feature: snapshots.
+    - Feature: reset VM.
+    - Feature: shutdown VM.
+    - Feature: vmxnet3 network driver support.
+    - Feature: vhost setup for network interfaces.
+    - Feature: delete additional disk.
+    - Feature: legacy cdrom option support (-cdrom).
+    - Bugfix: clone VM was broken in 1.1.0.
+
 v1.1.0 - 30 Apr 2017
 ------------------------
     - Feature: initrd support.
