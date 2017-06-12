@@ -558,3 +558,9 @@ msgstr "Имя снепшота"
 
 msgid "Enable vhost"
 msgstr "Включить vhost"
+
+msgid "Import image"
+msgstr "Импортировать диск"
+
+msgid "Path to disk image"
+msgstr "Путь до диска"
