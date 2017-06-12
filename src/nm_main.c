@@ -83,7 +83,7 @@ int main(int argc, char **argv)
                 choice = highlight;
                 break;
 
-            case KEY_F(10):
+            case NM_KEY_ESC:
                 nm_curses_deinit();
                 nm_db_close();
                 nm_cfg_free();
@@ -453,15 +453,13 @@ int main(int argc, char **argv)
                     } /* }}} help */
 
                     /* {{{ Back to main window */
-                    else if (ch == KEY_F(10))
+                    else if (ch == NM_KEY_ESC)
                     {
                         if (vm_window)
                         {
                             delwin(vm_window);
                             vm_window = NULL;
                         }
-                        /*refresh();
-                        endwin(); XXX*/
 
                         break;
                     } /* }}} */

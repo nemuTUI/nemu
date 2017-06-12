@@ -76,7 +76,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
 
     wtimeout(w, 500);
 
-    while ((ch = wgetch(w)) != KEY_F(10))
+    while ((ch = wgetch(w)) != NM_KEY_ESC)
     {
         if (confirm == NM_OK)
             break;

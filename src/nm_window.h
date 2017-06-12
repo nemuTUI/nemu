@@ -12,7 +12,7 @@ void nm_print_help(nm_window_t *w);
 void nm_print_nemu(void);
 void nm_print_title(const char *msg);
 
-#define NM_EDIT_TITLE "F10 - cancel, F2 - OK"
+#define NM_EDIT_TITLE "ESC - cancel, F2 - OK"
 
 #endif /* NM_WINDOW_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

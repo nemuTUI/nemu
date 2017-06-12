@@ -60,5 +60,7 @@
 #define NM_MAIN_CHOICES 4
 #define nm_arr_len(p) (sizeof(p) / sizeof((p)[0]))
 
+#define NM_KEY_ESC 0x1b
+
 #endif /* NM_CORE_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

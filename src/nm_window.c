@@ -7,8 +7,8 @@
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
 
-#define NM_VM_MSG   "F1 - help, F10 - main menu "
-#define NM_MAIN_MSG "Enter - select a choice, F10 - exit"
+#define NM_VM_MSG   "F1 - help, ESC - main menu "
+#define NM_MAIN_MSG "Enter - select a choice, ESC - exit"
 
 void nm_print_main_window(void)
 {

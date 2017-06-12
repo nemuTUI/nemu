@@ -13,6 +13,7 @@ inline void nm_ncurses_init(void)
     raw();
     noecho();
     curs_set(0);
+    set_escdelay(0);
 }
 
 inline void nm_curses_deinit(void)

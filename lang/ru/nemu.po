@@ -1,11 +1,11 @@
-msgid "Enter - select a choice, F10 - exit"
-msgstr "Выбрать - ввод, выйти - F10"
+msgid "Enter - select a choice, ESC - exit"
+msgstr "Выбрать - ввод, выйти - ESC"
 
-msgid "F1 - help, F10 - main menu "
-msgstr "F1 - помощь, F10 - главное меню"
+msgid "F1 - help, ESC - main menu "
+msgstr "F1 - помощь, ESC - главное меню"
 
-msgid "F10 - cancel, F2 - OK"
-msgstr "F10 - отмена, F2 - OK"
+msgid "ESC - cancel, F2 - OK"
+msgstr "ESC - отмена, F2 - OK"
 
 #: nm_window.c:217
 msgid " a - add virtual disk"
