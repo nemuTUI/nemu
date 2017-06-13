@@ -9,6 +9,7 @@
 
 #define NM_VM_MSG   "F1 - help, ESC - main menu "
 #define NM_MAIN_MSG "Enter - select a choice, ESC - exit"
+#define NM_WINF_DELIM 10
 
 void nm_print_main_window(void)
 {
@@ -74,33 +75,36 @@ void nm_print_vm_info(const nm_str_t *name)
 
     mvprintw(y, (col - name->len) / 2, "%s", name->data);
     y += 3;
-    mvprintw(y++, col / 6, "%-12s%s", "arch: ", nm_vect_str_ctx(&vm.main, NM_SQL_ARCH));
-    mvprintw(y++, col / 6, "%-12s%s", "cores: ", nm_vect_str_ctx(&vm.main, NM_SQL_SMP));
-    mvprintw(y++, col / 6, "%-12s%s %s", "memory: ", nm_vect_str_ctx(&vm.main, NM_SQL_MEM), "Mb");
+    mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "arch: ",
+        nm_vect_str_ctx(&vm.main, NM_SQL_ARCH));
+    mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "cores: ",
+        nm_vect_str_ctx(&vm.main, NM_SQL_SMP));
+    mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s %s", "memory: ",
+        nm_vect_str_ctx(&vm.main, NM_SQL_MEM), "Mb");
 
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_KVM), NM_ENABLE) == NM_OK)
     {
         if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
-            mvprintw(y++, col / 6, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
+            mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
         else
-            mvprintw(y++, col / 6, "%-12s%s", "kvm: ", "enabled");
+            mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "kvm: ", "enabled");
     }
     else
     {
-        mvprintw(y++, col / 6, "%-12s%s", "kvm: ", "disabled");
+        mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "kvm: ", "disabled");
     }
 
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_USBF), "1") == NM_OK)
     {
-        mvprintw(y++, col / 6, "%-12s%s [%s]", "usb: ", "enabled",
+        mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s [%s]", "usb: ", "enabled",
                  nm_vect_str_ctx(&vm.main, NM_SQL_USBD));
     }
     else
     {
-        mvprintw(y++, col / 6, "%-12s%s", "usb: ", "disabled");
+        mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "usb: ", "disabled");
     }
 
-    mvprintw(y++, col / 6, "%-12s%s [%u]", "vnc port: ",
+    mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s [%u]", "vnc port: ",
              nm_vect_str_ctx(&vm.main, NM_SQL_VNC),
              nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC)) + 5900);
 
@@ -111,7 +115,7 @@ void nm_print_vm_info(const nm_str_t *name)
     {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
 
-        mvprintw(y++, col / 6 , "eth%zu%-8s%s [%s %s%s]",
+        mvprintw(y++, col / NM_WINF_DELIM, "eth%zu%-8s%s [%s %s%s]",
                  n, ":",
                  nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
                  nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_MAC + idx_shift),
@@ -135,7 +139,7 @@ void nm_print_vm_info(const nm_str_t *name)
             boot = 1;
         }
 
-        mvprintw(y++, col / 6, "disk%zu%-7s%s [%sGb %s] %s", n, ":",
+        mvprintw(y++, col / NM_WINF_DELIM, "disk%zu%-7s%s [%sGb %s] %s", n, ":",
                  nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift),
                  nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_SIZE + idx_shift),
                  nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_TYPE + idx_shift),
@@ -145,19 +149,19 @@ void nm_print_vm_info(const nm_str_t *name)
 
     /* {{{ Generate guest boot settings info */
     if (nm_vect_str_len(&vm.main, NM_SQL_MACH))
-        mvprintw(y++, col / 6, "%-12s%s", "machine: ", nm_vect_str_ctx(&vm.main, NM_SQL_MACH));
+        mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "machine: ", nm_vect_str_ctx(&vm.main, NM_SQL_MACH));
     if (nm_vect_str_len(&vm.main, NM_SQL_BIOS))
-        mvprintw(y++, col / 6, "%-12s%s", "bios: ", nm_vect_str_ctx(&vm.main, NM_SQL_BIOS));
+        mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "bios: ", nm_vect_str_ctx(&vm.main, NM_SQL_BIOS));
     if (nm_vect_str_len(&vm.main, NM_SQL_KERN))
-        mvprintw(y++, col / 6, "%-12s%s", "kernel: ", nm_vect_str_ctx(&vm.main, NM_SQL_KERN));
+        mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "kernel: ", nm_vect_str_ctx(&vm.main, NM_SQL_KERN));
     if (nm_vect_str_len(&vm.main, NM_SQL_KAPP))
-        mvprintw(y++, col / 6, "%-12s%s", "cmdline: ", nm_vect_str_ctx(&vm.main, NM_SQL_KAPP));
+        mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "cmdline: ", nm_vect_str_ctx(&vm.main, NM_SQL_KAPP));
     if (nm_vect_str_len(&vm.main, NM_SQL_INIT))
-        mvprintw(y++, col / 6, "%-12s%s", "initrd: ", nm_vect_str_ctx(&vm.main, NM_SQL_INIT));
+        mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "initrd: ", nm_vect_str_ctx(&vm.main, NM_SQL_INIT));
     if (nm_vect_str_len(&vm.main, NM_SQL_TTY))
-        mvprintw(y++, col / 6, "%-12s%s", "tty: ", nm_vect_str_ctx(&vm.main, NM_SQL_TTY));
+        mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "tty: ", nm_vect_str_ctx(&vm.main, NM_SQL_TTY));
     if (nm_vect_str_len(&vm.main, NM_SQL_SOCK))
-        mvprintw(y++, col / 6, "%-12s%s", "socket: ", nm_vect_str_ctx(&vm.main, NM_SQL_SOCK));
+        mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "socket: ", nm_vect_str_ctx(&vm.main, NM_SQL_SOCK));
     /* }}} boot settings */
 
     /* {{{ Print PID */
@@ -185,7 +189,7 @@ void nm_print_vm_info(const nm_str_t *name)
                 y++;
                 pid[nread - 1] = '\0';
                 pid_num = atoi(pid);
-                mvprintw(y++, col / 6, "%-12s%d", "pid: ", pid_num);
+                mvprintw(y++, col / NM_WINF_DELIM, "%-12s%d", "pid: ", pid_num);
             }
             close(fd);
         }
@@ -203,7 +207,7 @@ void nm_print_vm_info(const nm_str_t *name)
         if (!nm_vect_str_len(&vm.ifs, NM_SQL_IF_IP4 + idx_shift))
             continue;
 
-        mvprintw(y++, col / 6, "%-12s%s [%s]", "Host IP: ",
+        mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s [%s]", "Host IP: ",
             nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
             nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_IP4 + idx_shift));
 
