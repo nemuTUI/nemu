@@ -1,8 +1,10 @@
 v1.2.0 -
 ------------------------
-    - Feature: snapshots.
-    - Feature: reset VM.
-    - Feature: shutdown VM.
+    - Change: now the escape key is used instead of F10.
+    - Feature: import disk image.
+    - Feature: snapshots (QMP).
+    - Feature: reset VM (QMP).
+    - Feature: shutdown VM (QMP).
     - Feature: vmxnet3 network driver support.
     - Feature: vhost setup for network interfaces.
     - Feature: delete additional disk.
