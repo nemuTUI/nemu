@@ -1,4 +1,4 @@
-v1.2.0 -
+v1.2.0 - 14 Jun 2017
 ------------------------
     - Change: now the escape key is used instead of F10.
     - Feature: import disk image.
