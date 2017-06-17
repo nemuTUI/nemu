@@ -252,7 +252,7 @@ void nm_print_help(nm_window_t *w)
         _(" m - show command"),
         _(" v - delete virtual disk"),
         _(" u - delete unused tap interfaces"),
-        _(" o - start vm with legacy cdrom"),
+          "",
           "",
           "",
           "",

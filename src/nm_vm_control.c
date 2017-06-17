@@ -288,17 +288,8 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
             (nm_str_cmp_tt(nm_vect_str_ctx(&vm->main, NM_SQL_ISO) + (srcp_len - 4),
                 ".iso") == NM_OK))
         {
-            if (flags & NM_VMCTL_LGCD) /* Use legacy cdrom command */
-            {
-                nm_str_add_text(res, " -boot d -cdrom ");
-                nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_ISO));
-            }
-            else
-            {
-                nm_str_add_text(res, " -boot d -drive file=");
-                nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_ISO));
-                nm_str_add_text(res, ",media=cdrom,if=ide");
-            }
+            nm_str_add_text(res, " -boot d -cdrom ");
+            nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_ISO));
         }
         else
         {
