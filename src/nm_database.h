@@ -36,7 +36,9 @@ enum select_ifs_idx {
     NM_SQL_IF_MAC,
     NM_SQL_IF_DRV,
     NM_SQL_IF_IP4,
-    NM_SQL_IF_VHO
+    NM_SQL_IF_VHO,
+    NM_SQL_IF_MVT,
+    NM_SQL_IF_PET
 };
 
 enum select_drive_idx {
@@ -46,7 +48,7 @@ enum select_drive_idx {
     NM_SQL_DRV_BOOT
 };
 
-#define NM_IFS_IDX_COUNT 5
+#define NM_IFS_IDX_COUNT 7
 #define NM_DRV_IDX_COUNT 4
 
 #endif /* NM_DATABASE_H_ */

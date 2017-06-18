@@ -7,6 +7,9 @@
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
 
+#include <time.h>
+
+static int tapfd;
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 {
     nm_str_t query = NM_INIT_STR;
@@ -17,8 +20,8 @@ void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
     nm_db_select(query.data, &vm->main);
 
     nm_str_trunc(&query, 0);
-    nm_str_add_text(&query, "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost "
-        "FROM ifaces WHERE vm_name='");
+    nm_str_add_text(&query, "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost, "
+        "macvtap, parent_eth FROM ifaces WHERE vm_name='");
     nm_str_add_str(&query, name);
     nm_str_add_text(&query, "' ORDER BY if_name ASC");
     nm_db_select(query.data, &vm->ifs);
@@ -84,6 +87,7 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
         else
         {
             nm_vmctl_log_last(&cmd);
+            //close(tapfd);
         }
     }
 
@@ -453,16 +457,62 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
         nm_str_add_text(res, ",mac=");
         nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
-        nm_str_format(res, ",netdev=netdev%zu -netdev tap,ifname=", n);
-        nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
-        nm_str_format(res, ",script=no,downscript=no,id=netdev%zu", n);
+        if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift),
+            NM_DISABLE) == NM_OK)
+        {
+            nm_str_format(res, ",netdev=netdev%zu -netdev tap,ifname=", n);
+            nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+            nm_str_format(res, ",script=no,downscript=no,id=netdev%zu", n);
+        }
+        else
+        {
+#if defined (NM_OS_LINUX)
+            if (!(flags & NM_VMCTL_INFO))
+            {
+                nm_str_t tap_path = NM_INIT_STR;
+                uint32_t tap_idx = 0;
+
+                if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK)
+                {
+                    struct timespec ts;
+                    int macvtap_type = nm_str_stoui(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift));
+                    nm_net_add_macvtap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                                       nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift),
+                                       nm_vect_str(&vm->ifs, NM_SQL_IF_MAC + idx_shift),
+                                       macvtap_type);
+
+                    /* wait for udev fix perimtions on /dev/tapN */
+                    /* TODO this is bad solution, fix it later */
+                    memset(&ts, 0, sizeof(ts));
+
+                    ts.tv_nsec = 5e+8; /* 0.5sec */
+                    nanosleep(&ts, NULL);
+                }
+
+                tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
+                    NM_SQL_IF_NAME + idx_shift));
+                if (tap_idx == 0)
+                    nm_bug("%s: MacVTap interface not found", __func__);
+
+                nm_str_format(&tap_path, "/dev/tap%u", tap_idx);
+                tapfd = open(tap_path.data, O_RDWR);
+                if (tapfd == -1)
+                    nm_bug("%s: open failed: %s", __func__, strerror(errno));
+                nm_str_free(&tap_path);
+            }
+
+            nm_str_format(res, ",netdev=netdev%zu -netdev tap,", n);
+            nm_str_format(res, "id=netdev%zu,fd=%d", n, (flags & NM_VMCTL_INFO) ? -1 : tapfd);
+#endif /* NM_OS_LINUX */
+        }
         if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift), NM_ENABLE) == NM_OK)
             nm_str_add_text(res, ",vhost=on");
 
 #if defined (NM_OS_LINUX)
         if ((!(flags & NM_VMCTL_INFO)) &&
             (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) != 0) &&
-            (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK))
+            (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK) &&
+            (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift), NM_DISABLE) == NM_OK))
         {
             nm_net_add_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
             nm_net_set_ipaddr(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
@@ -546,8 +596,8 @@ void nm_vmctl_clear_tap(void)
         if (stat(lock_path.data, &file_info) == 0)
             continue;
 
-        nm_str_add_text(&query, "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost "
-            "FROM ifaces WHERE vm_name='");
+        nm_str_add_text(&query, "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost, "
+            "macvtap, parent_eth FROM ifaces WHERE vm_name='");
         nm_str_add_str(&query, nm_vect_str(&vms, n));
         nm_str_add_char(&query, '\'');
 

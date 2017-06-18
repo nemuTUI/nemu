@@ -12,6 +12,11 @@ typedef struct {
 } nm_net_addr_t;
 
 int nm_net_iface_exists(const nm_str_t *name);
+uint32_t nm_net_iface_idx(const nm_str_t *name);
+#if defined (NM_OS_LINUX)
+void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
+                        const nm_str_t *maddr, int type);
+#endif
 void nm_net_add_tap(const nm_str_t *name);
 void nm_net_del_tap(const nm_str_t *name);
 void nm_net_set_ipaddr(const nm_str_t *name, const nm_str_t *addr);

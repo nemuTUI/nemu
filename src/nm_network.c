@@ -13,7 +13,19 @@
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 
-#define TUNDEV "/dev/net/tun"
+#define NM_TUNDEV "/dev/net/tun"
+#define NM_NET_MACVTAP "macvtap"
+
+#define NLMSG_TAIL(n) \
+    ((struct rtattr *) (((char *) (n)) + NLMSG_ALIGN((n)->nlmsg_len)))
+
+enum {
+    NM_MACVTAP_BRIDGE = 1
+};
+
+enum {
+    NM_MACVTAP_BRIDGE_MODE = 4
+};
 
 struct iplink_req {
     struct nlmsghdr n;
@@ -33,11 +45,14 @@ struct rtnl_handle {
     struct sockaddr_nl sa;
 };
 
-static void nm_net_link_change(const nm_str_t *name, int action);
+static void nm_net_link_up(const nm_str_t *name);
 static void nm_net_rtnl_open(struct rtnl_handle *rth);
 static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n);
 static int nm_net_add_attr(struct nlmsghdr *n, size_t mlen,
                            int type, const void *data, size_t dlen);
+static struct rtattr *nm_net_add_attr_nest(struct nlmsghdr *n, size_t mlen,
+                                           int type);
+int nm_net_add_attr_nest_end(struct nlmsghdr *n, struct rtattr *nest);
 #endif /* NM_OS_LINUX */
 
 enum tap_on_off {
@@ -47,9 +62,11 @@ enum tap_on_off {
 
 enum action {
     NM_SET_LINK_UP,
-    NM_SET_LINK_ADDR
+    NM_SET_LINK_ADDR,
+    NM_SET_LINK_ADD
 };
 
+static size_t nm_net_mac_a2n(const char *addr, char *res, size_t len);
 static void nm_net_manage_tap(const nm_str_t *name, int on_off);
 static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *net,
                                int action);
@@ -62,6 +79,11 @@ int nm_net_iface_exists(const nm_str_t *name)
     return NM_OK;
 }
 
+uint32_t nm_net_iface_idx(const nm_str_t *name)
+{
+    return if_nametoindex(name->data);
+}
+
 void nm_net_add_tap(const nm_str_t *name)
 {
     nm_net_manage_tap(name, NM_TAP_ON);
@@ -71,6 +93,77 @@ void nm_net_del_tap(const nm_str_t *name)
 {
     nm_net_manage_tap(name, NM_TAP_OFF);
 }
+
+#if defined (NM_OS_LINUX)
+void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
+                        const nm_str_t *maddr, int type)
+{
+    struct iplink_req req;
+    struct rtnl_handle rth;
+    struct rtattr *linkinfo, *data;
+    uint32_t dev_index, mode;
+    size_t mac_len;
+    char macn[32] = {0};
+
+    memset(&req, 0, sizeof(req));
+
+    if ((dev_index = if_nametoindex(parent->data)) == 0)
+        nm_bug("%s: if_nametoindex: %s", __func__, strerror(errno));
+
+    req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
+    req.n.nlmsg_flags = NLM_F_REQUEST | NLM_F_CREATE | NLM_F_EXCL;
+    req.n.nlmsg_type = RTM_NEWLINK;
+
+    req.i.ifi_family = AF_UNSPEC;
+    req.i.ifi_flags |= IFF_UP;
+
+    mac_len = nm_net_mac_a2n(maddr->data, macn, sizeof(macn));
+    if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_ADDRESS,
+            macn, mac_len) != NM_OK))
+    {
+        nm_bug("%s: Error add_attr", __func__);
+    }
+
+    if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_LINK,
+            &dev_index, sizeof(dev_index)) != NM_OK))
+    {
+        nm_bug("%s: Error add_attr", __func__);
+    }
+
+    if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_IFNAME,
+            name->data, name->len) != NM_OK))
+    {
+        nm_bug("%s: Error add_attr", __func__);
+    }
+
+    linkinfo = nm_net_add_attr_nest(&req.n, sizeof(req), IFLA_LINKINFO);
+    if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_INFO_KIND,
+            NM_NET_MACVTAP, strlen(NM_NET_MACVTAP)) != NM_OK))
+    {
+        nm_bug("%s: Error add_attr", __func__);
+    }
+
+    switch (type) {
+    case NM_MACVTAP_BRIDGE:
+        mode = NM_MACVTAP_BRIDGE_MODE;
+        break;
+    }
+
+    data = nm_net_add_attr_nest(&req.n, sizeof(req), IFLA_INFO_DATA);
+    if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_MACVLAN_MODE,
+            &mode, sizeof(mode)) != NM_OK))
+    {
+        nm_bug("%s: Error add_attr", __func__);
+    }
+
+    nm_net_add_attr_nest_end(&req.n, data);
+    nm_net_add_attr_nest_end(&req.n, linkinfo);
+
+    nm_net_rtnl_open(&rth);
+    nm_net_rtnl_talk(&rth, &req.n);
+    close(rth.sd);
+}
+#endif /* NM_OS_LINUX */
 
 void nm_net_set_ipaddr(const nm_str_t *name, const nm_str_t *addr)
 {
@@ -183,6 +276,33 @@ out:
     return rc;
 }
 
+static size_t nm_net_mac_a2n(const char *addr, char *res, size_t len)
+{
+    /* XXX temporary */
+    size_t n = 0;
+
+    for (; n < len; n++)
+    {
+        uint32_t oct = 0;
+        char *cp = strchr(addr, ':');
+
+        if (cp)
+        {
+            *cp = '\0';
+            cp++;
+        }
+
+        sscanf(addr, "%x", &oct);
+        res[n] = oct;
+
+        if (!cp)
+            break;
+        addr = cp;
+    }
+
+    return n + 1;
+}
+
 static void nm_net_manage_tap(const nm_str_t *name, int on_off)
 {
     int fd = -1;
@@ -193,7 +313,7 @@ static void nm_net_manage_tap(const nm_str_t *name, int on_off)
     ifr.ifr_flags |= (IFF_NO_PI | IFF_TAP);
     strncpy(ifr.ifr_name, name->data, IFNAMSIZ - 1);
 
-    if ((fd = open(TUNDEV, O_RDWR)) < 0)
+    if ((fd = open(NM_TUNDEV, O_RDWR)) < 0)
         nm_bug(_("%s: cannot open TUN device: %s"), __func__, strerror(errno));
 
     if (ioctl(fd, TUNSETIFF, &ifr) == -1)
@@ -203,7 +323,7 @@ static void nm_net_manage_tap(const nm_str_t *name, int on_off)
         nm_bug("%s: ioctl(TUNSETPERSIST): %s", __func__, strerror(errno));
 
     if (on_off == NM_TAP_ON)
-        nm_net_link_change(name, NM_SET_LINK_UP);
+        nm_net_link_up(name);
 #elif defined (NM_OS_FREEBSD)
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == -1)
@@ -262,6 +382,24 @@ static int nm_net_add_attr(struct nlmsghdr *n, size_t mlen,
     return NM_OK;
 }
 
+static struct rtattr *nm_net_add_attr_nest(struct nlmsghdr *n, size_t mlen,
+                                           int type)
+{
+    struct rtattr *nest = NLMSG_TAIL(n);
+
+    if (nm_net_add_attr(n, mlen, type, NULL, 0) != NM_OK)
+        nm_bug("%s: Error add_attr", __func__);
+
+    return nest;
+}
+
+int nm_net_add_attr_nest_end(struct nlmsghdr *n, struct rtattr *nest)
+{
+    nest->rta_len = (char *) NLMSG_TAIL(n) - (char *) nest;
+
+    return n->nlmsg_len;
+}
+
 static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n)
 {
     ssize_t len;
@@ -312,7 +450,7 @@ static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n)
     }
 }
 
-static void nm_net_link_change(const nm_str_t *name, int action)
+static void nm_net_link_up(const nm_str_t *name)
 {
     struct iplink_req req;
     struct rtnl_handle rth;
@@ -329,13 +467,8 @@ static void nm_net_link_change(const nm_str_t *name, int action)
 
     req.i.ifi_family = AF_UNSPEC;
     req.i.ifi_index = dev_index;
-
-    switch (action) {
-    case NM_SET_LINK_UP:
-        req.i.ifi_change |= IFF_UP;
-        req.i.ifi_flags |= IFF_UP;
-        break;
-    }
+    req.i.ifi_change |= IFF_UP;
+    req.i.ifi_flags |= IFF_UP;
 
     nm_net_rtnl_open(&rth);
     nm_net_rtnl_talk(&rth, &req.n);

@@ -29,6 +29,12 @@ const char *nm_form_drive_drv[] = {
     NULL
 };
 
+const char *nm_form_macvtap[] = {
+    "no",
+    "macvtap:bridge",
+    NULL
+};
+
 static int nm_append_path(nm_str_t *path);
 
 void nm_form_free(nm_form_t *form, nm_field_t **fields)

@@ -22,7 +22,7 @@ void nm_db_init(void)
     int rc;
 
     const char *query[] = {
-        "PRAGMA user_version=5",
+        "PRAGMA user_version=6",
         "CREATE TABLE vms(id integer PRIMARY KEY AUTOINCREMENT, "
             "name char(31), mem integer, smp integer, kvm integer, "
             "hcpu integer, vnc integer, arch char(32), iso char, "
@@ -32,7 +32,8 @@ void nm_db_init(void)
         "CREATE TABLE lastval(id integer, mac integer, vnc integer)",
         "INSERT INTO lastval(id, mac, vnc) VALUES ('1', '244837814042624', '0')",
         "CREATE TABLE ifaces(id integer primary key autoincrement, "
-            "vm_name char, if_name char, mac_addr char, ipv4_addr char, if_drv char, vhost integer)",
+            "vm_name char, if_name char, mac_addr char, ipv4_addr char, "
+            "if_drv char, vhost integer, macvtap integer, parent_eth char)",
         "CREATE TABLE drives(id integer primary key autoincrement, "
             "vm_name char, drive_name char, drive_drv char, capacity integer, boot integer)",
         "CREATE TABLE snapshots(id integer primary key autoincrement, "

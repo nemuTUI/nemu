@@ -84,6 +84,7 @@ void *nm_spinner(void *data);
 extern const char *nm_form_yes_no[];
 extern const char *nm_form_net_drv[];
 extern const char *nm_form_drive_drv[];
+extern const char *nm_form_macvtap[];
 
 #define nm_form_check_data(name, val, v)                      \
     {                                                         \

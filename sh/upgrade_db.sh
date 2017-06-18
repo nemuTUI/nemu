@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=5
+DB_ACTUAL_VERSION=6
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 RC=0
 
@@ -42,6 +42,15 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'UPDATE ifaces SET vhost="0";' &&
             sqlite3 "$DB_PATH" -line 'UPDATE ifaces SET if_drv="virtio-net-pci" WHERE if_drv="virtio";' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=5'
+            ) || RC=1
+            ;;
+
+        ( 5 )
+            (
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE ifaces ADD macvtap integer;' &&
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE ifaces ADD parent_eth char;' &&
+            sqlite3 "$DB_PATH" -line 'UPDATE ifaces SET macvtap="0";' &&
+            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=6'
             ) || RC=1
             ;;
 

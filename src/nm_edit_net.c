@@ -7,13 +7,14 @@
 #include <nm_vm_control.h>
 
 #if defined (NM_OS_LINUX)
-#define NM_NET_FIELDS_NUM 4
+#define NM_NET_FIELDS_NUM 6
 #else
 #define NM_NET_FIELDS_NUM 3
 #endif
 
 #if defined (NM_OS_LINUX)
 #define NM_INIT_NET_IF { NM_INIT_STR, NM_INIT_STR, \
+                         NM_INIT_STR, NM_INIT_STR, \
                          NM_INIT_STR, NM_INIT_STR }
 #else
 #define NM_INIT_NET_IF { NM_INIT_STR, NM_INIT_STR, \
@@ -28,6 +29,8 @@ typedef struct {
     nm_str_t ipv4;
 #if defined (NM_OS_LINUX)
     nm_str_t vhost;
+    nm_str_t macvtap;
+    nm_str_t parent_eth;
 #endif
 } nm_iface_t;
 
@@ -55,7 +58,9 @@ enum {
     NM_FLD_NDRV = 0,
     NM_FLD_MADR,
     NM_FLD_IPV4,
-    NM_FLD_VHST
+    NM_FLD_VHST,
+    NM_FLD_MTAP,
+    NM_FLD_PETH
 };
 
 void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
@@ -86,7 +91,7 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
         mult = 1;
 
 #if defined (NM_OS_LINUX)
-    window = nm_init_window((mult == 2) ? 14 : 9, 51, 3);
+    window = nm_init_window((mult == 2) ? 18 : 11, 51, 3);
 #else
     window = nm_init_window((mult == 2) ? 13 : 8, 51, 3);
 #endif
@@ -198,16 +203,20 @@ out:
 
 static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, const nm_sel_iface_t *iface)
 {
+    size_t mvtap_idx = 0;
 
     set_field_type(fields[NM_FLD_NDRV], TYPE_ENUM, nm_form_net_drv, false, false);
     set_field_type(fields[NM_FLD_MADR], TYPE_REGEXP, ".*");
     set_field_type(fields[NM_FLD_IPV4], TYPE_REGEXP, ".*");
 #if defined (NM_OS_LINUX)
     set_field_type(fields[NM_FLD_VHST], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_MTAP], TYPE_ENUM, nm_form_macvtap, false, false);
+    set_field_type(fields[NM_FLD_PETH], TYPE_REGEXP, ".*");
 #endif
 
     field_opts_off(fields[NM_FLD_MADR], O_STATIC);
     field_opts_off(fields[NM_FLD_IPV4], O_STATIC);
+    field_opts_off(fields[NM_FLD_PETH], O_STATIC);
 
     set_field_buffer(fields[NM_FLD_NDRV], 0,
         nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + iface->if_idx));
@@ -222,9 +231,18 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, const nm_sel_ifac
         (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + iface->if_idx),
             NM_ENABLE) == NM_OK) ? "yes" : "no");
 
+    mvtap_idx = nm_str_stoui(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + iface->if_idx));
+    if (mvtap_idx > 1)
+        nm_bug("%s: invalid macvtap array index: %zu", __func__, mvtap_idx);
+    set_field_buffer(fields[NM_FLD_MTAP], 0, nm_form_macvtap[mvtap_idx]);
+    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_PET + iface->if_idx) > 0)
+    {
+        set_field_buffer(fields[NM_FLD_PETH], 0,
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_PET + iface->if_idx));
+    }
+
     for (size_t n = 0; n < NM_NET_FIELDS_NUM; n++)
         set_field_status(fields[n], 0);
-
 }
 
 static void nm_edit_net_field_names(const nm_str_t *name, nm_window_t *w,
@@ -246,6 +264,8 @@ static void nm_edit_net_field_names(const nm_str_t *name, nm_window_t *w,
     mvwaddstr(w, y += mult, 2, _("IPv4 address"));
 #if defined (NM_OS_LINUX)
     mvwaddstr(w, y += mult, 2, _("Enable vhost"));
+    mvwaddstr(w, y += mult, 2, _("Enable MacVTap"));
+    mvwaddstr(w, y += mult, 2, _("MacVTap iface"));
 #endif
 
     nm_str_free(&buf);
@@ -262,6 +282,8 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
     nm_get_field_buf(fields[NM_FLD_IPV4], &ifp->ipv4);
 #if defined (NM_OS_LINUX)
     nm_get_field_buf(fields[NM_FLD_VHST], &ifp->vhost);
+    nm_get_field_buf(fields[NM_FLD_MTAP], &ifp->macvtap);
+    nm_get_field_buf(fields[NM_FLD_PETH], &ifp->parent_eth);
 #endif
 
     if (field_status(fields[NM_FLD_NDRV]))
@@ -271,6 +293,10 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
 #if defined (NM_OS_LINUX)
     if (field_status(fields[NM_FLD_VHST]))
         nm_form_check_data(_("Enable vhost"), ifp->vhost, err);
+    if (field_status(fields[NM_FLD_MTAP]))
+        nm_form_check_data(_("Enable MacVTap"), ifp->macvtap, err);
+    if (field_status(fields[NM_FLD_PETH]))
+        nm_form_check_data(_("MacVTap iface"), ifp->parent_eth, err);
 #endif
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
@@ -340,6 +366,16 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
             nm_print_warn(3, 2, _("vhost can be enabled only on virtio-net"));
         }
     }
+
+    /* Check for MacVTap parent interface exists */
+    if (field_status(fields[NM_FLD_PETH]))
+    {
+        if (nm_net_iface_exists(&ifp->parent_eth) != NM_OK)
+        {
+            rc = NM_ERR;
+            nm_print_warn(3, 2, _("MacVTap parent interface does not exists"));
+        }
+    }
 #else
     (void) name;
 #endif /* NM_OS_LINUX */
@@ -402,6 +438,39 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
             (nm_str_cmp_st(&ifp->vhost, "yes") == NM_OK) ? NM_ENABLE : NM_DISABLE,
             name->data, ifname->name);
         nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_MTAP]))
+    {
+        ssize_t macvtap_idx = -1;
+        const char **p = nm_form_macvtap;
+
+        for (ssize_t n = 0; *p; p++, n++)
+        {
+            if (nm_str_cmp_st(&ifp->macvtap, *p) == NM_OK)
+            {
+                macvtap_idx = n;
+                break;
+            }
+        }
+
+        if (macvtap_idx == -1)
+            nm_bug("%s: macvtap_idx is not found", __func__);
+
+        nm_str_alloc_text(&query, "UPDATE ifaces SET macvtap='");
+        nm_str_format(&query, "%zd' WHERE vm_name='%s' AND if_name='%s'",
+            macvtap_idx, name->data, ifname->name);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_PETH]))
+    {
+        nm_str_alloc_text(&query, "UPDATE ifaces SET parent_eth='");
+        nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
+            ifp->parent_eth.data, name->data, ifname->name);
+        nm_db_edit(query.data);
     }
 #endif
 
@@ -415,6 +484,8 @@ static inline void nm_edit_net_iface_free(nm_iface_t *ifp)
     nm_str_free(&ifp->ipv4);
 #if defined (NM_OS_LINUX)
     nm_str_free(&ifp->vhost);
+    nm_str_free(&ifp->macvtap);
+    nm_str_free(&ifp->parent_eth);
 #endif
 }
 
