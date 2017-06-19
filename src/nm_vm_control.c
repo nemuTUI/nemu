@@ -471,7 +471,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         else
         {
 #if defined (NM_OS_LINUX)
-            int tap_fd = 0;
+            int tap_fd = 0, wait_perm = 0;
 
             if (!(flags & NM_VMCTL_INFO))
             {
@@ -480,22 +480,13 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 
                 if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK)
                 {
+                    wait_perm = 1;
                     int macvtap_type = nm_str_stoui(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift));
                     nm_net_add_macvtap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
                                        nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift),
                                        nm_vect_str(&vm->ifs, NM_SQL_IF_MAC + idx_shift),
                                        macvtap_type);
 
-                    /* wait for udev fix perimtions on /dev/tapN */
-                    /* TODO this is bad solution, fix it later */
-                    if (getuid() != 0)
-                    {
-                        struct timespec ts;
-
-                        memset(&ts, 0, sizeof(ts));
-                        ts.tv_nsec = 5e+8; /* 0.5sec */
-                        nanosleep(&ts, NULL);
-                    }
                 }
 
                 tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
@@ -504,9 +495,38 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
                     nm_bug("%s: MacVTap interface not found", __func__);
 
                 nm_str_format(&tap_path, "/dev/tap%u", tap_idx);
+
+                /* wait for udev fixes permitions on /dev/tapN */
+                if ((getuid() != 0) && wait_perm)
+                {
+                    struct timespec ts;
+                    int tap_rw_ok = 0;
+
+                    memset(&ts, 0, sizeof(ts));
+                    ts.tv_nsec = 5e+7; /* 0.05sec */
+
+                    for (int n = 0; n < 40; n++)
+                    {
+                        if (access(tap_path.data, R_OK | W_OK) == 0)
+                        {
+                            tap_rw_ok = 1;
+                            break;
+                        }
+                        nanosleep(&ts, NULL);
+                    }
+                    if (!tap_rw_ok)
+                    {
+                        nm_print_warn(3, 6, _("access to tap iface is missing"));
+                        nm_str_trunc(res, 0);
+                        goto out;
+                    }
+                }
+
                 tap_fd = open(tap_path.data, O_RDWR);
                 if (tap_fd == -1)
                     nm_bug("%s: open failed: %s", __func__, strerror(errno));
+                if (tfds == NULL)
+                    nm_bug("%s: tfds is NULL", __func__);
                 nm_vect_insert(tfds, &tap_fd, sizeof(int), NULL);
                 nm_str_free(&tap_path);
             }
