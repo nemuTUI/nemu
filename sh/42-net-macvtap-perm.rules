@@ -1,0 +1,1 @@
+SUBSYSTEM=="macvtap", ACTION=="add", GROUP="kvm", MODE="0660"

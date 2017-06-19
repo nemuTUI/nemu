@@ -22,7 +22,7 @@ void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm);
 void nm_vmctl_free_data(nm_vmctl_data_t *vm);
 void nm_vmctl_clear_tap(void);
 void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
-                      const nm_str_t *name, int flags);
+                      const nm_str_t *name, int flags, nm_vect_t *tfds);
 void nm_vmctl_log_last(const nm_str_t *msg);
 #if (NM_WITH_VNC_CLIENT)
 void nm_vmctl_connect(const nm_str_t *name);

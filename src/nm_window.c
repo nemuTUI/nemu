@@ -48,7 +48,7 @@ void nm_print_cmd(const nm_str_t *name)
     int col = getmaxx(stdscr);
 
     nm_vmctl_get_data(name, &vm);
-    nm_vmctl_gen_cmd(&cmd, &vm, name, NM_VMCTL_INFO);
+    nm_vmctl_gen_cmd(&cmd, &vm, name, NM_VMCTL_INFO, NULL);
 
     nm_clear_screen();
     mvprintw(1, (col - name->len) / 2, "%s", name->data);

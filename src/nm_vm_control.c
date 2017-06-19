@@ -9,7 +9,6 @@
 
 #include <time.h>
 
-static int tapfd;
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 {
     nm_str_t query = NM_INIT_STR;
@@ -39,6 +38,7 @@ void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 void nm_vmctl_start(const nm_str_t *name, int flags)
 {
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
+    nm_vect_t tfds = NM_INIT_VECT;
     nm_str_t cmd = NM_INIT_STR;
 
     nm_vmctl_get_data(name, &vm);
@@ -65,7 +65,7 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
     }
     /* }}} VM is already installed */
 
-    nm_vmctl_gen_cmd(&cmd, &vm, name, flags);
+    nm_vmctl_gen_cmd(&cmd, &vm, name, flags, &tfds);
     if (cmd.len > 0)
     {
         if (nm_spawn_process(&cmd) != NM_OK)
@@ -87,11 +87,15 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
         else
         {
             nm_vmctl_log_last(&cmd);
-            //close(tapfd);
+
+            /* close all tap file descriptors */
+            for (size_t n = 0; n < tfds.n_memb; n++)
+                close(*((int *) tfds.data[n]));
         }
     }
 
     nm_str_free(&cmd);
+    nm_vect_free(&tfds, NULL);
     nm_vmctl_free_data(&vm);
 }
 
@@ -260,7 +264,7 @@ void nm_vmctl_connect(const nm_str_t *name)
 #endif
 
 void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
-                      const nm_str_t *name, int flags)
+                      const nm_str_t *name, int flags, nm_vect_t *tfds)
 {
     nm_str_t vmdir = NM_INIT_STR;
     const nm_cfg_t *cfg = nm_cfg_get();
@@ -467,6 +471,8 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         else
         {
 #if defined (NM_OS_LINUX)
+            int tap_fd = 0;
+
             if (!(flags & NM_VMCTL_INFO))
             {
                 nm_str_t tap_path = NM_INIT_STR;
@@ -474,7 +480,6 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 
                 if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK)
                 {
-                    struct timespec ts;
                     int macvtap_type = nm_str_stoui(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift));
                     nm_net_add_macvtap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
                                        nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift),
@@ -483,10 +488,14 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 
                     /* wait for udev fix perimtions on /dev/tapN */
                     /* TODO this is bad solution, fix it later */
-                    memset(&ts, 0, sizeof(ts));
+                    if (getuid() != 0)
+                    {
+                        struct timespec ts;
 
-                    ts.tv_nsec = 5e+8; /* 0.5sec */
-                    nanosleep(&ts, NULL);
+                        memset(&ts, 0, sizeof(ts));
+                        ts.tv_nsec = 5e+8; /* 0.5sec */
+                        nanosleep(&ts, NULL);
+                    }
                 }
 
                 tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
@@ -495,14 +504,15 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
                     nm_bug("%s: MacVTap interface not found", __func__);
 
                 nm_str_format(&tap_path, "/dev/tap%u", tap_idx);
-                tapfd = open(tap_path.data, O_RDWR);
-                if (tapfd == -1)
+                tap_fd = open(tap_path.data, O_RDWR);
+                if (tap_fd == -1)
                     nm_bug("%s: open failed: %s", __func__, strerror(errno));
+                nm_vect_insert(tfds, &tap_fd, sizeof(int), NULL);
                 nm_str_free(&tap_path);
             }
 
             nm_str_format(res, ",netdev=netdev%zu -netdev tap,", n);
-            nm_str_format(res, "id=netdev%zu,fd=%d", n, (flags & NM_VMCTL_INFO) ? -1 : tapfd);
+            nm_str_format(res, "id=netdev%zu,fd=%d", n, (flags & NM_VMCTL_INFO) ? -1 : tap_fd);
 #endif /* NM_OS_LINUX */
         }
         if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift), NM_ENABLE) == NM_OK)
