@@ -87,13 +87,13 @@ int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2)
     return NM_OK;
 }
 
-uint32_t nm_str_stoui(const nm_str_t *str)
+uint32_t nm_str_stoui(const nm_str_t *str, int base)
 {
     uint64_t res;
     char *endp;
     const char *data = nm_str_get(str);
 
-    res = strtoul(data, &endp, 10);
+    res = strtoul(data, &endp, base);
 
     if ((errno == ERANGE) || (res > UINT32_MAX))
         nm_bug(_("%s: integer overflow"), __func__);
@@ -104,13 +104,13 @@ uint32_t nm_str_stoui(const nm_str_t *str)
     return res;
 }
 
-uint64_t nm_str_stoul(const nm_str_t *str)
+uint64_t nm_str_stoul(const nm_str_t *str, int base)
 {
     uint64_t res;
     char *endp;
     const char *data = nm_str_get(str);
 
-    res = strtoull(data, &endp, 10);
+    res = strtoull(data, &endp, base);
 
     if (errno == ERANGE)
         nm_bug(_("%s: integer overflow"), __func__);
@@ -121,13 +121,13 @@ uint64_t nm_str_stoul(const nm_str_t *str)
     return res;
 }
 
-int64_t nm_str_stol(const nm_str_t *str)
+int64_t nm_str_stol(const nm_str_t *str, int base)
 {
     int64_t res;
     char *endp;
     const char *data = nm_str_get(str);
 
-    res = strtoll(data, &endp, 10);
+    res = strtoll(data, &endp, base);
 
     if (errno == ERANGE)
         nm_bug(_("%s: integer overflow"), __func__);

@@ -106,7 +106,7 @@ void nm_print_vm_info(const nm_str_t *name)
 
     mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s [%u]", "vnc port: ",
              nm_vect_str_ctx(&vm.main, NM_SQL_VNC),
-             nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC)) + 5900);
+             nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC), 10) + 5900);
 
     /* {{{ print network interfaces info */
     ifs_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;

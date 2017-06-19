@@ -71,7 +71,7 @@ void nm_cfg_init(void)
     /* Get the size of the displayed list of VMs */
     nm_get_param(ini, NM_INI_S_MAIN, NM_INI_P_LIST, &tmp_buf);
 
-    cfg.list_max = nm_str_stoui(&tmp_buf);
+    cfg.list_max = nm_str_stoui(&tmp_buf, 10);
     nm_str_trunc(&tmp_buf, 0);
     if ((cfg.list_max == 0) || (cfg.list_max > 100))
     {
@@ -87,7 +87,7 @@ void nm_cfg_init(void)
 #endif
     /* Get the VNC listen value */
     nm_get_param(ini, NM_INI_S_VNC, NM_INI_P_VANY, &tmp_buf);
-    cfg.vnc_listen_any = !!nm_str_stoui(&tmp_buf);
+    cfg.vnc_listen_any = !!nm_str_stoui(&tmp_buf, 10);
     nm_str_trunc(&tmp_buf, 0);
 
     /* Get QEMU targets list */
@@ -123,7 +123,7 @@ void nm_cfg_init(void)
 
     /* Get log enable flag */
     nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QENL, &tmp_buf);
-    cfg.log_enabled = !!nm_str_stoui(&tmp_buf);
+    cfg.log_enabled = !!nm_str_stoui(&tmp_buf, 10);
     nm_str_trunc(&tmp_buf, 0);
 
     if (cfg.log_enabled)

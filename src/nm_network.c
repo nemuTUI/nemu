@@ -66,7 +66,7 @@ enum action {
     NM_SET_LINK_ADD
 };
 
-static size_t nm_net_mac_a2n(const char *addr, char *res, size_t len);
+static size_t nm_net_mac_a2n(const nm_str_t *addr, char *res, size_t len);
 static void nm_net_manage_tap(const nm_str_t *name, int on_off);
 static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *net,
                                int action);
@@ -117,7 +117,7 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
     req.i.ifi_family = AF_UNSPEC;
     req.i.ifi_flags |= IFF_UP;
 
-    mac_len = nm_net_mac_a2n(maddr->data, macn, sizeof(macn));
+    mac_len = nm_net_mac_a2n(maddr, macn, sizeof(macn));
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_ADDRESS,
             macn, mac_len) != NM_OK))
     {
@@ -237,7 +237,7 @@ int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
             {
                 nm_str_t buf = NM_INIT_STR;
                 nm_str_alloc_text(&buf, token);
-                netaddr.cidr = nm_str_stoui(&buf);
+                netaddr.cidr = nm_str_stoui(&buf, 10);
                 nm_str_free(&buf);
             }
             break;
@@ -276,15 +276,18 @@ out:
     return rc;
 }
 
-static size_t nm_net_mac_a2n(const char *addr, char *res, size_t len)
+static size_t nm_net_mac_a2n(const nm_str_t *addr, char *res, size_t len)
 {
-    /* XXX temporary */
+    nm_str_t copy = NM_INIT_STR;
     size_t n = 0;
+    char *savep = NULL;
+
+    nm_str_copy(&copy, addr);
+    savep = copy.data;
 
     for (; n < len; n++)
     {
-        uint32_t oct = 0;
-        char *cp = strchr(addr, ':');
+        char *cp = strchr(copy.data, ':');
 
         if (cp)
         {
@@ -292,13 +295,15 @@ static size_t nm_net_mac_a2n(const char *addr, char *res, size_t len)
             cp++;
         }
 
-        sscanf(addr, "%x", &oct);
-        res[n] = oct;
+        res[n] = nm_str_stoui(&copy, 16);
 
         if (!cp)
             break;
-        addr = cp;
+        copy.data = cp;
     }
+
+    copy.data = savep;
+    nm_str_free(&copy);
 
     return n + 1;
 }

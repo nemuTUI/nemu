@@ -266,7 +266,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm
     }
 
     if (field_status(fields[NM_FLD_IFSCNT]))
-        vm->ifs.count = nm_str_stoui(&ifs);
+        vm->ifs.count = nm_str_stoui(&ifs, 10);
 
     if (field_status(fields[NM_FLD_USBUSE]))
     {

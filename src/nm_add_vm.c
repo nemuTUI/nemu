@@ -245,7 +245,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs,
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
 
-    vm->ifs.count = nm_str_stoui(&ifs_buf);
+    vm->ifs.count = nm_str_stoui(&ifs_buf, 10);
 
     if (nm_str_cmp_st(&usb_buf, "yes") == NM_OK)
         vm->usb.enable = 1;
@@ -403,7 +403,7 @@ static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac, int import)
     /* }}} network */
 
     nm_form_update_last_mac(mac);
-    nm_form_update_last_vnc(nm_str_stoui(&vm->vncp));
+    nm_form_update_last_vnc(nm_str_stoui(&vm->vncp, 10));
 
     nm_str_free(&query);
 }

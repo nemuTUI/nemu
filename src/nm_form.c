@@ -421,14 +421,14 @@ void nm_form_get_last(uint64_t *mac, uint32_t *vnc)
     if (vnc != NULL)
     {
         nm_db_select("SELECT mac,vnc FROM lastval", &res);
-        *vnc = nm_str_stoui(res.data[1]);
+        *vnc = nm_str_stoui(res.data[1], 10);
     }
     else
     {
         nm_db_select("SELECT mac FROM lastval", &res);
     }
 
-    *mac = nm_str_stoul(res.data[0]);
+    *mac = nm_str_stoul(res.data[0], 10);
 
     nm_vect_free(&res, nm_str_vect_free_cb);
 }

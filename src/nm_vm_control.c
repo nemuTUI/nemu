@@ -345,7 +345,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     nm_str_add_text(res, " -m ");
     nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_MEM));
 
-    if (nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_SMP)) > 1)
+    if (nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_SMP), 10) > 1)
     {
         nm_str_add_text(res, " -smp ");
         nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_SMP));
@@ -481,12 +481,12 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
                 if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK)
                 {
                     wait_perm = 1;
-                    int macvtap_type = nm_str_stoui(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift));
+                    int macvtap_type = nm_str_stoui(nm_vect_str(&vm->ifs,
+                                                                NM_SQL_IF_MVT + idx_shift), 10);
                     nm_net_add_macvtap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
                                        nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift),
                                        nm_vect_str(&vm->ifs, NM_SQL_IF_MAC + idx_shift),
                                        macvtap_type);
-
                 }
 
                 tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
