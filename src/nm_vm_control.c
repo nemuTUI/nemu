@@ -467,6 +467,31 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
             nm_str_format(res, ",netdev=netdev%zu -netdev tap,ifname=", n);
             nm_str_add_str(res, nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
             nm_str_format(res, ",script=no,downscript=no,id=netdev%zu", n);
+#if defined (NM_OS_LINUX)
+            /* Delete macvtap iface if exists, we using simple tap iface now */
+            if (!(flags & NM_VMCTL_INFO))
+            {
+                uint32_t tap_idx = 0;
+                tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
+                    NM_SQL_IF_NAME + idx_shift));
+
+                if (tap_idx != 0)
+                {
+                    /* is this iface macvtap? */
+                    struct stat tap_info;
+                    nm_str_t tap_path = NM_INIT_STR;
+
+                    nm_str_format(&tap_path, "/dev/tap%u", tap_idx);
+                    if (stat(tap_path.data, &tap_info) == 0)
+                    {
+                        /* iface is macvtap, delete it */
+                        nm_net_del_iface(nm_vect_str(&vm->ifs,
+                                                     NM_SQL_IF_NAME + idx_shift));
+                    }
+                    nm_str_free(&tap_path);
+                }
+            }
+#endif /* NM_OS_LINUX */
         }
         else
         {
@@ -477,6 +502,24 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
             {
                 nm_str_t tap_path = NM_INIT_STR;
                 uint32_t tap_idx = 0;
+
+                /* Delete simple tap iface if exists, we using macvtap iface now */
+                if ((tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
+                        NM_SQL_IF_NAME + idx_shift))) != 0)
+                {
+                    /* is this iface simple tap? */
+                    struct stat tap_info;
+                    nm_str_format(&tap_path, "/dev/tap%u", tap_idx);
+                    if (stat(tap_path.data, &tap_info) != 0)
+                    {
+                        /* iface is simple tap, delete it */
+                        nm_net_del_tap(nm_vect_str(&vm->ifs,
+                                                   NM_SQL_IF_NAME + idx_shift));
+                    }
+
+                    nm_str_trunc(&tap_path, 0);
+                    tap_idx = 0;
+                }
 
                 if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK)
                 {
