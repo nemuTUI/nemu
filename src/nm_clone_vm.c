@@ -170,7 +170,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         nm_str_trunc(&query, 0);
         last_mac++;
 
-        nm_net_mac_to_str(last_mac, &maddr);
+        nm_net_mac_n2a(last_mac, &maddr);
 
         nm_str_format(&if_name, "%s_eth%zu", dst->data, n);
         if (if_name.len > 15) /* Linux tap iface max name len */

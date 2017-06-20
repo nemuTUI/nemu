@@ -430,7 +430,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
                 nm_str_t maddr = NM_INIT_STR;
                 mac++;
 
-                nm_net_mac_to_str(mac, &maddr);
+                nm_net_mac_n2a(mac, &maddr);
                 nm_str_format(&if_name, "%s_eth%zu",
                     nm_vect_str_ctx(&cur->main, NM_SQL_NAME), n);
 

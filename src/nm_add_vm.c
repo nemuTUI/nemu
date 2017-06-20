@@ -366,7 +366,7 @@ static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac, int import)
         nm_str_trunc(&query, 0);
         mac++;
 
-        nm_net_mac_to_str(mac, &maddr);
+        nm_net_mac_n2a(mac, &maddr);
 
         nm_str_format(&if_name, "%s_eth%zu", vm->name.data, n);
         if (if_name.len > 15) /* Linux tap iface max name len */

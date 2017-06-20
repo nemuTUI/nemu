@@ -197,24 +197,6 @@ void nm_net_set_ipaddr(const nm_str_t *name, const nm_str_t *addr)
     nm_net_addr_change(name, addr, NM_SET_LINK_ADDR);
 }
 
-void nm_net_mac_to_str(uint64_t maddr, nm_str_t *res)
-{
-    char buf[64] = {0};
-    int pos = 0;
-
-    for (int byte = 0; byte < 6; byte++)
-    {
-        uint32_t octet = ((maddr >> 40) & 0xff);
-
-        pos += snprintf(buf + pos, sizeof(buf) - pos, "%02x:", octet);
-        maddr <<= 8;
-    }
-
-    buf[--pos] = '\0';
-
-    nm_str_alloc_text(res, buf);
-}
-
 int nm_net_verify_mac(const nm_str_t *mac)
 {
     int rc = NM_ERR;
@@ -301,6 +283,24 @@ out:
     nm_str_free(&addr);
     nm_str_free(&buf);
     return rc;
+}
+
+void nm_net_mac_n2a(uint64_t maddr, nm_str_t *res)
+{
+    char buf[64] = {0};
+    int pos = 0;
+
+    for (int byte = 0; byte < 6; byte++)
+    {
+        uint32_t octet = ((maddr >> 40) & 0xff);
+
+        pos += snprintf(buf + pos, sizeof(buf) - pos, "%02x:", octet);
+        maddr <<= 8;
+    }
+
+    buf[--pos] = '\0';
+
+    nm_str_alloc_text(res, buf);
 }
 
 static size_t nm_net_mac_a2n(const nm_str_t *addr, char *res, size_t len)

@@ -21,7 +21,7 @@ void nm_net_del_macvtap(const nm_str_t *name);
 void nm_net_add_tap(const nm_str_t *name);
 void nm_net_del_tap(const nm_str_t *name);
 void nm_net_set_ipaddr(const nm_str_t *name, const nm_str_t *addr);
-void nm_net_mac_to_str(uint64_t maddr, nm_str_t *res);
+void nm_net_mac_n2a(uint64_t maddr, nm_str_t *res);
 int nm_net_verify_mac(const nm_str_t *mac);
 int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
                           nm_str_t *err);
