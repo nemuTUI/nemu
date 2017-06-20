@@ -609,6 +609,7 @@ void nm_vmctl_clear_tap(void)
     nm_vect_t vms = NM_INIT_VECT;
     nm_str_t query = NM_INIT_STR;
     nm_str_t lock_path = NM_INIT_STR;
+    int clear_done = 0;
 
     nm_db_select("SELECT name FROM vms", &vms);
 
@@ -640,7 +641,12 @@ void nm_vmctl_clear_tap(void)
             if ((nm_vect_str_len(&ifaces, NM_SQL_IF_IP4 + idx_shift) != 0) &&
                 (nm_net_iface_exists(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift)) == NM_OK))
             {
+#if defined (NM_OS_LINUX)
+                nm_net_del_iface(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift));
+#else
                 nm_net_del_tap(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift));
+#endif
+                clear_done = 1;
             }
         }
 
@@ -648,6 +654,8 @@ void nm_vmctl_clear_tap(void)
         nm_str_trunc(&query, 0);
         nm_vect_free(&ifaces, nm_str_vect_free_cb);
     }
+
+    nm_print_warn(3, 6, clear_done ? _("Unused ifaces deleted") : _("No unused ifaces"));
 
     nm_str_free(&query);
     nm_str_free(&lock_path);

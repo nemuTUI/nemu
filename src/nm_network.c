@@ -163,11 +163,9 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
     nm_net_rtnl_talk(&rth, &req.n);
     close(rth.sd);
 }
-#endif /* NM_OS_LINUX */
 
-void nm_net_del_macvtap(const nm_str_t *name)
+void nm_net_del_iface(const nm_str_t *name)
 {
-#if defined (NM_OS_LINUX)
     struct iplink_req req;
     struct rtnl_handle rth;
     uint32_t dev_index;
@@ -187,10 +185,8 @@ void nm_net_del_macvtap(const nm_str_t *name)
     nm_net_rtnl_open(&rth);
     nm_net_rtnl_talk(&rth, &req.n);
     close(rth.sd);
-#else
-    (void) name;
-#endif /* NM_OS_LINUX */
 }
+#endif /* NM_OS_LINUX */
 
 void nm_net_set_ipaddr(const nm_str_t *name, const nm_str_t *addr)
 {
