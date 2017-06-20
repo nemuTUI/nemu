@@ -376,7 +376,7 @@ static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac, int import)
         }
 
         nm_str_add_text(&query, "INSERT INTO ifaces("
-            "vm_name, if_name, mac_addr, if_drv, vhost) VALUES('");
+            "vm_name, if_name, mac_addr, if_drv, vhost, macvtap) VALUES('");
         nm_str_add_str(&query, &vm->name);
         nm_str_add_text(&query, "', '");
         nm_str_add_str(&query, &if_name);
@@ -393,6 +393,7 @@ static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac, int import)
 #else
         nm_str_add_text(&query, "', '0");
 #endif
+        nm_str_add_text(&query, "', '0"); /* disable macvtap by default */
         nm_str_add_text(&query, "')");
 
         nm_db_edit(query.data);
