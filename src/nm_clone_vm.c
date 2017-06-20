@@ -180,7 +180,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         }
 
         nm_str_add_text(&query, "INSERT INTO ifaces("
-            "vm_name, if_name, mac_addr, if_drv, vhost) VALUES('");
+            "vm_name, if_name, mac_addr, if_drv, vhost, macvtap, parent_eth) VALUES('");
         nm_str_add_str(&query, dst);
         nm_str_add_text(&query, "', '");
         nm_str_add_str(&query, &if_name);
@@ -190,6 +190,10 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         nm_str_add_str(&query, nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
         nm_str_add_text(&query, "', '");
         nm_str_add_str(&query, nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift));
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift));
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift));
         nm_str_add_text(&query, "')");
 
         nm_db_edit(query.data);
