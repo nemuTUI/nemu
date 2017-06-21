@@ -132,7 +132,7 @@ static void nm_edit_vm_field_setup(const nm_vect_t *usb_names, const nm_vmctl_da
     else
         set_field_buffer(fields[NM_FLD_HOSCPU], 0, nm_form_yes_no[1]);
 
-    nm_str_format(&buf, "%zu", cur->ifs.n_memb / 4);
+    nm_str_format(&buf, "%zu", cur->ifs.n_memb / NM_IFS_IDX_COUNT);
     set_field_buffer(fields[NM_FLD_IFSCNT], 0, buf.data);
     set_field_buffer(fields[NM_FLD_DISKIN], 0, nm_vect_str_ctx(&cur->drives, NM_SQL_DRV_TYPE));
 
@@ -441,13 +441,13 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
                 }
 
                 nm_str_add_text(&query, "INSERT INTO ifaces("
-                    "vm_name, if_name, mac_addr, if_drv, vhost) VALUES('");
+                    "vm_name, if_name, mac_addr, if_drv, vhost, macvtap) VALUES('");
                 nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
                 nm_str_add_text(&query, "', '");
                 nm_str_add_str(&query, &if_name);
                 nm_str_add_text(&query, "', '");
                 nm_str_add_str(&query, &maddr);
-                nm_str_add_text(&query, "', '" NM_DEFAULT_NETDRV "', '1')");
+                nm_str_add_text(&query, "', '" NM_DEFAULT_NETDRV "', '1', '0')");
 
                 nm_db_edit(query.data);
                 
