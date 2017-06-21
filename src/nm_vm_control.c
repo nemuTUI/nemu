@@ -681,8 +681,7 @@ void nm_vmctl_clear_tap(void)
         for (size_t ifn = 0; ifn < ifs_count; ifn++)
         {
             size_t idx_shift = NM_IFS_IDX_COUNT * ifn;
-            if ((nm_vect_str_len(&ifaces, NM_SQL_IF_IP4 + idx_shift) != 0) &&
-                (nm_net_iface_exists(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift)) == NM_OK))
+            if (nm_net_iface_exists(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift)) == NM_OK)
             {
 #if defined (NM_OS_LINUX)
                 nm_net_del_iface(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift));
