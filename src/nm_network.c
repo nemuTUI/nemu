@@ -66,7 +66,9 @@ enum action {
     NM_SET_LINK_ADD
 };
 
+#if defined (NM_OS_LINUX)
 static size_t nm_net_mac_a2n(const nm_str_t *addr, char *res, size_t len);
+#endif
 static void nm_net_manage_tap(const nm_str_t *name, int on_off);
 static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *net,
                                int action);
@@ -299,6 +301,7 @@ void nm_net_mac_n2a(uint64_t maddr, nm_str_t *res)
     nm_str_alloc_text(res, buf);
 }
 
+#if defined (NM_OS_LINUX)
 static size_t nm_net_mac_a2n(const nm_str_t *addr, char *res, size_t len)
 {
     nm_str_t copy = NM_INIT_STR;
@@ -330,6 +333,7 @@ static size_t nm_net_mac_a2n(const nm_str_t *addr, char *res, size_t len)
 
     return n + 1;
 }
+#endif /* NM_OS_LINUX */
 
 static void nm_net_manage_tap(const nm_str_t *name, int on_off)
 {

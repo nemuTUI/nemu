@@ -216,7 +216,9 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, const nm_sel_ifac
 
     field_opts_off(fields[NM_FLD_MADR], O_STATIC);
     field_opts_off(fields[NM_FLD_IPV4], O_STATIC);
+#if defined (NM_OS_LINUX)
     field_opts_off(fields[NM_FLD_PETH], O_STATIC);
+#endif
 
     set_field_buffer(fields[NM_FLD_NDRV], 0,
         nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + iface->if_idx));
@@ -227,6 +229,7 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, const nm_sel_ifac
         set_field_buffer(fields[NM_FLD_IPV4], 0,
             nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + iface->if_idx));
     }
+#if defined (NM_OS_LINUX)
     set_field_buffer(fields[NM_FLD_VHST], 0,
         (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + iface->if_idx),
             NM_ENABLE) == NM_OK) ? "yes" : "no");
@@ -240,6 +243,9 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, const nm_sel_ifac
         set_field_buffer(fields[NM_FLD_PETH], 0,
             nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_PET + iface->if_idx));
     }
+#else
+    (void) mvtap_idx;
+#endif
 
     for (size_t n = 0; n < NM_NET_FIELDS_NUM; n++)
         set_field_status(fields[n], 0);
@@ -376,6 +382,7 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
     }
 #else
     (void) name;
+    (void) ifname;
 #endif /* NM_OS_LINUX */
 
 out:
