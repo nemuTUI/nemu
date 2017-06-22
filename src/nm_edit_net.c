@@ -93,7 +93,7 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
 #if defined (NM_OS_LINUX)
     window = nm_init_window((mult == 2) ? 18 : 11, 51, 3);
 #else
-    window = nm_init_window((mult == 2) ? 13 : 8, 51, 3);
+    window = nm_init_window((mult == 2) ? 12 : 8, 51, 3);
 #endif
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
