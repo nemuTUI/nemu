@@ -447,7 +447,11 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
                 nm_str_add_str(&query, &if_name);
                 nm_str_add_text(&query, "', '");
                 nm_str_add_str(&query, &maddr);
+#if defined (NM_OS_LINUX)
                 nm_str_add_text(&query, "', '" NM_DEFAULT_NETDRV "', '1', '0')");
+#else
+                nm_str_add_text(&query, "', '" NM_DEFAULT_NETDRV "', '0', '0')");
+#endif
 
                 nm_db_edit(query.data);
                 
