@@ -295,8 +295,6 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
         nm_form_check_data(_("Enable vhost"), ifp->vhost, err);
     if (field_status(fields[NM_FLD_MTAP]))
         nm_form_check_data(_("Enable MacVTap"), ifp->macvtap, err);
-    if (field_status(fields[NM_FLD_PETH]))
-        nm_form_check_data(_("MacVTap iface"), ifp->parent_eth, err);
 #endif
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
@@ -368,7 +366,7 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
     }
 
     /* Check for MacVTap parent interface exists */
-    if (field_status(fields[NM_FLD_PETH]))
+    if (field_status(fields[NM_FLD_PETH]) && (ifp->parent_eth.len > 0))
     {
         if (nm_net_iface_exists(&ifp->parent_eth) != NM_OK)
         {
