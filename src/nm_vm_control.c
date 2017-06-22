@@ -605,7 +605,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         {
             nm_net_del_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
         }
-	(void) tfds;
+        (void) tfds;
 #endif /* NM_OS_LINUX */
     } /* }}} ifaces */
 
