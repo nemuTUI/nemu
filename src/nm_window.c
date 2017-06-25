@@ -73,8 +73,10 @@ void nm_print_vm_info(const nm_str_t *name)
     nm_clear_screen();
     border(0,0,0,0,0,0,0,0);
 
-    mvprintw(y, (col - name->len) / 2, "%s", name->data);
-    y += 3;
+    mvprintw(y++, (col - name->len) / 2, "%s", name->data);
+    mvaddch(y, 0, ACS_LTEE);
+    mvhline(y, 1, ACS_HLINE, col - 2);
+    mvaddch(y++, col - 1, ACS_RTEE);
     mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "arch: ",
         nm_vect_str_ctx(&vm.main, NM_SQL_ARCH));
     mvprintw(y++, col / NM_WINF_DELIM, "%-12s%s", "cores: ",
