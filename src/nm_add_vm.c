@@ -442,11 +442,20 @@ static void nm_add_vm_to_fs(nm_vm_t *vm, int import)
     }
     else
     {
+        struct stat img_info;
+
         nm_str_copy(&buf, &vm_dir);
         nm_str_add_char(&buf, '/');
         nm_str_add_str(&buf, &vm->name);
         nm_str_add_text(&buf, "_a.img");
         nm_copy_file(&vm->srcp, &buf);
+
+        memset(&img_info, 0, sizeof(img_info));
+        if (stat(vm->srcp.data, &img_info) == 0)
+        {
+            off_t size_gb = img_info.st_size / 1024 / 1024 / 1024;
+            nm_str_format(&vm->drive.size, "%ld", size_gb);
+        }
     }
 
     nm_str_free(&vm_dir);
