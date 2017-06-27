@@ -10,6 +10,7 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
         _("Manage guests"),
         _("Install guest"),
         _("Import image"),
+        _("Local network"),
         _("Quit"),
     };
 
