@@ -15,6 +15,7 @@
 
 #define NM_TUNDEV "/dev/net/tun"
 #define NM_NET_MACVTAP "macvtap"
+#define NM_NET_VETH    "veth"
 
 #define NLMSG_TAIL(n) \
     ((struct rtattr *) (((char *) (n)) + NLMSG_ALIGN((n)->nlmsg_len)))
@@ -156,6 +157,59 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
             &mode, sizeof(mode)) != NM_OK))
     {
         nm_bug("%s: Error add_attr", __func__);
+    }
+
+    nm_net_add_attr_nest_end(&req.n, data);
+    nm_net_add_attr_nest_end(&req.n, linkinfo);
+
+    nm_net_rtnl_open(&rth);
+    nm_net_rtnl_talk(&rth, &req.n);
+    close(rth.sd);
+}
+
+void nm_net_add_veth(const nm_str_t *l_name, const nm_str_t *r_name)
+{
+    struct iplink_req req;
+    struct rtnl_handle rth;
+    struct rtattr *linkinfo, *data;
+
+    memset(&req, 0, sizeof(req));
+
+    req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
+    req.n.nlmsg_flags = NLM_F_REQUEST | NLM_F_CREATE | NLM_F_EXCL;
+    req.n.nlmsg_type = RTM_NEWLINK;
+
+    req.i.ifi_family = AF_UNSPEC;
+    //req.i.ifi_flags |= IFF_UP;
+    req.i.ifi_index = 0;
+
+    if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_IFNAME,
+            l_name->data, l_name->len) != NM_OK))
+    {
+        nm_bug("%s: Error add_attr", __func__);
+    }
+
+    linkinfo = nm_net_add_attr_nest(&req.n, sizeof(req), IFLA_LINKINFO);
+    if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_INFO_KIND,
+            NM_NET_VETH, strlen(NM_NET_VETH)) != NM_OK))
+    {
+        nm_bug("%s: Error add_attr", __func__);
+    }
+
+    data = nm_net_add_attr_nest(&req.n, sizeof(req), IFLA_INFO_DATA);
+
+    {
+        struct rtattr *data;
+        uint32_t ifi_flags, ifi_change;
+        struct ifinfomsg *ifm, *peer_ifm;
+
+        ifm = NLMSG_DATA(&req.n);
+        ifi_flags = ifm->ifi_flags;
+        ifi_change = ifm->ifi_change;
+        ifm->ifi_flags = 0;
+        ifm->ifi_change = 0;
+
+        data = NLMSG_TAIL(&req.n);
     }
 
     nm_net_add_attr_nest_end(&req.n, data);

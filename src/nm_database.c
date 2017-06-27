@@ -38,7 +38,8 @@ void nm_db_init(void)
             "vm_name char, drive_name char, drive_drv char, capacity integer, boot integer)",
         "CREATE TABLE snapshots(id integer primary key autoincrement, "
             "vm_name char, snap_name char, backing_drive char, snap_idx integer, active integer, "
-            "TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)"
+            "TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)",
+        "CREATE TABLE veth(id integer primary key autoincrement, l_name char, r_name char)"
     };
 
     if (stat(cfg->db_path.data, &file_info) == -1)

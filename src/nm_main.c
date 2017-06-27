@@ -1,5 +1,4 @@
 #include <nm_core.h>
-#include <nm_main.h>
 #include <nm_menu.h>
 #include <nm_string.h>
 #include <nm_window.h>
@@ -30,6 +29,14 @@ int main(int argc, char **argv)
     const nm_cfg_t *cfg;
     nm_window_t *main_window = NULL;
     nm_window_t *vm_window = NULL;
+
+    enum {
+        NM_CHOICE_VM_LIST = 1,
+        NM_CHOICE_VM_INST,
+        NM_CHOICE_VM_IMPORT,
+        NM_CHOICE_NETWORK,
+        NM_CHOICE_QUIT
+    };
 
     setlocale(LC_ALL,"");
     bindtextdomain(NM_PROGNAME, NM_LOCALE_PATH);

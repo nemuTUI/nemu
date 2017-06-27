@@ -50,6 +50,8 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'ALTER TABLE ifaces ADD macvtap integer;' &&
             sqlite3 "$DB_PATH" -line 'ALTER TABLE ifaces ADD parent_eth char;' &&
             sqlite3 "$DB_PATH" -line 'UPDATE ifaces SET macvtap="0";' &&
+            sqlite3 "$DB_PATH" -line 'CREATE TABLE veth(id integer primary key autoincrement, '`
+                `'l_name char, r_name char);' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=6'
             ) || RC=1
             ;;
