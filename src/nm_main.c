@@ -16,6 +16,7 @@
 #include <nm_edit_boot.h>
 #include <nm_vm_control.h>
 #include <nm_qmp_control.h>
+#include <nm_lan_settings.h>
 
 static void signals_handler(int signal);
 static void nm_process_args(int argc, char **argv);
@@ -485,6 +486,12 @@ int main(int argc, char **argv)
         {
             nm_import_vm();
         } /* }}} Import */
+
+        /* {{{ LAN settings */
+        else if (choice == NM_CHOICE_NETWORK)
+        {
+            nm_lan_settings();
+        } /* }}} LAN */
 
         /* {{{ exit nEMU */
         else if (choice == NM_CHOICE_QUIT)
