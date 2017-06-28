@@ -30,7 +30,7 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
     }
 }
 
-void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm)
+void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
 {
     int x = 2, y = 2;
     struct stat file_info;
@@ -44,14 +44,14 @@ void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm)
     wattroff(w, COLOR_PAIR(2));
     box(w, 0, 0);
 
-    for (size_t n = vm->vm_first, i = 0; n < vm->vm_last; n++, i++)
+    for (size_t n = vm->item_first, i = 0; n < vm->item_last; n++, i++)
     {
         nm_str_t vm_name = NM_INIT_STR;
 
         if (n >= vm->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
-        nm_str_alloc_text(&vm_name, nm_vect_vm_name(vm->v, n));
+        nm_str_alloc_text(&vm_name, nm_vect_item_name(vm->v, n));
         if (vm_name.len > 16)
         {
             nm_str_trunc(&vm_name, 16);
@@ -60,17 +60,17 @@ void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm)
 
         nm_str_alloc_str(&lock_path, &nm_cfg_get()->vm_dir);
         nm_str_add_char(&lock_path, '/');
-        nm_str_add_text(&lock_path, nm_vect_vm_name(vm->v, n));
+        nm_str_add_text(&lock_path, nm_vect_item_name(vm->v, n));
         nm_str_add_text(&lock_path, "/" NM_VM_QMP_FILE);
 
         if (stat(lock_path.data, &file_info) != -1)
         {
-            nm_vect_set_vm_status(vm->v, n, 1);
+            nm_vect_set_item_status(vm->v, n, 1);
             wattron(w, COLOR_PAIR(2));
         }
         else
         {
-            nm_vect_set_vm_status(vm->v, n, 0);
+            nm_vect_set_item_status(vm->v, n, 0);
             wattron(w, COLOR_PAIR(1));
         }
 
@@ -78,13 +78,13 @@ void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm)
         {
             wattron(w, A_REVERSE);
             mvwprintw(w, y, x, "%-20s%s", vm_name.data,
-                nm_vect_vm_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
+                nm_vect_item_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
             wattroff(w, A_REVERSE);
         }
         else
         {
             mvwprintw(w, y, x, "%-20s%s", vm_name.data,
-                nm_vect_vm_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
+                nm_vect_item_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
         }
 
         y++;
@@ -95,7 +95,7 @@ void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm)
     nm_str_free(&lock_path);
 }
 
-void nm_print_veth_menu(nm_window_t *w, nm_vm_list_t *veth)
+void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth)
 {
     int x = 2, y = 2;
     nm_str_t veth_name = NM_INIT_STR;
@@ -108,14 +108,14 @@ void nm_print_veth_menu(nm_window_t *w, nm_vm_list_t *veth)
     wattroff(w, COLOR_PAIR(2));
     box(w, 0, 0);
 
-    for (size_t n = veth->vm_first, i = 0; n < veth->vm_last; n++, i++)
+    for (size_t n = veth->item_first, i = 0; n < veth->item_last; n++, i++)
     {
         char *cp = NULL;
 
         if (n >= veth->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
-        nm_str_alloc_text(&veth_name, nm_vect_vm_name(veth->v, n));
+        nm_str_alloc_text(&veth_name, nm_vect_item_name(veth->v, n));
         nm_str_copy(&veth_copy, &veth_name);
         if (veth_name.len > 16)
         {
@@ -132,12 +132,12 @@ void nm_print_veth_menu(nm_window_t *w, nm_vm_list_t *veth)
 
         if (nm_net_link_status(&veth_lname) == NM_OK)
         {
-            nm_vect_set_vm_status(veth->v, n, 1);
+            nm_vect_set_item_status(veth->v, n, 1);
             wattron(w, COLOR_PAIR(2));
         }
         else
         {
-            nm_vect_set_vm_status(veth->v, n, 0);
+            nm_vect_set_item_status(veth->v, n, 0);
             wattron(w, COLOR_PAIR(1));
         }
 
@@ -145,13 +145,13 @@ void nm_print_veth_menu(nm_window_t *w, nm_vm_list_t *veth)
         {
             wattron(w, A_REVERSE);
             mvwprintw(w, y, x, "%-20s%s", veth_name.data,
-                nm_vect_vm_status(veth->v, n) ? NM_VETH_UP : NM_VETH_DOWN);
+                nm_vect_item_status(veth->v, n) ? NM_VETH_UP : NM_VETH_DOWN);
             wattroff(w, A_REVERSE);
         }
         else
         {
             mvwprintw(w, y, x, "%-20s%s", veth_name.data,
-                nm_vect_vm_status(veth->v, n) ? NM_VETH_UP : NM_VETH_DOWN);
+                nm_vect_item_status(veth->v, n) ? NM_VETH_UP : NM_VETH_DOWN);
         }
 
         y++;

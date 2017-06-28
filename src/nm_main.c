@@ -134,7 +134,7 @@ int main(int argc, char **argv)
             else
             {
                 uint32_t list_max = cfg->list_max;
-                nm_vm_list_t vms = NM_INIT_VMS_LIST;
+                nm_menu_data_t vms = NM_INIT_MENU_DATA;
                 nm_vect_t vms_v = NM_INIT_VECT;
 
                 vms.highlight = 1;
@@ -142,11 +142,11 @@ int main(int argc, char **argv)
                 if (list_max > vm_list.n_memb)
                     list_max = vm_list.n_memb;
 
-                vms.vm_last = list_max;
+                vms.item_last = list_max;
 
                 for (size_t n = 0; n < vm_list.n_memb; n++)
                 {
-                    nm_vm_t vm = NM_INIT_VM;
+                    nm_menu_item_t vm = NM_INIT_MENU_ITEM;
                     vm.name = (nm_str_t *) nm_vect_at(&vm_list, n);
                     nm_vect_insert(&vms_v, &vm, sizeof(vm), NULL);
                 }
@@ -169,21 +169,21 @@ int main(int argc, char **argv)
                     ch = wgetch(vm_window);
 
                     if ((ch == KEY_UP) && (vms.highlight == 1) &&
-                        (vms.vm_first == 0) && (list_max < vms.v->n_memb))
+                        (vms.item_first == 0) && (list_max < vms.v->n_memb))
                     {
                         vms.highlight = list_max;
-                        vms.vm_first = vms.v->n_memb - list_max;
-                        vms.vm_last = vms.v->n_memb;
+                        vms.item_first = vms.v->n_memb - list_max;
+                        vms.item_last = vms.v->n_memb;
                     }
 
                     else if (ch == KEY_UP)
                     {
                         if ((vms.highlight == 1) && (vms.v->n_memb <= list_max))
                             vms.highlight = vms.v->n_memb;
-                        else if ((vms.highlight == 1) && (vms.vm_first != 0))
+                        else if ((vms.highlight == 1) && (vms.item_first != 0))
                         {
-                            vms.vm_first--;
-                            vms.vm_last--;
+                            vms.item_first--;
+                            vms.item_last--;
                         }
                         else
                         {
@@ -192,21 +192,21 @@ int main(int argc, char **argv)
                     }
 
                     else if ((ch == KEY_DOWN) && (vms.highlight == list_max) &&
-                             (vms.vm_last == vms.v->n_memb))
+                             (vms.item_last == vms.v->n_memb))
                     {
                         vms.highlight = 1;
-                        vms.vm_first = 0;
-                        vms.vm_last = list_max;
+                        vms.item_first = 0;
+                        vms.item_last = list_max;
                     }
 
                     else if (ch == KEY_DOWN)
                     {
                         if ((vms.highlight == vms.v->n_memb) && (vms.v->n_memb <= list_max))
                             vms.highlight = 1;
-                        else if ((vms.highlight == list_max) && (vms.vm_last < vms.v->n_memb))
+                        else if ((vms.highlight == list_max) && (vms.item_last < vms.v->n_memb))
                         {
-                            vms.vm_first++;
-                            vms.vm_last++;
+                            vms.item_first++;
+                            vms.item_last++;
                         }
                         else
                         {
@@ -216,32 +216,32 @@ int main(int argc, char **argv)
 
                     else if (ch == NM_KEY_ENTER)
                     {
-                        nm_print_vm_info(nm_vect_vm_name_cur(vms));
+                        nm_print_vm_info(nm_vect_item_name_cur(vms));
                     }
 
                     else if (ch == NM_KEY_E)
                     {
-                        nm_edit_vm(nm_vect_vm_name_cur(vms));
+                        nm_edit_vm(nm_vect_item_name_cur(vms));
                     }
 
                     else if (ch == NM_KEY_M)
                     {
-                        nm_print_cmd(nm_vect_vm_name_cur(vms));
+                        nm_print_cmd(nm_vect_item_name_cur(vms));
                     }
 
                     else if (ch == NM_KEY_A)
                     {
-                        nm_add_drive(nm_vect_vm_name_cur(vms));
+                        nm_add_drive(nm_vect_item_name_cur(vms));
                     }
 
                     else if (ch == NM_KEY_V)
                     {
-                        nm_del_drive(nm_vect_vm_name_cur(vms));
+                        nm_del_drive(nm_vect_item_name_cur(vms));
                     }
 
                     else if (ch == NM_KEY_B)
                     {
-                        nm_edit_boot(nm_vect_vm_name_cur(vms));
+                        nm_edit_boot(nm_vect_item_name_cur(vms));
                     }
 
                     else if (ch == NM_KEY_U)
@@ -252,7 +252,7 @@ int main(int argc, char **argv)
                     /* {{{ Edit network settings */
                     else if (ch == NM_KEY_I)
                     {
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
                         nm_vmctl_data_t vm_data = NM_VMCTL_INIT_DATA;
                         nm_vmctl_get_data(vm, &vm_data);
 
@@ -271,8 +271,8 @@ int main(int argc, char **argv)
                     else if (ch == NM_KEY_R)
                     {
                         nm_print_vm_menu(vm_window, &vms);
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
-                        int vm_status = nm_vect_vm_status_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
+                        int vm_status = nm_vect_item_status_cur(vms);
 
                         if (vm_status)
                             nm_print_warn(3, 6, _("already running"));
@@ -284,8 +284,8 @@ int main(int argc, char **argv)
                     else if (ch == NM_KEY_T)
                     {
                         nm_print_vm_menu(vm_window, &vms);
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
-                        int vm_status = nm_vect_vm_status_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
+                        int vm_status = nm_vect_item_status_cur(vms);
 
                         if (vm_status)
                             nm_print_warn(3, 6, _("already running"));
@@ -297,8 +297,8 @@ int main(int argc, char **argv)
                     else if (ch == NM_KEY_S)
                     {
                         nm_print_vm_menu(vm_window, &vms);
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
-                        int vm_status = nm_vect_vm_status_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
+                        int vm_status = nm_vect_item_status_cur(vms);
 
                         if (vm_status)
                             nm_snapshot_create(vm);
@@ -310,8 +310,8 @@ int main(int argc, char **argv)
                     else if (ch == NM_KEY_X)
                     {
                         nm_print_vm_menu(vm_window, &vms);
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
-                        int vm_status = nm_vect_vm_status_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
+                        int vm_status = nm_vect_item_status_cur(vms);
 
                         if (!vm_status)
                             nm_snapshot_revert(vm);
@@ -323,8 +323,8 @@ int main(int argc, char **argv)
                     else if (ch == NM_KEY_P)
                     {
                         nm_print_vm_menu(vm_window, &vms);
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
-                        int vm_status = nm_vect_vm_status_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
+                        int vm_status = nm_vect_item_status_cur(vms);
 
                         if (vm_status)
                             nm_qmp_vm_shut(vm);
@@ -334,8 +334,8 @@ int main(int argc, char **argv)
                     else if (ch == NM_KEY_F)
                     {
                         nm_print_vm_menu(vm_window, &vms);
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
-                        int vm_status = nm_vect_vm_status_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
+                        int vm_status = nm_vect_item_status_cur(vms);
 
                         if (vm_status)
                             nm_qmp_vm_stop(vm);
@@ -345,8 +345,8 @@ int main(int argc, char **argv)
                     else if (ch == NM_KEY_Z)
                     {
                         nm_print_vm_menu(vm_window, &vms);
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
-                        int vm_status = nm_vect_vm_status_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
+                        int vm_status = nm_vect_item_status_cur(vms);
 
                         if (vm_status)
                             nm_qmp_vm_reset(vm);
@@ -356,8 +356,8 @@ int main(int argc, char **argv)
                     else if (ch == NM_KEY_K)
                     {
                         nm_print_vm_menu(vm_window, &vms);
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
-                        int vm_status = nm_vect_vm_status_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
+                        int vm_status = nm_vect_item_status_cur(vms);
 
                         if (vm_status)
                             nm_vmctl_kill(vm);
@@ -367,8 +367,8 @@ int main(int argc, char **argv)
                     else if (ch == NM_KEY_D)
                     {
                         nm_print_vm_menu(vm_window, &vms);
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
-                        int vm_status = nm_vect_vm_status_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
+                        int vm_status = nm_vect_item_status_cur(vms);
 
                         if (vm_status)
                         {
@@ -391,8 +391,8 @@ int main(int argc, char **argv)
                     else if (ch == NM_KEY_L)
                     {
                         nm_print_vm_menu(vm_window, &vms);
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
-                        int vm_status = nm_vect_vm_status_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
+                        int vm_status = nm_vect_item_status_cur(vms);
 
                         if (vm_status)
                         {
@@ -411,8 +411,8 @@ int main(int argc, char **argv)
                     /* {{{ Connect to VM */
                     else if (ch == NM_KEY_C)
                     {
-                        const nm_str_t *vm = nm_vect_vm_name_cur(vms);
-                        int vm_status = nm_vect_vm_status_cur(vms);
+                        const nm_str_t *vm = nm_vect_item_name_cur(vms);
+                        int vm_status = nm_vect_item_status_cur(vms);
 
                         if (vm_status)
                             nm_vmctl_connect(vm);

@@ -43,7 +43,7 @@ void nm_lan_settings(void)
         else
         {
             uint32_t list_max = nm_cfg_get()->list_max;
-            nm_vm_list_t veths_data = NM_INIT_VMS_LIST;
+            nm_menu_data_t veths_data = NM_INIT_MENU_DATA;
             nm_vect_t veths_list = NM_INIT_VECT;
 
             veths_data.highlight = 1;
@@ -51,11 +51,11 @@ void nm_lan_settings(void)
             if (list_max > veths.n_memb)
                 list_max = veths.n_memb;
 
-            veths_data.vm_last = list_max;
+            veths_data.item_last = list_max;
 
             for (size_t n = 0; n < veths.n_memb; n++)
             {
-                nm_vm_t veth = NM_INIT_VM;
+                nm_menu_item_t veth = NM_INIT_MENU_ITEM;
                 veth.name = (nm_str_t *) nm_vect_at(&veths, n);
                 nm_vect_insert(&veths_list, &veth, sizeof(veth), NULL);
             }

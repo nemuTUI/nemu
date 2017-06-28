@@ -21,12 +21,12 @@ void nm_vect_free(nm_vect_t *v, nm_vect_free_cb_pt cb);
 #define nm_vect_str(p, idx) ((nm_str_t *) nm_vect_at(p, idx))
 #define nm_vect_str_ctx(p, idx) ((nm_str_t *) nm_vect_at(p, idx))->data
 #define nm_vect_str_len(p, idx) ((nm_str_t *) nm_vect_at(p, idx))->len
-#define nm_vect_vm_name(p, idx) ((nm_vm_t *) nm_vect_at(p, idx))->name->data
-#define nm_vect_vm_name_str(p, idx) ((nm_vm_t *) nm_vect_at(p, idx))->name
-#define nm_vect_vm_name_cur(p) nm_vect_vm_name_str(p.v, (p.vm_first + p.highlight) - 1)
-#define nm_vect_vm_status(p, idx) ((nm_vm_t *) nm_vect_at(p, idx))->status
-#define nm_vect_vm_status_cur(p) nm_vect_vm_status(p.v, (p.vm_first + p.highlight) - 1)
-#define nm_vect_set_vm_status(p, idx, s) ((nm_vm_t *) nm_vect_at(p, idx))->status = s
+#define nm_vect_item_name(p, idx) ((nm_menu_item_t *) nm_vect_at(p, idx))->name->data
+#define nm_vect_item_name_str(p, idx) ((nm_menu_item_t *) nm_vect_at(p, idx))->name
+#define nm_vect_item_name_cur(p) nm_vect_item_name_str(p.v, (p.item_first + p.highlight) - 1)
+#define nm_vect_item_status(p, idx) ((nm_menu_item_t *) nm_vect_at(p, idx))->status
+#define nm_vect_item_status_cur(p) nm_vect_item_status(p.v, (p.item_first + p.highlight) - 1)
+#define nm_vect_set_item_status(p, idx, s) ((nm_menu_item_t *) nm_vect_at(p, idx))->status = s
 
 #endif /* NM_VECTOR_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */
