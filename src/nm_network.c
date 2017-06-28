@@ -16,6 +16,7 @@
 #define NM_TUNDEV "/dev/net/tun"
 #define NM_NET_MACVTAP "macvtap"
 #define NM_NET_VETH    "veth"
+#define NM_NET_VETH_INFO_PEER 1
 
 #define NLMSG_TAIL(n) \
     ((struct rtattr *) (((char *) (n)) + NLMSG_ALIGN((n)->nlmsg_len)))
@@ -46,7 +47,6 @@ struct rtnl_handle {
     struct sockaddr_nl sa;
 };
 
-static void nm_net_link_up(const nm_str_t *name);
 static void nm_net_rtnl_open(struct rtnl_handle *rth);
 static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n);
 static int nm_net_add_attr(struct nlmsghdr *n, size_t mlen,
@@ -180,7 +180,6 @@ void nm_net_add_veth(const nm_str_t *l_name, const nm_str_t *r_name)
     req.n.nlmsg_type = RTM_NEWLINK;
 
     req.i.ifi_family = AF_UNSPEC;
-    //req.i.ifi_flags |= IFF_UP;
     req.i.ifi_index = 0;
 
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_IFNAME,
@@ -210,6 +209,27 @@ void nm_net_add_veth(const nm_str_t *l_name, const nm_str_t *r_name)
         ifm->ifi_change = 0;
 
         data = NLMSG_TAIL(&req.n);
+        if ((nm_net_add_attr(&req.n, sizeof(req), NM_NET_VETH_INFO_PEER,
+                NULL, 0) != NM_OK))
+        {
+            nm_bug("%s: Error add_attr", __func__);
+        }
+
+        req.n.nlmsg_len += sizeof(struct ifinfomsg);
+        if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_IFNAME,
+                r_name->data, r_name->len) != NM_OK))
+        {
+            nm_bug("%s: Error add_attr", __func__);
+        }
+
+        peer_ifm = RTA_DATA(data);
+        peer_ifm->ifi_index = 0;
+        peer_ifm->ifi_flags = ifm->ifi_flags;
+        peer_ifm->ifi_change = ifm->ifi_change;
+        ifm->ifi_flags = ifi_flags;
+        ifm->ifi_change = ifi_change;
+
+        data->rta_len = (char *) NLMSG_TAIL(&req.n) - (char *) data;
     }
 
     nm_net_add_attr_nest_end(&req.n, data);
@@ -536,7 +556,7 @@ static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n)
     }
 }
 
-static void nm_net_link_up(const nm_str_t *name)
+void nm_net_link_up(const nm_str_t *name)
 {
     struct iplink_req req;
     struct rtnl_handle rth;

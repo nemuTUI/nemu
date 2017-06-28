@@ -8,6 +8,7 @@
 static void nm_lan_help(void);
 static void nm_lan_map(void);
 static void nm_lan_add_veth(void);
+static void nm_lan_del_veth(void);
 
 void nm_lan_settings(void)
 {
@@ -23,6 +24,10 @@ void nm_lan_settings(void)
         switch (ch = getch()) {
         case NM_KEY_A:
             nm_lan_add_veth();
+            break;
+
+        case NM_KEY_D:
+            nm_lan_del_veth();
             break;
 
         case KEY_F(1):
@@ -66,9 +71,21 @@ static void nm_lan_add_veth(void)
     nm_str_alloc_text(&r_name, "vm2");
 
     nm_net_add_veth(&l_name, &r_name);
+    nm_net_link_up(&l_name);
+    nm_net_link_up(&r_name);
 
     nm_str_free(&l_name);
     nm_str_free(&r_name);
+}
+
+static void nm_lan_del_veth(void)
+{
+    nm_str_t name = NM_INIT_STR;
+
+    nm_str_alloc_text(&name, "vm1");
+    nm_net_del_iface(&name);
+
+    nm_str_free(&name);
 }
 
 static void nm_lan_map(void)
