@@ -43,12 +43,16 @@ void nm_form_free(nm_form_t *form, nm_field_t **fields)
     {
         unpost_form(form);
         free_form(form);
+        form = NULL;
     }
 
     if (fields)
     {
         for (; *fields; fields++)
+        {
             free_field(*fields);
+            *fields = NULL;
+        }
     }
 
     curs_set(0);

@@ -140,7 +140,7 @@ static void nm_edit_net_select_iface(const nm_vmctl_data_t *vm, size_t ifcnt,
     nm_vect_t ifaces = NM_INIT_VECT;
     nm_form_t *form = NULL;
     nm_window_t *window = NULL;
-    nm_field_t *fields[2];
+    nm_field_t *if_fields[2] = {NULL};
     nm_vect_t err = NM_INIT_VECT;
     nm_str_t buf = NM_INIT_STR;
 
@@ -160,21 +160,21 @@ static void nm_edit_net_select_iface(const nm_vmctl_data_t *vm, size_t ifcnt,
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
 
-    fields[0] = new_field(1, 30, 2, 1, 0, 0);
-    set_field_back(fields[0], A_UNDERLINE);
-    fields[1] = NULL;
+    if_fields[0] = new_field(1, 30, 2, 1, 0, 0);
+    set_field_back(if_fields[0], A_UNDERLINE);
+    if_fields[1] = NULL;
 
-    set_field_type(fields[0], TYPE_ENUM, ifaces.data, false, false);
-    set_field_buffer(fields[0], 0, *ifaces.data);
+    set_field_type(if_fields[0], TYPE_ENUM, ifaces.data, false, false);
+    set_field_buffer(if_fields[0], 0, *ifaces.data);
 
     mvwaddstr(window, 1, 2, _("Select interface"));
     mvwaddstr(window, 4, 2, _("Interface"));
 
-    form = nm_post_form(window, fields, 11);
+    form = nm_post_form(window, if_fields, 11);
     if (nm_draw_form(window, form) != NM_OK)
         goto out;
 
-    nm_get_field_buf(fields[0], &buf);
+    nm_get_field_buf(if_fields[0], &buf);
     nm_form_check_data(_("Interface"), buf, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR)
@@ -197,7 +197,7 @@ static void nm_edit_net_select_iface(const nm_vmctl_data_t *vm, size_t ifcnt,
 
 out:
     nm_vect_free(&ifaces, NULL);
-    nm_form_free(form, fields);
+    nm_form_free(form, if_fields);
     nm_str_free(&buf);
 }
 
