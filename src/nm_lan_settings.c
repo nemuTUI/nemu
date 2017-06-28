@@ -67,7 +67,7 @@ void nm_lan_settings(void)
                 delwin(veth_window);
                 veth_window = NULL;
             }
-            veth_window = nm_init_window(list_max + 4, 32, 7);
+            veth_window = nm_init_window(list_max + 4, 40, 7);
             nm_print_veth_menu(veth_window, &veths_data);
         }
 

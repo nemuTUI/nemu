@@ -144,13 +144,13 @@ void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth)
         if (veth->highlight == i + 1)
         {
             wattron(w, A_REVERSE);
-            mvwprintw(w, y, x, "%-20s%s", veth_name.data,
+            mvwprintw(w, y, x, "%-31s%s", veth_name.data,
                 nm_vect_item_status(veth->v, n) ? NM_VETH_UP : NM_VETH_DOWN);
             wattroff(w, A_REVERSE);
         }
         else
         {
-            mvwprintw(w, y, x, "%-20s%s", veth_name.data,
+            mvwprintw(w, y, x, "%-31s%s", veth_name.data,
                 nm_vect_item_status(veth->v, n) ? NM_VETH_UP : NM_VETH_DOWN);
         }
 
