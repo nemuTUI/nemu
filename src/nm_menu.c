@@ -2,6 +2,7 @@
 #include <nm_menu.h>
 #include <nm_utils.h>
 #include <nm_string.h>
+#include <nm_network.h>
 #include <nm_cfg_file.h>
 
 void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
@@ -97,6 +98,9 @@ void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm)
 void nm_print_veth_menu(nm_window_t *w, nm_vm_list_t *veth)
 {
     int x = 2, y = 2;
+    nm_str_t veth_name = NM_INIT_STR;
+    nm_str_t veth_copy = NM_INIT_STR;
+    nm_str_t veth_lname = NM_INIT_STR;
 
     init_pair(1, COLOR_WHITE, COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
@@ -106,20 +110,36 @@ void nm_print_veth_menu(nm_window_t *w, nm_vm_list_t *veth)
 
     for (size_t n = veth->vm_first, i = 0; n < veth->vm_last; n++, i++)
     {
-        nm_str_t veth_name = NM_INIT_STR;
+        char *cp = NULL;
 
         if (n >= veth->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
         nm_str_alloc_text(&veth_name, nm_vect_vm_name(veth->v, n));
+        nm_str_copy(&veth_copy, &veth_name);
         if (veth_name.len > 16)
         {
             nm_str_trunc(&veth_name, 16);
             nm_str_add_text(&veth_name, "...");
         }
 
-        nm_vect_set_vm_status(veth->v, n, 0);
-        wattron(w, COLOR_PAIR(1));
+        cp = strchr(veth_copy.data, '<');
+        if (cp)
+        {
+            *cp = '\0';
+            nm_str_alloc_text(&veth_lname, veth_copy.data);
+        }
+
+        if (nm_net_link_status(&veth_lname) == NM_OK)
+        {
+            nm_vect_set_vm_status(veth->v, n, 1);
+            wattron(w, COLOR_PAIR(2));
+        }
+        else
+        {
+            nm_vect_set_vm_status(veth->v, n, 0);
+            wattron(w, COLOR_PAIR(1));
+        }
 
         if (veth->highlight == i + 1)
         {
@@ -136,8 +156,15 @@ void nm_print_veth_menu(nm_window_t *w, nm_vm_list_t *veth)
 
         y++;
         wrefresh(w);
-        nm_str_free(&veth_name);
+
+        nm_str_trunc(&veth_name, 0);
+        nm_str_trunc(&veth_copy, 0);
+        nm_str_trunc(&veth_lname, 0);
     }
+
+    nm_str_free(&veth_name);
+    nm_str_free(&veth_copy);
+    nm_str_free(&veth_lname);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

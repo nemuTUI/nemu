@@ -48,7 +48,8 @@ struct rtnl_handle {
 };
 
 static void nm_net_rtnl_open(struct rtnl_handle *rth);
-static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n);
+static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n,
+                             struct nlmsghdr *res, size_t res_len);
 static int nm_net_add_attr(struct nlmsghdr *n, size_t mlen,
                            int type, const void *data, size_t dlen);
 static struct rtattr *nm_net_add_attr_nest(struct nlmsghdr *n, size_t mlen,
@@ -163,7 +164,7 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
     nm_net_add_attr_nest_end(&req.n, linkinfo);
 
     nm_net_rtnl_open(&rth);
-    nm_net_rtnl_talk(&rth, &req.n);
+    nm_net_rtnl_talk(&rth, &req.n, NULL, 0);
     close(rth.sd);
 }
 
@@ -236,7 +237,7 @@ void nm_net_add_veth(const nm_str_t *l_name, const nm_str_t *r_name)
     nm_net_add_attr_nest_end(&req.n, linkinfo);
 
     nm_net_rtnl_open(&rth);
-    nm_net_rtnl_talk(&rth, &req.n);
+    nm_net_rtnl_talk(&rth, &req.n, NULL, 0);
     close(rth.sd);
 }
 
@@ -259,7 +260,7 @@ void nm_net_del_iface(const nm_str_t *name)
     req.i.ifi_index = dev_index;
 
     nm_net_rtnl_open(&rth);
-    nm_net_rtnl_talk(&rth, &req.n);
+    nm_net_rtnl_talk(&rth, &req.n, NULL, 0);
     close(rth.sd);
 }
 #endif /* NM_OS_LINUX */
@@ -506,14 +507,15 @@ int nm_net_add_attr_nest_end(struct nlmsghdr *n, struct rtattr *nest)
     return n->nlmsg_len;
 }
 
-static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n)
+static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n,
+                             struct nlmsghdr *res, size_t res_len)
 {
     ssize_t len;
     struct sockaddr_nl sa;
     struct iovec iov;
     struct msghdr msg;
     struct nlmsghdr *nh;
-    char buf[4096];
+    char buf[16384] = {0};
 
     iov.iov_base = (void *) n;
     iov.iov_len = n->nlmsg_len;
@@ -553,6 +555,8 @@ static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n)
             nm_bug("%s: RTNETLINK answers: %s",
                 __func__, strerror(-nlerr->error));
         }
+        if (res)
+            memcpy(res, nh, NM_MIN(res_len, nh->nlmsg_len));
     }
 }
 
@@ -577,8 +581,43 @@ void nm_net_link_up(const nm_str_t *name)
     req.i.ifi_flags |= IFF_UP;
 
     nm_net_rtnl_open(&rth);
-    nm_net_rtnl_talk(&rth, &req.n);
+    nm_net_rtnl_talk(&rth, &req.n, NULL, 0);
     close(rth.sd);
+}
+
+int nm_net_link_status(const nm_str_t *name)
+{
+    struct iplink_req req;
+    struct rtnl_handle rth;
+    struct {
+        struct nlmsghdr n;
+        char buf[16384];
+    } result;
+
+    memset(&req, 0, sizeof(req));
+
+    req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
+    req.n.nlmsg_flags = NLM_F_REQUEST;
+    req.n.nlmsg_type = RTM_GETLINK;
+    req.i.ifi_family = AF_UNSPEC;
+
+    if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_IFNAME,
+            name->data, name->len) != NM_OK))
+    {
+        nm_bug("%s: Error add_attr", __func__);
+    }
+
+    nm_net_rtnl_open(&rth);
+    nm_net_rtnl_talk(&rth, &req.n, &result.n, sizeof(result));
+    close(rth.sd);
+
+    {
+        struct ifinfomsg *ifi = NLMSG_DATA(&result.n);
+        if (!(ifi->ifi_flags & IFF_UP))
+            return NM_ERR;
+    }
+
+    return NM_OK;
 }
 #endif /* NM_OS_LINUX */
 
@@ -633,7 +672,7 @@ static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *src,
     }
 
     nm_net_rtnl_open(&rth);
-    nm_net_rtnl_talk(&rth, &req.n);
+    nm_net_rtnl_talk(&rth, &req.n, NULL, 0);
     close(rth.sd);
 #else
     (void) name;

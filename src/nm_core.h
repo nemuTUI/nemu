@@ -58,6 +58,7 @@
 #define NM_VM_QMP_FILE "qmp.sock"
 
 #define NM_MAIN_CHOICES 5
+#define NM_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define nm_arr_len(p) (sizeof(p) / sizeof((p)[0]))
 
 #define NM_KEY_ESC 0x1b
