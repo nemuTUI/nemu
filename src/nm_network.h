@@ -19,6 +19,7 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
 void nm_net_del_iface(const nm_str_t *name);
 void nm_net_add_veth(const nm_str_t *l_name, const nm_str_t *r_name);
 void nm_net_link_up(const nm_str_t *name);
+void nm_net_link_down(const nm_str_t *name);
 int nm_net_link_status(const nm_str_t *name);
 #endif
 void nm_net_add_tap(const nm_str_t *name);

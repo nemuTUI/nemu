@@ -47,6 +47,7 @@ struct rtnl_handle {
     struct sockaddr_nl sa;
 };
 
+static void nm_net_set_link_status(const nm_str_t *name, int action);
 static void nm_net_rtnl_open(struct rtnl_handle *rth);
 static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n,
                              struct nlmsghdr *res, size_t res_len);
@@ -54,7 +55,7 @@ static int nm_net_add_attr(struct nlmsghdr *n, size_t mlen,
                            int type, const void *data, size_t dlen);
 static struct rtattr *nm_net_add_attr_nest(struct nlmsghdr *n, size_t mlen,
                                            int type);
-int nm_net_add_attr_nest_end(struct nlmsghdr *n, struct rtattr *nest);
+static int nm_net_add_attr_nest_end(struct nlmsghdr *n, struct rtattr *nest);
 #endif /* NM_OS_LINUX */
 
 enum tap_on_off {
@@ -64,8 +65,8 @@ enum tap_on_off {
 
 enum action {
     NM_SET_LINK_UP,
-    NM_SET_LINK_ADDR,
-    NM_SET_LINK_ADD
+    NM_SET_LINK_DOWN,
+    NM_SET_LINK_ADDR
 };
 
 #if defined (NM_OS_LINUX)
@@ -500,7 +501,7 @@ static struct rtattr *nm_net_add_attr_nest(struct nlmsghdr *n, size_t mlen,
     return nest;
 }
 
-int nm_net_add_attr_nest_end(struct nlmsghdr *n, struct rtattr *nest)
+static int nm_net_add_attr_nest_end(struct nlmsghdr *n, struct rtattr *nest)
 {
     nest->rta_len = (char *) NLMSG_TAIL(n) - (char *) nest;
 
@@ -562,27 +563,12 @@ static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n,
 
 void nm_net_link_up(const nm_str_t *name)
 {
-    struct iplink_req req;
-    struct rtnl_handle rth;
-    uint32_t dev_index;
+    nm_net_set_link_status(name, NM_SET_LINK_UP);
+}
 
-    memset(&req, 0, sizeof(req));
-
-    if ((dev_index = if_nametoindex(name->data)) == 0)
-        nm_bug("%s: if_nametoindex: %s", __func__, strerror(errno));
-
-    req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
-    req.n.nlmsg_flags = NLM_F_REQUEST;
-    req.n.nlmsg_type = RTM_NEWLINK;
-
-    req.i.ifi_family = AF_UNSPEC;
-    req.i.ifi_index = dev_index;
-    req.i.ifi_change |= IFF_UP;
-    req.i.ifi_flags |= IFF_UP;
-
-    nm_net_rtnl_open(&rth);
-    nm_net_rtnl_talk(&rth, &req.n, NULL, 0);
-    close(rth.sd);
+void nm_net_link_down(const nm_str_t *name)
+{
+    nm_net_set_link_status(name, NM_SET_LINK_DOWN);
 }
 
 int nm_net_link_status(const nm_str_t *name)
@@ -618,6 +604,39 @@ int nm_net_link_status(const nm_str_t *name)
     }
 
     return NM_OK;
+}
+
+static void nm_net_set_link_status(const nm_str_t *name, int action)
+{
+    struct iplink_req req;
+    struct rtnl_handle rth;
+    uint32_t dev_index;
+
+    memset(&req, 0, sizeof(req));
+
+    if ((dev_index = if_nametoindex(name->data)) == 0)
+        nm_bug("%s: if_nametoindex: %s", __func__, strerror(errno));
+
+    req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
+    req.n.nlmsg_flags = NLM_F_REQUEST;
+    req.n.nlmsg_type = RTM_NEWLINK;
+
+    req.i.ifi_family = AF_UNSPEC;
+    req.i.ifi_index = dev_index;
+    req.i.ifi_change |= IFF_UP;
+
+    switch (action) {
+    case NM_SET_LINK_UP:
+        req.i.ifi_flags |= IFF_UP;
+        break;
+    case NM_SET_LINK_DOWN:
+        req.i.ifi_flags &= ~IFF_UP;
+        break;
+    }
+
+    nm_net_rtnl_open(&rth);
+    nm_net_rtnl_talk(&rth, &req.n, NULL, 0);
+    close(rth.sd);
 }
 #endif /* NM_OS_LINUX */
 
