@@ -19,7 +19,7 @@ typedef struct {
 
 void nm_print_main_menu(nm_window_t *w, uint32_t highlight);
 void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm);
-void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth);
+void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status);
 
 #define NM_VM_RUNNING "running"
 #define NM_VM_STOPPED "stopped"

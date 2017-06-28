@@ -95,7 +95,7 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
     nm_str_free(&lock_path);
 }
 
-void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth)
+void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status)
 {
     int x = 2, y = 2;
     nm_str_t veth_name = NM_INIT_STR;
@@ -130,16 +130,18 @@ void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth)
             nm_str_alloc_text(&veth_lname, veth_copy.data);
         }
 
-        if (nm_net_link_status(&veth_lname) == NM_OK)
+        if (get_status)
         {
-            nm_vect_set_item_status(veth->v, n, 1);
+            if (nm_net_link_status(&veth_lname) == NM_OK)
+                nm_vect_set_item_status(veth->v, n, 1);
+            else
+                nm_vect_set_item_status(veth->v, n, 0);
+        }
+
+        if (nm_vect_item_status(veth->v, n))
             wattron(w, COLOR_PAIR(2));
-        }
         else
-        {
-            nm_vect_set_item_status(veth->v, n, 0);
             wattron(w, COLOR_PAIR(1));
-        }
 
         if (veth->highlight == i + 1)
         {

@@ -10,6 +10,8 @@
 #define NM_LAN_GET_VETH_SQL \
     "SELECT (l_name || '<->' || r_name) FROM veth"
 
+extern sig_atomic_t redraw_window;
+
 static void nm_lan_help(void);
 static void nm_lan_add_veth(void);
 static void nm_lan_del_veth(const nm_str_t *name);
@@ -77,13 +79,13 @@ void nm_lan_settings(void)
                 veth_window = NULL;
             }
             veth_window = nm_init_window(list_max + 4, 40, 7);
-            nm_print_veth_menu(veth_window, &veths_data);
+            nm_print_veth_menu(veth_window, &veths_data, 1);
             regen_data = 0;
         }
         else
         {
             veth_window = nm_init_window(list_max + 4, 40, 7);
-            nm_print_veth_menu(veth_window, &veths_data);
+            nm_print_veth_menu(veth_window, &veths_data, 0);
         }
 
         ch = getch();
@@ -155,13 +157,21 @@ void nm_lan_settings(void)
 
         else if (ch == NM_KEY_ESC)
             goto out;
+
+        if (redraw_window)
+        {
+            endwin();
+            refresh();
+            clear();
+            redraw_window = 0;
+        }
     }
 
 out:
     nm_vect_free(&veths, nm_str_vect_free_cb);
     nm_vect_free(&veths_list, NULL);
-    keypad(stdscr, 0);
     nm_str_free(&query);
+    keypad(stdscr, 0);
 }
 
 static void nm_lan_help(void)
@@ -193,8 +203,8 @@ static void nm_lan_add_veth(void)
     nm_str_t r_name = NM_INIT_STR;
     nm_str_t query = NM_INIT_STR;
 
-    nm_str_alloc_text(&l_name, "ololo");
-    nm_str_alloc_text(&r_name, "trololo");
+    nm_str_alloc_text(&l_name, "ololo1");
+    nm_str_alloc_text(&r_name, "trololo1");
 
     nm_net_add_veth(&l_name, &r_name);
     nm_net_link_up(&l_name);

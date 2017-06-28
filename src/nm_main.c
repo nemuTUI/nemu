@@ -19,7 +19,7 @@
 
 static void signals_handler(int signal);
 static void nm_process_args(int argc, char **argv);
-static volatile sig_atomic_t redraw_window = 0;
+volatile sig_atomic_t redraw_window = 0;
 
 int main(int argc, char **argv)
 {
