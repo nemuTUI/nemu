@@ -1,32 +1,82 @@
 #include <nm_core.h>
+#include <nm_menu.h>
 #include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_window.h>
 #include <nm_network.h>
 #include <nm_database.h>
+#include <nm_cfg_file.h>
+
+#define NM_LAN_GET_VETH_SQL \
+    "SELECT (l_name || '<->' || r_name) FROM veth"
 
 static void nm_lan_help(void);
-static void nm_lan_map(void);
 static void nm_lan_add_veth(void);
 static void nm_lan_del_veth(void);
 
 void nm_lan_settings(void)
 {
     int ch = 0;
+    nm_str_t query = NM_INIT_STR;
+    nm_window_t *veth_window = NULL;
+
+    nm_str_alloc_text(&query, NM_LAN_GET_VETH_SQL);
 
     keypad(stdscr, 1);
 
     for (;;)
     {
+        nm_vect_t veths =  NM_INIT_VECT;
+        nm_db_select(query.data, &veths);
         nm_print_vm_window();
-        nm_lan_map();
+
+        if (veths.n_memb == 0)
+        {
+            int col;
+            size_t msg_len;
+            const char *msg = _("No VETH interfaces configured");
+
+            col = getmaxx(stdscr);
+            msg_len = mbstowcs(NULL, msg, strlen(msg));
+            mvprintw(4, (col - msg_len) / 2, msg);
+        }
+        else
+        {
+            uint32_t list_max = nm_cfg_get()->list_max;
+            nm_vm_list_t veths_data = NM_INIT_VMS_LIST;
+            nm_vect_t veths_list = NM_INIT_VECT;
+
+            veths_data.highlight = 1;
+
+            if (list_max > veths.n_memb)
+                list_max = veths.n_memb;
+
+            veths_data.vm_last = list_max;
+
+            for (size_t n = 0; n < veths.n_memb; n++)
+            {
+                nm_vm_t veth = NM_INIT_VM;
+                veth.name = (nm_str_t *) nm_vect_at(&veths, n);
+                nm_vect_insert(&veths_list, &veth, sizeof(veth), NULL);
+            }
+
+            veths_data.v = &veths_list;
+
+            if (veth_window)
+            {
+                delwin(veth_window);
+                veth_window = NULL;
+            }
+            veth_window = nm_init_window(list_max + 4, 32, 7);
+            nm_print_veth_menu(veth_window, &veths_data);
+        }
 
         switch (ch = getch()) {
         case NM_KEY_A:
             nm_lan_add_veth();
             break;
 
-        case NM_KEY_D:
+        case NM_KEY_R:
             nm_lan_del_veth();
             break;
 
@@ -35,10 +85,16 @@ void nm_lan_settings(void)
             break;
 
         case NM_KEY_ESC:
-            keypad(stdscr, 0);
-            return;
+            nm_vect_free(&veths, nm_str_vect_free_cb);
+            goto out;
         }
+
+        nm_vect_free(&veths, nm_str_vect_free_cb);
     }
+
+out:
+    keypad(stdscr, 0);
+    nm_str_free(&query);
 }
 
 static void nm_lan_help(void)
@@ -49,10 +105,12 @@ static void nm_lan_help(void)
           "             nEMU v" NM_VERSION,
           "",
         _(" a - add veth interface"),
-        _(" d - delete veth interface"),
+        _(" r - remove veth interface"),
+        _(" u - up veth interface"),
+        _(" d - down veth interface")
     };
 
-    w = nm_init_window(7, 40, 1);
+    w = nm_init_window(9, 40, 1);
     box(w, 0, 0);
 
     for (size_t n = 0, y = 1; n < nm_arr_len(msg); n++, y++)
@@ -97,15 +155,6 @@ static void nm_lan_del_veth(void)
     nm_db_edit(query.data);
 
     nm_str_free(&name);
-    nm_str_free(&query);
-}
-
-static void nm_lan_map(void)
-{
-    nm_vect_t veths =  NM_INIT_VECT;
-    nm_str_t query = NM_INIT_STR;
-
-    nm_vect_free(&veths, nm_str_vect_free_cb);
     nm_str_free(&query);
 }
 

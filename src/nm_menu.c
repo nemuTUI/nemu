@@ -93,4 +93,51 @@ void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm)
 
     nm_str_free(&lock_path);
 }
+
+void nm_print_veth_menu(nm_window_t *w, nm_vm_list_t *veth)
+{
+    int x = 2, y = 2;
+
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    wattroff(w, COLOR_PAIR(1));
+    wattroff(w, COLOR_PAIR(2));
+    box(w, 0, 0);
+
+    for (size_t n = veth->vm_first, i = 0; n < veth->vm_last; n++, i++)
+    {
+        nm_str_t veth_name = NM_INIT_STR;
+
+        if (n >= veth->v->n_memb)
+            nm_bug(_("%s: invalid index: %zu"), __func__, n);
+
+        nm_str_alloc_text(&veth_name, nm_vect_vm_name(veth->v, n));
+        if (veth_name.len > 16)
+        {
+            nm_str_trunc(&veth_name, 16);
+            nm_str_add_text(&veth_name, "...");
+        }
+
+        nm_vect_set_vm_status(veth->v, n, 0);
+        wattron(w, COLOR_PAIR(1));
+
+        if (veth->highlight == i + 1)
+        {
+            wattron(w, A_REVERSE);
+            mvwprintw(w, y, x, "%-20s%s", veth_name.data,
+                nm_vect_vm_status(veth->v, n) ? NM_VETH_UP : NM_VETH_DOWN);
+            wattroff(w, A_REVERSE);
+        }
+        else
+        {
+            mvwprintw(w, y, x, "%-20s%s", veth_name.data,
+                nm_vect_vm_status(veth->v, n) ? NM_VETH_UP : NM_VETH_DOWN);
+        }
+
+        y++;
+        wrefresh(w);
+        nm_str_free(&veth_name);
+    }
+}
+
 /* vim:set ts=4 sw=4 fdm=marker: */

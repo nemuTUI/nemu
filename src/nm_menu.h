@@ -19,9 +19,12 @@ typedef struct {
 
 void nm_print_main_menu(nm_window_t *w, uint32_t highlight);
 void nm_print_vm_menu(nm_window_t *w, nm_vm_list_t *vm);
+void nm_print_veth_menu(nm_window_t *w, nm_vm_list_t *veth);
 
 #define NM_VM_RUNNING "running"
 #define NM_VM_STOPPED "stopped"
+#define NM_VETH_UP   "  up"
+#define NM_VETH_DOWN "down"
 
 #define NM_INIT_VMS_LIST { NULL, 0, 0, 0 }
 #define NM_INIT_VM  { NULL, 0 }
