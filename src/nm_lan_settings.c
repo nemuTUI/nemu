@@ -12,7 +12,7 @@
 
 static void nm_lan_help(void);
 static void nm_lan_add_veth(void);
-static void nm_lan_del_veth(void);
+static void nm_lan_del_veth(const nm_str_t *name);
 
 void nm_lan_settings(void)
 {
@@ -27,6 +27,7 @@ void nm_lan_settings(void)
     for (;;)
     {
         nm_vect_t veths =  NM_INIT_VECT;
+        nm_menu_data_t veths_data = NM_INIT_MENU_DATA;
         nm_db_select(query.data, &veths);
         nm_print_vm_window();
 
@@ -43,7 +44,6 @@ void nm_lan_settings(void)
         else
         {
             uint32_t list_max = nm_cfg_get()->list_max;
-            nm_menu_data_t veths_data = NM_INIT_MENU_DATA;
             nm_vect_t veths_list = NM_INIT_VECT;
 
             veths_data.highlight = 1;
@@ -77,7 +77,8 @@ void nm_lan_settings(void)
             break;
 
         case NM_KEY_R:
-            nm_lan_del_veth();
+            if (veths.n_memb > 0)
+                nm_lan_del_veth(nm_vect_item_name_cur(veths_data));
             break;
 
         case KEY_F(1):
@@ -142,19 +143,29 @@ static void nm_lan_add_veth(void)
     nm_str_free(&query);
 }
 
-static void nm_lan_del_veth(void)
+static void nm_lan_del_veth(const nm_str_t *name)
 {
-    nm_str_t name = NM_INIT_STR;
+    nm_str_t name_copy = NM_INIT_STR;
+    nm_str_t lname = NM_INIT_STR;
     nm_str_t query = NM_INIT_STR;
+    char *cp = NULL;
 
-    nm_str_alloc_text(&name, "vm1");
-    nm_net_del_iface(&name);
+    nm_str_copy(&name_copy, name);
+    cp = strchr(name_copy.data, '<');
+    if (cp)
+    {
+        *cp = '\0';
+        nm_str_alloc_text(&lname, name_copy.data);
+    }
+
+    nm_net_del_iface(&lname);
 
     nm_str_format(&query, "DELETE FROM veth WHERE l_name='%s'",
-        name.data);
+        lname.data);
     nm_db_edit(query.data);
 
-    nm_str_free(&name);
+    nm_str_free(&name_copy);
+    nm_str_free(&lname);
     nm_str_free(&query);
 }
 
