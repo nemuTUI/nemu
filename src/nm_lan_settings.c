@@ -8,6 +8,7 @@
 #include <nm_network.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
+#include <nm_lan_settings.h>
 
 #define NM_LAN_FIELDS_NUM 2
 
@@ -30,6 +31,8 @@ enum {
 static void nm_lan_help(void);
 static void nm_lan_add_veth(void);
 static void nm_lan_del_veth(const nm_str_t *name);
+static void nm_lan_up_veth(const nm_str_t *name);
+static void nm_lan_down_veth(const nm_str_t *name);
 static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn);
 
 void nm_lan_settings(void)
@@ -165,6 +168,20 @@ void nm_lan_settings(void)
         {
             if (veths.n_memb > 0)
                 nm_lan_del_veth(nm_vect_item_name_cur(veths_data));
+            regen_data = 1;
+        }
+
+        else if (ch == NM_KEY_U)
+        {
+            if (veths.n_memb > 0)
+                nm_lan_up_veth(nm_vect_item_name_cur(veths_data));
+            regen_data = 1;
+        }
+
+        else if (ch == NM_KEY_D)
+        {
+            if (veths.n_memb > 0)
+                nm_lan_down_veth(nm_vect_item_name_cur(veths_data));
             regen_data = 1;
         }
 
@@ -323,28 +340,70 @@ out:
 
 static void nm_lan_del_veth(const nm_str_t *name)
 {
-    nm_str_t name_copy = NM_INIT_STR;
     nm_str_t lname = NM_INIT_STR;
     nm_str_t query = NM_INIT_STR;
-    char *cp = NULL;
 
-    nm_str_copy(&name_copy, name);
-    cp = strchr(name_copy.data, '<');
-    if (cp)
-    {
-        *cp = '\0';
-        nm_str_alloc_text(&lname, name_copy.data);
-    }
-
+    nm_lan_parse_name(name, &lname, NULL);
     nm_net_del_iface(&lname);
 
     nm_str_format(&query, "DELETE FROM veth WHERE l_name='%s'",
         lname.data);
     nm_db_edit(query.data);
 
-    nm_str_free(&name_copy);
     nm_str_free(&lname);
     nm_str_free(&query);
+}
+
+static void nm_lan_up_veth(const nm_str_t *name)
+{
+    nm_str_t lname = NM_INIT_STR;
+    nm_str_t rname = NM_INIT_STR;
+
+    nm_lan_parse_name(name, &lname, &rname);
+
+    nm_net_link_up(&lname);
+    nm_net_link_up(&rname);
+
+    nm_str_free(&lname);
+    nm_str_free(&rname);
+}
+
+static void nm_lan_down_veth(const nm_str_t *name)
+{
+    nm_str_t lname = NM_INIT_STR;
+    nm_str_t rname = NM_INIT_STR;
+
+    nm_lan_parse_name(name, &lname, &rname);
+
+    nm_net_link_down(&lname);
+    nm_net_link_down(&rname);
+
+    nm_str_free(&lname);
+    nm_str_free(&rname);
+}
+
+void nm_lan_parse_name(const nm_str_t *name, nm_str_t *ln, nm_str_t *rn)
+{
+    nm_str_t name_copy = NM_INIT_STR;
+    char *cp = NULL;
+
+    nm_str_copy(&name_copy, name);
+
+    if (rn != NULL)
+    {
+        cp = strchr(name_copy.data, '>');
+        nm_str_alloc_text(rn, ++cp);
+        cp = NULL;
+    }
+
+    cp = strchr(name_copy.data, '<');
+    if (cp)
+    {
+        *cp = '\0';
+        nm_str_alloc_text(ln, name_copy.data);
+    }
+
+    nm_str_free(&name_copy);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

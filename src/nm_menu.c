@@ -4,6 +4,7 @@
 #include <nm_string.h>
 #include <nm_network.h>
 #include <nm_cfg_file.h>
+#include <nm_lan_settings.h>
 
 void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
 {
@@ -110,8 +111,6 @@ void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status)
 
     for (size_t n = veth->item_first, i = 0; n < veth->item_last; n++, i++)
     {
-        char *cp = NULL;
-
         if (n >= veth->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
@@ -123,12 +122,7 @@ void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status)
             nm_str_add_text(&veth_name, "...");
         }
 
-        cp = strchr(veth_copy.data, '<');
-        if (cp)
-        {
-            *cp = '\0';
-            nm_str_alloc_text(&veth_lname, veth_copy.data);
-        }
+        nm_lan_parse_name(&veth_copy, &veth_lname, NULL);
 
         if (get_status)
         {
