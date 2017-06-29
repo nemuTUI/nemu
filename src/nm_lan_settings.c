@@ -1,5 +1,7 @@
 #include <nm_core.h>
+#include <nm_form.h>
 #include <nm_menu.h>
+#include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_window.h>
@@ -7,14 +9,28 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 
+#define NM_LAN_FIELDS_NUM 2
+
 #define NM_LAN_GET_VETH_SQL \
     "SELECT (l_name || '<->' || r_name) FROM veth"
+#define NM_LAN_ADD_VETH_SQL \
+    "INSERT INTO veth(l_name, r_name) VALUES ('%s', '%s')"
+#define NM_LAN_CHECK_NAME_SQL \
+    "SELECT id FROM veth WHERE l_name='%s' OR r_name='%s'"
 
 extern sig_atomic_t redraw_window;
+
+static nm_field_t *fields[NM_LAN_FIELDS_NUM + 1];
+
+enum {
+    NM_FLD_LNAME = 0,
+    NM_FLD_RNAME
+};
 
 static void nm_lan_help(void);
 static void nm_lan_add_veth(void);
 static void nm_lan_del_veth(const nm_str_t *name);
+static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn);
 
 void nm_lan_settings(void)
 {
@@ -101,7 +117,7 @@ void nm_lan_settings(void)
         else if ((veths.n_memb > 0) && (ch == KEY_UP))
         {
             if ((veths_data.highlight == 1) && (veths_data.v->n_memb <= list_max))
-                veths_data.highlight = veths_data.v->n_memb;
+                 veths_data.highlight = veths_data.v->n_memb;
             else if ((veths_data.highlight == 1) && (veths_data.item_first != 0))
             {
                 veths_data.item_first--;
@@ -126,7 +142,7 @@ void nm_lan_settings(void)
         {
             if ((veths_data.highlight == veths_data.v->n_memb) &&
                 (veths_data.v->n_memb <= list_max))
-                veths_data.highlight = 1;
+                 veths_data.highlight = 1;
             else if ((veths_data.highlight == list_max) &&
                      (veths_data.item_last < veths_data.v->n_memb))
             {
@@ -187,7 +203,7 @@ static void nm_lan_help(void)
         _(" d - down veth interface")
     };
 
-    w = nm_init_window(9, 40, 1);
+    w = nm_init_window(9, 38, 1);
     box(w, 0, 0);
 
     for (size_t n = 0, y = 1; n < nm_arr_len(msg); n++, y++)
@@ -202,21 +218,107 @@ static void nm_lan_add_veth(void)
     nm_str_t l_name = NM_INIT_STR;
     nm_str_t r_name = NM_INIT_STR;
     nm_str_t query = NM_INIT_STR;
+    nm_form_t *form = NULL;
+    nm_window_t *window = NULL;
+    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
+    size_t msg_len;
+    pthread_t spin_th;
+    int done = 0;
 
-    nm_str_alloc_text(&l_name, "ololo1");
-    nm_str_alloc_text(&r_name, "trololo1");
+    nm_print_title(_(NM_EDIT_TITLE));
+    window = nm_init_window(9, 45, 3);
+
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    wbkgd(window, COLOR_PAIR(1));
+
+    for (size_t n = 0; n < NM_LAN_FIELDS_NUM; ++n)
+    {
+        fields[n] = new_field(1, 19, (n + 1) * 2, 1, 0, 0);
+        set_field_back(fields[n], A_UNDERLINE);
+    }
+
+    fields[NM_LAN_FIELDS_NUM] = NULL;
+
+    set_field_type(fields[NM_FLD_LNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,15} *$");
+    set_field_type(fields[NM_FLD_RNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,15} *$");
+
+    mvwaddstr(window, 1, 2, _("Create VETH interface"));
+    mvwaddstr(window, 4, 2, _("Name"));
+    mvwaddstr(window, 6, 2, _("Peer name"));
+
+    form = nm_post_form(window, fields, 22);
+    if (nm_draw_form(window, form) != NM_OK)
+        goto out;
+
+    if (nm_lan_add_get_data(&l_name, &r_name) != NM_OK)
+        goto out;
+
+    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
+    sp_data.stop = &done;
+    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
+
+    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
+        nm_bug(_("%s: cannot create thread"), __func__);
 
     nm_net_add_veth(&l_name, &r_name);
     nm_net_link_up(&l_name);
     nm_net_link_up(&r_name);
 
-    nm_str_format(&query, "INSERT INTO veth(l_name, r_name) VALUES ('%s', '%s')",
-        l_name.data, r_name.data);
+    nm_str_format(&query, NM_LAN_ADD_VETH_SQL, l_name.data, r_name.data);
     nm_db_edit(query.data);
 
+    done = 1;
+    if (pthread_join(spin_th, NULL) != 0)
+        nm_bug(_("%s: cannot join thread"), __func__);
+
+out:
+    nm_form_free(form, fields);
     nm_str_free(&l_name);
     nm_str_free(&r_name);
     nm_str_free(&query);
+}
+
+static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn)
+{
+    int rc = NM_OK;
+    nm_str_t query = NM_INIT_STR;
+    nm_vect_t err = NM_INIT_VECT;
+    nm_vect_t names = NM_INIT_VECT;
+
+    nm_get_field_buf(fields[NM_FLD_LNAME], ln);
+    nm_get_field_buf(fields[NM_FLD_RNAME], rn);
+
+    nm_form_check_datap(_("Name"), ln, err);
+    nm_form_check_datap(_("Peer name"), rn, err);
+
+    if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
+    {
+        nm_vect_free(&err, NULL);
+        goto out;
+    }
+
+    nm_str_format(&query, NM_LAN_CHECK_NAME_SQL, ln->data, ln->data);
+    nm_db_select(query.data, &names);
+    if (names.n_memb > 0)
+    {
+        nm_print_warn(3, 6, _("Name is already taken"));
+        rc = NM_ERR;
+        goto out;
+    }
+
+    nm_str_trunc(&query, 0);
+    nm_str_format(&query, NM_LAN_CHECK_NAME_SQL, rn->data, rn->data);
+    nm_db_select(query.data, &names);
+    if (names.n_memb > 0)
+    {
+        nm_print_warn(3, 6, _("Peer name is already taken"));
+        rc = NM_ERR;
+    }
+
+out:
+    nm_vect_free(&names, nm_str_vect_free_cb);
+    nm_str_free(&query);
+    return rc;
 }
 
 static void nm_lan_del_veth(const nm_str_t *name)

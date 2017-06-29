@@ -92,6 +92,12 @@ extern const char *nm_form_macvtap[];
             nm_vect_insert(&v, name, strlen(name) + 1, NULL); \
     }
 
+#define nm_form_check_datap(name, val, v)                     \
+    {                                                         \
+        if (val->len == 0)                                    \
+            nm_vect_insert(&v, name, strlen(name) + 1, NULL); \
+    }
+
 #define NM_INIT_VM_DRIVE { NM_INIT_STR, NM_INIT_STR }
 #define NM_INIT_VM_IFS   { NM_INIT_STR, 0 }
 #define NM_INIT_VM_USB   { NM_INIT_STR, 0 }
