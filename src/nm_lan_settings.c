@@ -18,6 +18,8 @@
     "INSERT INTO veth(l_name, r_name) VALUES ('%s', '%s')"
 #define NM_LAN_CHECK_NAME_SQL \
     "SELECT id FROM veth WHERE l_name='%s' OR r_name='%s'"
+#define NM_LAN_DEL_VETH_SQL \
+    "DELETE FROM veth WHERE l_name='%s'"
 
 extern sig_atomic_t redraw_window;
 
@@ -346,8 +348,7 @@ static void nm_lan_del_veth(const nm_str_t *name)
     nm_lan_parse_name(name, &lname, NULL);
     nm_net_del_iface(&lname);
 
-    nm_str_format(&query, "DELETE FROM veth WHERE l_name='%s'",
-        lname.data);
+    nm_str_format(&query, NM_LAN_DEL_VETH_SQL, lname.data);
     nm_db_edit(query.data);
 
     nm_str_free(&lname);
