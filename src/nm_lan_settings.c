@@ -13,7 +13,7 @@
 #define NM_LAN_FIELDS_NUM 2
 
 #define NM_LAN_GET_VETH_SQL \
-    "SELECT (l_name || '<->' || r_name) FROM veth"
+    "SELECT (l_name || '<->' || r_name) FROM veth ORDER by l_name ASC"
 #define NM_LAN_ADD_VETH_SQL \
     "INSERT INTO veth(l_name, r_name) VALUES ('%s', '%s')"
 #define NM_LAN_CHECK_NAME_SQL \
