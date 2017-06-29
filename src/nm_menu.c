@@ -117,9 +117,9 @@ void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status)
 
         nm_str_alloc_text(&veth_name, nm_vect_item_name(veth->v, n));
         nm_str_copy(&veth_copy, &veth_name);
-        if (veth_name.len > 16)
+        if (veth_name.len > 25)
         {
-            nm_str_trunc(&veth_name, 16);
+            nm_str_trunc(&veth_name, 25);
             nm_str_add_text(&veth_name, "...");
         }
 
