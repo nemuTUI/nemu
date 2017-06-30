@@ -102,6 +102,7 @@ void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status)
     nm_str_t veth_name = NM_INIT_STR;
     nm_str_t veth_copy = NM_INIT_STR;
     nm_str_t veth_lname = NM_INIT_STR;
+    nm_str_t veth_rname = NM_INIT_STR;
 
     init_pair(1, COLOR_WHITE, COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
@@ -122,10 +123,18 @@ void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status)
             nm_str_add_text(&veth_name, "...");
         }
 
-        nm_lan_parse_name(&veth_copy, &veth_lname, NULL);
+        nm_lan_parse_name(&veth_copy, &veth_lname, &veth_rname);
 
         if (get_status)
         {
+            /* If VETH interface does not exists, create it */
+            if (nm_net_iface_exists(&veth_lname) != NM_OK)
+            {
+                nm_net_add_veth(&veth_lname, &veth_rname);
+                nm_net_link_up(&veth_lname);
+                nm_net_link_up(&veth_rname);
+            }
+
             if (nm_net_link_status(&veth_lname) == NM_OK)
                 nm_vect_set_item_status(veth->v, n, 1);
             else
@@ -156,11 +165,13 @@ void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status)
         nm_str_trunc(&veth_name, 0);
         nm_str_trunc(&veth_copy, 0);
         nm_str_trunc(&veth_lname, 0);
+        nm_str_trunc(&veth_rname, 0);
     }
 
     nm_str_free(&veth_name);
     nm_str_free(&veth_copy);
     nm_str_free(&veth_lname);
+    nm_str_free(&veth_rname);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
