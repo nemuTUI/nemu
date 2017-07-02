@@ -422,6 +422,7 @@ static void nm_lan_veth_info(const nm_str_t *name)
 
     x += (lname.len + 2);
 
+    /* XXX make this as static function */
     if (ifs.n_memb > 0)
     {
         for (size_t n = 0; n < ifs.n_memb; n++)
@@ -453,6 +454,7 @@ static void nm_lan_veth_info(const nm_str_t *name)
 
     x += (rname.len + 2);
 
+    /* XXX make this as static function */
     if (ifs.n_memb > 0)
     {
         for (size_t n = 0; n < ifs.n_memb; n++)
