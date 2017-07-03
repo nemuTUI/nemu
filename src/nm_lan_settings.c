@@ -39,6 +39,7 @@ static void nm_lan_up_veth(const nm_str_t *name);
 static void nm_lan_down_veth(const nm_str_t *name);
 static void nm_lan_veth_info(const nm_str_t *name);
 static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn);
+static void nm_lan_draw_veth(const nm_str_t *name, const nm_vect_t *ifs, nm_cord_t *p);
 
 void nm_lan_settings(void)
 {
@@ -398,81 +399,48 @@ static void nm_lan_down_veth(const nm_str_t *name)
 
 static void nm_lan_veth_info(const nm_str_t *name)
 {
-    int y = 1, x = 3;
-    int col = getmaxx(stdscr);
     nm_str_t lname = NM_INIT_STR;
     nm_str_t rname = NM_INIT_STR;
     nm_str_t query = NM_INIT_STR;
     nm_vect_t ifs = NM_INIT_VECT;
+    nm_cord_t pos = NM_INIT_POS;
+
+    pos.x = 3;
+    pos.y = 1;
+    pos.cols = getmaxx(stdscr);
 
     nm_clear_screen();
     border(0,0,0,0,0,0,0,0);
 
-    mvprintw(y++, (col - name->len) / 2, "%s", name->data);
-    mvaddch(y, 0, ACS_LTEE);
-    mvhline(y, 1, ACS_HLINE, col - 2);
-    mvaddch(y++, col - 1, ACS_RTEE);
+    mvprintw(pos.y++, (pos.cols - name->len) / 2, "%s", name->data);
+    mvaddch(pos.y, 0, ACS_LTEE);
+    mvhline(pos.y, 1, ACS_HLINE, pos.cols - 2);
+    mvaddch(pos.y++, pos.cols - 1, ACS_RTEE);
 
     nm_lan_parse_name(name, &lname, &rname);
 
-    mvprintw(y, x, "%s:", lname.data);
+    mvprintw(pos.y, pos.x, "%s:", lname.data);
 
     nm_str_format(&query, NM_LAN_VETH_INF_SQL, lname.data);
     nm_db_select(query.data, &ifs);
 
-    x += (lname.len + 2);
+    pos.x += (lname.len + 2);
 
-    /* XXX make this as static function */
-    if (ifs.n_memb > 0)
-    {
-        for (size_t n = 0; n < ifs.n_memb; n++)
-        {
-            if (x >= (col - 16))
-            {
-                y++;
-                x = (lname.len + 5);
-            }
-
-            mvprintw(y, x, "%s", nm_vect_str_ctx(&ifs, n));
-            x += (nm_vect_str_len(&ifs, n) + 1);
-        }
-    }
-    else
-    {
-        mvprintw(y, x, "%s", _("[none]"));
-    }
+    nm_lan_draw_veth(&lname, &ifs, &pos);
 
     nm_vect_free(&ifs, nm_str_vect_free_cb);
     nm_str_trunc(&query, 0);
 
-    y += 2;
-    x = 3;
-    mvprintw(y, x, "%s:", rname.data);
+    pos.y += 2;
+    pos.x = 3;
+    mvprintw(pos.y, pos.x, "%s:", rname.data);
 
     nm_str_format(&query, NM_LAN_VETH_INF_SQL, rname.data);
     nm_db_select(query.data, &ifs);
 
-    x += (rname.len + 2);
+    pos.x += (rname.len + 2);
 
-    /* XXX make this as static function */
-    if (ifs.n_memb > 0)
-    {
-        for (size_t n = 0; n < ifs.n_memb; n++)
-        {
-            if (x >= (col - 16))
-            {
-                y++;
-                x = (rname.len + 5);
-            }
-
-            mvprintw(y, x, "%s", nm_vect_str_ctx(&ifs, n));
-            x += (nm_vect_str_len(&ifs, n) + 1);
-        }
-    }
-    else
-    {
-        mvprintw(y, x, "%s", _("[none]"));
-    }
+    nm_lan_draw_veth(&rname, &ifs, &pos);
 
     nm_vect_free(&ifs, nm_str_vect_free_cb);
     nm_str_free(&lname);
@@ -481,6 +449,28 @@ static void nm_lan_veth_info(const nm_str_t *name)
 
     refresh();
     getch();
+}
+
+static void nm_lan_draw_veth(const nm_str_t *name, const nm_vect_t *ifs, nm_cord_t *p)
+{
+    if (ifs->n_memb > 0)
+    {
+        for (size_t n = 0; n < ifs->n_memb; n++)
+        {
+            if (p->x >= (p->cols - 16))
+            {
+                p->y++;
+                p->x = (name->len + 5);
+            }
+
+            mvprintw(p->y, p->x, "%s", nm_vect_str_ctx(ifs, n));
+            p->x += (nm_vect_str_len(ifs, n) + 1);
+        }
+    }
+    else
+    {
+        mvprintw(p->y, p->x, "%s", _("[none]"));
+    }
 }
 
 void nm_lan_parse_name(const nm_str_t *name, nm_str_t *ln, nm_str_t *rn)
