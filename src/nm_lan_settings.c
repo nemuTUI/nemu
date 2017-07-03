@@ -49,7 +49,7 @@ void nm_lan_settings(void)
     nm_vect_t veths = NM_INIT_VECT;
     nm_vect_t veths_list = NM_INIT_VECT;
     nm_menu_data_t veths_data = NM_INIT_MENU_DATA;
-    uint32_t list_max = 0;
+    uint32_t list_max = 0, old_hl = 0;
 
     nm_str_alloc_text(&query, NM_LAN_GET_VETH_SQL);
 
@@ -83,6 +83,15 @@ void nm_lan_settings(void)
         {
             veths_data.highlight = 1;
             list_max = nm_cfg_get()->list_max;
+
+            if (old_hl > 1)
+            {
+                if (veths.n_memb < old_hl)
+                    veths_data.highlight = (old_hl - 1);
+                else
+                    veths_data.highlight = old_hl;
+                old_hl = 0;
+            }
 
             if (list_max > veths.n_memb)
                 list_max = veths.n_memb;
@@ -175,6 +184,7 @@ void nm_lan_settings(void)
             if (veths.n_memb > 0)
                 nm_lan_del_veth(nm_vect_item_name_cur(veths_data));
             regen_data = 1;
+            old_hl = veths_data.highlight;
         }
 
         else if (ch == NM_KEY_U)
@@ -182,6 +192,7 @@ void nm_lan_settings(void)
             if (veths.n_memb > 0)
                 nm_lan_up_veth(nm_vect_item_name_cur(veths_data));
             regen_data = 1;
+            old_hl = veths_data.highlight;
         }
 
         else if (ch == NM_KEY_D)
@@ -189,6 +200,7 @@ void nm_lan_settings(void)
             if (veths.n_memb > 0)
                 nm_lan_down_veth(nm_vect_item_name_cur(veths_data));
             regen_data = 1;
+            old_hl = veths_data.highlight;
         }
 
         else if (ch == NM_KEY_ENTER)
