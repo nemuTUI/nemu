@@ -206,7 +206,10 @@ void nm_lan_settings(void)
         }
 
         else if (ch == NM_KEY_ENTER)
-            nm_lan_veth_info(nm_vect_item_name_cur(veths_data));
+        {
+            if (veths.n_memb > 0)
+                nm_lan_veth_info(nm_vect_item_name_cur(veths_data));
+        }
 
         else if (ch == KEY_F(1))
             nm_lan_help();
