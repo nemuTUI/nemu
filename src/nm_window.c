@@ -286,6 +286,10 @@ void nm_print_help(nm_window_t *w)
         }
 
         box(w, 0, 0);
+        getmaxyx(w, y, x);
+        mvwaddch(w, 2, 0, ACS_LTEE);
+        mvwhline(w, 2, 1, ACS_HLINE, x - 2);
+        mvwaddch(w, 2, x - 1, ACS_RTEE);
         for (size_t n = 0, y = 1; n < lines; n++, y++)
             mvwprintw(w, y, 1, "%s", curr_page[n]);
 
@@ -306,8 +310,6 @@ void nm_print_help(nm_window_t *w)
             curr_p = 2;
         if (curr_p == 3)
             curr_p = 1;
-
-        getmaxyx(w, y, x);
 
         for (int i = 0; i <= y; i++)
             mvwhline(w, i, 0, ' ', x);

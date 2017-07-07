@@ -236,6 +236,7 @@ out:
 static void nm_lan_help(void)
 {
     nm_window_t *w = NULL;
+    int x;
 
     const char *msg[] = {
           "             nEMU v" NM_VERSION,
@@ -246,8 +247,13 @@ static void nm_lan_help(void)
         _(" d - down veth interface")
     };
 
-    w = nm_init_window(9, 38, 1);
+    w = nm_init_window(8, 38, 1);
     box(w, 0, 0);
+
+    x = getmaxx(w);
+    mvwaddch(w, 2, 0, ACS_LTEE);
+    mvwhline(w, 2, 1, ACS_HLINE, x - 2);
+    mvwaddch(w, 2, x - 1, ACS_RTEE);
 
     for (size_t n = 0, y = 1; n < nm_arr_len(msg); n++, y++)
         mvwprintw(w, y, 1, "%s", msg[n]);
