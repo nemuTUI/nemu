@@ -22,6 +22,8 @@
     "DELETE FROM veth WHERE l_name='%s'"
 #define NM_LAN_VETH_INF_SQL \
     "SELECT if_name FROM ifaces WHERE parent_eth='%s'"
+#define NM_LAN_VETH_DEP_SQL \
+    "UPDATE ifaces SET macvtap='0', parent_eth='' WHERE parent_eth='%s' OR parent_eth='%s'"
 
 extern sig_atomic_t redraw_window;
 
@@ -369,15 +371,20 @@ out:
 static void nm_lan_del_veth(const nm_str_t *name)
 {
     nm_str_t lname = NM_INIT_STR;
+    nm_str_t rname = NM_INIT_STR;
     nm_str_t query = NM_INIT_STR;
 
-    nm_lan_parse_name(name, &lname, NULL);
+    nm_lan_parse_name(name, &lname, &rname);
     nm_net_del_iface(&lname);
 
     nm_str_format(&query, NM_LAN_DEL_VETH_SQL, lname.data);
     nm_db_edit(query.data);
+    nm_str_trunc(&query, 0);
+    nm_str_format(&query, NM_LAN_VETH_DEP_SQL, lname.data, rname.data);
+    nm_db_edit(query.data);
 
     nm_str_free(&lname);
+    nm_str_free(&rname);
     nm_str_free(&query);
 }
 
