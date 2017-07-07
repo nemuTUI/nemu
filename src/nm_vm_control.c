@@ -6,6 +6,7 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
+#include <nm_usb_devices.h>
 
 #include <time.h>
 
@@ -360,8 +361,18 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBF), NM_ENABLE) == NM_OK)
     {
-        nm_str_add_text(res, " -usb -usbdevice host:");
-        nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_USBD));
+        nm_str_t bus_num = NM_INIT_STR;
+        nm_str_t dev_addr  = NM_INIT_STR;
+        nm_str_t usb_cmd  = NM_INIT_STR;
+
+        nm_usb_parse_dev(nm_vect_str(&vm->main, NM_SQL_USBD), &bus_num, &dev_addr);
+        nm_str_format(&usb_cmd, " -usb -device usb-host,hostbus=%s,hostaddr=%s",
+            bus_num.data, dev_addr.data);
+
+        nm_str_add_str(res, &usb_cmd);
+        nm_str_free(&bus_num);
+        nm_str_free(&dev_addr);
+        nm_str_free(&usb_cmd);
     }
 
     if (nm_vect_str_len(&vm->main, NM_SQL_BIOS))

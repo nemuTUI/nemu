@@ -40,12 +40,13 @@ void nm_usb_get_devs(nm_vect_t *v)
 
     if ((dev_count = libusb_get_device_list(ctx, &list)) < 1)
         nm_bug(_("%s: libusb_get_device_list failed"), __func__);
-    
+
     for (n = 0; n < dev_count; n++)
     {
         nm_usb_dev_t dev = NM_INIT_USB;
         libusb_device *device = list[n];
         struct libusb_device_descriptor desc;
+        uint8_t bus_num, dev_addr;
 
         memset(&desc, 0, sizeof(desc));
 
@@ -58,16 +59,19 @@ void nm_usb_get_devs(nm_vect_t *v)
             nm_str_alloc_text(&dev.name, vendor);
 
         if (nm_usb_get_product_str(product, sizeof(product), desc.idVendor, desc.idProduct) == 0)
-            nm_str_add_text(&dev.name, " product-unknown");
+            nm_str_format(&dev.name, " product-unknown-#%zu", n);
         else
             nm_str_add_text(&dev.name, product);
 
-        nm_str_format(&dev.id, "%04x:%04x", desc.idVendor, desc.idProduct);
+        bus_num = libusb_get_bus_number(device);
+        dev_addr = libusb_get_device_address(device);
+
+        nm_str_format(&dev.id, "%u:%u", bus_num, dev_addr);
 
         nm_vect_insert(v, &dev, sizeof(dev), nm_usb_vect_ins_cb);
         nm_usb_dev_free(&dev);
     }
-   
+
     /* cleanup */
     libusb_free_device_list(list, 1);
     udev_hwdb_unref(hwdb);
@@ -76,6 +80,22 @@ void nm_usb_get_devs(nm_vect_t *v)
 #else
     (void) v;
 #endif /* NM_OS_LINUX */
+}
+
+void nm_usb_parse_dev(const nm_str_t *src, nm_str_t *b_num, nm_str_t *d_addr)
+{
+    nm_str_t copy = NM_INIT_STR;
+    char *cp = NULL;
+
+    nm_str_copy(&copy, src);
+
+    cp = strchr(copy.data, ':');
+    nm_str_alloc_text(d_addr, ++cp);
+
+    *(--cp) = '\0';
+    nm_str_alloc_text(b_num, copy.data);
+
+    nm_str_free(&copy);
 }
 
 void nm_usb_vect_ins_cb(const void *unit_p, const void *ctx)
