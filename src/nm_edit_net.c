@@ -22,6 +22,7 @@
 #endif
 
 #define NM_INIT_SEL_IF { NULL, 0 }
+#define NM_NET_MACVTAP_NUM 2
 
 typedef struct {
     nm_str_t drv;
@@ -235,7 +236,7 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, const nm_sel_ifac
             NM_ENABLE) == NM_OK) ? "yes" : "no");
 
     mvtap_idx = nm_str_stoui(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + iface->if_idx), 10);
-    if (mvtap_idx > 1)
+    if (mvtap_idx > NM_NET_MACVTAP_NUM)
         nm_bug("%s: invalid macvtap array index: %zu", __func__, mvtap_idx);
     set_field_buffer(fields[NM_FLD_MTAP], 0, nm_form_macvtap[mvtap_idx]);
     if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_PET + iface->if_idx) > 0)

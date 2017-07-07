@@ -32,6 +32,7 @@ const char *nm_form_drive_drv[] = {
 const char *nm_form_macvtap[] = {
     "no",
     "macvtap:bridge",
+    "macvtap:private",
     NULL
 };
 

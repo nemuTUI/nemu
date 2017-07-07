@@ -22,10 +22,12 @@
     ((struct rtattr *) (((char *) (n)) + NLMSG_ALIGN((n)->nlmsg_len)))
 
 enum {
-    NM_MACVTAP_BRIDGE = 1
+    NM_MACVTAP_BRIDGE = 1,
+    NM_MACVTAP_PRIVATE = 2
 };
 
 enum {
+    NM_MACVTAP_PRIVATE_MODE = 1,
     NM_MACVTAP_BRIDGE_MODE = 4
 };
 
@@ -151,6 +153,9 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
     switch (type) {
     case NM_MACVTAP_BRIDGE:
         mode = NM_MACVTAP_BRIDGE_MODE;
+        break;
+    case NM_MACVTAP_PRIVATE:
+        mode = NM_MACVTAP_PRIVATE_MODE;
         break;
     }
 
