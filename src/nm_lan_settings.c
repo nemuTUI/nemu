@@ -10,6 +10,8 @@
 #include <nm_cfg_file.h>
 #include <nm_lan_settings.h>
 
+#if defined (NM_OS_LINUX)
+
 #define NM_LAN_FIELDS_NUM 2
 
 #define NM_LAN_GET_VETH_SQL \
@@ -524,5 +526,6 @@ void nm_lan_parse_name(const nm_str_t *name, nm_str_t *ln, nm_str_t *rn)
 
     nm_str_free(&name_copy);
 }
+#endif /* NM_OS_LINUX */
 
 /* vim:set ts=4 sw=4 fdm=marker: */

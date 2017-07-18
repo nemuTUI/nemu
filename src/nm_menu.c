@@ -12,7 +12,9 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
         _("Manage guests"),
         _("Install guest"),
         _("Import image"),
+#if defined (NM_OS_LINUX)
         _("Local network"),
+#endif
         _("Quit"),
     };
 
@@ -96,6 +98,7 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
     nm_str_free(&lock_path);
 }
 
+#if defined (NM_OS_LINUX)
 void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status)
 {
     int x = 2, y = 2;
@@ -173,5 +176,6 @@ void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status)
     nm_str_free(&veth_lname);
     nm_str_free(&veth_rname);
 }
+#endif /* NM_OS_LINUX */
 
 /* vim:set ts=4 sw=4 fdm=marker: */
