@@ -34,7 +34,9 @@ int main(int argc, char **argv)
         NM_CHOICE_VM_LIST = 1,
         NM_CHOICE_VM_INST,
         NM_CHOICE_VM_IMPORT,
+#if defined (NM_OS_LINUX)
         NM_CHOICE_NETWORK,
+#endif
         NM_CHOICE_QUIT
     };
 
@@ -494,11 +496,13 @@ int main(int argc, char **argv)
             nm_import_vm();
         } /* }}} Import */
 
+#if defined (NM_OS_LINUX)
         /* {{{ LAN settings */
         else if (choice == NM_CHOICE_NETWORK)
         {
             nm_lan_settings();
         } /* }}} LAN */
+#endif
 
         /* {{{ exit nEMU */
         else if (choice == NM_CHOICE_QUIT)
