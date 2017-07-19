@@ -22,6 +22,7 @@ enum nm_key {
     NM_KEY_D = 100,
     NM_KEY_E = 101,
     NM_KEY_F = 102,
+    NM_KEY_H = 104,
     NM_KEY_I = 105,
     NM_KEY_K = 107,
     NM_KEY_L = 108,
