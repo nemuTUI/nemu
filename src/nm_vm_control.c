@@ -352,10 +352,11 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_SMP));
     }
 
-#if defined (NM_OS_LINUX)
-    /* 9p sharing
+    /* 9p sharing.
+     *
      * guest mount example:
-     * mount -t 9p -o trans=virtio,version=9p2000L hostshare /mnt/host */
+     * mount -t 9p -o trans=virtio,version=9p2000L hostshare /mnt/host
+     */
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_9FLG), NM_ENABLE) == NM_OK)
     {
         nm_str_add_text(res, " -fsdev local,security_model=none,id=fsdev0,path=");
@@ -363,7 +364,6 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_add_text(res, " -device virtio-9p-pci,fsdev=fsdev0,mount_tag=");
         nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_9ID));
     }
-#endif
 
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_KVM), NM_ENABLE) == NM_OK)
     {
