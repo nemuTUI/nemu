@@ -11,6 +11,7 @@
 #include <nm_cfg_file.h>
 #include <nm_snapshot.h>
 #include <nm_edit_net.h>
+#include <nm_9p_share.h>
 #include <nm_add_drive.h>
 #include <nm_edit_boot.h>
 #include <nm_vm_control.h>

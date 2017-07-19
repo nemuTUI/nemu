@@ -47,6 +47,10 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
 
         ( 5 )
             (
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD fs9p_enable integer;' &&
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD fs9p_path char;' &&
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD fs9p_name char;' &&
+            sqlite3 "$DB_PATH" -line 'UPDATE vms SET fs9p_enable="0";' &&
             sqlite3 "$DB_PATH" -line 'ALTER TABLE ifaces ADD macvtap integer;' &&
             sqlite3 "$DB_PATH" -line 'ALTER TABLE ifaces ADD parent_eth char;' &&
             sqlite3 "$DB_PATH" -line 'UPDATE ifaces SET macvtap="0";' &&
