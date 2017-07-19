@@ -29,5 +29,5 @@
 
 ## TODO
  * MacVTap support [Linux host]           -> done.
- * VirtFS support (Plan 9 folder sharing) -> research.
+ * VirtFS support (Plan 9 folder sharing) -> coding.
  * PCI passthrough
