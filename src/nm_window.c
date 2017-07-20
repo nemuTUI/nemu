@@ -148,6 +148,15 @@ void nm_print_vm_info(const nm_str_t *name)
     }
     /* }}} drives */
 
+    /* {{{ print 9pfs info */
+    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_9FLG), "1") == NM_OK)
+    {
+        mvprintw(y++, x, "%-12s%s [%s]", "9pfs: ",
+                 nm_vect_str_ctx(&vm.main, NM_SQL_9PTH),
+                 nm_vect_str_ctx(&vm.main, NM_SQL_9ID));
+    }
+    /* }}} 9pfs */
+
     /* {{{ Generate guest boot settings info */
     if (nm_vect_str_len(&vm.main, NM_SQL_MACH))
         mvprintw(y++, x, "%-12s%s", "machine: ", nm_vect_str_ctx(&vm.main, NM_SQL_MACH));
