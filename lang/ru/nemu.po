@@ -564,3 +564,42 @@ msgstr "Импортировать диск"
 
 msgid "Path to disk image"
 msgstr "Путь до диска"
+
+msgid "Local network"
+msgstr "Локальная сеть"
+
+msgid "No VETH interfaces configured"
+msgstr "VETH интерфейсы отсутствуют"
+
+msgid " a - add veth interface"
+msgstr " a - добавить veth интерфейс"
+
+msgid " r - remove veth interface"
+msgstr " r - удалить veth интерфейс"
+
+msgid " u - up veth interface"
+msgstr " u - включить veth интерфейс"
+
+msgid " d - down veth interface"
+msgstr " d - выключить veth интерфейс"
+
+msgid "Create VETH interface"
+msgstr "Создать VETH интерфейс"
+
+msgid "Peer name"
+msgstr "Имя peer'а"
+
+msgid " h - share host filesystem"
+msgstr " h - общие файловые ресурсы"
+
+msgid "Share files to "
+msgstr "Разделить файлы с "
+
+msgid "Enable sharing"
+msgstr "Включить"
+
+msgid "Path to directory"
+msgstr "Путь до директории"
+
+msgid "Name of the share"
+msgstr "Имя ресурса"
