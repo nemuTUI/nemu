@@ -36,7 +36,7 @@ src_configure() {
 pkg_pretend() {
 	if use kernel_linux; then
 		if ! linux_config_exists; then
-			eerror "Unable to check your kernel for KVM support"
+			eerror "Unable to check your kernel"
 		else
 			CONFIG_CHECK="~VETH"
 			ERROR_VETH="You will need the Virtual ethernet pair device driver compiled"
