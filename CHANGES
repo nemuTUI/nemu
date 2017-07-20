@@ -1,5 +1,6 @@
 v1.3.0 - 20 Jul 2017
 ------------------------
+    - Change: use bus and device number for usb.
     - Feature: share host files via 9pfs.
     - Feature: MacVTap support.
 
