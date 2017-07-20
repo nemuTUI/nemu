@@ -300,7 +300,7 @@ static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac, int import)
         "name, mem, smp, kvm, hcpu, vnc, arch, iso, install, mouse_override, usb");
     if (vm->usb.enable)
         nm_str_add_text(&query, ", usbid");
-    nm_str_add_text(&query, ") VALUES('");
+    nm_str_add_text(&query, ", fs9p_enable) VALUES('");
     nm_str_add_str(&query, &vm->name);
     nm_str_add_text(&query, "', '");
     nm_str_add_str(&query, &vm->memo);
@@ -336,6 +336,7 @@ static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac, int import)
     {
         nm_str_add_text(&query, "', '" NM_DISABLE);
     }
+    nm_str_add_text(&query, "', '" NM_DISABLE); /* disable 9pfs by default */
     nm_str_add_text(&query, "')");
 
     nm_db_edit(query.data);
