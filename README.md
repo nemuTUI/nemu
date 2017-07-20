@@ -28,6 +28,5 @@
  * Gentoo: emerge app-emulation/nemu
 
 ## TODO
- * MacVTap support [Linux host]           -> done.
- * VirtFS support (Plan 9 folder sharing) -> coding.
- * PCI passthrough
+ * MacVTap support [Linux host] -> done.
+ * VirtFS support (Plan 9 host files sharing) [Linux host] -> done.
