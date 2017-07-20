@@ -38,10 +38,11 @@ pkg_pretend() {
 		if ! linux_config_exists; then
 			eerror "Unable to check your kernel"
 		else
-			CONFIG_CHECK="~VETH"
+			CONFIG_CHECK="~VETH ~MACVTAP"
 			ERROR_VETH="You will need the Virtual ethernet pair device driver compiled"
 			ERROR_VETH+=" into your kernel or loaded as a module to use the"
 			ERROR_VETH+=" local network settings feature."
+			ERROR_MACVTAP="You will also need support for MAC-VLAN based tap driver."
 
 			check_extra_config
 		fi
