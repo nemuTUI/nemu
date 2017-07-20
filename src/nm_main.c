@@ -252,10 +252,12 @@ int main(int argc, char **argv)
                         nm_vmctl_clear_tap();
                     }
 
+#if defined (NM_OS_LINUX)
                     else if (ch == NM_KEY_H)
                     {
                         nm_9p_share(nm_vect_item_name_cur(vms));
                     }
+#endif
 
                     /* {{{ Edit network settings */
                     else if (ch == NM_KEY_I)
