@@ -1,3 +1,8 @@
+v1.3.0 - 20 Jul 2017
+------------------------
+    - Feature: share host files via 9pfs.
+    - Feature: MacVTap support.
+
 v1.2.0 - 14 Jun 2017
 ------------------------
     - Change: now the escape key is used instead of F10.
