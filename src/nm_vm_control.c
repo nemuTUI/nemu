@@ -355,7 +355,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     /* 9p sharing.
      *
      * guest mount example:
-     * mount -t 9p -o trans=virtio,version=9p2000L hostshare /mnt/host
+     * mount -t 9p -o trans=virtio,version=9p2000.L hostshare /mnt/host
      */
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_9FLG), NM_ENABLE) == NM_OK)
     {
