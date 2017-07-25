@@ -70,7 +70,7 @@ add_subdirectory(lang)
 add_dependencies(${PROJECT_NAME} lang)
 
 #configure install
-set(MEMU_CONFIG_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cfg.sample")
+set(NEMU_CONFIG_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cfg.sample")
 set(NEMU_DB_UPGRADE_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/sh/upgrade_db.sh")
 set(NEMU_NON_ROOT_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/sh/setup_nemu_nonroot.sh")
 install(TARGETS ${PROJECT_NAME} DESTINATION ${USR_PREFIX}/bin)
