@@ -551,7 +551,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
                     int macvtap_type = nm_str_stoui(nm_vect_str(&vm->ifs,
                                                                 NM_SQL_IF_MVT + idx_shift), 10);
 
-                    /* check for loser iface (parent) exists */
+                    /* check for lower iface (parent) exists */
                     if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_PET + idx_shift) == 0)
                     {
                         nm_print_warn(3, 6, _("MacVTap parent iface is not set"));
