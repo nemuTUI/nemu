@@ -3,21 +3,11 @@
 #include <nm_string.h>
 #include <nm_window.h>
 #include <nm_machine.h>
-#include <nm_ncurses.h>
 #include <nm_add_vm.h>
-#include <nm_edit_vm.h>
-#include <nm_clone_vm.h>
+#include <nm_vm_list.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
-#include <nm_snapshot.h>
-#include <nm_edit_net.h>
-#include <nm_9p_share.h>
-#include <nm_add_drive.h>
-#include <nm_edit_boot.h>
-#include <nm_vm_control.h>
-#include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
-#include <nm_vm_list.h>
 
 static void signals_handler(int signal);
 static void nm_process_args(int argc, char **argv);
@@ -88,7 +78,7 @@ int main(int argc, char **argv)
                     highlight++;
                 break;
 
-            case 10:
+            case NM_KEY_ENTER:
                 choice = highlight;
                 break;
 
@@ -122,33 +112,27 @@ int main(int argc, char **argv)
 
         } /* }}} User input */
 
-        /* {{{ Print VM list */
         if (choice == NM_CHOICE_VM_LIST)
         {
             nm_print_vm_list();
-        } /* }}} VM list */
+        }
 
-        /* {{{ Install VM window */
         else if (choice == NM_CHOICE_VM_INST)
         {
             nm_add_vm();
-        } /* }}} Install VM */
+        }
 
-        /* {{{ Import drive image */
         else if (choice == NM_CHOICE_VM_IMPORT)
         {
             nm_import_vm();
-        } /* }}} Import */
+        }
 
 #if defined (NM_OS_LINUX)
-        /* {{{ LAN settings */
         else if (choice == NM_CHOICE_NETWORK)
         {
             nm_lan_settings();
-        } /* }}} LAN */
+        }
 #endif
-
-        /* {{{ exit nEMU */
         else if (choice == NM_CHOICE_QUIT)
         {
             nm_curses_deinit();
@@ -156,7 +140,7 @@ int main(int argc, char **argv)
             nm_cfg_free();
             nm_mach_free();
             exit(NM_OK);
-        } /* }}} */
+        }
     } /* }}} Main loop */
 
     return NM_OK;

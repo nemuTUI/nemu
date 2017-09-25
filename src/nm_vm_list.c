@@ -2,9 +2,6 @@
 #include <nm_menu.h>
 #include <nm_string.h>
 #include <nm_window.h>
-#include <nm_machine.h>
-#include <nm_ncurses.h>
-#include <nm_add_vm.h>
 #include <nm_edit_vm.h>
 #include <nm_clone_vm.h>
 #include <nm_database.h>
@@ -16,7 +13,8 @@
 #include <nm_edit_boot.h>
 #include <nm_vm_control.h>
 #include <nm_qmp_control.h>
-#include <nm_lan_settings.h>
+
+#define NM_SQL_GET_VM "SELECT name FROM vms ORDER BY name ASC"
 
 extern sig_atomic_t redraw_window;
 
@@ -28,7 +26,7 @@ void nm_print_vm_list(void)
     
     nm_vect_t vm_list = NM_INIT_VECT;
     cfg = nm_cfg_get();
-    nm_db_select("SELECT name FROM vms ORDER BY name ASC", &vm_list);
+    nm_db_select(NM_SQL_GET_VM, &vm_list);
 
     if (vm_list.n_memb == 0)
     {
