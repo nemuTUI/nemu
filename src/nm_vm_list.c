@@ -108,7 +108,9 @@ void nm_print_vm_list(void)
             nm_print_vm_menu(vm_window, &vms);
         }
 
-        if ((ch = wgetch(vm_window)) != ERR)
+        ch = wgetch(vm_window);
+
+        if ((ch != ERR) && (ch != KEY_UP) && (ch != KEY_DOWN))
             redraw_title = 1;
 
         if ((ch == KEY_UP) && (vms.highlight == 1) && (vms.item_first == 0) &&
