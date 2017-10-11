@@ -57,4 +57,6 @@ pkg_postinst() {
 	elog ""
 	elog "For non-root usage execute script:"
 	elog "/usr/share/nemu/scripts/setup_nemu_nonroot.sh linux <username>"
+	elog "and add udev rule:"
+	elog "cp /usr/share/nemu/scripts/42-net-macvtap-perm.rules /lib/udev/rules.d"
 }
