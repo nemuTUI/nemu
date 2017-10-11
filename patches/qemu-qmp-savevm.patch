@@ -1,0 +1,151 @@
+diff -Naur qemu-2.10.0.orig/hmp.c qemu-2.10.0/hmp.c
+--- qemu-2.10.0.orig/hmp.c	2017-10-11 14:41:53.272119109 +0300
++++ qemu-2.10.0/hmp.c	2017-10-11 17:30:42.623610302 +0300
+@@ -1304,37 +1304,32 @@
+ 
+ void hmp_loadvm(Monitor *mon, const QDict *qdict)
+ {
+-    int saved_vm_running  = runstate_is_running();
+     const char *name = qdict_get_str(qdict, "name");
+     Error *err = NULL;
+ 
+-    vm_stop(RUN_STATE_RESTORE_VM);
+-
+-    if (load_snapshot(name, &err) == 0 && saved_vm_running) {
+-        vm_start();
+-    }
++    qmp_loadvm(name, &err);
+     hmp_handle_error(mon, &err);
+ }
+ 
+ void hmp_savevm(Monitor *mon, const QDict *qdict)
+ {
+     Error *err = NULL;
++    bool has_name = TRUE;
++    const char *name = qdict_get_try_str(qdict, "name");
++
++    if (name == NULL) {
++        has_name = FALSE;
++    }
+ 
+-    save_snapshot(qdict_get_try_str(qdict, "name"), &err);
++    qmp_savevm(has_name, name, &err);
+     hmp_handle_error(mon, &err);
+ }
+ 
+ void hmp_delvm(Monitor *mon, const QDict *qdict)
+ {
+-    BlockDriverState *bs;
+     Error *err;
+     const char *name = qdict_get_str(qdict, "name");
+-
+-    if (bdrv_all_delete_snapshot(name, &bs, &err) < 0) {
+-        error_reportf_err(err,
+-                          "Error while deleting snapshot on device '%s': ",
+-                          bdrv_get_device_name(bs));
+-    }
++    qmp_delvm(name, &err);
+ }
+ 
+ void hmp_info_snapshots(Monitor *mon, const QDict *qdict)
+diff -Naur qemu-2.10.0.orig/migration/savevm.c qemu-2.10.0/migration/savevm.c
+--- qemu-2.10.0.orig/migration/savevm.c	2017-10-11 14:41:53.303119108 +0300
++++ qemu-2.10.0/migration/savevm.c	2017-10-11 17:35:34.367595647 +0300
+@@ -2197,6 +2197,33 @@
+     return ret;
+ }
+ 
++void qmp_savevm(bool has_name, const char *name, Error **errp)
++{
++    save_snapshot(has_name ? name : NULL, errp);
++}
++
++void qmp_loadvm(const char *name, Error **errp)
++{
++    int saved_vm_running  = runstate_is_running();
++
++    vm_stop(RUN_STATE_RESTORE_VM);
++
++    if (load_snapshot(name, errp) == 0 && saved_vm_running) {
++        vm_start();
++    }
++}
++
++void qmp_delvm(const char *name, Error **errp)
++{
++    BlockDriverState *bs;
++
++    if (bdrv_all_delete_snapshot(name, &bs, errp) < 0) {
++        error_reportf_err(*errp,
++                          "Error while deleting snapshot on device '%s': ",
++                          bdrv_get_device_name(bs));
++    }
++}
++
+ void qmp_xen_save_devices_state(const char *filename, Error **errp)
+ {
+     QEMUFile *f;
+diff -Naur qemu-2.10.0.orig/qapi-schema.json qemu-2.10.0/qapi-schema.json
+--- qemu-2.10.0.orig/qapi-schema.json	2017-10-11 14:41:53.270119109 +0300
++++ qemu-2.10.0/qapi-schema.json	2017-10-11 17:31:49.231606956 +0300
+@@ -6300,6 +6300,60 @@
+   'data': [ 'none', 'record', 'play' ] }
+ 
+ ##
++# @savevm:
++#
++# Save a VM snapshot. Without a name new snapshot is created.
++#
++# @name: identifier of a snapshot to be saved
++#
++# Returns: Nothing on success
++#
++# Since: 2.10
++#
++# Example:
++#
++# -> { "execute": "savevm", "arguments": { "name": "snapshot1" } }
++# <- { "return": {} }
++##
++{ 'command': 'savevm', 'data': {'*name': 'str'} }
++
++##
++# @loadvm:
++#
++# Load a VM snapshot.
++#
++# @name: identifier of a snapshot to be loaded
++#
++# Returns: Nothing on success
++#
++# Since: 2.10
++#
++# Example:
++#
++# -> { "execute": "loadvm", "arguments": { "name": "snapshot1" } }
++# <- { "return": {} }
++##
++{ 'command': 'loadvm', 'data': {'name': 'str'} }
++
++##
++# @delvm:
++#
++# Delete a VM snapshot.
++#
++# @name: identifier of a snapshot to be deleted
++#
++# Returns: Nothing on success
++#
++# Since: 2.10
++#
++# Example:
++#
++# -> { "execute": "delvm", "arguments": { "name": "snapshot1" } }
++# <- { "return": {} }
++##
++{ 'command': 'delvm', 'data': {'name': 'str'} }
++
++##
+ # @xen-load-devices-state:
+ #
+ # Load the state of all devices from file. The RAM and the block devices
