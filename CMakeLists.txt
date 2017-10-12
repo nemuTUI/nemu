@@ -38,12 +38,16 @@ target_link_libraries(${PROJECT_NAME}
 endif()
 
 option(NM_DEBUG "Build debug version" OFF)
+option(NM_SAVEVM_SNAPSHOTS "Build with QEMU savevm snapshots" OFF)
 option(NM_WITH_VNC_CLIENT "Build with usage of external VNC client" ON)
 if (NM_DEBUG)
   add_definitions(-DNM_DEBUG -ggdb)
 endif()
 if (NM_WITH_VNC_CLIENT)
   add_definitions(-DNM_WITH_VNC_CLIENT)
+endif()
+if (NM_SAVEVM_SNAPSHOTS)
+  add_definitions(-DNM_SAVEVM_SNAPSHOTS)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
