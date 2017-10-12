@@ -256,16 +256,22 @@ void nm_print_help(nm_window_t *w)
     const char *msg_p2[] = {
           "             nEMU v" NM_VERSION,
           "",
-        _(" s - take snapshot"),
-        _(" x - revert snapshot"),
+        _(" s - take drive snapshot"),
+        _(" x - revert drive snapshot"),
         _(" h - share host filesystem"),
         _(" k - kill vm process"),
         _(" m - show command"),
         _(" v - delete virtual disk"),
         _(" u - delete unused tap interfaces"),
+#if (NM_SAVEVM_SNAPSHOTS)
+        _(" S - take vm snapshot"),
+        _(" X - revert vm snapshot"),
+        _(" D - delete vm snapshot"),
+#else
           "",
           "",
           "",
+#endif /* NM_SAVEVM_SNAPSHOTS */
           "",
           "",
 #if (NM_WITH_VNC_CLIENT)

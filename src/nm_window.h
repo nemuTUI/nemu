@@ -39,5 +39,11 @@ enum nm_key {
     NM_KEY_Z = 122
 };
 
+enum nm_key_upper {
+    NM_KEY_S_UP = 83,
+    NM_KEY_X_UP = 88,
+    NM_KEY_Z_UP = 90
+};
+
 #endif /* NM_WINDOW_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

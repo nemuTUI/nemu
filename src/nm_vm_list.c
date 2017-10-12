@@ -12,6 +12,7 @@
 #include <nm_add_drive.h>
 #include <nm_edit_boot.h>
 #include <nm_vm_control.h>
+#include <nm_vm_snapshot.h>
 #include <nm_qmp_control.h>
 
 #define NM_SQL_GET_VM "SELECT name FROM vms ORDER BY name ASC"
@@ -270,6 +271,21 @@ void nm_print_vm_list(void)
             else
                 nm_print_warn(3, 6, _("VM must be stopped"));
         } /* }}} revert to snapshot */
+
+#ifdef NM_SAVEVM_SNAPSHOTS
+        /* {{{ Create vm snapshot */
+        else if (ch == NM_KEY_S_UP && vm_list.n_memb > 0)
+        {
+            nm_print_vm_menu(vm_window, &vms);
+            const nm_str_t *vm = nm_vect_item_name_cur(vms);
+            int vm_status = nm_vect_item_status_cur(vms);
+
+            if (vm_status)
+                nm_vm_snapshot_create(vm);
+            else
+                nm_print_warn(3, 6, _("VM must be running"));
+        } /* vm snapshot */
+#endif /* NM_SAVEVM_SNAPSHOTS */
 
         /* {{{ Poweroff VM */
         else if (ch == NM_KEY_P && vm_list.n_memb > 0)
