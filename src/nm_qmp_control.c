@@ -27,6 +27,9 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h);
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path);
 static int nm_qmp_talk(int sd, const char *cmd,
                        size_t len, struct timeval *tv);
+static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
+                         const char *cmd);
+static int nm_qmp_check_answer(const nm_str_t *answer);
 
 void nm_qmp_vm_shut(const nm_str_t *name)
 {
@@ -58,20 +61,58 @@ void nm_qmp_vm_reset(const nm_str_t *name)
     nm_qmp_vm_exec(name, NM_QMP_CMD_VM_RESET, &tv);
 }
 
-int nm_qmp_vm_snapshot(const nm_str_t *name, const nm_str_t *drive,
-                       const nm_str_t *path)
+int nm_qmp_drive_snapshot(const nm_str_t *name, const nm_str_t *drive,
+                          const nm_str_t *path)
 {
     nm_str_t qmp_query = NM_INIT_STR;
     struct timeval tv;
     int rc;
 
-    tv.tv_sec = 1;
-    tv.tv_usec = 500000; /* 0.5 s */
+    tv.tv_sec = 10;
+    tv.tv_usec = 0; /* 10 s */
 
     nm_str_format(&qmp_query,
         "{\"execute\":\"blockdev-snapshot-sync\",\"arguments\":{\"device\":\"%s\","
         "\"snapshot-file\":\"%s\",\"format\":\"qcow2\"}}",
         drive->data, path->data);
+#if NM_DEBUG
+    nm_debug("exec qmp: %s\n", qmp_query.data);
+#endif
+    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+
+    nm_str_free(&qmp_query);
+
+    return rc;
+}
+
+int nm_qmp_savevm(const nm_str_t *name, const nm_str_t *snap)
+{
+    return nm_qmp_vmsnap(name, snap, "savevm");
+}
+
+int nm_qmp_loadvm(const nm_str_t *name, const nm_str_t *snap)
+{
+    return nm_qmp_vmsnap(name, snap, "loadvm");
+}
+
+int nm_qmp_delvm(const nm_str_t *name, const nm_str_t *snap)
+{
+    return nm_qmp_vmsnap(name, snap, "delvm");
+}
+
+static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
+                         const char *cmd)
+{
+    nm_str_t qmp_query = NM_INIT_STR;
+    struct timeval tv;
+    int rc;
+
+    tv.tv_sec = 120;
+    tv.tv_usec = 0; /* 2 m */
+
+    nm_str_format(&qmp_query,
+        "{\"execute\":\"%s\",\"arguments\":{\"name\":\"%s\"}}",
+        cmd, snap->data);
 #if NM_DEBUG
     nm_debug("exec qmp: %s\n", qmp_query.data);
 #endif
@@ -136,6 +177,29 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
     return nm_qmp_talk(h->sd, NM_QMP_CMD_INIT, strlen(NM_QMP_CMD_INIT), &tv);
 }
 
+static int nm_qmp_check_answer(const nm_str_t *answer)
+{
+    /* {"return": {}} from answer means OK
+     * TODO: use JSON parser instead, e.g: json-c */
+    const char *regex = ".*\\{\"return\":[[:space:]]\\{\\}\\}.*";
+    regex_t reg;
+    int rc = NM_OK;
+
+    if (regcomp(&reg, regex, REG_NOSUB | REG_EXTENDED) != 0)
+    {
+        nm_bug("%s: regcomp failed", __func__);
+    }
+
+    if (regexec(&reg, answer->data, 0, NULL, 0) != 0)
+    {
+        rc = NM_ERR;
+    }
+
+    regfree(&reg);
+
+    return rc;
+}
+
 static int nm_qmp_talk(int sd, const char *cmd,
                        size_t len, struct timeval *tv)
 {
@@ -169,6 +233,10 @@ static int nm_qmp_talk(int sd, const char *cmd,
             {
                 buf[nread - 2] = '\0';
                 nm_str_add_text(&answer, buf);
+                /* check for command succesfully executed here
+                 * and return if it done */
+                if ((rc = nm_qmp_check_answer(&answer)) == NM_OK)
+                    goto out;
             }
             else if (nread == 0) /* socket closed */
                 read_done = 1;
@@ -181,34 +249,16 @@ static int nm_qmp_talk(int sd, const char *cmd,
     {
         nm_print_warn(3, 6, "QMP: no answer");
         rc = NM_ERR;
-        goto out;
-    }
-
-#ifdef NM_DEBUG
-    nm_debug("QMP: %s\n", answer.data);
-#endif
-
-    {
-        /* {"return": {}} from answer means OK
-         * TODO: use JSON parser instead, e.g: json-c */
-        const char *regex = ".*\\{\"return\":[[:space:]]\\{\\}\\}.*";
-        regex_t reg;
-
-        if (regcomp(&reg, regex, REG_EXTENDED) != 0)
-        {
-            nm_bug("%s: regcomp failed", __func__);
-        }
-
-        if (regexec(&reg, answer.data, 0, NULL, 0) != 0)
-        {
-            nm_print_warn(3, 6, "QMP: execute error");
-            rc = NM_ERR;
-        }
-
-        regfree(&reg);
+        goto err;
     }
 
 out:
+#ifdef NM_DEBUG
+    nm_debug("QMP: %s\n", answer.data);
+#endif
+    if (rc != NM_OK)
+        nm_print_warn(3, 6, "QMP: execute error");
+err:
     nm_str_free(&answer);
 
     return rc;

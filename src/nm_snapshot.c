@@ -15,7 +15,7 @@ enum {
 };
 
 enum {
-    nm_SQL_SNAP_ID = 0,
+    NM_SQL_SNAP_ID = 0,
     NM_SQL_SNAP_VM,
     NM_SQL_SNAP_NAME,
     NM_SQL_SNAP_BACK,
@@ -424,7 +424,7 @@ static int nm_snapshot_to_fs(const nm_str_t *name, const nm_snap_data_t *data)
 
     rc = snap_idx;
 
-    if (nm_qmp_vm_snapshot(name, &interface, &snap_path) == NM_ERR)
+    if (nm_qmp_drive_snapshot(name, &interface, &snap_path) == NM_ERR)
         rc = NM_ERR;
 
     nm_str_free(&query);
