@@ -40,9 +40,9 @@ enum nm_key {
 };
 
 enum nm_key_upper {
+    NM_KEY_D_UP = 68,
     NM_KEY_S_UP = 83,
-    NM_KEY_X_UP = 88,
-    NM_KEY_Z_UP = 90
+    NM_KEY_X_UP = 88
 };
 
 #endif /* NM_WINDOW_H_ */

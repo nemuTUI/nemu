@@ -284,7 +284,27 @@ void nm_print_vm_list(void)
                 nm_vm_snapshot_create(vm);
             else
                 nm_print_warn(3, 6, _("VM must be running"));
-        } /* vm snapshot */
+        } /* }}} create vm snapshot */
+
+        /* {{{ Load vm snapshot */
+        else if (ch == NM_KEY_X_UP && vm_list.n_memb > 0)
+        {
+            nm_print_vm_menu(vm_window, &vms);
+            const nm_str_t *vm = nm_vect_item_name_cur(vms);
+            int vm_status = nm_vect_item_status_cur(vms);
+
+            nm_vm_snapshot_load(vm, vm_status);
+        } /* }}} load vm snapshot */
+
+        /* {{{ Delete vm snapshot */
+        else if (ch == NM_KEY_D_UP && vm_list.n_memb > 0)
+        {
+            nm_print_vm_menu(vm_window, &vms);
+            const nm_str_t *vm = nm_vect_item_name_cur(vms);
+            int vm_status = nm_vect_item_status_cur(vms);
+
+            nm_vm_snapshot_delete(vm, vm_status);
+        } /* }}} delete vm snapshot */
 #endif /* NM_SAVEVM_SNAPSHOTS */
 
         /* {{{ Poweroff VM */

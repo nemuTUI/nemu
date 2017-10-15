@@ -10,6 +10,10 @@
 
 #include <time.h>
 
+#define NM_GET_VMSNAP_LOAD \
+    "SELECT snap_name FROM vmsnapshots WHERE vm_name='%s' " \
+    "AND load='1'"
+
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 {
     nm_str_t query = NM_INIT_STR;
@@ -342,6 +346,30 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_free(&snap_query);
         nm_vect_free(&snap_res, nm_str_vect_free_cb);
     }
+
+#ifdef NM_SAVEVM_SNAPSHOTS
+    /* load vm snapshot if exists */
+    {
+        nm_str_t query = NM_INIT_STR;
+        nm_vect_t snap_res = NM_INIT_VECT;
+
+        nm_str_format(&query, NM_GET_VMSNAP_LOAD, name->data);
+        nm_db_select(query.data, &snap_res);
+
+        if (snap_res.n_memb > 0)
+        {
+            nm_str_format(res, " -loadvm %s", nm_vect_str_ctx(&snap_res, 0));
+
+            /* reset load flag */
+            nm_str_trunc(&query, 0);
+            nm_str_format(&query, NM_RESET_LOAD_SQL, name->data);
+            nm_db_edit(query.data);
+        }
+
+        nm_str_free(&query);
+        nm_vect_free(&snap_res, nm_str_vect_free_cb);
+    }
+#endif /* NM_SAVEVM_SNAPSHOTS */
 
     nm_str_add_text(res, " -m ");
     nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_MEM));

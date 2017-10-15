@@ -3,6 +3,9 @@
 
 #include <nm_vector.h>
 
+#define NM_RESET_LOAD_SQL \
+    "UPDATE vmsnapshots SET load='0' WHERE vm_name='%s'"
+
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
 void nm_db_edit(const char *query);

@@ -41,8 +41,7 @@ void nm_db_init(void)
             "vm_name char, snap_name char, backing_drive char, snap_idx integer, active integer, "
             "TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)",
         "CREATE TABLE vmsnapshots(id integer primary key autoincrement, "
-            "vm_name char, snap_name char, load integer, "
-            "TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)",
+            "vm_name char, snap_name char, load integer, timestamp char)",
         "CREATE TABLE veth(id integer primary key autoincrement, l_name char, r_name char)"
     };
 
