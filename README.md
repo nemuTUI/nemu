@@ -8,10 +8,12 @@
  * Show VM status
  * Start/stop/shutdown/reset VM
  * Connect to VM via vnc
- * Snapshots
+ * Drive snapshots
+ * Full VM snapshots (experimental)
  * Show/Edit VM settings
  * USB support
- * Network via tap interfaces
+ * Network via tap/macvtap interfaces
+ * VirtFS support (Plan 9 host files sharing).
 
 ## Videos
 [![Alt Install OpenBSD VM example](http://img.youtube.com/vi/GdqSk1cto50/1.jpg)](http://www.youtube.com/watch?v=GdqSk1cto50)
@@ -28,5 +30,4 @@
  * Gentoo: emerge app-emulation/nemu
 
 ## TODO
- * MacVTap support [Linux host] -> done.
- * VirtFS support (Plan 9 host files sharing) [Linux host] -> done.
+ * OVF support.
