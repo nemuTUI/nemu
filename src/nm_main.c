@@ -7,6 +7,7 @@
 #include <nm_vm_list.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
+#include <nm_ovf_import.h>
 #include <nm_lan_settings.h>
 
 static void signals_handler(int signal);
@@ -119,7 +120,7 @@ int main(int argc, char **argv)
 #if defined (NM_WITH_OVF_SUPPORT)
         else if (choice == NM_CHOICE_OVF_IMPORT)
         {
-            nm_import_vm();
+            nm_ovf_import();
         }
 #endif
 #if defined (NM_OS_LINUX)
