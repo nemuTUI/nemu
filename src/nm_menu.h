@@ -5,6 +5,20 @@
 #include <nm_vector.h>
 #include <nm_ncurses.h>
 
+enum {
+    NM_CHOICE_VM_LIST = 1,
+    NM_CHOICE_VM_INST,
+    NM_CHOICE_VM_IMPORT,
+#if defined (NM_WITH_OVF_SUPPORT)
+    NM_CHOICE_OVF_IMPORT,
+#endif
+#if defined (NM_OS_LINUX)
+    NM_CHOICE_NETWORK,
+#endif
+    NM_CHOICE_QUIT,
+    NM_MAIN_CHOICES = NM_CHOICE_QUIT
+};
+
 typedef struct {
     nm_vect_t *v;
     size_t item_first;

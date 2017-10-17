@@ -12,6 +12,9 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
         _("Manage guests"),
         _("Install guest"),
         _("Import image"),
+#if defined (NM_WITH_OVF_SUPPORT)
+        _("Import OVF"),
+#endif
 #if defined (NM_OS_LINUX)
         _("Local network"),
 #endif

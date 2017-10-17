@@ -16,19 +16,9 @@ volatile sig_atomic_t redraw_window = 0;
 int main(int argc, char **argv)
 {
     struct sigaction sa;
-    uint32_t highlight = 1;
+    uint32_t highlight = NM_CHOICE_VM_LIST;
     uint32_t ch = 0;
     nm_window_t *main_window = NULL;
-
-    enum {
-        NM_CHOICE_VM_LIST = 1,
-        NM_CHOICE_VM_INST,
-        NM_CHOICE_VM_IMPORT,
-#if defined (NM_OS_LINUX)
-        NM_CHOICE_NETWORK,
-#endif
-        NM_CHOICE_QUIT
-    };
 
     setlocale(LC_ALL,"");
     bindtextdomain(NM_PROGNAME, NM_LOCALE_PATH);
@@ -126,7 +116,12 @@ int main(int argc, char **argv)
         {
             nm_import_vm();
         }
-
+#if defined (NM_WITH_OVF_SUPPORT)
+        else if (choice == NM_CHOICE_OVF_IMPORT)
+        {
+            nm_import_vm();
+        }
+#endif
 #if defined (NM_OS_LINUX)
         else if (choice == NM_CHOICE_NETWORK)
         {

@@ -57,12 +57,6 @@
 #define NM_VM_PID_FILE "qemu.pid"
 #define NM_VM_QMP_FILE "qmp.sock"
 
-#if defined (NM_OS_LINUX)
-#define NM_MAIN_CHOICES 5
-#else
-#define NM_MAIN_CHOICES 4
-#endif
-
 #define NM_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define nm_arr_len(p) (sizeof(p) / sizeof((p)[0]))
 
