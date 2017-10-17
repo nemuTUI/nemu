@@ -9,6 +9,9 @@
 
 #define NM_SNAP_FIELDS_NUM 2
 
+#define NM_CHECK_VMSNAP_SQL \
+    "SELECT id FROM vmsnapshots WHERE vm_name='%s'"
+
 enum {
     NM_FLD_SNAPDISK = 0,
     NM_FLD_SNAPNAME,
@@ -45,11 +48,22 @@ void nm_snapshot_create(const nm_str_t *name)
     nm_window_t *window = NULL;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     nm_str_t buf = NM_INIT_STR;
+    nm_str_t query = NM_INIT_STR;
     nm_vect_t drives = NM_INIT_VECT;
     nm_snap_data_t data = NM_INIT_SNAP;
+    nm_vect_t vm_snaps = NM_INIT_VECT;
     size_t msg_len;
     pthread_t spin_th;
     int done = 0, snap_idx = 0;
+
+    nm_str_format(&query, NM_CHECK_VMSNAP_SQL, name->data);
+    nm_db_select(query.data, &vm_snaps);
+
+    if (vm_snaps.n_memb)
+    {
+        nm_print_warn(3, 6, _("There should not be vm snapshots"));
+        goto out;
+    }
 
     nm_print_title(_(NM_EDIT_TITLE));
     window = nm_init_window(9, 45, 3);
@@ -99,10 +113,12 @@ void nm_snapshot_create(const nm_str_t *name)
         nm_bug(_("%s: cannot join thread"), __func__);
 
 out:
+    nm_vect_free(&vm_snaps, nm_str_vect_free_cb);
     nm_vect_free(&drives, NULL);
     nm_form_free(form, fields_c);
     nm_str_free(&data.drive);
     nm_str_free(&data.snap_name);
+    nm_str_free(&query);
     nm_str_free(&buf);
 }
 
