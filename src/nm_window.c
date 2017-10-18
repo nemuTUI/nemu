@@ -233,7 +233,7 @@ void nm_print_help(nm_window_t *w)
 {
     int curr_p = 1;
     const char *msg_p1[] = {
-          "             nEMU v" NM_VERSION,
+          "             nEMU " NM_VERSION,
           "",
         _(" r - start vm"),
         _(" t - start vm in temporary mode"),
@@ -254,7 +254,7 @@ void nm_print_help(nm_window_t *w)
     };
 
     const char *msg_p2[] = {
-          "             nEMU v" NM_VERSION,
+          "             nEMU " NM_VERSION,
           "",
         _(" s - take drive snapshot"),
         _(" x - revert drive snapshot"),

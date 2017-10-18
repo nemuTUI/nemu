@@ -32,7 +32,9 @@
 #include <sys/mman.h>
 
 #define NM_PROGNAME "nemu"
-#define NM_VERSION  "1.4.0-dev"
+#ifndef NM_VERSION
+# define NM_VERSION "v1.4.0-dev"
+#endif
 
 #define NM_OK   0
 #define NM_ERR -1

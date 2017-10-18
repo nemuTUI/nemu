@@ -241,7 +241,7 @@ static void nm_lan_help(void)
     int x;
 
     const char *msg[] = {
-          "             nEMU v" NM_VERSION,
+          "             nEMU " NM_VERSION,
           "",
         _(" a - add veth interface"),
         _(" r - remove veth interface"),

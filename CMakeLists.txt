@@ -72,6 +72,13 @@ set(USR_PREFIX "/usr" CACHE PATH "Executable and lang files directory prefix")
 endif()
 add_definitions(-DNM_USR_PREFIX=${USR_PREFIX})
 
+execute_process(COMMAND ${CMAKE_SOURCE_DIR}/sh/git_get_version.sh
+  OUTPUT_VARIABLE GIT_TAG_VERSION)
+if (NOT GIT_TAG_VERSION STREQUAL "")
+    message(STATUS "Build from git, version:${GIT_TAG_VERSION}")
+    add_definitions(-DNM_VERSION=${GIT_TAG_VERSION})
+endif()
+
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
     add_definitions(-DNM_OS_LINUX)
     execute_process(COMMAND ${CMAKE_SOURCE_DIR}/sh/convert_kern_ver.sh OUTPUT_VARIABLE LINUX_KERN_VER)
