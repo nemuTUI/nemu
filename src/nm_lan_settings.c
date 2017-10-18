@@ -239,9 +239,14 @@ static void nm_lan_help(void)
 {
     nm_window_t *w = NULL;
     int x;
+    char prog_name[40] = {0};
+    int space_num = (38 - (sizeof(NM_VERSION) + 4)) / 2;
+
+    snprintf(prog_name, sizeof(prog_name), "%.*snEMU %s",
+             space_num, NM_SPACES, NM_VERSION);
 
     const char *msg[] = {
-          "             nEMU " NM_VERSION,
+        prog_name,
           "",
         _(" a - add veth interface"),
         _(" r - remove veth interface"),

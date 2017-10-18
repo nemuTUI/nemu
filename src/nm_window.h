@@ -13,6 +13,7 @@ void nm_print_nemu(void);
 void nm_print_title(const char *msg);
 
 #define NM_EDIT_TITLE "ESC - cancel, F2 - OK"
+#define NM_SPACES "                         "
 
 enum nm_key {
     NM_KEY_ENTER = 10,
