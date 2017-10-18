@@ -3,6 +3,8 @@
 #if defined (NM_WITH_OVF_SUPPORT)
 #include <nm_utils.h>
 #include <nm_string.h>
+#include <nm_vector.h>
+#include <nm_window.h>
 
 #include <limits.h>
 
@@ -17,12 +19,15 @@ typedef struct archive_entry nm_archive_entry_t;
 #define NM_OVA_DIR_TEMPL "/tmp/ova_extract_XXXXXX"
 #define NM_BLOCK_SIZE 10240
 
-static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir);
+static int nm_clean_temp_dir(const char *tmp_dir, const nm_vect_t *files);
 static void nm_archive_copy_data(nm_archive_t *in, nm_archive_t *out);
+static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
+                           nm_vect_t *files);
 
 void nm_ovf_import(void)
 {
     char templ_path[] = NM_OVA_DIR_TEMPL;
+    nm_vect_t files = NM_INIT_VECT;
     nm_str_t ova_path = NM_INIT_STR;
 
     nm_str_alloc_text(&ova_path, NM_TEST_FILE);
@@ -30,12 +35,18 @@ void nm_ovf_import(void)
     if (mkdtemp(templ_path) == NULL)
         nm_bug("%s: mkdtemp error: %s", __func__, strerror(errno));
 
-    nm_ovf_extract(&ova_path, templ_path);
+    nm_ovf_extract(&ova_path, templ_path, &files);
+#if 1
+    if (nm_clean_temp_dir(templ_path, &files) != NM_OK)
+        nm_print_warn(3, 2, _("Some files was not deleted!"));
+#endif
 
     nm_str_free(&ova_path);
+    nm_vect_free(&files, NULL);
 }
 
-static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir)
+static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
+                           nm_vect_t *files)
 {
     nm_archive_t *in, *out;
     nm_archive_entry_t *ar_entry;
@@ -61,6 +72,7 @@ static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir)
 
     for (;;)
     {
+        const char *file;
         rc = archive_read_next_header(in, &ar_entry);
 
         if (rc == ARCHIVE_EOF)
@@ -69,8 +81,11 @@ static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir)
         if (rc != ARCHIVE_OK)
             nm_bug("%s: bad archive: %s", __func__, archive_error_string(in));
 
+        file = archive_entry_pathname(ar_entry);
+
+        nm_vect_insert(files, file, strlen(file) + 1, NULL);
 #ifdef NM_DEBUG
-        nm_debug("ova content: %s\n", archive_entry_pathname(ar_entry));
+        nm_debug("ova content: %s\n", file);
 #endif
         rc = archive_write_header(out, ar_entry);
         if (rc != ARCHIVE_OK)
@@ -116,6 +131,34 @@ static void nm_archive_copy_data(nm_archive_t *in, nm_archive_t *out)
         if (archive_write_data_block(out, buf, size, offset) != ARCHIVE_OK)
             nm_bug("%s: error write archive: %s", __func__, archive_error_string(out));
     }
+}
+
+static int nm_clean_temp_dir(const char *tmp_dir, const nm_vect_t *files)
+{
+    nm_str_t path = NM_INIT_STR;
+    int rc = NM_OK;
+
+    for (size_t n = 0; n < files->n_memb; n++)
+    {
+        nm_str_format(&path, "%s/%s", tmp_dir, (char *) nm_vect_at(files, n));
+
+        if (unlink(path.data) == -1)
+            rc = NM_ERR;
+#ifdef NM_DEBUG
+        nm_debug("ova: clean file: %s\n", path.data);
+#endif
+        nm_str_trunc(&path, 0);
+    }
+
+    if (rc == NM_OK)
+    {
+        if (rmdir(tmp_dir) == -1)
+            rc = NM_ERR;
+    }
+
+    nm_str_free(&path);
+
+    return rc;
 }
 
 #endif /* NM_WITH_OVF_SUPPORT */
