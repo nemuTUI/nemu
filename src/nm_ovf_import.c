@@ -1,6 +1,7 @@
 #include <nm_core.h>
 
 #if defined (NM_WITH_OVF_SUPPORT)
+#include <nm_form.h>
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_vector.h>
@@ -29,6 +30,7 @@ void nm_ovf_import(void)
     char templ_path[] = NM_OVA_DIR_TEMPL;
     nm_vect_t files = NM_INIT_VECT;
     nm_str_t ova_path = NM_INIT_STR;
+    nm_vm_t vm = NM_INIT_VM;
 
     nm_str_alloc_text(&ova_path, NM_TEST_FILE);
 
@@ -43,6 +45,7 @@ void nm_ovf_import(void)
 
     nm_str_free(&ova_path);
     nm_vect_free(&files, NULL);
+    nm_vm_free(&vm);
 }
 
 static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,

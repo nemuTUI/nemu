@@ -62,5 +62,7 @@
 
 #define NM_KEY_ESC 0x1b
 
+#define NM_UNUSED __attribute__((__unused__))
+
 #endif /* NM_CORE_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

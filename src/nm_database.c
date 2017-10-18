@@ -11,7 +11,7 @@ typedef sqlite3 nm_sqlite_t;
 static nm_sqlite_t *db_handler = NULL;
 
 static int nm_db_select_cb(void *v, int argc, char **argv,
-                           __attribute__((unused)) char **unused);
+                           char **unused NM_UNUSED);
 
 void nm_db_init(void)
 {
@@ -95,7 +95,7 @@ void nm_db_close(void)
 }
 
 static int nm_db_select_cb(void *v, int argc, char **argv,
-                           __attribute__((unused)) char **unused)
+                           char **unused NM_UNUSED)
 {
     nm_vect_t *res = (nm_vect_t *) v;
     nm_str_t value = NM_INIT_STR;
