@@ -7,6 +7,8 @@
 #include <nm_cfg_file.h>
 #include <nm_qmp_control.h>
 
+#define NM_DEL_SNAP_TITLE NM_EDIT_TITLE " [delete]"
+
 #define NM_VMSNAP_FIELDS_NUM 2
 #define NM_FORMSTR_NAME "Snapshot name"
 #define NM_FORMSTR_LOAD "Load at next boot"
@@ -161,7 +163,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
         goto out;
     }
 
-    nm_print_title(_(NM_EDIT_TITLE " [delete]"));
+    nm_print_title(_(NM_DEL_SNAP_TITLE));
 
     for (size_t n = 0; n < snaps.n_memb; n++)
     {
@@ -203,7 +205,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
         goto out;
     }
 
-    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
+    msg_len = mbstowcs(NULL, _(NM_DEL_SNAP_TITLE), strlen(_(NM_DEL_SNAP_TITLE)));
     sp_data.stop = &done;
     sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
 
