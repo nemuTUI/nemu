@@ -29,6 +29,7 @@ find_package(libusb-1.0 REQUIRED)
 find_package(UDev REQUIRED)
 if (NM_WITH_OVF_SUPPORT)
   find_package(LibXml2 REQUIRED)
+  find_package(LibArchive REQUIRED)
 endif()
 if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   find_package(Intl REQUIRED)
@@ -59,7 +60,9 @@ target_link_libraries(${PROJECT_NAME}
 endif()
 
 if (NM_WITH_OVF_SUPPORT)
-  target_link_libraries(${PROJECT_NAME} ${LIBXML2_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME}
+      ${LIBXML2_LIBRARIES}
+      ${LibArchive_LIBRARY})
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
