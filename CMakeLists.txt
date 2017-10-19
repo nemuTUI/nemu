@@ -63,6 +63,7 @@ if (NM_WITH_OVF_SUPPORT)
   target_link_libraries(${PROJECT_NAME}
       ${LIBXML2_LIBRARIES}
       ${LibArchive_LIBRARY})
+  include_directories(${LIBXML2_INCLUDE_DIR})
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)

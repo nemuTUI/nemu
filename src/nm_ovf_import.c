@@ -13,12 +13,33 @@
 #include <archive.h>
 #include <archive_entry.h>
 
-typedef struct archive nm_archive_t;
-typedef struct archive_entry nm_archive_entry_t;
+/* libxml2 */
+#include <libxml/tree.h>
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 
 #define NM_TEST_FILE "/home/void/stuff/ova/test.ova"
 #define NM_OVA_DIR_TEMPL "/tmp/ova_extract_XXXXXX"
 #define NM_BLOCK_SIZE 10240
+
+#define NM_XML_NS_OVF "http://schemas.dmtf.org/ovf/envelope/1"
+#define NM_XML_NS_RASD "http://schemas.dmtf.org/wbem/wscim/1" \
+    "/cim-schema/2/CIM_ResourceAllocationSettingData"
+#define NM_XPATH_NAME "/ovf:Envelope/ovf:VirtualSystem/ovf:Name/text()"
+#define NM_XPATH_MEM  "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
+    "ovf:Item[rasd:ResourceType/text()=4]/rasd:VirtualQuantity/text()"
+#define NM_XPATH_NCPU "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
+    "ovf:Item[rasd:ResourceType/text()=3]/rasd:VirtualQuantity/text()"
+
+typedef struct archive nm_archive_t;
+typedef struct archive_entry nm_archive_entry_t;
+
+typedef xmlChar nm_xml_char_t;
+typedef xmlDocPtr nm_xml_doc_pt;
+typedef xmlNodePtr nm_xml_node_pt;
+typedef xmlXPathObjectPtr nm_xml_xpath_obj_pt;
+typedef xmlXPathContextPtr nm_xml_xpath_ctx_pt;
 
 static int nm_clean_temp_dir(const char *tmp_dir, const nm_vect_t *files);
 static void nm_archive_copy_data(nm_archive_t *in, nm_archive_t *out);
