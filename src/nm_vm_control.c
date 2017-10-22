@@ -255,10 +255,9 @@ void nm_vmctl_connect(const nm_str_t *name)
     nm_str_add_char(&query, '\'');
     nm_db_select(query.data, &vm);
 
-    nm_str_alloc_str(&cmd, &nm_cfg_get()->vnc_bin);
-    nm_str_add_text(&cmd, " :");
-    nm_str_add_str(&cmd, nm_vect_str(&vm, 0));
-    nm_str_add_text(&cmd, " > /dev/null 2>&1 &");
+    nm_str_format(&cmd, "%s :%u > /dev/null 2>&1 &",
+                  nm_cfg_get()->vnc_bin.data,
+                  nm_str_stoui(nm_vect_str(&vm, 0), 10) + 5900);
 
     unused = system(cmd.data);
 
