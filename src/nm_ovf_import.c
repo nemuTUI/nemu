@@ -6,7 +6,9 @@
 #include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_window.h>
+#include <nm_add_vm.h>
 #include <nm_cfg_file.h>
+#include <nm_ovf_import.h>
 
 #include <limits.h>
 
@@ -37,11 +39,11 @@
 #define NM_XPATH_DRIVE_ID "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
     "ovf:Item[rasd:ResourceType/text()=17]/rasd:HostResource/text()"
 #define NM_XPATH_DRIVE_REF "/ovf:Envelope/ovf:DiskSection/" \
-    "ovf:Disk[@ovf:diskId=\"%s\"]/@ovf:fileRef" // vmdisk1
+    "ovf:Disk[@ovf:diskId=\"%s\"]/@ovf:fileRef"
 #define NM_XPATH_DRIVE_CAP "/ovf:Envelope/ovf:DiskSection/" \
     "ovf:Disk[@ovf:diskId=\"%s\"]/@ovf:capacity"
 #define NM_XPATH_DRIVE_HREF "/ovf:Envelope/ovf:References/" \
-    "ovf:File[@ovf:id=\"%s\"]/@ovf:href" // file1
+    "ovf:File[@ovf:id=\"%s\"]/@ovf:href"
 #define NM_XPATH_NETH "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
     "ovf:Item[rasd:ResourceType/text()=10]"
 
@@ -56,15 +58,6 @@ typedef xmlNodePtr nm_xml_node_pt;
 typedef xmlNodeSetPtr nm_xml_node_set_pt;
 typedef xmlXPathObjectPtr nm_xml_xpath_obj_pt;
 typedef xmlXPathContextPtr nm_xml_xpath_ctx_pt;
-
-typedef struct {
-    nm_str_t file_name;
-    nm_str_t capacity;
-} nm_drive_t;
-
-#define NM_INIT_DRIVE { NM_INIT_STR, NM_INIT_STR }
-#define nm_drive_file(p) ((nm_drive_t *) p)->file_name
-#define nm_drive_size(p) ((nm_drive_t *) p)->capacity
 
 void nm_drive_vect_ins_cb(const void *unit_p, const void *ctx);
 void nm_drive_vect_free_cb(const void *unit_p);
@@ -90,6 +83,7 @@ static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
 static inline void nm_drive_free(nm_drive_t *d);
 static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
                                   const char *templ_path);
+static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives);
 
 void nm_ovf_import(void)
 {
@@ -141,12 +135,13 @@ void nm_ovf_import(void)
     nm_ovf_get_ncpu(&vm.cpus, xpath_ctx);
     nm_ovf_get_mem(&vm.memo, xpath_ctx);
     nm_ovf_get_drives(&drives, xpath_ctx);
-    nm_ovf_get_neth(xpath_ctx);
+    vm.ifs.count = nm_ovf_get_neth(xpath_ctx);
 
     if (nm_form_name_used(&vm.name) != NM_OK)
         goto out;
 
     nm_ovf_convert_drives(&drives, &vm.name, templ_path);
+    nm_ovf_to_db(&vm, &drives);
 
 out:
     if (nm_clean_temp_dir(templ_path, &files) != NM_OK)
@@ -540,6 +535,20 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
 
     nm_str_free(&vm_dir);
     nm_str_free(&cmd);
+}
+
+static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives)
+{
+    uint64_t last_mac;
+    uint32_t last_vnc;
+
+    nm_str_alloc_text(&vm->arch, "x86_64"); /* XXX temporary */
+    nm_str_alloc_text(&vm->ifs.driver, NM_DEFAULT_NETDRV);
+
+    nm_form_get_last(&last_mac, &last_vnc);
+    nm_str_format(&vm->vncp, "%u", last_vnc);
+
+    nm_add_vm_to_db(vm, last_mac, NM_IMPORT_VM, drives);
 }
 
 #endif /* NM_WITH_OVF_SUPPORT */

@@ -8,11 +8,10 @@
 #include <nm_network.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
+#include <nm_ovf_import.h>
 #include <nm_usb_devices.h>
 
 #define NM_ADD_VM_FIELDS_NUM 11
-#define NM_INSTALL_VM 0
-#define NM_IMPORT_VM  1
 
 static nm_window_t *window = NULL;
 static nm_form_t *form = NULL;
@@ -21,7 +20,6 @@ static nm_field_t *fields[NM_ADD_VM_FIELDS_NUM + 1];
 static void nm_add_vm_field_setup(const nm_vect_t *usb_names, int import);
 static void nm_add_vm_field_names(nm_window_t *w, int import);
 static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs, int import);
-static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac, int import);
 static void nm_add_vm_to_fs(nm_vm_t *vm, int import);
 static void nm_add_vm_main(int import);
 
@@ -101,7 +99,7 @@ static void nm_add_vm_main(int import)
         nm_bug(_("%s: cannot create thread"), __func__);
 
     nm_add_vm_to_fs(&vm, import);
-    nm_add_vm_to_db(&vm, last_mac, import);
+    nm_add_vm_to_db(&vm, last_mac, import, NULL);
 
     done = 1;
     if (pthread_join(spin_th, NULL) != 0)
@@ -291,7 +289,8 @@ out:
     return rc;
 }
 
-static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac, int import)
+void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
+                     int import, const nm_vect_t *drives)
 {
     nm_str_t query = NM_INIT_STR;
 
@@ -342,21 +341,46 @@ static void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac, int import)
     nm_db_edit(query.data);
     /* }}} main VM data */
 
-    nm_str_trunc(&query, 0);
 
     /* {{{ insert drive info */
-    nm_str_add_text(&query, "INSERT INTO drives("
-        "vm_name, drive_name, drive_drv, capacity, boot) VALUES('");
-    nm_str_add_str(&query, &vm->name);
-    nm_str_add_text(&query, "', '");
-    nm_str_add_str(&query, &vm->name);
-    nm_str_add_text(&query, "_a.img', '");
-    nm_str_add_str(&query, &vm->drive.driver);
-    nm_str_add_text(&query, "', '");
-    nm_str_add_str(&query, &vm->drive.size);
-    nm_str_add_text(&query, "', '" NM_ENABLE "')"); /* boot flag */
+    if (drives == NULL)
+    {
+        nm_str_trunc(&query, 0);
 
-    nm_db_edit(query.data);
+        nm_str_add_text(&query, "INSERT INTO drives("
+            "vm_name, drive_name, drive_drv, capacity, boot) VALUES('");
+        nm_str_add_str(&query, &vm->name);
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, &vm->name);
+        nm_str_add_text(&query, "_a.img', '");
+        nm_str_add_str(&query, &vm->drive.driver);
+        nm_str_add_text(&query, "', '");
+        nm_str_add_str(&query, &vm->drive.size);
+        nm_str_add_text(&query, "', '" NM_ENABLE "')"); /* boot flag */
+
+        nm_db_edit(query.data);
+    }
+    else /* imported from OVF */
+    {
+        for (size_t n = 0; n < drives->n_memb; n++)
+        {
+            nm_str_trunc(&query, 0);
+
+            nm_str_add_text(&query, "INSERT INTO drives("
+                "vm_name, drive_name, drive_drv, capacity, boot) VALUES('");
+            nm_str_add_str(&query, &vm->name);
+            nm_str_add_text(&query, "', '");
+            nm_str_add_str(&query, &nm_drive_file(drives->data[n]));
+            nm_str_add_text(&query, "', '" NM_DEFAULT_DRVINT "', '");
+            nm_str_add_str(&query, &nm_drive_size(drives->data[n]));
+            if (n == 0)
+                nm_str_add_text(&query, "', '" NM_ENABLE "')"); /* boot flag */
+            else
+                nm_str_add_text(&query, "', '" NM_DISABLE "')");
+
+            nm_db_edit(query.data);
+        }
+    }
     /* }}} drive */
 
     /* {{{ insert network interface info */
