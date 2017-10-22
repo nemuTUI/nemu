@@ -6,6 +6,7 @@
 #include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_window.h>
+#include <nm_cfg_file.h>
 
 #include <limits.h>
 
@@ -43,6 +44,8 @@
     "ovf:File[@ovf:id=\"%s\"]/@ovf:href" // file1
 #define NM_XPATH_NETH "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
     "ovf:Item[rasd:ResourceType/text()=10]"
+
+#define NM_QEMU_CONVERT "/bin/qemu-img convert -O qcow2"
 
 typedef struct archive nm_archive_t;
 typedef struct archive_entry nm_archive_entry_t;
@@ -85,6 +88,8 @@ static uint32_t nm_ovf_get_neth(nm_xml_xpath_ctx_pt ctx);
 static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
                             const char *xpath, const char *param);
 static inline void nm_drive_free(nm_drive_t *d);
+static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
+                                  const char *templ_path);
 
 void nm_ovf_import(void)
 {
@@ -137,6 +142,11 @@ void nm_ovf_import(void)
     nm_ovf_get_mem(&vm.memo, xpath_ctx);
     nm_ovf_get_drives(&drives, xpath_ctx);
     nm_ovf_get_neth(xpath_ctx);
+
+    if (nm_form_name_used(&vm.name) != NM_OK)
+        goto out;
+
+    nm_ovf_convert_drives(&drives, &vm.name, templ_path);
 
 out:
     if (nm_clean_temp_dir(templ_path, &files) != NM_OK)
@@ -492,6 +502,44 @@ static inline void nm_drive_free(nm_drive_t *d)
 {
     nm_str_free(&d->file_name);
     nm_str_free(&d->capacity);
+}
+
+static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
+                                  const char *templ_path)
+{
+    nm_str_t vm_dir = NM_INIT_STR;
+    nm_str_t cmd = NM_INIT_STR;
+
+    nm_str_copy(&vm_dir, &nm_cfg_get()->vm_dir);
+    nm_str_add_char(&vm_dir, '/');
+    nm_str_add_str(&vm_dir, name);
+
+    if (mkdir(vm_dir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
+    {
+        nm_bug(_("%s: cannot create VM directory %s: %s"),
+               __func__, vm_dir.data, strerror(errno));
+    }
+
+    for (size_t n = 0; n < drives->n_memb; n++)
+    {
+        nm_str_format(&cmd, "%s %s/%s %s/%s",
+                      NM_STRING(NM_USR_PREFIX) NM_QEMU_CONVERT,
+                      templ_path, (nm_drive_file(drives->data[n])).data,
+                      vm_dir.data, (nm_drive_file(drives->data[n])).data);
+#ifdef NM_DEBUG
+        nm_debug("ova: exec: %s\n", cmd.data);
+#endif
+        if (nm_spawn_process(&cmd) != NM_OK)
+        {
+            rmdir(vm_dir.data);
+            nm_bug(_("%s: cannot create image file"), __func__);
+        }
+
+        nm_str_trunc(&cmd, 0);
+    }
+
+    nm_str_free(&vm_dir);
+    nm_str_free(&cmd);
 }
 
 #endif /* NM_WITH_OVF_SUPPORT */
