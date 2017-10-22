@@ -22,9 +22,13 @@
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 
-#define NM_TEST_FILE "/home/void/stuff/ova/test.ova"
 #define NM_OVA_DIR_TEMPL "/tmp/ova_extract_XXXXXX"
 #define NM_BLOCK_SIZE 10240
+#define NM_OVF_FIELDS_NUM 3
+
+#define NM_OVF_FORM_PATH "Path to OVA"
+#define NM_OVF_FORM_ARCH "Architecture"
+#define NM_OVF_FORM_NAME "Name (optional)"
 
 #define NM_XML_OVF_NS "ovf"
 #define NM_XML_RASD_NS "rasd"
@@ -48,6 +52,12 @@
     "ovf:Item[rasd:ResourceType/text()=10]"
 
 #define NM_QEMU_CONVERT "/bin/qemu-img convert -O qcow2"
+
+enum {
+    NM_OVA_FLD_SRC = 0,
+    NM_OVA_FLD_ARCH,
+    NM_OVA_FLD_NAME
+};
 
 typedef struct archive nm_archive_t;
 typedef struct archive_entry nm_archive_entry_t;
@@ -84,6 +94,9 @@ static inline void nm_drive_free(nm_drive_t *d);
 static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
                                   const char *templ_path);
 static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives);
+static int nm_ova_get_data(nm_vm_t *vm);
+
+static nm_field_t *fields[NM_OVF_FIELDS_NUM + 1];
 
 void nm_ovf_import(void)
 {
@@ -91,17 +104,58 @@ void nm_ovf_import(void)
     const char *ovf_file;
     nm_vect_t files = NM_INIT_VECT;
     nm_vect_t drives = NM_INIT_VECT;
-    nm_str_t ova_path = NM_INIT_STR;
     nm_vm_t vm = NM_INIT_VM;
     nm_xml_doc_pt doc = NULL;
     nm_xml_xpath_ctx_pt xpath_ctx = NULL;
+    nm_window_t *window = NULL;
+    nm_form_t *form = NULL;
+    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
+    size_t msg_len;
+    pthread_t spin_th;
+    int done = 0;
 
-    nm_str_alloc_text(&ova_path, NM_TEST_FILE);
+    nm_print_title(_(NM_EDIT_TITLE));
+    window = nm_init_window(9, 67, 3);
+
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    wbkgd(window, COLOR_PAIR(1));
+
+    for (size_t n = 0; n < NM_OVF_FIELDS_NUM; ++n)
+    {
+        fields[n] = new_field(1, 38, n * 2, 5, 0, 0);
+        set_field_back(fields[n], A_UNDERLINE);
+    }
+    fields[NM_OVF_FIELDS_NUM] = NULL;
+
+    set_field_type(fields[NM_OVA_FLD_SRC], TYPE_REGEXP, "^/.*");
+    set_field_type(fields[NM_OVA_FLD_ARCH], TYPE_ENUM,
+                   nm_cfg_get_arch(), false, false);
+    set_field_type(fields[NM_OVA_FLD_NAME], TYPE_REGEXP,
+                   "^[a-zA-Z0-9_-]{1,30} *$");
+    set_field_buffer(fields[NM_OVA_FLD_ARCH], 0, *nm_cfg_get()->qemu_targets.data);
+
+    mvwaddstr(window, 2, 2, _(NM_OVF_FORM_PATH));
+    mvwaddstr(window, 4, 2, _(NM_OVF_FORM_ARCH));
+    mvwaddstr(window, 6, 2, _(NM_OVF_FORM_NAME));
+
+    form = nm_post_form(window, fields, 21);
+    if (nm_draw_form(window, form) != NM_OK)
+        goto cancel;
+
+    if (nm_ova_get_data(&vm) != NM_OK)
+        goto out;
+
+    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
+    sp_data.stop = &done;
+    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
+
+    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
+        nm_bug(_("%s: cannot create thread"), __func__);
 
     if (mkdtemp(templ_path) == NULL)
         nm_bug("%s: mkdtemp error: %s", __func__, strerror(errno));
 
-    nm_ovf_extract(&ova_path, templ_path, &files);
+    nm_ovf_extract(&vm.srcp, templ_path, &files);
 
     if ((ovf_file = nm_find_ovf(&files)) == NULL)
     {
@@ -131,7 +185,8 @@ void nm_ovf_import(void)
         goto out;
     }
 
-    nm_ovf_get_name(&vm.name, xpath_ctx);
+    if (vm.name.len == 0)
+        nm_ovf_get_name(&vm.name, xpath_ctx);
     nm_ovf_get_ncpu(&vm.cpus, xpath_ctx);
     nm_ovf_get_mem(&vm.memo, xpath_ctx);
     nm_ovf_get_drives(&drives, xpath_ctx);
@@ -143,6 +198,10 @@ void nm_ovf_import(void)
     nm_ovf_convert_drives(&drives, &vm.name, templ_path);
     nm_ovf_to_db(&vm, &drives);
 
+    done = 1;
+    if (pthread_join(spin_th, NULL) != 0)
+        nm_bug(_("%s: cannot join thread"), __func__);
+
 out:
     if (nm_clean_temp_dir(templ_path, &files) != NM_OK)
         nm_print_warn(3, 6, _("Some files was not deleted"));
@@ -151,9 +210,11 @@ out:
     xmlFreeDoc(doc);
     xmlCleanupParser();
 
-    nm_str_free(&ova_path);
     nm_vect_free(&files, NULL);
     nm_vect_free(&drives, nm_drive_vect_free_cb);
+
+cancel:
+    nm_form_free(form, fields);
     nm_vm_free(&vm);
 }
 
@@ -542,13 +603,35 @@ static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives)
     uint64_t last_mac;
     uint32_t last_vnc;
 
-    nm_str_alloc_text(&vm->arch, "x86_64"); /* XXX temporary */
     nm_str_alloc_text(&vm->ifs.driver, NM_DEFAULT_NETDRV);
 
     nm_form_get_last(&last_mac, &last_vnc);
     nm_str_format(&vm->vncp, "%u", last_vnc);
 
     nm_add_vm_to_db(vm, last_mac, NM_IMPORT_VM, drives);
+}
+
+static int nm_ova_get_data(nm_vm_t *vm)
+{
+    int rc = NM_OK;
+    nm_vect_t err = NM_INIT_VECT;
+
+    nm_get_field_buf(fields[NM_OVA_FLD_SRC], &vm->srcp);
+    nm_get_field_buf(fields[NM_OVA_FLD_ARCH], &vm->arch);
+    if (field_status(fields[NM_OVA_FLD_NAME]))
+    {
+        nm_get_field_buf(fields[NM_OVA_FLD_NAME], &vm->name);
+        nm_form_check_data(_(NM_OVF_FORM_NAME), vm->name, err);
+    }
+
+    nm_form_check_data(_(NM_OVF_FORM_PATH), vm->srcp, err);
+    nm_form_check_data(_(NM_OVF_FORM_ARCH), vm->arch, err);
+
+    rc = nm_print_empty_fields(&err);
+
+    nm_vect_free(&err, NULL);
+
+    return rc;
 }
 
 #endif /* NM_WITH_OVF_SUPPORT */

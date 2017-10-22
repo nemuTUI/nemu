@@ -13,7 +13,7 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
         _("Install guest"),
         _("Import image"),
 #if defined (NM_WITH_OVF_SUPPORT)
-        _("Import OVF"),
+        _("Import OVA"),
 #endif
 #if defined (NM_OS_LINUX)
         _("Local network"),
