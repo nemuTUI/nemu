@@ -29,6 +29,9 @@ void nm_print_vm_list(void)
     nm_vect_t vms_v = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
 
+    list_max = nm_cfg_get()->list_max;
+    vms.item_last = list_max;
+
     nm_print_vm_window();
 
     for (;;)
@@ -73,9 +76,7 @@ void nm_print_vm_list(void)
             }
 
             if (list_max > vm_list.n_memb)
-                list_max = vm_list.n_memb;
-
-            vms.item_last = list_max;
+                vms.item_last = vm_list.n_memb;
 
             for (size_t n = 0; n < vm_list.n_memb; n++)
             {
@@ -370,6 +371,10 @@ void nm_print_vm_list(void)
                     nm_vmctl_delete(vm);
                     regen_data = 1;
                     old_hl = vms.highlight;
+                    if (vms.item_first != 0)
+                        vms.item_first--;
+                    if (vms.item_last == vm_list.n_memb)
+                        vms.item_last--;
                 }
             }
         } /*}}} delete VM */
