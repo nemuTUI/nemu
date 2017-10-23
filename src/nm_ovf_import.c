@@ -133,6 +133,8 @@ void nm_ovf_import(void)
     set_field_type(fields[NM_OVA_FLD_NAME], TYPE_REGEXP,
                    "^[a-zA-Z0-9_-]{1,30} *$");
     set_field_buffer(fields[NM_OVA_FLD_ARCH], 0, *nm_cfg_get()->qemu_targets.data);
+    field_opts_off(fields[NM_OVA_FLD_SRC], O_STATIC);
+    field_opts_off(fields[NM_OVA_FLD_NAME], O_STATIC);
 
     mvwaddstr(window, 2, 2, _(NM_OVF_FORM_PATH));
     mvwaddstr(window, 4, 2, _(NM_OVF_FORM_ARCH));
