@@ -14,6 +14,7 @@
  * USB support
  * Network via tap/macvtap interfaces
  * VirtFS support (Plan 9 host files sharing).
+ * Import OVA.
 
 ## Videos
 [![Alt Install OpenBSD VM example](http://img.youtube.com/vi/GdqSk1cto50/1.jpg)](http://www.youtube.com/watch?v=GdqSk1cto50)
@@ -28,6 +29,3 @@
 ## Packages
  * Debian and Ubuntu [packages](https://software.opensuse.org/download.html?project=home%3ASmartFinn%3AnEMU&package=nemu)
  * Gentoo: emerge app-emulation/nemu
-
-## TODO
- * OVF support.
