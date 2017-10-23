@@ -47,7 +47,7 @@ static void nm_lan_draw_veth(const nm_str_t *name, const nm_vect_t *ifs, nm_cord
 
 void nm_lan_settings(void)
 {
-    int ch = 0, regen_data = 1;
+    int ch = 0, regen_data = 1, renew_status = 0;
     nm_str_t query = NM_INIT_STR;
     nm_window_t *veth_window = NULL;
     nm_vect_t veths = NM_INIT_VECT;
@@ -60,6 +60,8 @@ void nm_lan_settings(void)
     keypad(stdscr, 1);
 
     nm_db_select(query.data, &veths);
+
+    veths_data.item_last = nm_cfg_get()->list_max;
 
     for (;;)
     {
@@ -97,10 +99,11 @@ void nm_lan_settings(void)
                 old_hl = 0;
             }
 
-            if (list_max > veths.n_memb)
+            if (list_max >= veths.n_memb)
+            {
+                veths_data.item_last = veths.n_memb;
                 list_max = veths.n_memb;
-
-            veths_data.item_last = list_max;
+            }
 
             for (size_t n = 0; n < veths.n_memb; n++)
             {
@@ -120,6 +123,12 @@ void nm_lan_settings(void)
             nm_print_veth_menu(veth_window, &veths_data, 1);
             regen_data = 0;
         }
+        else if (renew_status)
+        {
+            veth_window = nm_init_window(list_max + 4, 40, 7);
+            nm_print_veth_menu(veth_window, &veths_data, 1);
+            renew_status = 0;
+        }
         else
         {
             veth_window = nm_init_window(list_max + 4, 40, 7);
@@ -134,16 +143,21 @@ void nm_lan_settings(void)
             veths_data.highlight = list_max;
             veths_data.item_first = veths_data.v->n_memb - list_max;
             veths_data.item_last = veths_data.v->n_memb;
+            renew_status = 1;
         }
 
         else if ((veths.n_memb > 0) && (ch == KEY_UP))
         {
             if ((veths_data.highlight == 1) && (veths_data.v->n_memb <= list_max))
-                 veths_data.highlight = veths_data.v->n_memb;
+            {
+                veths_data.highlight = veths_data.v->n_memb;
+                renew_status = 1;
+            }
             else if ((veths_data.highlight == 1) && (veths_data.item_first != 0))
             {
                 veths_data.item_first--;
                 veths_data.item_last--;
+                renew_status = 1;
             }
             else
             {
@@ -158,18 +172,23 @@ void nm_lan_settings(void)
             veths_data.highlight = 1;
             veths_data.item_first = 0;
             veths_data.item_last = list_max;
+            renew_status = 1;
         }
 
         else if ((veths.n_memb > 0) && (ch == KEY_DOWN))
         {
             if ((veths_data.highlight == veths_data.v->n_memb) &&
                 (veths_data.v->n_memb <= list_max))
-                 veths_data.highlight = 1;
+            {
+                veths_data.highlight = 1;
+                renew_status = 1;
+            }
             else if ((veths_data.highlight == list_max) &&
                      (veths_data.item_last < veths_data.v->n_memb))
             {
                 veths_data.item_first++;
                 veths_data.item_last++;
+                renew_status = 1;
             }
             else
             {
@@ -181,6 +200,7 @@ void nm_lan_settings(void)
         {
             nm_lan_add_veth();
             regen_data = 1;
+            old_hl = veths_data.highlight;
         }
 
         else if (ch == NM_KEY_R)
@@ -189,22 +209,25 @@ void nm_lan_settings(void)
                 nm_lan_del_veth(nm_vect_item_name_cur(veths_data));
             regen_data = 1;
             old_hl = veths_data.highlight;
+            if (veths_data.item_first != 0)
+            {
+                veths_data.item_first--;
+                veths_data.item_last--;
+            }
         }
 
         else if (ch == NM_KEY_U)
         {
             if (veths.n_memb > 0)
                 nm_lan_up_veth(nm_vect_item_name_cur(veths_data));
-            regen_data = 1;
-            old_hl = veths_data.highlight;
+            renew_status = 1;
         }
 
         else if (ch == NM_KEY_D)
         {
             if (veths.n_memb > 0)
                 nm_lan_down_veth(nm_vect_item_name_cur(veths_data));
-            regen_data = 1;
-            old_hl = veths_data.highlight;
+            renew_status = 1;
         }
 
         else if (ch == NM_KEY_ENTER)
