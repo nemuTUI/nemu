@@ -173,6 +173,8 @@ static void nm_process_args(int argc, char **argv)
             printf("%s\n", _("-h, --help:      show help"));
             exit(NM_OK);
             break;
+        default:
+            exit(NM_ERR);
         }
     }
 }
