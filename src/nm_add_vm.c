@@ -394,11 +394,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         nm_net_mac_n2a(mac, &maddr);
 
         nm_str_format(&if_name, "%s_eth%zu", vm->name.data, n);
-        if (if_name.len > 15) /* Linux tap iface max name len */
-        {
-            nm_str_trunc(&if_name, 14);
-            nm_str_format(&if_name, "%zu", n);
-        }
+        nm_net_fix_tap_name(&if_name, &maddr);
 
         nm_str_add_text(&query, "INSERT INTO ifaces("
             "vm_name, if_name, mac_addr, if_drv, vhost, macvtap) VALUES('");

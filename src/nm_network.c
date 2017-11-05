@@ -364,6 +364,22 @@ out:
     return rc;
 }
 
+void nm_net_fix_tap_name(nm_str_t *name, const nm_str_t *maddr)
+{
+    nm_str_t maddr_copy = NM_INIT_STR;
+
+    if (name->len <= 15) /* Linux tap iface max name len */
+        return;
+
+    nm_str_copy(&maddr_copy, maddr);
+    nm_str_remove_char(&maddr_copy, ':');
+
+    nm_str_trunc(name, 0);
+    nm_str_format(name, "vm-%s", maddr_copy.data);
+
+    nm_str_free(&maddr_copy);
+}
+
 void nm_net_mac_n2a(uint64_t maddr, nm_str_t *res)
 {
     char buf[64] = {0};

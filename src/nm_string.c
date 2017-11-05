@@ -232,6 +232,20 @@ void nm_str_format(nm_str_t *str, const char *fmt, ...)
     free(buf);
 }
 
+void nm_str_remove_char(nm_str_t *str, char ch)
+{
+    char *prd, *pwr;
+    prd = pwr = str->data;
+
+    while (*prd)
+    {
+        *pwr = *prd++;
+        pwr += (*pwr == ch) ? 0 : 1;
+    }
+
+    *pwr = '\0';
+}
+
 void nm_str_vect_ins_cb(const void *unit_p, const void *ctx)
 {
     nm_str_copy((nm_str_t *) unit_p, (nm_str_t *) ctx);
