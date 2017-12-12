@@ -8,7 +8,7 @@ inherit cmake-utils linux-info git-r3
 
 DESCRIPTION="ncurses interface for QEMU"
 HOMEPAGE="https://lib.void.so/nemu"
-EGIT_REPO_URI="https://PascalRD@bitbucket.org/PascalRD/nemu.git"
+EGIT_REPO_URI="https://bitbucket.org/PascalRD/nemu.git"
 SRC_URI=""
 
 LICENSE="BSD-2"
