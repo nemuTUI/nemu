@@ -12,6 +12,8 @@
 #define NM_QMP_CMD_VM_SHUT  "{\"execute\":\"system_powerdown\"}"
 #define NM_QMP_CMD_VM_QUIT  "{\"execute\":\"quit\"}"
 #define NM_QMP_CMD_VM_RESET "{\"execute\":\"system_reset\"}"
+#define NM_QMP_CMD_VM_STOP  "{\"execute\":\"stop\"}"
+#define NM_QMP_CMD_VM_CONT  "{\"execute\":\"cont\"}"
 
 #define NM_INIT_QMP { .sd = -1 }
 #define NM_QMP_READLEN 1024
@@ -33,32 +35,37 @@ static int nm_qmp_check_answer(const nm_str_t *answer);
 
 void nm_qmp_vm_shut(const nm_str_t *name)
 {
-    struct timeval tv;
-
-    tv.tv_sec = 0;
-    tv.tv_usec = 100000; /* 0.1 s */
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 100000 }; /* 0.1s */
 
     nm_qmp_vm_exec(name, NM_QMP_CMD_VM_SHUT, &tv);
 }
 
 void nm_qmp_vm_stop(const nm_str_t *name)
 {
-    struct timeval tv;
-
-    tv.tv_sec = 0;
-    tv.tv_usec = 100000; /* 0.1 s */
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 100000 }; /* 0.1s */
 
     nm_qmp_vm_exec(name, NM_QMP_CMD_VM_QUIT, &tv);
 }
 
 void nm_qmp_vm_reset(const nm_str_t *name)
 {
-    struct timeval tv;
-
-    tv.tv_sec = 0;
-    tv.tv_usec = 100000; /* 0.1 s */
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 100000 }; /* 0.1s */
 
     nm_qmp_vm_exec(name, NM_QMP_CMD_VM_RESET, &tv);
+}
+
+void nm_qmp_vm_pause(const nm_str_t *name)
+{
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 1000000 }; /* 1s */
+
+    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_STOP, &tv);
+}
+
+void nm_qmp_vm_resume(const nm_str_t *name)
+{
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 1000000 }; /* 1s */
+
+    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_CONT, &tv);
 }
 
 int nm_qmp_drive_snapshot(const nm_str_t *name, const nm_str_t *drive,
@@ -107,8 +114,9 @@ static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
     struct timeval tv;
     int rc;
 
-    tv.tv_sec = 120;
-    tv.tv_usec = 0; /* 2 m */
+    /* this operation can take a long time */
+    tv.tv_sec = 300;
+    tv.tv_usec = 0; /* 5 m */
 
     nm_str_format(&qmp_query,
         "{\"execute\":\"%s\",\"arguments\":{\"name\":\"%s\"}}",

@@ -249,6 +249,7 @@ void nm_print_help(nm_window_t *w)
         _(" p - powerdown vm"),
         _(" z - reset vm"),
         _(" f - force stop vm"),
+        _(" k - kill vm process"),
         _(" d - delete vm"),
         _(" e - edit vm settings"),
         _(" i - edit network settings"),
@@ -265,10 +266,11 @@ void nm_print_help(nm_window_t *w)
         _(" s - take drive snapshot"),
         _(" x - revert drive snapshot"),
         _(" h - share host filesystem"),
-        _(" k - kill vm process"),
         _(" m - show command"),
         _(" v - delete virtual disk"),
         _(" u - delete unused tap interfaces"),
+        _(" P - pause vm"),
+        _(" R - resume vm"),
 #if (NM_SAVEVM_SNAPSHOTS)
         _(" S - take vm snapshot"),
         _(" X - revert vm snapshot"),
@@ -278,11 +280,11 @@ void nm_print_help(nm_window_t *w)
           "",
           "",
 #endif /* NM_SAVEVM_SNAPSHOTS */
-          "",
-          "",
 #if (NM_WITH_VNC_CLIENT)
           "",
 #endif
+          "",
+          "",
         _(" Page 2. \"->\" - next, \"<-\" - prev")
     };
 

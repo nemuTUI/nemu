@@ -343,6 +343,28 @@ void nm_print_vm_list(void)
                 nm_qmp_vm_reset(vm);
         } /* }}} reset VM */
 
+        /* {{{ pause VM */
+        else if (ch == NM_KEY_P_UP && vm_list.n_memb > 0)
+        {
+            nm_print_vm_menu(vm_window, &vms);
+            const nm_str_t *vm = nm_vect_item_name_cur(vms);
+            int vm_status = nm_vect_item_status_cur(vms);
+
+            if (vm_status)
+                nm_qmp_vm_pause(vm);
+        } /* }}} pause VM */
+
+        /* {{{ resume VM */
+        else if (ch == NM_KEY_R_UP && vm_list.n_memb > 0)
+        {
+            nm_print_vm_menu(vm_window, &vms);
+            const nm_str_t *vm = nm_vect_item_name_cur(vms);
+            int vm_status = nm_vect_item_status_cur(vms);
+
+            if (vm_status)
+                nm_qmp_vm_resume(vm);
+        } /* }}} resume VM */
+
         /* {{{ kill VM */
         else if (ch == NM_KEY_K && vm_list.n_memb > 0)
         {
@@ -433,9 +455,9 @@ void nm_print_vm_list(void)
         else if (ch == KEY_F(1))
         {
 #ifdef NM_WITH_VNC_CLIENT
-            nm_window_t *help_window = nm_init_window(18, 40, 1);
+            nm_window_t *help_window = nm_init_window(19, 40, 1);
 #else
-            nm_window_t *help_window = nm_init_window(17, 40, 1);
+            nm_window_t *help_window = nm_init_window(18, 40, 1);
 #endif
             nm_print_help(help_window);
             delwin(help_window);
