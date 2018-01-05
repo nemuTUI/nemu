@@ -12,6 +12,7 @@ fi
 
 KVM_GROUP=""
 USB_GROUP=""
+VHOST_GROUP=""
 OS="$1"
 USER="$2"
 
@@ -26,6 +27,12 @@ case "$OS" in
             gpasswd -a $USER $KVM_GROUP
             [ "$?" -ne 0 ] && echo "[ERR]" && exit 1
           fi
+        fi
+
+        VHOST_GROUP=$(ls -la /dev/vhost-net | cut -d ' ' -f 4)
+        if [ "$VHOST_GROUP" = "root" ]; then
+            echo "Warning: Additional group for KVM vhost-net device is missing" >&2
+            echo "Fix it and run script again, \"vhost=on\" will not work" >&2
         fi
 
         USB_GROUP=$(ls -la /dev/bus/usb/001/001 | cut -d ' ' -f 4)
