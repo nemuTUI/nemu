@@ -193,6 +193,23 @@ static int nm_append_path(nm_str_t *path)
     struct stat file_info;
     int rc = NM_OK;
 
+    if (path->data[0] == '~')
+    {
+        nm_str_t new_path = NM_INIT_STR;
+        const char *home;
+
+        if ((home = getenv("HOME")) == NULL)
+            return NM_ERR;
+
+        nm_str_format(&new_path, "%s%s", home,
+                      (path->len > 1) ? path->data + 1 : "");
+        nm_str_trunc(path, 0);
+        nm_str_copy(path, &new_path);
+        nm_str_free(&new_path);
+
+        return NM_OK;
+    }
+
     nm_str_dirname(path, &dir);
     nm_str_basename(path, &file);
 
