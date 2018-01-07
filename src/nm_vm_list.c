@@ -165,7 +165,8 @@ void nm_print_vm_list(void)
 
         else if (ch == NM_KEY_ENTER && vm_list.n_memb > 0)
         {
-            nm_print_vm_info(nm_vect_item_name_cur(vms));
+            /*nm_print_vm_info(nm_vect_item_name_cur(vms));
+             * draw action menu */
         }
 
         else if (ch == NM_KEY_E && vm_list.n_memb > 0)
