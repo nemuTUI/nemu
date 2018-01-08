@@ -19,6 +19,9 @@
 
 extern sig_atomic_t redraw_window;
 
+static void nm_action_menu_s(const nm_str_t *name);
+static void nm_action_menu_r(const nm_str_t *name);
+
 void nm_print_vm_list(void)
 {
     int ch, nemu = 0;
@@ -165,8 +168,10 @@ void nm_print_vm_list(void)
 
         else if (ch == NM_KEY_ENTER && vm_list.n_memb > 0)
         {
-            /*nm_print_vm_info(nm_vect_item_name_cur(vms));
-             * draw action menu */
+            if (nm_vect_item_status_cur(vms))
+                nm_action_menu_r(nm_vect_item_name_cur(vms));
+            else
+                nm_action_menu_s(nm_vect_item_name_cur(vms));
         }
 
         else if (ch == NM_KEY_E && vm_list.n_memb > 0)
@@ -489,5 +494,157 @@ void nm_print_vm_list(void)
 
     nm_vect_free(&vms_v, NULL);
     nm_vect_free(&vm_list, nm_str_vect_free_cb);
+}
+
+static void nm_action_menu_s(const nm_str_t *name)
+{
+    size_t ch = 0, hl = 1, act_len;
+    nm_window_t *w = NULL;
+
+    const char *actions[] = {
+        _("start        [r]"),
+        _("edit         [e]"),
+        _("info")
+    };
+
+    enum {
+        ACT_START = 1,
+        ACT_EDIT,
+        ACT_INFO
+    };
+
+    act_len = nm_arr_len(actions);
+
+    for (;;)
+    {
+        if (w)
+        {
+            delwin(w);
+            w = NULL;
+        }
+
+        w = nm_init_window(5, 20, 6);
+        box(w, 0, 0);
+
+        for (size_t x = 2, y = 1, n = 0; n < act_len; n++, y++)
+        {
+            if (hl == n + 1)
+            {
+                wattron(w, A_REVERSE);
+                mvwprintw(w, y, x, "%s", actions[n]);
+                wattroff(w, A_REVERSE);
+            }
+            else
+                mvwprintw(w, y, x, "%s", actions[n]);
+        }
+
+        ch = wgetch(w);
+
+        if (ch == KEY_UP)
+            (hl == ACT_START) ? hl = act_len : hl--;
+
+        else if (ch == KEY_DOWN)
+            (hl == act_len) ? hl = ACT_START : hl++;
+
+        else if (ch == NM_KEY_ENTER)
+        {
+            if (hl == ACT_START)
+                nm_vmctl_start(name, 0);
+
+            if (hl == ACT_EDIT)
+                nm_edit_vm(name);
+
+            if (hl == ACT_INFO)
+                nm_print_vm_info(name);
+
+            break;
+        }
+
+        else
+            break;
+    }
+
+    delwin(w);
+}
+
+static void nm_action_menu_r(const nm_str_t *name)
+{
+    size_t ch = 0, hl = 1, act_len;
+    nm_window_t *w = NULL;
+
+    const char *actions[] = {
+        _("connect      [c]"),
+        _("stop         [p]"),
+        _("reset        [z]"),
+        _("edit         [e]"),
+        _("info")
+    };
+
+    enum {
+        ACT_CONNECT = 1,
+        ACT_STOP,
+        ACT_RESET,
+        ACT_EDIT,
+        ACT_INFO
+    };
+
+    act_len = nm_arr_len(actions);
+
+    for (;;)
+    {
+        if (w)
+        {
+            delwin(w);
+            w = NULL;
+        }
+
+        w = nm_init_window(7, 20, 6);
+        box(w, 0, 0);
+
+        for (size_t x = 2, y = 1, n = 0; n < act_len; n++, y++)
+        {
+            if (hl == n + 1)
+            {
+                wattron(w, A_REVERSE);
+                mvwprintw(w, y, x, "%s", actions[n]);
+                wattroff(w, A_REVERSE);
+            }
+            else
+                mvwprintw(w, y, x, "%s", actions[n]);
+        }
+
+        ch = wgetch(w);
+
+        if (ch == KEY_UP)
+            (hl == ACT_CONNECT) ? hl = act_len : hl--;
+
+        else if (ch == KEY_DOWN)
+            (hl == act_len) ? hl = ACT_CONNECT : hl++;
+
+        else if (ch == NM_KEY_ENTER)
+        {
+            if (hl == ACT_CONNECT)
+                nm_vmctl_connect(name);
+
+            if (hl == ACT_STOP)
+                nm_qmp_vm_shut(name);
+
+            if (hl == ACT_RESET)
+                nm_qmp_vm_reset(name);
+
+            if (hl == ACT_EDIT)
+                nm_edit_vm(name);
+
+            if (hl == ACT_INFO)
+                nm_print_vm_info(name);
+
+            break;
+        }
+
+        else
+            break;
+    }
+
+    delwin(w);
 }
 /* vim:set ts=4 sw=4 fdm=marker: */
