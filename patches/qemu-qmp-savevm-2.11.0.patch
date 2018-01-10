@@ -1,7 +1,7 @@
-diff -Naur qemu-2.10.0.orig/hmp.c qemu-2.10.0/hmp.c
---- qemu-2.10.0.orig/hmp.c	2017-10-11 14:41:53.272119109 +0300
-+++ qemu-2.10.0/hmp.c	2017-10-11 17:30:42.623610302 +0300
-@@ -1304,37 +1304,32 @@
+diff -Naur qemu-2.11.0.orig/hmp.c qemu-2.11.0/hmp.c
+--- qemu-2.11.0.orig/hmp.c	2018-01-10 22:21:51.128999656 +0300
++++ qemu-2.11.0/hmp.c	2018-01-10 22:26:11.549998662 +0300
+@@ -1315,37 +1315,33 @@
  
  void hmp_loadvm(Monitor *mon, const QDict *qdict)
  {
@@ -23,12 +23,12 @@ diff -Naur qemu-2.10.0.orig/hmp.c qemu-2.10.0/hmp.c
      Error *err = NULL;
 +    bool has_name = TRUE;
 +    const char *name = qdict_get_try_str(qdict, "name");
-+
+ 
+-    save_snapshot(qdict_get_try_str(qdict, "name"), &err);
 +    if (name == NULL) {
 +        has_name = FALSE;
 +    }
- 
--    save_snapshot(qdict_get_try_str(qdict, "name"), &err);
++
 +    qmp_savevm(has_name, name, &err);
      hmp_handle_error(mon, &err);
  }
@@ -38,7 +38,7 @@ diff -Naur qemu-2.10.0.orig/hmp.c qemu-2.10.0/hmp.c
 -    BlockDriverState *bs;
      Error *err;
      const char *name = qdict_get_str(qdict, "name");
--
+ 
 -    if (bdrv_all_delete_snapshot(name, &bs, &err) < 0) {
 -        error_reportf_err(err,
 -                          "Error while deleting snapshot on device '%s': ",
@@ -48,10 +48,10 @@ diff -Naur qemu-2.10.0.orig/hmp.c qemu-2.10.0/hmp.c
  }
  
  void hmp_info_snapshots(Monitor *mon, const QDict *qdict)
-diff -Naur qemu-2.10.0.orig/migration/savevm.c qemu-2.10.0/migration/savevm.c
---- qemu-2.10.0.orig/migration/savevm.c	2017-10-11 14:41:53.303119108 +0300
-+++ qemu-2.10.0/migration/savevm.c	2017-10-11 17:35:34.367595647 +0300
-@@ -2197,6 +2197,33 @@
+diff -Naur qemu-2.11.0.orig/migration/savevm.c qemu-2.11.0/migration/savevm.c
+--- qemu-2.11.0.orig/migration/savevm.c	2018-01-10 22:21:51.127999656 +0300
++++ qemu-2.11.0/migration/savevm.c	2018-01-10 22:27:23.081998390 +0300
+@@ -2242,6 +2242,33 @@
      return ret;
  }
  
@@ -82,13 +82,13 @@ diff -Naur qemu-2.10.0.orig/migration/savevm.c qemu-2.10.0/migration/savevm.c
 +    }
 +}
 +
- void qmp_xen_save_devices_state(const char *filename, Error **errp)
+ void qmp_xen_save_devices_state(const char *filename, bool has_live, bool live,
+                                 Error **errp)
  {
-     QEMUFile *f;
-diff -Naur qemu-2.10.0.orig/qapi-schema.json qemu-2.10.0/qapi-schema.json
---- qemu-2.10.0.orig/qapi-schema.json	2017-10-11 14:41:53.270119109 +0300
-+++ qemu-2.10.0/qapi-schema.json	2017-10-11 17:31:49.231606956 +0300
-@@ -6300,6 +6300,60 @@
+diff -Naur qemu-2.11.0.orig/qapi-schema.json qemu-2.11.0/qapi-schema.json
+--- qemu-2.11.0.orig/qapi-schema.json	2018-01-10 22:21:51.122999656 +0300
++++ qemu-2.11.0/qapi-schema.json	2018-01-10 22:30:12.653997743 +0300
+@@ -3009,6 +3009,60 @@
    'data': [ 'none', 'record', 'play' ] }
  
  ##
