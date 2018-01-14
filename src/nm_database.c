@@ -42,7 +42,9 @@ void nm_db_init(void)
             "TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)",
         "CREATE TABLE vmsnapshots(id integer primary key autoincrement, "
             "vm_name char, snap_name char, load integer, timestamp char)",
-        "CREATE TABLE veth(id integer primary key autoincrement, l_name char, r_name char)"
+        "CREATE TABLE veth(id integer primary key autoincrement, l_name char, r_name char)",
+        "CREATE TABLE usb(id integer primary key autoincrement, "
+            "vm_name char, vendor_id char, product_id char, serial char)"
     };
 
     if (stat(cfg->db_path.data, &file_info) == -1)

@@ -4,6 +4,7 @@
 #include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_ncurses.h>
+#include <nm_usb_devices.h>
 
 #include <form.h>
 #include <pthread.h>
@@ -25,7 +26,8 @@ typedef struct {
 } nm_vm_ifs_t;
 
 typedef struct {
-    nm_str_t device;
+    nm_str_t name;
+    nm_usb_dev_t *device;
     uint32_t enable:1;
 } nm_vm_usb_t;
 
@@ -100,7 +102,7 @@ extern const char *nm_form_macvtap[];
 
 #define NM_INIT_VM_DRIVE { NM_INIT_STR, NM_INIT_STR }
 #define NM_INIT_VM_IFS   { NM_INIT_STR, 0 }
-#define NM_INIT_VM_USB   { NM_INIT_STR, 0 }
+#define NM_INIT_VM_USB   { NM_INIT_STR, NULL, 0 }
 #define NM_INIT_VM_KVM   { 0, 0 }
 #define NM_INIT_VM_BOOT  { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                            NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \

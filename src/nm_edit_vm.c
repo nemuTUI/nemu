@@ -13,6 +13,13 @@
 
 #define NM_EDIT_VM_FIELDS_NUM 9
 
+#define NM_USB_ADD_SQL \
+    "INSERT INTO usb(vm_name, vendor_id, product_id, serial) " \
+    "VALUES ('%s', '%s', '%s', '%s')"
+
+#define NM_USB_CLEAR \
+    "DELETE FROM usb WHERE vm_name='%s'"
+
 static nm_window_t *window = NULL;
 static nm_form_t *form = NULL;
 static nm_field_t *fields[NM_EDIT_VM_FIELDS_NUM + 1];
@@ -210,7 +217,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm
     nm_get_field_buf(fields[NM_FLD_IFSCNT], &ifs);
     nm_get_field_buf(fields[NM_FLD_DISKIN], &vm->drive.driver);
     nm_get_field_buf(fields[NM_FLD_USBUSE], &usb);
-    nm_get_field_buf(fields[NM_FLD_USBDEV], &vm->usb.device);
+    nm_get_field_buf(fields[NM_FLD_USBDEV], &vm->usb.name);
     nm_get_field_buf(fields[NM_FLD_MOUSES], &sync);
 
     if (field_status(fields[NM_FLD_CPUNUM]))
@@ -275,7 +282,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm
             int found = 0;
 
             if (!field_status(fields[NM_FLD_USBDEV]) ||
-                vm->usb.device.len == 0)
+                vm->usb.name.len == 0)
             {
                 rc = NM_ERR;
                 nm_print_warn(3, 6, _("usb device is empty"));
@@ -284,11 +291,10 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm
 
             for (size_t n = 0; n < usb_devs->n_memb; n++)
             {
-                if (nm_str_cmp_ss(&vm->usb.device,
+                if (nm_str_cmp_ss(&vm->usb.name,
                                   &nm_usb_name(usb_devs->data[n])) == NM_OK)
                 {
-                    nm_str_trunc(&vm->usb.device, 0);
-                    nm_str_copy(&vm->usb.device, &nm_usb_id(usb_devs->data[n]));
+                    vm->usb.device = usb_devs->data[n];
                     found = 1;
                     break;
                 }
@@ -311,7 +317,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm
     {
         int found = 0;
         
-        if (vm->usb.device.len == 0)
+        if (vm->usb.name.len == 0)
         {
             rc = NM_ERR;
             nm_print_warn(3, 6, _("usb device is empty"));
@@ -320,11 +326,10 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm
 
         for (size_t n = 0; n < usb_devs->n_memb; n++)
         {
-            if (nm_str_cmp_ss(&vm->usb.device,
+            if (nm_str_cmp_ss(&vm->usb.name,
                               &nm_usb_name(usb_devs->data[n])) == NM_OK)
             {
-                nm_str_trunc(&vm->usb.device, 0);
-                nm_str_copy(&vm->usb.device, &nm_usb_id(usb_devs->data[n]));
+                vm->usb.device = usb_devs->data[n];
                 found = 1;
                 break;
             }
@@ -488,19 +493,32 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
         nm_db_edit(query.data);
         
         nm_str_trunc(&query, 0);
+
+        /* clean usb device list */
+        if (!vm->usb.enable)
+        {
+            nm_str_format(&query, NM_USB_CLEAR, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+            nm_db_edit(query.data);
+            nm_str_trunc(&query, 0);
+        }
     }
 
     if (field_status(fields[NM_FLD_USBDEV]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET usbid='");
-        nm_str_add_str(&query, &vm->usb.device);
-        nm_str_add_text(&query, "' WHERE name='");
-        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-        nm_str_add_char(&query, '\'');
+        nm_str_t serial = NM_INIT_STR;
+
+        nm_usb_get_serial(vm->usb.device, &serial);
+
+        nm_str_format(&query, NM_USB_ADD_SQL,
+                      nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
+                      nm_usb_vendor_id(vm->usb.device).data,
+                      nm_usb_product_id(vm->usb.device).data,
+                      (serial.len) ? serial.data : "");
 
         nm_db_edit(query.data);
-        
+
         nm_str_trunc(&query, 0);
+        nm_str_free(&serial);
     }
 
     if (field_status(fields[NM_FLD_MOUSES]))

@@ -6,18 +6,25 @@
 
 typedef struct {
     nm_str_t name;
-    nm_str_t id;
+    nm_str_t vendor_id;
+    nm_str_t product_id;
+    uint8_t bus_num;
+    uint8_t dev_addr;
 } nm_usb_dev_t;
 
 void nm_usb_get_devs(nm_vect_t *v);
 void nm_usb_vect_ins_cb(const void *unit_p, const void *ctx);
 void nm_usb_vect_free_cb(const void *unit_p);
 void nm_usb_parse_dev(const nm_str_t *src, nm_str_t *b_num, nm_str_t *d_addr);
+int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial);
 
-#define NM_INIT_USB { NM_INIT_STR, NM_INIT_STR }
+#define NM_INIT_USB { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, 0, 0 }
 
 #define nm_usb_name(p) ((nm_usb_dev_t *) p)->name
-#define nm_usb_id(p) ((nm_usb_dev_t *) p)->id
+#define nm_usb_vendor_id(p) ((nm_usb_dev_t *) p)->vendor_id
+#define nm_usb_product_id(p) ((nm_usb_dev_t *) p)->product_id
+#define nm_usb_bus_num(p) ((nm_usb_dev_t *) p)->bus_num
+#define nm_usb_dev_addr(p) ((nm_usb_dev_t *) p)->dev_addr
 
 #endif /* NM_USB_DEVICES_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

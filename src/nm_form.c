@@ -486,7 +486,7 @@ void nm_vm_free(nm_vm_t *vm)
     nm_str_free(&vm->memo);
     nm_str_free(&vm->srcp);
     nm_str_free(&vm->vncp);
-    nm_str_free(&vm->usb.device);
+    nm_str_free(&vm->usb.name);
     nm_str_free(&vm->ifs.driver);
     nm_str_free(&vm->drive.driver);
     nm_str_free(&vm->drive.size);

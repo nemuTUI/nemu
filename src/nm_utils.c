@@ -267,9 +267,9 @@ int nm_spawn_process(const nm_str_t *p)
     return rc;
 }
 
-#ifdef NM_DEBUG
 void nm_debug(const char *fmt, ...)
 {
+#ifdef NM_DEBUG
     va_list args;
     FILE *fp;
 
@@ -281,7 +281,7 @@ void nm_debug(const char *fmt, ...)
     va_end(args);
 
     fclose(fp);
-}
 #endif
+}
 
 /* vim:set ts=4 sw=4 fdm=marker: */

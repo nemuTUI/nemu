@@ -122,10 +122,13 @@ void nm_vm_get_usb(nm_vect_t *devs, nm_vect_t *names)
                        nm_usb_name(devs->data[n]).data,
                        nm_usb_name(devs->data[n]).len + 1,
                        NULL);
-#if (NM_DEBUG)
-        nm_debug("%s %s\n", nm_usb_id(devs->data[n]).data,
-                            nm_usb_name(devs->data[n]).data);
-#endif
+
+        nm_debug("usb >> %03u:%03u %s:%s %s\n",
+                 nm_usb_bus_num(devs->data[n]),
+                 nm_usb_dev_addr(devs->data[n]),
+                 nm_usb_vendor_id(devs->data[n]).data,
+                 nm_usb_product_id(devs->data[n]).data,
+                 nm_usb_name(devs->data[n]).data);
     }
 
     nm_vect_end_zero(names);
@@ -226,7 +229,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs,
     nm_get_field_buf(fields[NM_FLD_IFSCNT], &ifs_buf);
     nm_get_field_buf(fields[NM_FLD_IFSDRV], &vm->ifs.driver);
     nm_get_field_buf(fields[NM_FLD_USBUSE], &usb_buf);
-    nm_get_field_buf(fields[NM_FLD_USBDEV], &vm->usb.device);
+    nm_get_field_buf(fields[NM_FLD_USBDEV], &vm->usb.name);
 
     nm_form_check_data(_("Name"), vm->name, err);
     nm_form_check_data(_("Architecture"), vm->arch, err);
@@ -252,7 +255,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs,
     {
         int found = 0;
 
-        if (vm->usb.device.len == 0)
+        if (vm->usb.name.len == 0)
         {
             rc = NM_ERR;
             nm_print_warn(3, 2, _("usb device is empty"));
@@ -261,11 +264,10 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs,
 
         for (size_t n = 0; n < usb_devs->n_memb; n++)
         {
-            if (nm_str_cmp_ss(&vm->usb.device,
+            if (nm_str_cmp_ss(&vm->usb.name,
                               &nm_usb_name(usb_devs->data[n])) == NM_OK)
             {
-                nm_str_trunc(&vm->usb.device, 0);
-                nm_str_copy(&vm->usb.device, &nm_usb_id(usb_devs->data[n]));
+                vm->usb.device = usb_devs->data[n];
                 found = 1;
                 break;
             }
@@ -329,7 +331,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     if (vm->usb.enable)
     {
         nm_str_add_text(&query, "', '" NM_ENABLE "', '");
-        nm_str_add_str(&query, &vm->usb.device);
+        nm_str_add_str(&query, &vm->usb.device->vendor_id); /*XXX */
     }
     else
     {
