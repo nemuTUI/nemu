@@ -10,6 +10,7 @@
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
 #include <nm_usb_devices.h>
+#include <nm_qmp_control.h>
 
 #define NM_EDIT_VM_FIELDS_NUM 9
 
@@ -508,6 +509,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
         nm_str_t serial = NM_INIT_STR;
 
         nm_usb_get_serial(vm->usb.device, &serial);
+        nm_qmp_usb_attach(nm_vect_str(&cur->main, NM_SQL_NAME), vm->usb.device, &serial);
 
         nm_str_format(&query, NM_USB_ADD_SQL,
                       nm_vect_str_ctx(&cur->main, NM_SQL_NAME),

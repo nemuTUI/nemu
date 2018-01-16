@@ -3,6 +3,7 @@
 #include <nm_string.h>
 #include <nm_window.h>
 #include <nm_cfg_file.h>
+#include <nm_usb_devices.h>
 
 #include <sys/time.h>
 #include <sys/un.h>
@@ -14,6 +15,11 @@
 #define NM_QMP_CMD_VM_RESET "{\"execute\":\"system_reset\"}"
 #define NM_QMP_CMD_VM_STOP  "{\"execute\":\"stop\"}"
 #define NM_QMP_CMD_VM_CONT  "{\"execute\":\"cont\"}"
+#define NM_QMP_CMD_USB_ADD \
+    "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"usb-host\"," \
+    "\"hostbus\":\"%u\",\"hostaddr\":\"%u\",\"id\":\"usb-%s-%s-%s\"}}"
+#define NM_QMP_CMD_USB_DEL \
+    "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"usb0-%s-%s-%s\"}}"
 
 #define NM_INIT_QMP { .sd = -1 }
 #define NM_QMP_READLEN 1024
@@ -107,6 +113,27 @@ int nm_qmp_delvm(const nm_str_t *name, const nm_str_t *snap)
     return nm_qmp_vmsnap(name, snap, "delvm");
 }
 
+int nm_qmp_usb_attach(const nm_str_t *name, const nm_usb_dev_t *usb,
+                      const nm_str_t *serial)
+{
+    nm_str_t qmp_query = NM_INIT_STR;
+    int rc;
+
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 500000 }; /* 0.5s */
+
+    nm_str_format(&qmp_query, NM_QMP_CMD_USB_ADD,
+                  usb->bus_num, usb->dev_addr,
+                  usb->vendor_id.data, usb->product_id.data,
+                  (serial->len) ? serial->data : "NULL");
+
+    nm_debug("exec qmp: %s\n", qmp_query.data);
+    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+
+    nm_str_free(&qmp_query);
+
+    return rc;
+}
+
 static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
                          const char *cmd)
 {
@@ -121,9 +148,8 @@ static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
     nm_str_format(&qmp_query,
         "{\"execute\":\"%s\",\"arguments\":{\"name\":\"%s\"}}",
         cmd, snap->data);
-#if NM_DEBUG
+
     nm_debug("exec qmp: %s\n", qmp_query.data);
-#endif
     rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
 
     nm_str_free(&qmp_query);
