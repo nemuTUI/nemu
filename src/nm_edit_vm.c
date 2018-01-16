@@ -320,7 +320,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm
         if (vm->usb.name.len == 0)
         {
             rc = NM_ERR;
-            nm_print_warn(3, 6, _("usb device is empty"));
+            nm_print_warn(3, 2, _("usb device is empty"));
             goto out;
         }
 
@@ -338,7 +338,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm
         if (!found)
         {
             rc = NM_ERR;
-            nm_print_warn(3, 6, _("usb_id not found"));
+            nm_print_warn(3, 2, _("usb_id not found"));
             goto out;
         }
     }
