@@ -10,9 +10,12 @@
 
 #include <time.h>
 
-#define NM_GET_VMSNAP_LOAD \
+#define NM_GET_VMSNAP_LOAD_SQL \
     "SELECT snap_name FROM vmsnapshots WHERE vm_name='%s' " \
     "AND load='1'"
+
+#define NM_USB_UPDATE_STATE_SQL \
+    "UPDATE vms SET usbid='%s' WHERE name='%s'"
 
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 {
@@ -352,7 +355,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_t query = NM_INIT_STR;
         nm_vect_t snap_res = NM_INIT_VECT;
 
-        nm_str_format(&query, NM_GET_VMSNAP_LOAD, name->data);
+        nm_str_format(&query, NM_GET_VMSNAP_LOAD_SQL, name->data);
         nm_db_select(query.data, &snap_res);
 
         if (snap_res.n_memb > 0)
@@ -399,8 +402,23 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
             nm_str_add_text(res, " -cpu host");
     }
 
+    /* Save info about usb subsystem status at boot time.
+     * Needed for USB hotplug feature. */
+    if (!(flags & NM_VMCTL_INFO))
+    {
+        nm_str_t query = NM_INIT_STR;
+        nm_str_format(&query,
+                      NM_USB_UPDATE_STATE_SQL,
+                      nm_vect_str_ctx(&vm->main, NM_SQL_USBF),
+                      name->data);
+        nm_db_edit(query.data);
+        nm_str_free(&query);
+    }
+
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBF), NM_ENABLE) == NM_OK)
     {
+        nm_str_add_text(res, " -usb ");
+#if 0
         nm_str_t bus_num = NM_INIT_STR;
         nm_str_t dev_addr  = NM_INIT_STR;
         nm_str_t usb_cmd  = NM_INIT_STR;
@@ -413,6 +431,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_str_free(&bus_num);
         nm_str_free(&dev_addr);
         nm_str_free(&usb_cmd);
+#endif
     }
 
     if (nm_vect_str_len(&vm->main, NM_SQL_BIOS))
@@ -676,9 +695,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 
     nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_VNC));
 
-#if (NM_DEBUG)
     nm_debug("cmd=%s\n", res->data);
-#endif
 out:
     nm_str_free(&vmdir);
 }

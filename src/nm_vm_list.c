@@ -9,6 +9,7 @@
 #include <nm_snapshot.h>
 #include <nm_edit_net.h>
 #include <nm_9p_share.h>
+#include <nm_usb_plug.h>
 #include <nm_add_drive.h>
 #include <nm_edit_boot.h>
 #include <nm_vm_control.h>
@@ -504,7 +505,7 @@ static void nm_action_menu_s(const nm_str_t *name)
     const char *actions[] = {
         _("start        [r]"),
         _("edit         [e]"),
-        _("info")
+        _("info         [?]")
     };
 
     enum {
@@ -577,7 +578,9 @@ static void nm_action_menu_r(const nm_str_t *name)
         _("stop         [p]"),
         _("reset        [z]"),
         _("edit         [e]"),
-        _("info")
+        _("attach usb   [+]"),
+        _("detach usb   [-]"),
+        _("info         [?]")
     };
 
     enum {
@@ -585,6 +588,8 @@ static void nm_action_menu_r(const nm_str_t *name)
         ACT_STOP,
         ACT_RESET,
         ACT_EDIT,
+        ACT_ATTACH,
+        ACT_DETACH,
         ACT_INFO
     };
 
@@ -598,7 +603,7 @@ static void nm_action_menu_r(const nm_str_t *name)
             w = NULL;
         }
 
-        w = nm_init_window(7, 20, 6);
+        w = nm_init_window(9, 20, 5);
         box(w, 0, 0);
 
         for (size_t x = 2, y = 1, n = 0; n < act_len; n++, y++)
@@ -634,6 +639,12 @@ static void nm_action_menu_r(const nm_str_t *name)
 
             if (hl == ACT_EDIT)
                 nm_edit_vm(name);
+
+            if (hl == ACT_ATTACH)
+                nm_usb_plug(name);
+
+            if (hl == ACT_DETACH)
+                nm_usb_unplug(name);
 
             if (hl == ACT_INFO)
                 nm_print_vm_info(name);

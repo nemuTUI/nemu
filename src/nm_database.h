@@ -6,6 +6,24 @@
 #define NM_RESET_LOAD_SQL \
     "UPDATE vmsnapshots SET load='0' WHERE vm_name='%s'"
 
+#define NM_USB_GET_SQL \
+    "SELECT * FROM usb WHERE vm_name='%s'"
+
+#define NM_USB_ADD_SQL \
+    "INSERT INTO usb(vm_name, dev_name, vendor_id, product_id, serial) " \
+    "VALUES ('%s', '%s', '%s', '%s', '%s')"
+
+#define NM_USB_DELETE_SQL \
+    "DELETE FROM usb WHERE vm_name='%s' AND dev_name='%s' " \
+    "AND vendor_id='%s' AND product_id='%s' AND serial='%s'"
+
+#define NM_USB_CHECK_SQL \
+    "SELECT usbid FROM vms WHERE name='%s'"
+
+#define NM_USB_EXISTS_SQL \
+    "SELECT id FROM usb WHERE vm_name='%s' AND dev_name='%s' " \
+    "AND vendor_id='%s' AND product_id='%s' AND serial='%s'"
+
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
 void nm_db_edit(const char *query);
@@ -54,8 +72,18 @@ enum select_drive_idx {
     NM_SQL_DRV_BOOT
 };
 
+enum select_usb_idx {
+    NM_SQL_USB_ID = 0,
+    NM_SQL_USB_VMNAME,
+    NM_SQL_USB_NAME,
+    NM_SQL_USB_VID,
+    NM_SQL_USB_PID,
+    NM_SQL_USB_SERIAL
+};
+
 #define NM_IFS_IDX_COUNT 7
 #define NM_DRV_IDX_COUNT 4
+#define NM_USB_IDX_COUNT 6
 
 #endif /* NM_DATABASE_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

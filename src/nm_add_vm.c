@@ -9,17 +9,16 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_ovf_import.h>
-#include <nm_usb_devices.h>
 
-#define NM_ADD_VM_FIELDS_NUM 11
+#define NM_ADD_VM_FIELDS_NUM 9
 
 static nm_window_t *window = NULL;
 static nm_form_t *form = NULL;
 static nm_field_t *fields[NM_ADD_VM_FIELDS_NUM + 1];
 
-static void nm_add_vm_field_setup(const nm_vect_t *usb_names, int import);
+static void nm_add_vm_field_setup(int import);
 static void nm_add_vm_field_names(nm_window_t *w, int import);
-static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs, int import);
+static int nm_add_vm_get_data(nm_vm_t *vm, int import);
 static void nm_add_vm_to_fs(nm_vm_t *vm, int import);
 static void nm_add_vm_main(int import);
 
@@ -32,9 +31,7 @@ enum {
     NM_FLD_DISKIN,
     NM_FLD_SOURCE,
     NM_FLD_IFSCNT,
-    NM_FLD_IFSDRV,
-    NM_FLD_USBUSE,
-    NM_FLD_USBDEV
+    NM_FLD_IFSDRV
 };
 
 void nm_import_vm(void)
@@ -50,8 +47,6 @@ void nm_add_vm(void)
 static void nm_add_vm_main(int import)
 {
     nm_vm_t vm = NM_INIT_VM;
-    nm_vect_t usb_devs = NM_INIT_VECT;
-    nm_vect_t usb_names = NM_INIT_VECT;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     uint64_t last_mac;
     uint32_t last_vnc;
@@ -59,13 +54,11 @@ static void nm_add_vm_main(int import)
     pthread_t spin_th;
     int done = 0, mult = 2;
 
-    nm_vm_get_usb(&usb_devs, &usb_names);
-
     nm_print_title(_(NM_EDIT_TITLE));
     if (getmaxy(stdscr) <= 28)
         mult = 1;
 
-    window = nm_init_window((mult == 2) ? 25 : 14, 67, 3);
+    window = nm_init_window((mult == 2) ? 21 : 12, 67, 3);
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
@@ -78,7 +71,7 @@ static void nm_add_vm_main(int import)
 
     fields[NM_ADD_VM_FIELDS_NUM] = NULL;
 
-    nm_add_vm_field_setup(&usb_names, import);
+    nm_add_vm_field_setup(import);
     nm_add_vm_field_names(window, import);
 
     form = nm_post_form(window, fields, 21);
@@ -88,7 +81,7 @@ static void nm_add_vm_main(int import)
     nm_form_get_last(&last_mac, &last_vnc);
     nm_str_format(&vm.vncp, "%u", last_vnc);
 
-    if (nm_add_vm_get_data(&vm, &usb_devs, import) != NM_OK)
+    if (nm_add_vm_get_data(&vm, import) != NM_OK)
         goto out;
 
     msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
@@ -108,33 +101,9 @@ static void nm_add_vm_main(int import)
 out:
     nm_vm_free(&vm);
     nm_form_free(form, fields);
-    nm_vect_free(&usb_names, NULL);
-    nm_vect_free(&usb_devs, nm_usb_vect_free_cb);
 }
 
-void nm_vm_get_usb(nm_vect_t *devs, nm_vect_t *names)
-{
-    nm_usb_get_devs(devs);
-
-    for (size_t n = 0; n < devs->n_memb; n++)
-    {
-        nm_vect_insert(names,
-                       nm_usb_name(devs->data[n]).data,
-                       nm_usb_name(devs->data[n]).len + 1,
-                       NULL);
-
-        nm_debug("usb >> %03u:%03u %s:%s %s\n",
-                 nm_usb_bus_num(devs->data[n]),
-                 nm_usb_dev_addr(devs->data[n]),
-                 nm_usb_vendor_id(devs->data[n]).data,
-                 nm_usb_product_id(devs->data[n]).data,
-                 nm_usb_name(devs->data[n]).data);
-    }
-
-    nm_vect_end_zero(names);
-}
-
-static void nm_add_vm_field_setup(const nm_vect_t *usb_names, int import)
+static void nm_add_vm_field_setup(int import)
 {
     set_field_type(fields[NM_FLD_VMNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
     set_field_type(fields[NM_FLD_VMARCH], TYPE_ENUM, nm_cfg_get_arch(), false, false);
@@ -145,14 +114,7 @@ static void nm_add_vm_field_setup(const nm_vect_t *usb_names, int import)
     set_field_type(fields[NM_FLD_SOURCE], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_IFSCNT], TYPE_INTEGER, 1, 0, 64);
     set_field_type(fields[NM_FLD_IFSDRV], TYPE_ENUM, nm_form_net_drv, false, false);
-    set_field_type(fields[NM_FLD_USBUSE], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_type(fields[NM_FLD_USBDEV], TYPE_ENUM, usb_names->data, false, false);
 
-    if (usb_names->n_memb == 0)
-    {
-        field_opts_off(fields[NM_FLD_USBUSE], O_ACTIVE);
-        field_opts_off(fields[NM_FLD_USBDEV], O_ACTIVE);
-    }
     if (import)
         field_opts_off(fields[NM_FLD_DISKSZ], O_ACTIVE);
 
@@ -163,10 +125,8 @@ static void nm_add_vm_field_setup(const nm_vect_t *usb_names, int import)
     if (import)
         set_field_buffer(fields[NM_FLD_DISKSZ], 0, "unused");
     set_field_buffer(fields[NM_FLD_IFSDRV], 0, NM_DEFAULT_NETDRV);
-    set_field_buffer(fields[NM_FLD_USBUSE], 0, "no");
     field_opts_off(fields[NM_FLD_VMNAME], O_STATIC);
     field_opts_off(fields[NM_FLD_SOURCE], O_STATIC);
-    field_opts_off(fields[NM_FLD_USBDEV], O_STATIC);
 }
 
 static void nm_add_vm_field_names(nm_window_t *w, int import)
@@ -204,18 +164,14 @@ static void nm_add_vm_field_names(nm_window_t *w, int import)
         mvwaddstr(w, y += mult, 2, _("Path to ISO/IMG"));
     mvwaddstr(w, y += mult, 2, _("Network interfaces"));
     mvwaddstr(w, y += mult, 2, _("Net driver"));
-    mvwaddstr(w, y += mult, 2, _("USB [yes/no]"));
-    mvwaddstr(w, y += mult, 2, _("USB device"));
 
     nm_str_free(&buf);
 }
 
-static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs,
-                              int import)
+static int nm_add_vm_get_data(nm_vm_t *vm, int import)
 {
     int rc = NM_OK;
     nm_str_t ifs_buf = NM_INIT_STR;
-    nm_str_t usb_buf = NM_INIT_STR;
     nm_vect_t err = NM_INIT_VECT;
 
     nm_get_field_buf(fields[NM_FLD_VMNAME], &vm->name);
@@ -228,8 +184,6 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs,
     nm_get_field_buf(fields[NM_FLD_DISKIN], &vm->drive.driver);
     nm_get_field_buf(fields[NM_FLD_IFSCNT], &ifs_buf);
     nm_get_field_buf(fields[NM_FLD_IFSDRV], &vm->ifs.driver);
-    nm_get_field_buf(fields[NM_FLD_USBUSE], &usb_buf);
-    nm_get_field_buf(fields[NM_FLD_USBDEV], &vm->usb.name);
 
     nm_form_check_data(_("Name"), vm->name, err);
     nm_form_check_data(_("Architecture"), vm->arch, err);
@@ -241,51 +195,17 @@ static int nm_add_vm_get_data(nm_vm_t *vm, const nm_vect_t *usb_devs,
     nm_form_check_data(_("Path to ISO/IMG"), vm->srcp, err);
     nm_form_check_data(_("Network interfaces"), vm->ifs.driver, err);
     nm_form_check_data(_("Net driver"), vm->ifs.driver, err);
-    nm_form_check_data(_("USB"), usb_buf, err);
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
 
     vm->ifs.count = nm_str_stoui(&ifs_buf, 10);
-
-    if (nm_str_cmp_st(&usb_buf, "yes") == NM_OK)
-        vm->usb.enable = 1;
-
-    if (vm->usb.enable)
-    {
-        int found = 0;
-
-        if (vm->usb.name.len == 0)
-        {
-            rc = NM_ERR;
-            nm_print_warn(3, 2, _("usb device is empty"));
-            goto out;
-        }
-
-        for (size_t n = 0; n < usb_devs->n_memb; n++)
-        {
-            if (nm_str_cmp_ss(&vm->usb.name,
-                              &nm_usb_name(usb_devs->data[n])) == NM_OK)
-            {
-                vm->usb.device = usb_devs->data[n];
-                found = 1;
-                break;
-            }
-        }
-
-        if (!found)
-        {
-            rc = NM_ERR;
-            nm_print_warn(3, 2, _("usb_id not found"));
-            goto out;
-        }
-    }
+    vm->usb_enable = 1; /* enable USB by default */
 
     rc = nm_form_name_used(&vm->name);
 
 out:
     nm_str_free(&ifs_buf);
-    nm_str_free(&usb_buf);
     nm_vect_free(&err, NULL);
 
     return rc;
@@ -299,8 +219,6 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     /* {{{ insert main VM data */
     nm_str_alloc_text(&query, "INSERT INTO vms("
         "name, mem, smp, kvm, hcpu, vnc, arch, iso, install, mouse_override, usb");
-    if (vm->usb.enable)
-        nm_str_add_text(&query, ", usbid");
     nm_str_add_text(&query, ", fs9p_enable) VALUES('");
     nm_str_add_str(&query, &vm->name);
     nm_str_add_text(&query, "', '");
@@ -328,10 +246,9 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         nm_str_add_text(&query, "', '" NM_DISABLE); /* no need to install */
     }
     nm_str_add_text(&query, "', '" NM_DISABLE); /* mouse override */
-    if (vm->usb.enable)
+    if (vm->usb_enable)
     {
-        nm_str_add_text(&query, "', '" NM_ENABLE "', '");
-        nm_str_add_str(&query, &vm->usb.device->vendor_id); /*XXX */
+        nm_str_add_text(&query, "', '" NM_ENABLE);
     }
     else
     {

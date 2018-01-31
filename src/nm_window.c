@@ -97,8 +97,7 @@ void nm_print_vm_info(const nm_str_t *name)
 
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_USBF), "1") == NM_OK)
     {
-        mvprintw(y++, x, "%-12s%s [%s]", "usb: ", "enabled",
-                 nm_vect_str_ctx(&vm.main, NM_SQL_USBD));
+        mvprintw(y++, x, "%-12s%s", "usb: ", "enabled");
     }
     else
     {
@@ -287,6 +286,25 @@ void nm_print_help(nm_window_t *w)
         _(" Page 2. \"->\" - next, \"<-\" - prev")
     };
 
+    const char *msg_p3[] = {
+        prog_name,
+          "",
+        _(" + - attach usb device"),
+        _(" - - detach usb device"),
+        _(" ? - print vm info"),
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        _(" Page 3. \"->\" - next, \"<-\" - prev")
+    };
+
     for (;;)
     {
         int ch;
@@ -302,6 +320,10 @@ void nm_print_help(nm_window_t *w)
         case 2:
             curr_page = msg_p2;
             lines = nm_arr_len(msg_p2);
+            break;
+        case 3:
+            curr_page = msg_p3;
+            lines = nm_arr_len(msg_p3);
             break;
         default:
             nm_bug("%s, no such page: %d", __func__, curr_p);
@@ -329,8 +351,8 @@ void nm_print_help(nm_window_t *w)
         }
 
         if (curr_p == 0)
-            curr_p = 2;
-        if (curr_p == 3)
+            curr_p = 3;
+        if (curr_p == 4)
             curr_p = 1;
 
         for (int i = 0; i <= y; i++)

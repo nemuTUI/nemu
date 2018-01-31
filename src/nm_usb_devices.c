@@ -55,9 +55,9 @@ void nm_usb_get_devs(nm_vect_t *v)
             continue;
 
         if (nm_usb_get_vendor_str(vendor, sizeof(vendor), desc.idVendor) == 0)
-            nm_str_format(&dev.name, "%zu:%s", n + 1, "vendor-unknown");
+            nm_str_alloc_text(&dev.name, "vendor-unknown");
         else
-            nm_str_format(&dev.name, "%zu:%s", n + 1, vendor);
+            nm_str_alloc_text(&dev.name, vendor);
 
         if (nm_usb_get_product_str(product, sizeof(product), desc.idVendor, desc.idProduct) == 0)
             nm_str_add_text(&dev.name, " product-unknown");

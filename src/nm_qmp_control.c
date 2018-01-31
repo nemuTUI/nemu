@@ -19,7 +19,19 @@
     "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"usb-host\"," \
     "\"hostbus\":\"%u\",\"hostaddr\":\"%u\",\"id\":\"usb-%s-%s-%s\"}}"
 #define NM_QMP_CMD_USB_DEL \
-    "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"usb0-%s-%s-%s\"}}"
+    "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"usb-%s-%s-%s\"}}"
+
+#if 0
+    /* Get peripheral qmp command example */
+    input:
+
+    {"execute": "qom-list", "arguments": { "path": "/machine/peripheral" }}
+
+    output:
+
+    {"return": [{"name": "type", "type": "string"}, {"name": "dev1", "type": "child<usb-host>"},
+        {"name": "dev2", "type": "child<usb-host>"}]}
+#endif
 
 #define NM_INIT_QMP { .sd = -1 }
 #define NM_QMP_READLEN 1024
@@ -88,9 +100,8 @@ int nm_qmp_drive_snapshot(const nm_str_t *name, const nm_str_t *drive,
         "{\"execute\":\"blockdev-snapshot-sync\",\"arguments\":{\"device\":\"%s\","
         "\"snapshot-file\":\"%s\",\"format\":\"qcow2\"}}",
         drive->data, path->data);
-#if NM_DEBUG
+
     nm_debug("exec qmp: %s\n", qmp_query.data);
-#endif
     rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
 
     nm_str_free(&qmp_query);
@@ -113,8 +124,7 @@ int nm_qmp_delvm(const nm_str_t *name, const nm_str_t *snap)
     return nm_qmp_vmsnap(name, snap, "delvm");
 }
 
-int nm_qmp_usb_attach(const nm_str_t *name, const nm_usb_dev_t *usb,
-                      const nm_str_t *serial)
+int nm_qmp_usb_attach(const nm_str_t *name, const nm_usb_data_t *usb)
 {
     nm_str_t qmp_query = NM_INIT_STR;
     int rc;
@@ -122,9 +132,29 @@ int nm_qmp_usb_attach(const nm_str_t *name, const nm_usb_dev_t *usb,
     struct timeval tv = { .tv_sec = 0, .tv_usec = 500000 }; /* 0.5s */
 
     nm_str_format(&qmp_query, NM_QMP_CMD_USB_ADD,
-                  usb->bus_num, usb->dev_addr,
-                  usb->vendor_id.data, usb->product_id.data,
-                  (serial->len) ? serial->data : "NULL");
+                  usb->dev->bus_num, usb->dev->dev_addr,
+                  usb->dev->vendor_id.data, usb->dev->product_id.data,
+                  (usb->serial.len) ? usb->serial.data : "NULL");
+
+    nm_debug("exec qmp: %s\n", qmp_query.data);
+    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+
+    nm_str_free(&qmp_query);
+
+    return rc;
+}
+
+int nm_qmp_usb_detach(const nm_str_t *name, const nm_usb_data_t *usb)
+{
+    nm_str_t qmp_query = NM_INIT_STR;
+    int rc;
+
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 500000 }; /* 0.5s */
+
+    nm_str_format(&qmp_query, NM_QMP_CMD_USB_DEL,
+                  usb->dev->vendor_id.data,
+                  usb->dev->product_id.data,
+                  (usb->serial.len) ? usb->serial.data : "NULL");
 
     nm_debug("exec qmp: %s\n", qmp_query.data);
     rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);

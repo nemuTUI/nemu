@@ -24,14 +24,14 @@
     "ORDER BY timestamp ASC"
 #define NM_UPDATE_LOAD_SQL \
     "UPDATE vmsnapshots SET load='1' " \
-    "WHERE vm_name='%s' and snap_name='%s'"
+    "WHERE vm_name='%s' AND snap_name='%s'"
 #define NM_DELETE_SNAP_SQL \
     "DELETE FROM vmsnapshots WHERE vm_name='%s' " \
     "AND snap_name='%s'"
 #define NM_UPDATE_SNAP_SQL \
     "UPDATE vmsnapshots SET load='%d', " \
     "timestamp=DATETIME('now','localtime') " \
-    "WHERE vm_name='%s' and snap_name='%s'"
+    "WHERE vm_name='%s' AND snap_name='%s'"
 #define NM_CHECK_SNAP_SQL \
     "SELECT id FROM snapshots WHERE vm_name='%s'"
 

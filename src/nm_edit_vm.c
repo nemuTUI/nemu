@@ -9,25 +9,17 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
-#include <nm_usb_devices.h>
 #include <nm_qmp_control.h>
 
-#define NM_EDIT_VM_FIELDS_NUM 9
-
-#define NM_USB_ADD_SQL \
-    "INSERT INTO usb(vm_name, vendor_id, product_id, serial) " \
-    "VALUES ('%s', '%s', '%s', '%s')"
-
-#define NM_USB_CLEAR \
-    "DELETE FROM usb WHERE vm_name='%s'"
+#define NM_EDIT_VM_FIELDS_NUM 8
 
 static nm_window_t *window = NULL;
 static nm_form_t *form = NULL;
 static nm_field_t *fields[NM_EDIT_VM_FIELDS_NUM + 1];
 
-static void nm_edit_vm_field_setup(const nm_vect_t *usb_names, const nm_vmctl_data_t *cur);
+static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur);
 static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w);
-static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm_vect_t *usb_devs);
+static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur);
 static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac);
 
 enum {
@@ -38,7 +30,6 @@ enum {
     NM_FLD_IFSCNT,
     NM_FLD_DISKIN,
     NM_FLD_USBUSE,
-    NM_FLD_USBDEV,
     NM_FLD_MOUSES
 };
 
@@ -46,22 +37,19 @@ void nm_edit_vm(const nm_str_t *name)
 {
     nm_vm_t vm = NM_INIT_VM;
     nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
-    nm_vect_t usb_devs = NM_INIT_VECT;
-    nm_vect_t usb_names = NM_INIT_VECT;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     uint64_t last_mac;
     size_t msg_len;
     pthread_t spin_th;
     int done = 0, mult = 2;
 
-    nm_vm_get_usb(&usb_devs, &usb_names);
     nm_vmctl_get_data(name, &cur_settings);
 
     nm_print_title(_(NM_EDIT_TITLE));
     if (getmaxy(stdscr) <= 28)
         mult = 1;
 
-    window = nm_init_window((mult == 2) ? 23 : 13, 67, 3);
+    window = nm_init_window((mult == 2) ? 21 : 12, 67, 3);
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
@@ -74,7 +62,7 @@ void nm_edit_vm(const nm_str_t *name)
 
     fields[NM_EDIT_VM_FIELDS_NUM] = NULL;
 
-    nm_edit_vm_field_setup(&usb_names, &cur_settings);
+    nm_edit_vm_field_setup(&cur_settings);
     nm_edit_vm_field_names(name, window);
 
     form = nm_post_form(window, fields, 21);
@@ -83,7 +71,7 @@ void nm_edit_vm(const nm_str_t *name)
     
     nm_form_get_last(&last_mac, NULL);
 
-    if (nm_edit_vm_get_data(&vm, &cur_settings, &usb_devs) != NM_OK)
+    if (nm_edit_vm_get_data(&vm, &cur_settings) != NM_OK)
         goto out;
 
     msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
@@ -102,12 +90,10 @@ void nm_edit_vm(const nm_str_t *name)
 out:
     nm_vm_free(&vm);
     nm_form_free(form, fields);
-    nm_vect_free(&usb_names, NULL);
-    nm_vect_free(&usb_devs, nm_usb_vect_free_cb);
     nm_vmctl_free_data(&cur_settings);
 }
 
-static void nm_edit_vm_field_setup(const nm_vect_t *usb_names, const nm_vmctl_data_t *cur)
+static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
 {
     nm_str_t buf = NM_INIT_STR;
 
@@ -118,14 +104,7 @@ static void nm_edit_vm_field_setup(const nm_vect_t *usb_names, const nm_vmctl_da
     set_field_type(fields[NM_FLD_IFSCNT], TYPE_INTEGER, 1, 0, 64);
     set_field_type(fields[NM_FLD_DISKIN], TYPE_ENUM, nm_form_drive_drv, false, false);
     set_field_type(fields[NM_FLD_USBUSE], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_type(fields[NM_FLD_USBDEV], TYPE_ENUM, usb_names->data, false, false);
     set_field_type(fields[NM_FLD_MOUSES], TYPE_ENUM, nm_form_yes_no, false, false);
-
-    if (usb_names->n_memb == 0)
-    {
-        field_opts_off(fields[NM_FLD_USBUSE], O_ACTIVE);
-        field_opts_off(fields[NM_FLD_USBDEV], O_ACTIVE);
-    }
 
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, nm_vect_str_ctx(&cur->main, NM_SQL_SMP));
     set_field_buffer(fields[NM_FLD_RAMTOT], 0, nm_vect_str_ctx(&cur->main, NM_SQL_MEM));
@@ -149,8 +128,6 @@ static void nm_edit_vm_field_setup(const nm_vect_t *usb_names, const nm_vmctl_da
     else
         set_field_buffer(fields[NM_FLD_USBUSE], 0, nm_form_yes_no[1]);
     
-    field_opts_off(fields[NM_FLD_USBDEV], O_STATIC);
-
     if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_OVER), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_MOUSES], 0, nm_form_yes_no[0]);
     else
@@ -194,13 +171,12 @@ static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w)
     mvwaddstr(w, y += mult, 2, _("Network interfaces"));
     mvwaddstr(w, y += mult, 2, _("Disk interface"));
     mvwaddstr(w, y += mult, 2, _("USB [yes/no]"));
-    mvwaddstr(w, y += mult, 2, _("USB device"));
     mvwaddstr(w, y += mult, 2, _("Sync mouse position"));
 
     nm_str_free(&buf);
 }
 
-static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm_vect_t *usb_devs)
+static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
 {
     int rc = NM_OK;
     nm_vect_t err = NM_INIT_VECT;
@@ -218,7 +194,6 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm
     nm_get_field_buf(fields[NM_FLD_IFSCNT], &ifs);
     nm_get_field_buf(fields[NM_FLD_DISKIN], &vm->drive.driver);
     nm_get_field_buf(fields[NM_FLD_USBUSE], &usb);
-    nm_get_field_buf(fields[NM_FLD_USBDEV], &vm->usb.name);
     nm_get_field_buf(fields[NM_FLD_MOUSES], &sync);
 
     if (field_status(fields[NM_FLD_CPUNUM]))
@@ -279,69 +254,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur, const nm
     if (field_status(fields[NM_FLD_USBUSE]))
     {
         if (nm_str_cmp_st(&usb, "yes") == NM_OK)
-        {
-            int found = 0;
-
-            if (!field_status(fields[NM_FLD_USBDEV]) ||
-                vm->usb.name.len == 0)
-            {
-                rc = NM_ERR;
-                nm_print_warn(3, 6, _("usb device is empty"));
-                goto out;
-            }
-
-            for (size_t n = 0; n < usb_devs->n_memb; n++)
-            {
-                if (nm_str_cmp_ss(&vm->usb.name,
-                                  &nm_usb_name(usb_devs->data[n])) == NM_OK)
-                {
-                    vm->usb.device = usb_devs->data[n];
-                    found = 1;
-                    break;
-                }
-            }
-
-            if (!found)
-            {
-                rc = NM_ERR;
-                nm_print_warn(3, 6, _("usb_id not found"));
-                goto out;
-            }
-
-            vm->usb.enable = 1;
-        }
-    }
-
-    if (field_status(fields[NM_FLD_USBDEV]) && 
-        !field_status(fields[NM_FLD_USBUSE]) &&
-        (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_KVM), NM_ENABLE) == NM_OK))
-    {
-        int found = 0;
-        
-        if (vm->usb.name.len == 0)
-        {
-            rc = NM_ERR;
-            nm_print_warn(3, 2, _("usb device is empty"));
-            goto out;
-        }
-
-        for (size_t n = 0; n < usb_devs->n_memb; n++)
-        {
-            if (nm_str_cmp_ss(&vm->usb.name,
-                              &nm_usb_name(usb_devs->data[n])) == NM_OK)
-            {
-                vm->usb.device = usb_devs->data[n];
-                found = 1;
-                break;
-            }
-        }
-
-        if (!found)
-        {
-            rc = NM_ERR;
-            nm_print_warn(3, 2, _("usb_id not found"));
-            goto out;
-        }
+            vm->usb_enable = 1;
     }
 
     if (nm_str_cmp_st(&sync, "yes") == NM_OK)
@@ -486,7 +399,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     if (field_status(fields[NM_FLD_USBUSE]))
     {
         nm_str_add_text(&query, "UPDATE vms SET usb='");
-        nm_str_add_text(&query, vm->usb.enable ? NM_ENABLE : NM_DISABLE);
+        nm_str_add_text(&query, vm->usb_enable ? NM_ENABLE : NM_DISABLE);
         nm_str_add_text(&query, "' WHERE name='");
         nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
         nm_str_add_char(&query, '\'');
@@ -494,33 +407,6 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
         nm_db_edit(query.data);
         
         nm_str_trunc(&query, 0);
-
-        /* clean usb device list */
-        if (!vm->usb.enable)
-        {
-            nm_str_format(&query, NM_USB_CLEAR, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
-            nm_db_edit(query.data);
-            nm_str_trunc(&query, 0);
-        }
-    }
-
-    if (field_status(fields[NM_FLD_USBDEV]))
-    {
-        nm_str_t serial = NM_INIT_STR;
-
-        nm_usb_get_serial(vm->usb.device, &serial);
-        nm_qmp_usb_attach(nm_vect_str(&cur->main, NM_SQL_NAME), vm->usb.device, &serial);
-
-        nm_str_format(&query, NM_USB_ADD_SQL,
-                      nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
-                      nm_usb_vendor_id(vm->usb.device).data,
-                      nm_usb_product_id(vm->usb.device).data,
-                      (serial.len) ? serial.data : "");
-
-        nm_db_edit(query.data);
-
-        nm_str_trunc(&query, 0);
-        nm_str_free(&serial);
     }
 
     if (field_status(fields[NM_FLD_MOUSES]))

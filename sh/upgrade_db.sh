@@ -65,7 +65,7 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'CREATE TABLE vmsnapshots(id integer primary key autoincrement, '`
                `'vm_name char, snap_name char, load integer, timestamp char)' &&
             sqlite3 "$DB_PATH" -line 'CREATE TABLE usb(id integer primary key autoincrement, '`
-                `'vm_name char, vendor_id char, product_id char, serial char)' &&
+                `'vm_name char, dev_name char, vendor_id char, product_id char, serial char)' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=7'
             ) || RC=1
             ;;
