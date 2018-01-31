@@ -15,6 +15,7 @@ void nm_str_alloc_text(nm_str_t *str, const char *src)
 
 void nm_str_alloc_str(nm_str_t *str, const nm_str_t *src)
 {
+    assert(src != NULL);
     nm_str_alloc_mem(str, src->data, src->len);
 }
 
@@ -36,16 +37,20 @@ void nm_str_add_text(nm_str_t *str, const char *src)
 
 void nm_str_add_str(nm_str_t *str, const nm_str_t *src)
 {
+    assert(src != NULL);
     nm_str_append_mem(str, src->data, src->len);
 }
 
 void nm_str_copy(nm_str_t *str, const nm_str_t *src)
 {
+    assert(src != NULL);
     nm_str_alloc_mem(str, src->data, src->len);
 }
 
 void nm_str_trunc(nm_str_t *str, size_t len)
 {
+    assert(str != NULL);
+
     if (len >= str->alloc_bytes)
         nm_bug(_("%s: bad length"), __func__);
 
@@ -55,6 +60,8 @@ void nm_str_trunc(nm_str_t *str, size_t len)
 
 void nm_str_free(nm_str_t *str)
 {
+    assert(str != NULL);
+
     if (str->data != NULL)
         free(str->data);
 
@@ -65,6 +72,8 @@ void nm_str_free(nm_str_t *str)
 
 int nm_str_cmp_st(const nm_str_t *str, const char *text)
 {
+    assert(str != NULL);
+
     if (strcmp(str->data, text) != 0)
         return NM_ERR;
 
@@ -81,6 +90,9 @@ int nm_str_cmp_tt(const char *text1, const char *text2)
 
 int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2)
 {
+    assert(str1 != NULL);
+    assert(str2 != NULL);
+
     if (strcmp(str1->data, str2->data) != 0)
         return NM_ERR;
 
@@ -141,7 +153,10 @@ int64_t nm_str_stol(const nm_str_t *str, int base)
 void nm_str_dirname(const nm_str_t *str, nm_str_t *res)
 {
     const char *data = nm_str_get(str);
-    size_t pos = str->len;
+    size_t pos;
+
+    assert(str != NULL);
+    pos = str->len;
 
     if (str->len == 0)
         nm_bug(_("%s: zero length string"), __func__);
@@ -166,6 +181,7 @@ void nm_str_basename(const nm_str_t *str, nm_str_t *res)
     nm_str_t path = NM_INIT_STR;
     char *path_end;
 
+    assert(str != NULL);
     nm_str_copy(&path, str);
 
     if (str->len == 0)
@@ -235,6 +251,8 @@ void nm_str_format(nm_str_t *str, const char *fmt, ...)
 void nm_str_remove_char(nm_str_t *str, char ch)
 {
     char *prd, *pwr;
+
+    assert(str != NULL);
     prd = pwr = str->data;
 
     while (*prd)
@@ -260,6 +278,8 @@ static void nm_str_alloc_mem(nm_str_t *str, const char *src, size_t len)
 {
     size_t len_needed;
 
+    assert(str != NULL);
+
     if (len + 1 < len)
         nm_bug(_("Integer overflow\n"));
 
@@ -280,6 +300,8 @@ static void nm_str_alloc_mem(nm_str_t *str, const char *src, size_t len)
 static void nm_str_append_mem(nm_str_t *str, const char *src, size_t len)
 {
     size_t len_needed;
+
+    assert(str != NULL);
 
     if (len + str->len < len)
         nm_bug(_("Integer overflow\n"));
@@ -305,6 +327,8 @@ static void nm_str_append_mem_opt(nm_str_t *str, const char *src, size_t len)
 {
     size_t len_needed;
 
+    assert(str != NULL);
+
     if (len + str->len < len)
         nm_bug(_("Integer overflow"));
 
@@ -327,6 +351,8 @@ static void nm_str_append_mem_opt(nm_str_t *str, const char *src, size_t len)
 
 static const char *nm_str_get(const nm_str_t *str)
 {
+    assert(str != NULL);
+
     if (str->data == NULL)
     {
         if ((str->alloc_bytes != 0) || (str->len != 0))

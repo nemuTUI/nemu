@@ -24,6 +24,11 @@
 #include <regex.h>
 #include <getopt.h>
 
+#ifndef NM_DEBUG
+# define NDEBUG
+#endif
+#include <assert.h>
+
 #include <pwd.h>
 #include <errno.h>
 
