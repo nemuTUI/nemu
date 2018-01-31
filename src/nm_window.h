@@ -16,7 +16,10 @@ void nm_print_title(const char *msg);
 #define NM_SPACES "                         "
 
 enum nm_key {
-    NM_KEY_ENTER = 10,
+    NM_KEY_ENTER    = 10,
+    NM_KEY_QUESTION = 63,
+    NM_KEY_PLUS     = 43,
+    NM_KEY_MINUS    = 45,
     NM_KEY_A = 97,
     NM_KEY_B = 98,
     NM_KEY_C = 99,

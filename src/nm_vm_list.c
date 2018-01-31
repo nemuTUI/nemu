@@ -200,6 +200,21 @@ void nm_print_vm_list(void)
             nm_edit_boot(nm_vect_item_name_cur(vms));
         }
 
+        else if (ch == NM_KEY_QUESTION && vm_list.n_memb > 0)
+        {
+            nm_print_vm_info(nm_vect_item_name_cur(vms));
+        }
+
+        else if (ch == NM_KEY_PLUS && vm_list.n_memb > 0)
+        {
+            nm_usb_plug(nm_vect_item_name_cur(vms));
+        }
+
+        else if (ch == NM_KEY_MINUS && vm_list.n_memb > 0)
+        {
+            nm_usb_unplug(nm_vect_item_name_cur(vms));
+        }
+
         else if (ch == NM_KEY_U)
         {
             nm_vmctl_clear_tap();
