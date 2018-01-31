@@ -112,6 +112,8 @@ void nm_usb_unplug(const nm_str_t *name)
     nm_vect_t usb_names = NM_INIT_VECT;
     nm_vect_t db_result = NM_INIT_VECT;
 
+    usb_data.dev = &usb_dev;
+
     nm_str_format(&buf, NM_USB_GET_SQL, name->data);
     nm_db_select(buf.data, &db_result);
     nm_str_trunc(&buf, 0);
@@ -145,7 +147,6 @@ void nm_usb_unplug(const nm_str_t *name)
     if (nm_draw_form(window, form) != NM_OK)
         goto out;
 
-    usb_data.dev = &usb_dev;
     if (nm_usb_unplug_get_data(&usb_data, &db_result) != NM_OK)
         goto out;
     
@@ -175,6 +176,8 @@ out:
     nm_vect_free(&usb_names, NULL);
     nm_vect_free(&db_result, nm_str_vect_free_cb);
     nm_form_free(form, fields);
+    nm_usb_data_free(&usb_data);
+    nm_str_free(&buf);
 }
 
 static void nm_usb_unplug_list(const nm_vect_t *db_list, nm_vect_t *names)

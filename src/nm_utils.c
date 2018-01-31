@@ -281,6 +281,8 @@ void nm_debug(const char *fmt, ...)
     va_end(args);
 
     fclose(fp);
+#else
+    (void) fmt;
 #endif
 }
 

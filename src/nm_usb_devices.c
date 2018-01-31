@@ -7,6 +7,8 @@
 
 #define NM_USB_SERIAL_LEN 127
 
+static inline void nm_usb_dev_free(nm_usb_dev_t *dev);
+
 #if defined (NM_OS_LINUX)
 #include <libudev.h>
 #include <libusb.h>
@@ -16,7 +18,6 @@ static const char *nm_usb_get_vendor(uint16_t vid);
 static const char *nm_usb_get_product(uint16_t vid, uint16_t pid);
 static int nm_usb_get_vendor_str(char *buf, size_t size, uint16_t vid);
 static int nm_usb_get_product_str(char *buf, size_t size, uint16_t vid, uint16_t pid);
-static inline void nm_usb_dev_free(nm_usb_dev_t *dev);
 
 static struct udev_hwdb *hwdb = NULL;
 #endif /* NM_OS_LINUX */
@@ -175,7 +176,12 @@ void nm_usb_vect_free_cb(const void *unit_p)
     nm_str_free(&nm_usb_product_id(unit_p));
 }
 
-#if defined (NM_OS_LINUX)
+void nm_usb_data_free(nm_usb_data_t *usb)
+{
+    nm_str_free(&usb->serial);
+    nm_usb_dev_free(usb->dev);
+}
+
 static inline void nm_usb_dev_free(nm_usb_dev_t *dev)
 {
     nm_str_free(&dev->name);
@@ -183,6 +189,7 @@ static inline void nm_usb_dev_free(nm_usb_dev_t *dev)
     nm_str_free(&dev->product_id);
 }
 
+#if defined (NM_OS_LINUX)
 static const char *nm_usb_hwdb_get(const char *modalias, const char *key)
 {
     struct udev_list_entry *entry;
