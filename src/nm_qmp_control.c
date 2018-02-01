@@ -129,7 +129,7 @@ int nm_qmp_usb_attach(const nm_str_t *name, const nm_usb_data_t *usb)
     nm_str_t qmp_query = NM_INIT_STR;
     int rc;
 
-    struct timeval tv = { .tv_sec = 0, .tv_usec = 500000 }; /* 0.5s */
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 5000000 }; /* 5s */
 
     nm_str_format(&qmp_query, NM_QMP_CMD_USB_ADD,
                   usb->dev->bus_num, usb->dev->dev_addr,
@@ -149,7 +149,7 @@ int nm_qmp_usb_detach(const nm_str_t *name, const nm_usb_data_t *usb)
     nm_str_t qmp_query = NM_INIT_STR;
     int rc;
 
-    struct timeval tv = { .tv_sec = 0, .tv_usec = 500000 }; /* 0.5s */
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 1000000 }; /* 1s */
 
     nm_str_format(&qmp_query, NM_QMP_CMD_USB_DEL,
                   usb->dev->vendor_id.data,
