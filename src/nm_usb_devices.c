@@ -125,7 +125,7 @@ int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
                 nm_bug("%s: %s", __func__, libusb_strerror(usb_rc));
 
             if (libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
-                                                   (uint8_t *) serial_buf, NM_USB_SERIAL_LEN) > 0)
+                        (uint8_t *) serial_buf, NM_USB_SERIAL_LEN) > 0)
             {
                 nm_str_alloc_text(serial, serial_buf);
                 rc = NM_OK;
@@ -174,6 +174,17 @@ void nm_usb_vect_free_cb(const void *unit_p)
     nm_str_free(&nm_usb_name(unit_p));
     nm_str_free(&nm_usb_vendor_id(unit_p));
     nm_str_free(&nm_usb_product_id(unit_p));
+}
+
+void nm_usb_data_vect_ins_cb(const void *unit_p, const void *ctx)
+{
+    nm_str_copy(&nm_usb_data_serial(unit_p), &nm_usb_data_serial(ctx));
+    nm_usb_data_dev(unit_p) = nm_usb_data_dev(ctx);
+}
+
+void nm_usb_data_vect_free_cb(const void *unit_p)
+{
+    nm_str_free(&nm_usb_data_serial(unit_p));
 }
 
 void nm_usb_data_free(nm_usb_data_t *usb)

@@ -24,6 +24,17 @@
     "SELECT id FROM usb WHERE vm_name='%s' AND dev_name='%s' " \
     "AND vendor_id='%s' AND product_id='%s' AND serial='%s'"
 
+#define NM_VM_GET_LIST_SQL \
+    "SELECT * FROM vms WHERE name='%s'"
+
+#define NM_VM_GET_IFACES_SQL  \
+    "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost, " \
+    "macvtap, parent_eth FROM ifaces WHERE vm_name='%s' ORDER BY if_name ASC"
+
+#define NM_VM_GET_DRIVES_SQL \
+    "SELECT drive_name, drive_drv, capacity, boot " \
+    "FROM drives WHERE vm_name='%s' ORDER BY drive_name ASC"
+
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
 void nm_db_edit(const char *query);

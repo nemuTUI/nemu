@@ -13,6 +13,7 @@ typedef struct {
     nm_vect_t main;
     nm_vect_t ifs;
     nm_vect_t drives;
+    nm_vect_t usb;
 } nm_vmctl_data_t;
 
 void nm_vmctl_start(const nm_str_t *name, int flags);
@@ -28,7 +29,8 @@ void nm_vmctl_log_last(const nm_str_t *msg);
 void nm_vmctl_connect(const nm_str_t *name);
 #endif
 
-#define NM_VMCTL_INIT_DATA { NM_INIT_VECT, NM_INIT_VECT, NM_INIT_VECT }
+#define NM_VMCTL_INIT_DATA { NM_INIT_VECT, NM_INIT_VECT, \
+                             NM_INIT_VECT, NM_INIT_VECT }
 
 #endif /*NM_VM_CONTROL_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */
