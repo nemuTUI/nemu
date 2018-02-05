@@ -256,7 +256,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     {
         size_t idx_shift = 5 * n;
 
-        if (pos_x >= (getmaxx(stdscr) - 20))
+        if (pos_x >= (getmaxx(stdscr) - 40))
         {
             pos_y++;
             pos_x = 2;
