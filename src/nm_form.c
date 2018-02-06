@@ -143,7 +143,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
             }
             break;
 
-        case KEY_F(2):
+        case NM_KEY_ENTER:
             confirm = NM_OK;
             if (form_driver(form, REQ_VALIDATION) != E_OK)
                 rc = NM_ERR;

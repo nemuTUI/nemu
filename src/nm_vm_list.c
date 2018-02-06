@@ -1,5 +1,7 @@
 #include <nm_core.h>
 #include <nm_menu.h>
+#include <nm_form.h>
+#include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
 #include <nm_edit_vm.h>
@@ -22,6 +24,7 @@ extern sig_atomic_t redraw_window;
 
 static void nm_action_menu_s(const nm_str_t *name);
 static void nm_action_menu_r(const nm_str_t *name);
+static uint32_t nm_search_vm(const nm_vect_t *list);
 
 void nm_print_vm_list(void)
 {
@@ -473,6 +476,20 @@ void nm_print_vm_list(void)
             }
         } /* }}} */
 
+        /* {{{ Search in VM list */
+        else if (ch == NM_KEY_SLASH && vm_list.n_memb > 0)
+        {
+            uint32_t pos = nm_search_vm(&vm_list);
+            if (pos > list_max)
+            {
+                vms.highlight = list_max;
+                vms.item_first = pos - list_max;
+                vms.item_last = pos;
+            }
+            else if (pos != 0)
+                vms.highlight = pos;
+        } /* }}} */
+
         /* {{{ Print help */
         else if (ch == KEY_F(1))
         {
@@ -672,5 +689,43 @@ static void nm_action_menu_r(const nm_str_t *name)
     }
 
     delwin(w);
+}
+
+static uint32_t nm_search_vm(const nm_vect_t *list)
+{
+    uint32_t pos = 0;
+    nm_form_t *form = NULL;
+    nm_field_t *fields[2];
+    nm_window_t *window = NULL;
+    nm_str_t input = NM_INIT_STR;
+
+    window = nm_init_window(5, 24, 6);
+
+    fields[0] = new_field(1, 20, 0, 1, 0, 0);
+    fields[1] = NULL;
+    set_field_back(fields[0], A_UNDERLINE);
+    field_opts_off(fields[0], O_STATIC);
+
+    form = nm_post_form(window, fields, 1);
+    if (nm_draw_form(window, form) != NM_OK)
+        goto out;
+
+    nm_get_field_buf(fields[0], &input);
+    if (!input.len)
+        goto out;
+
+    for (size_t n = 0; n < list->n_memb; n++)
+    {
+        if (nm_strn_cmp_ss(&input, nm_vect_str(list, n)) == NM_OK)
+        {
+            pos = n + 1;
+            break;
+        }
+    }
+out:
+    nm_form_free(form, fields);
+    nm_str_free(&input);
+
+    return pos;
 }
 /* vim:set ts=4 sw=4 fdm=marker: */

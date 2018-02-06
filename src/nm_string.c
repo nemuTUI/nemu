@@ -99,6 +99,17 @@ int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2)
     return NM_OK;
 }
 
+int nm_strn_cmp_ss(const nm_str_t *str1, const nm_str_t *str2)
+{
+    assert(str1 != NULL);
+    assert(str2 != NULL);
+
+    if (strncmp(str1->data, str2->data, strlen(str1->data)) != 0)
+        return NM_ERR;
+
+    return NM_OK;
+}
+
 uint32_t nm_str_stoui(const nm_str_t *str, int base)
 {
     uint64_t res;
