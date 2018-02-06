@@ -699,7 +699,7 @@ static uint32_t nm_search_vm(const nm_vect_t *list)
     nm_window_t *window = NULL;
     nm_str_t input = NM_INIT_STR;
 
-    window = nm_init_window(5, 24, 6);
+    window = nm_init_window(5, 24, 4);
 
     fields[0] = new_field(1, 20, 1, 1, 0, 0);
     fields[1] = NULL;
