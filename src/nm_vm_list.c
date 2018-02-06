@@ -701,10 +701,11 @@ static uint32_t nm_search_vm(const nm_vect_t *list)
 
     window = nm_init_window(5, 24, 6);
 
-    fields[0] = new_field(1, 20, 0, 1, 0, 0);
+    fields[0] = new_field(1, 20, 1, 1, 0, 0);
     fields[1] = NULL;
     set_field_back(fields[0], A_UNDERLINE);
     field_opts_off(fields[0], O_STATIC);
+    mvwaddstr(window, 1, 2, _("Search:"));
 
     form = nm_post_form(window, fields, 1);
     if (nm_draw_form(window, form) != NM_OK)
