@@ -13,28 +13,6 @@
 #define NM_FORMSTR_NAME "Snapshot name"
 #define NM_FORMSTR_LOAD "Load at next boot"
 
-#define NM_GET_NAME_SQL \
-    "SELECT * FROM vmsnapshots WHERE vm_name='%s' " \
-    "AND snap_name='%s'"
-#define NM_GET_SNAPS_ALL_SQL \
-    "SELECT * FROM vmsnapshots WHERE vm_name='%s' " \
-    "ORDER BY timestamp ASC"
-#define NM_GET_SNAPS_NAME_SQL \
-    "SELECT snap_name FROM vmsnapshots WHERE vm_name='%s' " \
-    "ORDER BY timestamp ASC"
-#define NM_UPDATE_LOAD_SQL \
-    "UPDATE vmsnapshots SET load='1' " \
-    "WHERE vm_name='%s' AND snap_name='%s'"
-#define NM_DELETE_SNAP_SQL \
-    "DELETE FROM vmsnapshots WHERE vm_name='%s' " \
-    "AND snap_name='%s'"
-#define NM_UPDATE_SNAP_SQL \
-    "UPDATE vmsnapshots SET load='%d', " \
-    "timestamp=DATETIME('now','localtime') " \
-    "WHERE vm_name='%s' AND snap_name='%s'"
-#define NM_CHECK_SNAP_SQL \
-    "SELECT id FROM snapshots WHERE vm_name='%s'"
-
 enum {
     NM_FLD_VMSNAPNAME = 0,
     NM_FLD_VMLOAD,
@@ -346,7 +324,7 @@ static void __nm_vm_snapshot_load(const nm_str_t *name, const nm_str_t *snap,
         nm_str_trunc(&query, 0);
 
         /* set load flag for current shapshot */
-        nm_str_format(&query, NM_UPDATE_LOAD_SQL, name->data, snap->data);
+        nm_str_format(&query, NM_SNAP_UPDATE_LOAD_SQL, name->data, snap->data);
         nm_db_edit(query.data);
 
         nm_str_free(&query);
@@ -367,18 +345,27 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
         /* vm is not running, use
          * qemu-img snapshot -d snapshot_name path_to_drive system command */
         nm_str_t cmd = NM_INIT_STR;
+        nm_str_t query = NM_INIT_STR;
+        nm_vect_t drives = NM_INIT_VECT;
+
+        /* get first drive name */
+        nm_str_format(&query, NM_GET_BOOT_DRIVE_SQL, name->data);
+        nm_db_select(query.data, &drives);
+        assert(drives.n_memb != 0);
 
         nm_str_alloc_text(&cmd, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img snapshot -d ");
         nm_str_add_str(&cmd, snap);
         nm_str_add_char(&cmd, ' ');
         nm_str_add_str(&cmd, &nm_cfg_get()->vm_dir);
-        nm_str_format(&cmd, "/%s/%s_a.img", name->data, name->data);
+        nm_str_format(&cmd, "/%s/%s", name->data, nm_vect_str_ctx(&drives, 0));
 
         if (nm_spawn_process(&cmd) != NM_OK)
             nm_bug(_("%s: cannot delete snapshot"), __func__);
 
         rc = NM_OK;
+        nm_vect_free(&drives, nm_str_vect_free_cb);
         nm_str_free(&cmd);
+        nm_str_free(&query);
     }
     else
     {
@@ -418,7 +405,7 @@ static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data)
         goto out;
     }
 
-    nm_str_format(&query, NM_GET_NAME_SQL, name->data, data->snap_name.data);
+    nm_str_format(&query, NM_SNAP_GET_NAME_SQL, name->data, data->snap_name.data);
     nm_db_select(query.data, &names);
 
     if (names.n_memb != 0)

@@ -35,6 +35,38 @@
     "SELECT drive_name, drive_drv, capacity, boot " \
     "FROM drives WHERE vm_name='%s' ORDER BY drive_name ASC"
 
+#define NM_SNAP_GET_NAME_SQL \
+    "SELECT * FROM vmsnapshots WHERE vm_name='%s' " \
+    "AND snap_name='%s'"
+
+#define NM_GET_SNAPS_ALL_SQL \
+    "SELECT * FROM vmsnapshots WHERE vm_name='%s' " \
+    "ORDER BY timestamp ASC"
+
+#define NM_GET_SNAPS_NAME_SQL \
+    "SELECT snap_name FROM vmsnapshots WHERE vm_name='%s' " \
+    "ORDER BY timestamp ASC"
+
+#define NM_SNAP_UPDATE_LOAD_SQL \
+    "UPDATE vmsnapshots SET load='1' " \
+    "WHERE vm_name='%s' AND snap_name='%s'"
+
+#define NM_DELETE_SNAP_SQL \
+    "DELETE FROM vmsnapshots WHERE vm_name='%s' " \
+    "AND snap_name='%s'"
+
+#define NM_UPDATE_SNAP_SQL \
+    "UPDATE vmsnapshots SET load='%d', " \
+    "timestamp=DATETIME('now','localtime') " \
+    "WHERE vm_name='%s' AND snap_name='%s'"
+
+#define NM_CHECK_SNAP_SQL \
+    "SELECT id FROM snapshots WHERE vm_name='%s'"
+
+#define NM_GET_BOOT_DRIVE_SQL \
+    "SELECT drive_name FROM drives " \
+    "WHERE vm_name='%s' AND boot='1'"
+
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
 void nm_db_edit(const char *query);
