@@ -700,7 +700,7 @@ static void nm_action_menu_r(const nm_str_t *name)
 static uint32_t nm_search_vm(const nm_vect_t *list)
 {
     uint32_t pos = 0;
-    nm_str_t **match = NULL;
+    void *match = NULL;
     nm_form_t *form = NULL;
     nm_field_t *fields[2];
     nm_window_t *window = NULL;
@@ -741,7 +741,6 @@ static int nm_search_cmp_cb(const void *s1, const void *s2)
     int rc;
     const nm_str_t *str1 = s1;
     const nm_str_t **str2 = (const nm_str_t **) s2;
-    nm_debug("%s,%s\n", str1->data, (*str2)->data);
 
     rc = strcmp(str1->data, (*str2)->data);
 
