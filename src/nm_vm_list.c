@@ -25,6 +25,7 @@ extern sig_atomic_t redraw_window;
 static void nm_action_menu_s(const nm_str_t *name);
 static void nm_action_menu_r(const nm_str_t *name);
 static uint32_t nm_search_vm(const nm_vect_t *list);
+static int nm_search_cmp_cb(const void *s1, const void *s2);
 
 void nm_print_vm_list(void)
 {
@@ -699,6 +700,7 @@ static void nm_action_menu_r(const nm_str_t *name)
 static uint32_t nm_search_vm(const nm_vect_t *list)
 {
     uint32_t pos = 0;
+    nm_str_t **match = NULL;
     nm_form_t *form = NULL;
     nm_field_t *fields[2];
     nm_window_t *window = NULL;
@@ -720,19 +722,39 @@ static uint32_t nm_search_vm(const nm_vect_t *list)
     if (!input.len)
         goto out;
 
-    /* TODO: use bsearch and get index from address substraction */
-    for (size_t n = 0; n < list->n_memb; n++)
+    match = bsearch(&input, list->data, list->n_memb, sizeof(void *), nm_search_cmp_cb);
+
+    if (match != NULL)
     {
-        if (nm_strn_cmp_ss(&input, nm_vect_str(list, n)) == NM_OK)
-        {
-            pos = n + 1;
-            break;
-        }
+        pos = (((unsigned char *)match - (unsigned char *)list->data) / sizeof(void *));
+        pos++;
     }
 out:
     nm_form_free(form, fields);
     nm_str_free(&input);
 
     return pos;
+}
+
+static int nm_search_cmp_cb(const void *s1, const void *s2)
+{
+    int rc;
+    const nm_str_t *str1 = s1;
+    const nm_str_t **str2 = (const nm_str_t **) s2;
+    nm_debug("%s,%s\n", str1->data, (*str2)->data);
+
+    rc = strcmp(str1->data, (*str2)->data);
+
+    /* TODO An incomplete match can happen not at the
+     * beginning of the list with the same prefixes.
+     * Fix this later... */
+    if (rc != 0)
+    {
+        char *fo = strstr((*str2)->data, str1->data);
+        if (fo != NULL && fo == (*str2)->data)
+            rc = 0;
+    }
+
+    return rc;
 }
 /* vim:set ts=4 sw=4 fdm=marker: */
