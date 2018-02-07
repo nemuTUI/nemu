@@ -729,6 +729,24 @@ static uint32_t nm_search_vm(const nm_vect_t *list)
         pos = (((unsigned char *)match - (unsigned char *)list->data) / sizeof(void *));
         pos++;
     }
+
+    /* An incomplete match can happen not at the
+     * beginning of the list with the same prefixes
+     * in nm_search_cmp_cb.
+     * So use backward linear search to fix it */
+    if (pos <= 1)
+        goto out;
+
+    for (uint32_t n = pos - 1; n != 0; n--)
+    {
+        char *fo = strstr(nm_vect_str_ctx(list, n - 1), input.data);
+
+        if (fo != NULL && fo == nm_vect_str_ctx(list, n - 1))
+            pos--;
+        else
+            break;
+    }
+
 out:
     nm_form_free(form, fields);
     nm_str_free(&input);
@@ -744,9 +762,6 @@ static int nm_search_cmp_cb(const void *s1, const void *s2)
 
     rc = strcmp(str1->data, (*str2)->data);
 
-    /* TODO An incomplete match can happen not at the
-     * beginning of the list with the same prefixes.
-     * Fix this later... */
     if (rc != 0)
     {
         char *fo = strstr((*str2)->data, str1->data);
