@@ -292,7 +292,7 @@ void nm_print_help(nm_window_t *w)
         _(" + - attach usb device"),
         _(" - - detach usb device"),
         _(" ? - print vm info"),
-          "",
+        _(" / - search"),
           "",
           "",
           "",
