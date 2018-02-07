@@ -480,6 +480,7 @@ void nm_print_vm_list(void)
         else if (ch == NM_KEY_SLASH && vm_list.n_memb > 0)
         {
             uint32_t pos = nm_search_vm(&vm_list);
+
             if (pos > list_max)
             {
                 vms.highlight = list_max;
@@ -487,7 +488,11 @@ void nm_print_vm_list(void)
                 vms.item_last = pos;
             }
             else if (pos != 0)
+            {
+                vms.item_first = 0;
+                vms.item_last = list_max;
                 vms.highlight = pos;
+            }
         } /* }}} */
 
         /* {{{ Print help */
@@ -715,6 +720,7 @@ static uint32_t nm_search_vm(const nm_vect_t *list)
     if (!input.len)
         goto out;
 
+    /* TODO: use bsearch and get index from address substraction */
     for (size_t n = 0; n < list->n_memb; n++)
     {
         if (nm_strn_cmp_ss(&input, nm_vect_str(list, n)) == NM_OK)

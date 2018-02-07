@@ -85,7 +85,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
     int ch;
     nm_str_t buf = NM_INIT_STR;
 
-    wtimeout(w, 500);
+    wtimeout(w, 100);
 
     while ((ch = wgetch(w)) != NM_KEY_ESC)
     {
