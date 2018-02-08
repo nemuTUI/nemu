@@ -231,7 +231,7 @@ void nm_print_vm_info(const nm_str_t *name)
 void nm_print_help(nm_window_t *w)
 {
     int curr_p = 1;
-    char prog_name[40] = {0};
+    char prog_name[50] = {0};
     int space_num = (38 - (sizeof(NM_VERSION) + 4)) / 2;
 
     snprintf(prog_name, sizeof(prog_name), "%.*snEMU %s",
