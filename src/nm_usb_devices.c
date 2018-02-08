@@ -144,22 +144,6 @@ int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
     return rc;
 }
 
-void nm_usb_parse_dev(const nm_str_t *src, nm_str_t *b_num, nm_str_t *d_addr)
-{
-    nm_str_t copy = NM_INIT_STR;
-    char *cp = NULL;
-
-    nm_str_copy(&copy, src);
-
-    cp = strchr(copy.data, ':');
-    nm_str_alloc_text(d_addr, ++cp);
-
-    *(--cp) = '\0';
-    nm_str_alloc_text(b_num, copy.data);
-
-    nm_str_free(&copy);
-}
-
 void nm_usb_vect_ins_cb(const void *unit_p, const void *ctx)
 {
     nm_str_copy(&nm_usb_name(unit_p), &nm_usb_name(ctx));

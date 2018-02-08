@@ -209,6 +209,7 @@ void nm_print_vm_list(void)
             nm_print_vm_info(nm_vect_item_name_cur(vms));
         }
 
+#if defined (NM_OS_LINUX)
         else if (ch == NM_KEY_PLUS && vm_list.n_memb > 0)
         {
             nm_usb_plug(nm_vect_item_name_cur(vms));
@@ -218,6 +219,7 @@ void nm_print_vm_list(void)
         {
             nm_usb_unplug(nm_vect_item_name_cur(vms));
         }
+#endif
 
         else if (ch == NM_KEY_U)
         {
@@ -616,8 +618,10 @@ static void nm_action_menu_r(const nm_str_t *name)
         _("stop         [p]"),
         _("reset        [z]"),
         _("edit         [e]"),
+#if defined (NM_OS_LINUX)
         _("attach usb   [+]"),
         _("detach usb   [-]"),
+#endif
         _("info         [?]")
     };
 
@@ -626,8 +630,10 @@ static void nm_action_menu_r(const nm_str_t *name)
         ACT_STOP,
         ACT_RESET,
         ACT_EDIT,
+#if defined (NM_OS_LINUX)
         ACT_ATTACH,
         ACT_DETACH,
+#endif
         ACT_INFO
     };
 
@@ -678,11 +684,13 @@ static void nm_action_menu_r(const nm_str_t *name)
             if (hl == ACT_EDIT)
                 nm_edit_vm(name);
 
+#if defined (NM_OS_LINUX)
             if (hl == ACT_ATTACH)
                 nm_usb_plug(name);
 
             if (hl == ACT_DETACH)
                 nm_usb_unplug(name);
+#endif
 
             if (hl == ACT_INFO)
                 nm_print_vm_info(name);

@@ -22,7 +22,6 @@ void nm_usb_vect_ins_cb(const void *unit_p, const void *ctx);
 void nm_usb_vect_free_cb(const void *unit_p);
 void nm_usb_data_vect_ins_cb(const void *unit_p, const void *ctx);
 void nm_usb_data_vect_free_cb(const void *unit_p);
-void nm_usb_parse_dev(const nm_str_t *src, nm_str_t *b_num, nm_str_t *d_addr);
 int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial);
 void nm_usb_data_free(nm_usb_data_t *dev);
 
