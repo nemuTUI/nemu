@@ -136,6 +136,10 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     for (size_t n = 0; n < NM_EDIT_VM_FIELDS_NUM; n++)
         set_field_status(fields[n], 0);
 
+#if defined (NM_OS_FREEBSD)
+    field_opts_off(fields[NM_FLD_USBUSE], O_ACTIVE);
+#endif
+
     nm_str_free(&buf);
 }
 

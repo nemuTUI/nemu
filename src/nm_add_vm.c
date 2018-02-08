@@ -200,7 +200,9 @@ static int nm_add_vm_get_data(nm_vm_t *vm, int import)
         goto out;
 
     vm->ifs.count = nm_str_stoui(&ifs_buf, 10);
+#if defined (NM_OS_LINUX)
     vm->usb_enable = 1; /* enable USB by default */
+#endif
 
     rc = nm_form_name_used(&vm->name);
 
