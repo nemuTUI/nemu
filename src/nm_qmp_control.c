@@ -317,9 +317,7 @@ static int nm_qmp_talk(int sd, const char *cmd,
     }
 
 out:
-#ifdef NM_DEBUG
     nm_debug("QMP: %s\n", answer.data);
-#endif
     if (rc != NM_OK)
         nm_print_warn(3, 6, "QMP: execute error");
 err:

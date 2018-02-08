@@ -165,9 +165,7 @@ void nm_ovf_import(void)
         goto out;
     }
 
-#if NM_DEBUG
     nm_debug("ova: ovf file found: %s\n", ovf_file);
-#endif
 
     if ((doc = nm_ovf_open(templ_path, ovf_file)) == NULL)
     {
@@ -259,9 +257,8 @@ static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
         file = archive_entry_pathname(ar_entry);
 
         nm_vect_insert(files, file, strlen(file) + 1, NULL);
-#ifdef NM_DEBUG
         nm_debug("ova: extract file: %s\n", file);
-#endif
+
         rc = archive_write_header(out, ar_entry);
         if (rc != ARCHIVE_OK)
             nm_bug("%s: bad archive: %s", __func__, archive_error_string(in));
@@ -319,9 +316,8 @@ static int nm_clean_temp_dir(const char *tmp_dir, const nm_vect_t *files)
 
         if (unlink(path.data) == -1)
             rc = NM_ERR;
-#ifdef NM_DEBUG
+
         nm_debug("ova: clean file: %s\n", path.data);
-#endif
         nm_str_trunc(&path, 0);
     }
 
@@ -463,9 +459,7 @@ static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx)
                 nm_bug("%s: NULL disk id", __func__);
 
             id++;
-#ifdef NM_DEBUG
             nm_debug("ova: drive_id: %s\n", id);
-#endif
 
             nm_str_format(&xpath, NM_XPATH_DRIVE_CAP, id);
             nm_ovf_get_text(&buf, ctx, xpath.data, "capacity");
@@ -506,9 +500,7 @@ static uint32_t nm_ovf_get_neth(nm_xml_xpath_ctx_pt ctx)
         nm_bug("%s: cannot get interfaces from ovf file", __func__);
 
     neth = obj->nodesetval->nodeNr;
-#ifdef NM_DEBUG
     nm_debug("ova: eth num: %u\n", neth);
-#endif
 
     xmlXPathFreeObject(obj);
 
@@ -537,9 +529,7 @@ static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
         xmlFree(xml_text);
     }
 
-#ifdef NM_DEBUG
     nm_debug("ova: %s: %s\n", param, res->data);
-#endif
 
     xmlXPathFreeObject(obj);
 }
@@ -581,12 +571,12 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
     for (size_t n = 0; n < drives->n_memb; n++)
     {
         nm_str_format(&cmd, "%s %s/%s %s/%s",
-                      NM_STRING(NM_USR_PREFIX) NM_QEMU_CONVERT,
-                      templ_path, (nm_drive_file(drives->data[n])).data,
-                      vm_dir.data, (nm_drive_file(drives->data[n])).data);
-#ifdef NM_DEBUG
+                NM_STRING(NM_USR_PREFIX) NM_QEMU_CONVERT,
+                templ_path, (nm_drive_file(drives->data[n])).data,
+                vm_dir.data, (nm_drive_file(drives->data[n])).data);
+
         nm_debug("ova: exec: %s\n", cmd.data);
-#endif
+
         if (nm_spawn_process(&cmd) != NM_OK)
         {
             rmdir(vm_dir.data);
