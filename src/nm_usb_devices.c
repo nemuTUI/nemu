@@ -87,9 +87,11 @@ void nm_usb_get_devs(nm_vect_t *v)
 
 int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
 {
+    int rc = NM_ERR;
+#if defined (NM_OS_LINUX)
     libusb_context *ctx = NULL;
     libusb_device **list = NULL;
-    int usb_rc, rc = NM_ERR;
+    int usb_rc;
     ssize_t dev_count;
 
     if (dev == NULL)
@@ -140,6 +142,10 @@ int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
     /* cleanup */
     libusb_free_device_list(list, 1);
     libusb_exit(ctx);
+#else
+    (void) dev;
+    (void) serial;
+#endif /* NM_OS_LINUX */
 
     return rc;
 }
