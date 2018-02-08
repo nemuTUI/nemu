@@ -289,10 +289,15 @@ void nm_print_help(nm_window_t *w)
     const char *msg_p3[] = {
         prog_name,
           "",
-        _(" + - attach usb device"),
-        _(" - - detach usb device"),
         _(" ? - print vm info"),
         _(" / - search"),
+#if defined (NM_OS_LINUX)
+        _(" + - attach usb device"),
+        _(" - - detach usb device"),
+#else
+          "",
+          "",
+#endif
           "",
           "",
           "",
