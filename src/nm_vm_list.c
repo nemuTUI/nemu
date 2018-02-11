@@ -640,7 +640,7 @@ static void nm_action_menu_r(const nm_str_t *name)
         ACT_ATTACH,
         ACT_DETACH,
 #endif
-        ACT_INFO
+        ACT_INFO,
     };
 
     act_len = nm_arr_len(actions);
@@ -653,7 +653,7 @@ static void nm_action_menu_r(const nm_str_t *name)
             w = NULL;
         }
 
-        w = nm_init_window(9, 20, 5);
+        w = nm_init_window(ACT_INFO + 2, 20, 5);
         box(w, 0, 0);
 
         for (size_t x = 2, y = 1, n = 0; n < act_len; n++, y++)
