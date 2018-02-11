@@ -640,7 +640,7 @@ static void nm_action_menu_r(const nm_str_t *name)
         ACT_ATTACH,
         ACT_DETACH,
 #endif
-        ACT_INFO,
+        ACT_INFO
     };
 
     act_len = nm_arr_len(actions);
