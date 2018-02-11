@@ -674,7 +674,7 @@ static void nm_action_menu_r(const nm_str_t *name)
             (hl == ACT_CONNECT) ? hl = act_len : hl--;
 
         else if (ch == KEY_DOWN)
-            (hl == act_len) ? hl = ACT_CONNECT : hl++;
+            (hl == act_len) ? hl = 1 : hl++;
 
         else if (ch == NM_KEY_ENTER)
         {
