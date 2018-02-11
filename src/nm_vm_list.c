@@ -614,7 +614,9 @@ static void nm_action_menu_r(const nm_str_t *name)
     nm_window_t *w = NULL;
 
     const char *actions[] = {
+#if defined (NM_WITH_VNC_CLIENT)
         _("connect      [c]"),
+#endif
         _("stop         [p]"),
         _("reset        [z]"),
         _("edit         [e]"),
@@ -626,8 +628,12 @@ static void nm_action_menu_r(const nm_str_t *name)
     };
 
     enum {
+#if defined (NM_WITH_VNC_CLIENT)
         ACT_CONNECT = 1,
         ACT_STOP,
+#else
+		ACT_STOP = 1,
+#endif /* NM_WITH_VNC_CLIENT */
         ACT_RESET,
         ACT_EDIT,
 #if defined (NM_OS_LINUX)
@@ -672,8 +678,10 @@ static void nm_action_menu_r(const nm_str_t *name)
 
         else if (ch == NM_KEY_ENTER)
         {
+#if defined (NM_WITH_VNC_CLIENT)
             if (hl == ACT_CONNECT)
                 nm_vmctl_connect(name);
+#endif
 
             if (hl == ACT_STOP)
                 nm_qmp_vm_shut(name);
