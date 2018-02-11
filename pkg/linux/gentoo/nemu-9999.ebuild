@@ -21,6 +21,10 @@ RDEPEND="
 	dev-libs/libusb:1=
 	|| ( sys-fs/eudev sys-fs/udev )
 	app-emulation/qemu[vnc,virtfs]
+	ovf? ( 
+		dev-libs/libxml2
+		app-arch/libarchive
+	)
 	vnc-client? ( net-misc/tigervnc )"
 DEPEND="${RDEPEND}
 	sys-devel/gettext"
@@ -61,4 +65,9 @@ pkg_postinst() {
 	elog "/usr/share/nemu/scripts/setup_nemu_nonroot.sh linux <username>"
 	elog "and add udev rule:"
 	elog "cp /usr/share/nemu/scripts/42-net-macvtap-perm.rules /lib/udev/rules.d"
+	if use savevm; then
+		elog ""
+		elog "QEMU must be patched with qemu-qmp-savevm-VERSION.patch"
+		elog "Get this patch from nEMU repository"
+	fi
 }

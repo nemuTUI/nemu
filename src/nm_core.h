@@ -25,7 +25,9 @@
 #include <getopt.h>
 
 #ifndef NM_DEBUG
-# define NDEBUG
+# ifndef NDEBUG
+#  define NDEBUG
+# endif
 #endif
 #include <assert.h>
 
@@ -38,7 +40,7 @@
 
 #define NM_PROGNAME "nemu"
 #ifndef NM_VERSION
-# define NM_VERSION "v1.4.0-dev"
+# define NM_VERSION "v1.4.0"
 #endif
 
 #define NM_OK   0
