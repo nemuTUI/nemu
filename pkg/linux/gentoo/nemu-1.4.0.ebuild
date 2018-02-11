@@ -21,7 +21,7 @@ RDEPEND="
 	dev-libs/libusb:1=
 	|| ( sys-fs/eudev sys-fs/udev )
 	app-emulation/qemu[vnc,virtfs]
-	ovf ? ( 
+	ovf? (
 		dev-libs/libxml2
 		app-arch/libarchive
 	)
