@@ -671,7 +671,7 @@ static void nm_action_menu_r(const nm_str_t *name)
         ch = wgetch(w);
 
         if (ch == KEY_UP)
-            (hl == ACT_CONNECT) ? hl = act_len : hl--;
+            (hl == 1) ? hl = act_len : hl--;
 
         else if (ch == KEY_DOWN)
             (hl == act_len) ? hl = 1 : hl++;
