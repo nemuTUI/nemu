@@ -145,7 +145,7 @@ void nm_ovf_import(void)
         goto cancel;
 
     if (nm_ova_get_data(&vm) != NM_OK)
-        goto out;
+        goto cancel;
 
     msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
     sp_data.stop = &done;
