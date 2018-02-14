@@ -1,3 +1,15 @@
+v1.4.0 - 14 Feb 2018
+------------------------
+    - Feature: import OVA/OVF
+    - Feature: full VM snapshots (experimental, requires patched version of QEMU)
+    - Feature: VM action menu
+    - Feature: pause/resume VM
+    - Feature: search for VM
+    - Feature: tilde disclosure in paths
+    - Change: USB subsystem (hotplug enabled)
+    - Bugfix: TAP interface name intersection
+    - Bugfix: USB device list content is broken after scroll
+
 v1.3.1 - 11 Oct 2017
 ------------------------
     - Change: changed the behavior of the menu
