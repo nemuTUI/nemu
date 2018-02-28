@@ -440,7 +440,7 @@ static void nm_net_manage_tap(const nm_str_t *name, int on_off)
     memset(&ifr, 0, sizeof(ifr));
 #if defined (NM_OS_LINUX)
     ifr.ifr_flags |= (IFF_NO_PI | IFF_TAP);
-    strncpy(ifr.ifr_name, name->data, IFNAMSIZ - 1);
+    nm_strlcpy(ifr.ifr_name, name->data, IFNAMSIZ);
 
     if ((fd = open(NM_TUNDEV, O_RDWR)) < 0)
         nm_bug(_("%s: cannot open TUN device: %s"), __func__, strerror(errno));

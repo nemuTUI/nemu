@@ -275,6 +275,23 @@ void nm_str_remove_char(nm_str_t *str, char ch)
     *pwr = '\0';
 }
 
+size_t nm_strlcpy(char *dst, const char *src, size_t buflen)
+{
+    size_t srclen = strlen(src);
+    size_t ret = srclen;
+
+    if (buflen > 0)
+    {
+        if (srclen >= buflen)
+            srclen = buflen - 1;
+
+        memcpy(dst, src, srclen);
+        dst[srclen] = '\0';
+    }
+
+    return ret;
+}
+
 void nm_str_vect_ins_cb(const void *unit_p, const void *ctx)
 {
     nm_str_copy((nm_str_t *) unit_p, (nm_str_t *) ctx);
