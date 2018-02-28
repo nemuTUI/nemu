@@ -197,7 +197,7 @@ static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
     nm_qmp_sock_path(name, &sock_path);
 
     qmp.sock.sun_family = AF_UNIX;
-    nm_strlcpy(qmp.sock.sun_path, sock_path.data, sock_path.len);
+    nm_strlcpy(qmp.sock.sun_path, sock_path.data, sizeof(qmp.sock.sun_path));
 
     if (nm_qmp_init_cmd(&qmp) == NM_ERR)
         goto out;
