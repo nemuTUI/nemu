@@ -55,12 +55,11 @@ void nm_db_init(void)
 
     if (!need_create_db)
         return;
-    
+
     for (size_t n = 0; n < nm_arr_len(query); n++)
     {
-#ifdef NM_DEBUG
         nm_debug("%s: \"%s\"\n", __func__, query[n]);
-#endif
+
         if (sqlite3_exec(db_handler, query[n], NULL, NULL, &db_errmsg) != SQLITE_OK)
             nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
     }
@@ -69,9 +68,8 @@ void nm_db_init(void)
 void nm_db_select(const char *query, nm_vect_t *v)
 {
     char *db_errmsg;
-#ifdef NM_DEBUG
+
     nm_debug("%s: \"%s\"\n", __func__, query);
-#endif
 
     if (sqlite3_exec(db_handler, query, nm_db_select_cb,
                     (void *) v, &db_errmsg) != SQLITE_OK)
@@ -83,9 +81,8 @@ void nm_db_select(const char *query, nm_vect_t *v)
 void nm_db_edit(const char *query)
 {
     char *db_errmsg;
-#ifdef NM_DEBUG
+
     nm_debug("%s: \"%s\"\n", __func__, query);
-#endif
 
     if (sqlite3_exec(db_handler, query, NULL, NULL, &db_errmsg) != SQLITE_OK)
         nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
