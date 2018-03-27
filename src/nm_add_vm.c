@@ -202,7 +202,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm, int import)
     /* Check for free space for importing drive image */
     if (import)
     {
-        off_t size_gb;
+        off_t size_gb = 0;
         struct stat img_info;
         memset(&img_info, 0, sizeof(img_info));
 
