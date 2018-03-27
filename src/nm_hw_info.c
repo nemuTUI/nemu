@@ -66,6 +66,9 @@ uint32_t nm_hw_disk_free(void)
         nm_bug("%s: statvfs: %s", __func__, strerror(errno));
     df = (fsstat.f_frsize * fsstat.f_bavail) / 1024 / 1024 / 1024;
 
+    /* reserve 1 Gb */
+    df--;
+
     return df;
 }
 

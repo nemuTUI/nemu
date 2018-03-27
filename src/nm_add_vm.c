@@ -199,6 +199,30 @@ static int nm_add_vm_get_data(nm_vm_t *vm, int import)
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
 
+    /* Check for free space for importing drive image */
+    if (import)
+    {
+        off_t size_gb;
+        struct stat img_info;
+        memset(&img_info, 0, sizeof(img_info));
+
+        if (stat(vm->srcp.data, &img_info) == 0)
+        {
+            size_gb = img_info.st_size / 1024 / 1024 / 1024;
+            nm_str_format(&vm->drive.size, "%ld", size_gb);
+        }
+        else
+        {
+            nm_bug(_("%s: cannot get stat of file: %s"), __func__, vm->srcp.data);
+        }
+
+        if (size_gb >= nm_hw_disk_free())
+        {
+            nm_print_warn(3, 6, _("No space left for importing drive image!"));
+            goto out;
+        }
+    }
+
     vm->ifs.count = nm_str_stoui(&ifs_buf, 10);
 #if defined (NM_OS_LINUX)
     vm->usb_enable = 1; /* enable USB by default */
@@ -384,20 +408,12 @@ static void nm_add_vm_to_fs(nm_vm_t *vm, int import)
     }
     else
     {
-        struct stat img_info;
-
         nm_str_copy(&buf, &vm_dir);
         nm_str_add_char(&buf, '/');
         nm_str_add_str(&buf, &vm->name);
         nm_str_add_text(&buf, "_a.img");
-        nm_copy_file(&vm->srcp, &buf);
 
-        memset(&img_info, 0, sizeof(img_info));
-        if (stat(vm->srcp.data, &img_info) == 0)
-        {
-            off_t size_gb = img_info.st_size / 1024 / 1024 / 1024;
-            nm_str_format(&vm->drive.size, "%ld", size_gb);
-        }
+        nm_copy_file(&vm->srcp, &buf);
     }
 
     nm_str_free(&vm_dir);
