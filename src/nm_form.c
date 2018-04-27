@@ -6,6 +6,7 @@
 #include <nm_database.h>
 
 #include <time.h>
+#include <glob.h>
 #include <dirent.h>
 
 const char *nm_form_yes_no[] = {
@@ -184,14 +185,12 @@ void nm_get_field_buf(nm_field_t *f, nm_str_t *res)
 
 static int nm_append_path(nm_str_t *path)
 {
-    DIR *dp;
-    struct dirent *dir_ent;
-    nm_str_t dir = NM_INIT_STR;
-    nm_str_t file = NM_INIT_STR;
-    nm_str_t base = NM_INIT_STR;
-    nm_vect_t matched = NM_INIT_VECT;
+    int rc = NM_ERR;
+    glob_t res;
+    char *rp = NULL;
     struct stat file_info;
-    int rc = NM_OK;
+
+    memset(&file_info, 0, sizeof(file_info));
 
     if (path->data[0] == '~')
     {
@@ -206,101 +205,49 @@ static int nm_append_path(nm_str_t *path)
         nm_str_trunc(path, 0);
         nm_str_copy(path, &new_path);
         nm_str_free(&new_path);
-
-        return NM_OK;
     }
 
-    nm_str_dirname(path, &dir);
-    nm_str_basename(path, &file);
-
-    nm_str_trunc(path, 0);
-
-    if ((dp = opendir(dir.data)) == NULL)
+    if (glob(path->data, 0, NULL, &res) != 0)
     {
-        rc = NM_ERR;
-        goto out;
-    }
-
-    while ((dir_ent = readdir(dp)) != NULL)
-    {
-        if (memcmp(dir_ent->d_name, file.data, file.len) == 0)
+        nm_str_t tmp = NM_INIT_STR;
+        nm_str_copy(&tmp, path);
+        nm_str_add_char(&tmp, '*');
+        if (glob(tmp.data, 0, NULL, &res) == 0)
         {
-            size_t path_len, arr_len;
-
-            nm_vect_insert(&matched, dir_ent->d_name,
-                           strlen(dir_ent->d_name) + 1, NULL);
-
-            if ((arr_len = matched.n_memb) > 1)
+            nm_str_trunc(path, 0);
+            if ((rp = realpath(res.gl_pathv[0], NULL)) != NULL)
             {
-                path_len = strlen((char *) matched.data[arr_len - 2]);
-                size_t eq_ch_num = 0;
-                size_t cur_path_len = strlen(dir_ent->d_name);
-
-                for (size_t n = 0; n < path_len; n++)
+                nm_str_add_text(path, rp);
+                nm_str_free(&tmp);
+                rc = NM_OK;
+                if (stat(path->data, &file_info) != -1)
                 {
-                    if (n > cur_path_len)
-                        break;
-
-                    if (((char *) matched.data[arr_len - 2])[n] == dir_ent->d_name[n])
-                        eq_ch_num++;
-                    else
-                        break;
+                    if ((file_info.st_mode & S_IFMT) == S_IFDIR)
+                        nm_str_add_char(path, '/');
                 }
-
-                ((char *) matched.data[arr_len - 2])[eq_ch_num] = '\0';
-                nm_str_alloc_text(&base, (char *) matched.data[arr_len - 2]);
+                goto out;
             }
         }
-    }
-
-    if (matched.n_memb == 0)
-    {
-        closedir(dp);
-        rc = NM_ERR;
+        nm_str_free(&tmp);
         goto out;
     }
 
-    nm_str_copy(path, &dir);
-
-    if (matched.n_memb == 1)
+    if ((rp = realpath(res.gl_pathv[0], NULL)) != NULL)
     {
-
-        if ((dir.len == 1) && (*dir.data == '/'))
+        nm_str_trunc(path, 0);
+        nm_str_add_text(path, rp);
+        rc = NM_OK;
+        if (stat(path->data, &file_info) != -1)
         {
-            nm_str_add_text(path, *matched.data);
-        }
-        else
-        {
-            nm_str_add_char(path, '/');
-            nm_str_add_text(path, *matched.data);
+            if ((file_info.st_mode & S_IFMT) == S_IFDIR)
+                nm_str_add_char(path, '/');
         }
     }
-    else
-    {
-        if ((dir.len == 1) && (*dir.data == '/'))
-        {
-            nm_str_add_str(path, &base);
-        }
-        else
-        {
-            nm_str_add_char(path, '/');
-            nm_str_add_str(path, &base);
-        }
-    }
-
-    if (stat(path->data, &file_info) != -1)
-    {
-        if ((file_info.st_mode & S_IFMT) == S_IFDIR)
-            nm_str_add_char(path, '/');
-    }
-
-    closedir(dp);
 
 out:
-    nm_str_free(&dir);
-    nm_str_free(&file);
-    nm_str_free(&base);
-    nm_vect_free(&matched, NULL);
+    if (rp)
+        free(rp);
+    globfree(&res);
 
     return rc;
 }

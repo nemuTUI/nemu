@@ -2,8 +2,8 @@
 #define NM_CORE_H_
 
 #if defined (NM_OS_LINUX)
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200809L
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE 700
 #endif
 #elif defined (NM_OS_FREEBSD)
 #ifndef _BSD_SOURCE
