@@ -222,7 +222,8 @@ static int nm_append_path(nm_str_t *path)
                 rc = NM_OK;
                 if (stat(path->data, &file_info) != -1)
                 {
-                    if ((file_info.st_mode & S_IFMT) == S_IFDIR)
+                    if ((file_info.st_mode & S_IFMT) == S_IFDIR &&
+                         path->len > 1)
                         nm_str_add_char(path, '/');
                 }
                 goto out;
@@ -239,7 +240,8 @@ static int nm_append_path(nm_str_t *path)
         rc = NM_OK;
         if (stat(path->data, &file_info) != -1)
         {
-            if ((file_info.st_mode & S_IFMT) == S_IFDIR)
+            if ((file_info.st_mode & S_IFMT) == S_IFDIR &&
+                 path->len > 1)
                 nm_str_add_char(path, '/');
         }
     }
