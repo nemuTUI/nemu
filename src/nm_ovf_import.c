@@ -50,6 +50,8 @@
     "ovf:File[@ovf:id=\"%s\"]/@ovf:href"
 #define NM_XPATH_NETH "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
     "ovf:Item[rasd:ResourceType/text()=10]"
+#define NM_XPATH_USB_EHCI "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
+    "ovf:Item[rasd:ResourceType/text()=23]"
 
 #define NM_QEMU_CONVERT "/bin/qemu-img convert -O qcow2"
 
@@ -88,6 +90,7 @@ static void nm_ovf_get_ncpu(nm_str_t *ncpu, nm_xml_xpath_ctx_pt ctx);
 static void nm_ovf_get_mem(nm_str_t *mem, nm_xml_xpath_ctx_pt ctx);
 static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx);
 static uint32_t nm_ovf_get_neth(nm_xml_xpath_ctx_pt ctx);
+static uint32_t nm_ovf_get_usb(nm_xml_xpath_ctx_pt ctx);
 static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
                             const char *xpath, const char *param);
 static inline void nm_drive_free(nm_drive_t *d);
@@ -191,6 +194,8 @@ void nm_ovf_import(void)
     nm_ovf_get_mem(&vm.memo, xpath_ctx);
     nm_ovf_get_drives(&drives, xpath_ctx);
     vm.ifs.count = nm_ovf_get_neth(xpath_ctx);
+    if (nm_ovf_get_usb(xpath_ctx))
+        vm.usb_enable = 1;
 
     if (nm_form_name_used(&vm.name) != NM_OK)
         goto out;
@@ -505,6 +510,23 @@ static uint32_t nm_ovf_get_neth(nm_xml_xpath_ctx_pt ctx)
     xmlXPathFreeObject(obj);
 
     return neth;
+}
+
+static uint32_t nm_ovf_get_usb(nm_xml_xpath_ctx_pt ctx)
+{
+    uint32_t node_num = 0;
+    nm_xml_xpath_obj_pt obj;
+
+    if ((obj = nm_exec_xpath(NM_XPATH_USB_EHCI, ctx)) == NULL)
+        nm_bug("%s: cannot usb settings from ovf file", __func__);
+
+    node_num = obj->nodesetval->nodeNr;
+    if (node_num)
+        nm_debug("ova: USB Controller (EHCI) enabled\n");
+
+    xmlXPathFreeObject(obj);
+
+    return node_num;
 }
 
 static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
