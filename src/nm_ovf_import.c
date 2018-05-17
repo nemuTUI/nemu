@@ -518,7 +518,7 @@ static uint32_t nm_ovf_get_usb(nm_xml_xpath_ctx_pt ctx)
     nm_xml_xpath_obj_pt obj;
 
     if ((obj = nm_exec_xpath(NM_XPATH_USB_EHCI, ctx)) == NULL)
-        nm_bug("%s: cannot usb settings from ovf file", __func__);
+        nm_bug("%s: cannot get usb settings from ovf file", __func__);
 
     node_num = obj->nodesetval->nodeNr;
     if (node_num)
