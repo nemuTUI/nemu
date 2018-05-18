@@ -1,0 +1,11 @@
+--- qemu-2.12.0.orig/io/net-listener.c	2018-05-18 10:30:35.179008687 +0300
++++ qemu-2.12.0/io/net-listener.c	2018-05-18 15:43:30.939903985 +0300
+@@ -278,7 +278,7 @@
+             g_source_unref(listener->io_source[i]);
+             listener->io_source[i] = NULL;
+         }
+-        qio_channel_close(QIO_CHANNEL(listener->sioc[i]), NULL);
++        //qio_channel_close(QIO_CHANNEL(listener->sioc[i]), NULL);
+     }
+     listener->connected = false;
+ }
