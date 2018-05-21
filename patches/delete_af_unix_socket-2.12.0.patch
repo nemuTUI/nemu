@@ -3,7 +3,7 @@ From: 0x501D <mail@void.so>
 Date: Mon, 21 May 2018 13:42:09 +0300
 Subject: [PATCH] Delete AF_UNIX socket after close
 
-Signed-off-by: 0x501D <mail@void.so>
+Signed-off-by: Pavel Balaev <mail@void.so>
 ---
  include/qemu/sockets.h |  1 -
  io/channel-socket.c    | 40 +++++++++++++++-------------------------
