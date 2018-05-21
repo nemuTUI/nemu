@@ -14,6 +14,8 @@
 #include <sys/sendfile.h>
 #endif
 
+static void
+nm_parse_args(const nm_str_t *cmd, nm_str_t *path, nm_vect_t *argv);
 #if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
 static void nm_copy_file_sendfile(int in_fd, int out_fd);
 #else
@@ -185,6 +187,28 @@ static void nm_copy_file_default(int in_fd, int out_fd)
 }
 #endif
 
+static void
+nm_parse_args(const nm_str_t *cmd, nm_str_t *path, nm_vect_t *argv)
+{
+    nm_str_t tmp_cmd = NM_INIT_STR;
+    char *token, *saveptr;
+
+    nm_str_copy(&tmp_cmd, cmd);
+    saveptr = tmp_cmd.data;
+
+    while ((token = strtok_r(saveptr, " ", &saveptr)))
+    {
+        if (argv->n_memb == 0)
+            nm_str_alloc_text(path, token);
+
+        nm_vect_insert(argv, token, strlen(token) + 1, NULL);
+    }
+
+    nm_vect_end_zero(argv);
+
+    nm_str_free(&tmp_cmd);
+}
+
 int nm_spawn_process(const nm_str_t *p)
 {
     int rc = NM_OK;
@@ -192,27 +216,11 @@ int nm_spawn_process(const nm_str_t *p)
     pid_t child_pid = 0;
     nm_vect_t argv = NM_INIT_VECT;
     nm_str_t path = NM_INIT_STR;
-    nm_str_t tmp_p = NM_INIT_STR;
 
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd) == -1)
         nm_bug("%s: error create socketpair: %s", __func__, strerror(errno));
 
-    nm_str_copy(&tmp_p, p);
-
-    {
-        char *token;
-        char *saveptr = tmp_p.data;
-
-        while ((token = strtok_r(saveptr, " ", &saveptr)))
-        {
-            if (argv.n_memb == 0)
-                nm_str_alloc_text(&path, token);
-
-            nm_vect_insert(&argv, token, strlen(token) + 1, NULL);
-        }
-    }
-
-    nm_vect_end_zero(&argv);
+    nm_parse_args(p, &path, &argv);
 
     switch (child_pid = fork()) {
     case (-1):  /* error*/
@@ -262,7 +270,6 @@ int nm_spawn_process(const nm_str_t *p)
 
     nm_vect_free(&argv, NULL);
     nm_str_free(&path);
-    nm_str_free(&tmp_p);
 
     return rc;
 }
