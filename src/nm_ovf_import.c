@@ -599,7 +599,7 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
 
         nm_debug("ova: exec: %s\n", cmd.data);
 
-        if (nm_spawn_process(&cmd) != NM_OK)
+        if (nm_spawn_process(&cmd, NULL) != NM_OK)
         {
             rmdir(vm_dir.data);
             nm_bug(_("%s: cannot create image file"), __func__);

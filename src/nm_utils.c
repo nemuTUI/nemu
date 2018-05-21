@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 
 #define NM_BLKSIZE 131072 /* 128KiB */
-#define NM_SOCK_READLEN 256
+#define NM_SOCK_READLEN 1024
 
 #if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
 #include <sys/sendfile.h>
@@ -209,7 +209,7 @@ nm_parse_args(const nm_str_t *cmd, nm_str_t *path, nm_vect_t *argv)
     nm_str_free(&tmp_cmd);
 }
 
-int nm_spawn_process(const nm_str_t *p)
+int nm_spawn_process(const nm_str_t *cmd, nm_str_t *answer)
 {
     int rc = NM_OK;
     int fd[2];
@@ -220,7 +220,7 @@ int nm_spawn_process(const nm_str_t *p)
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd) == -1)
         nm_bug("%s: error create socketpair: %s", __func__, strerror(errno));
 
-    nm_parse_args(p, &path, &argv);
+    nm_parse_args(cmd, &path, &argv);
 
     switch (child_pid = fork()) {
     case (-1):  /* error*/
@@ -228,14 +228,9 @@ int nm_spawn_process(const nm_str_t *p)
         break;
 
     case (0):   /* child */
-        close(STDOUT_FILENO);
         close(fd[0]);
-
-        if (fd[1] != STDERR_FILENO)
-        {
-            if (dup2(fd[1], STDERR_FILENO) != STDERR_FILENO)
-                nm_bug("%s: dup2 error: %s", __func__, strerror(errno));
-        }
+        dup2(fd[1], STDOUT_FILENO);
+        dup2(fd[1], STDERR_FILENO);
 
         execvp(path.data, (char *const *) argv.data);
         nm_bug("%s: unreachable reached", __func__);
@@ -249,6 +244,7 @@ int nm_spawn_process(const nm_str_t *p)
 
             close(fd[1]);
             w_rc = waitpid(child_pid, &wstatus, 0);
+
             if ((w_rc == child_pid) && (WEXITSTATUS(wstatus) != 0))
             {
                 nm_str_t err_msg = NM_INIT_STR;
@@ -258,12 +254,19 @@ int nm_spawn_process(const nm_str_t *p)
                     memset(&buf, 0, sizeof(buf));
                 }
                 nm_vmctl_log_last(&err_msg);
-#if NM_DEBUG
                 nm_debug("exec_error: %s", err_msg.data);
-#endif
                 nm_str_free(&err_msg);
                 rc = NM_ERR;
             }
+            else if (answer && (w_rc == child_pid) && (WEXITSTATUS(wstatus) == 0))
+            {
+                while (read(fd[0], buf, sizeof(buf) - 1) > 0)
+                {
+                    nm_str_add_text(answer, buf);
+                    memset(buf, 0, sizeof(buf));
+                }
+            }
+
             close(fd[0]);
         }
     }

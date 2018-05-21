@@ -72,7 +72,7 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
     nm_vmctl_gen_cmd(&cmd, &vm, name, flags, &tfds);
     if (cmd.len > 0)
     {
-        if (nm_spawn_process(&cmd) != NM_OK)
+        if (nm_spawn_process(&cmd, NULL) != NM_OK)
         {
             nm_str_t qmp_path = NM_INIT_STR;
             struct stat qmp_info;

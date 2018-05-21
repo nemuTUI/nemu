@@ -16,7 +16,8 @@ void *nm_realloc(void *p, size_t size);
 void nm_map_file(nm_file_map_t *file);
 void nm_copy_file(const nm_str_t *src, const nm_str_t *dst);
 void nm_unmap_file(const nm_file_map_t *file);
-int nm_spawn_process(const nm_str_t *p);
+/* Execute process. Read stdout if answer is not NULL */
+int nm_spawn_process(const nm_str_t *cmd, nm_str_t *answer);
 
 void nm_bug(const char *fmt, ...)
     __attribute__ ((format(printf, 1, 2)));

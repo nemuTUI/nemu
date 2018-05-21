@@ -359,7 +359,7 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
         nm_str_add_str(&cmd, &nm_cfg_get()->vm_dir);
         nm_str_format(&cmd, "/%s/%s", name->data, nm_vect_str_ctx(&drives, 0));
 
-        if (nm_spawn_process(&cmd) != NM_OK)
+        if (nm_spawn_process(&cmd, NULL) != NM_OK)
             nm_bug(_("%s: cannot delete snapshot"), __func__);
 
         rc = NM_OK;

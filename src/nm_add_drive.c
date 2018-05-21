@@ -179,7 +179,7 @@ static void nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
     nm_str_format(&cmd, "%s/%s_%c.img %sG",
         vm_dir.data, name->data, drv_ch, size->data);
 
-    if (nm_spawn_process(&cmd) != NM_OK)
+    if (nm_spawn_process(&cmd, NULL) != NM_OK)
         nm_bug(_("%s: cannot create image file"), __func__);
 
     nm_str_free(&vm_dir);
