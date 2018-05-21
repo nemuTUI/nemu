@@ -120,6 +120,14 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                 form_driver(form, REQ_NEXT_CHAR);
             break;
 
+        case KEY_HOME:
+            form_driver(form, REQ_BEG_LINE);
+            break;
+
+        case KEY_END:
+            form_driver(form, REQ_END_LINE);
+            break;
+
         case KEY_BACKSPACE:
         case 127:
             form_driver(form, REQ_DEL_PREV);
