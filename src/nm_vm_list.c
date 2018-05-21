@@ -171,6 +171,20 @@ void nm_print_vm_list(void)
             }
         }
 
+        else if (ch == KEY_HOME && vm_list.n_memb > 0)
+        {
+            vms.highlight = 1;
+            vms.item_first = 0;
+            vms.item_last = list_max;
+        }
+
+        else if (ch == KEY_END && vm_list.n_memb > 0)
+        {
+            vms.highlight = list_max;
+            vms.item_first = vms.v->n_memb - list_max;
+            vms.item_last = vms.v->n_memb;
+        }
+
         else if (ch == NM_KEY_ENTER && vm_list.n_memb > 0)
         {
             if (nm_vect_item_status_cur(vms))
