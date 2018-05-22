@@ -38,7 +38,7 @@ void nm_add_drive(const nm_str_t *name)
     nm_vmctl_get_data(name, &vm);
 
     nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(9, 45, 3);
+    //window = nm_init_window(9, 45, 3);
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));

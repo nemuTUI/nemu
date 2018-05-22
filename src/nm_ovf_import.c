@@ -118,7 +118,7 @@ void nm_ovf_import(void)
     int done = 0;
 
     nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(9, 67, 3);
+    //window = nm_init_window(9, 67, 3);
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));

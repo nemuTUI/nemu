@@ -12,14 +12,22 @@
 
 static void signals_handler(int signal);
 static void nm_process_args(int argc, char **argv);
+
 volatile sig_atomic_t redraw_window = 0;
+
+nm_window_t *help_window;
+nm_window_t *side_window;
+nm_window_t *action_window;
 
 int main(int argc, char **argv)
 {
     struct sigaction sa;
-    uint32_t highlight = NM_CHOICE_VM_LIST;
-    uint32_t ch = 0;
-    nm_window_t *main_window = NULL;
+    int action_cols, screen_x, screen_y; 
+    nm_cord_t help_size = NM_INIT_POS;
+    nm_cord_t side_size = NM_INIT_POS;
+    nm_cord_t action_size = NM_INIT_POS;
+    //uint32_t highlight = NM_CHOICE_VM_LIST;
+    //uint32_t ch = 0;
 
     setlocale(LC_ALL,"");
     bindtextdomain(NM_PROGNAME, NM_LOCALE_PATH);
@@ -36,8 +44,45 @@ int main(int argc, char **argv)
     sigaction(SIGWINCH, &sa, NULL);
 
     nm_ncurses_init();
+    getmaxyx(stdscr, screen_y, screen_x); 
+    /* TODO read param [0.7] from cfg file */
+    action_cols = screen_x * 0.7;
+
+    help_size = NM_SET_POS(1, screen_x, 0, 0);
+    side_size = NM_SET_POS(screen_y - 1, screen_x - action_cols, 0, 1);
+    action_size = NM_SET_POS(screen_y - 1, action_cols, screen_x - action_cols, 1);
+
+    help_window = nm_init_window(&help_size);
+    side_window = nm_init_window(&side_size);
+    action_window = nm_init_window(&action_size);
+
+    /* TODO use 256 color schema if ncurses and terminal supported */
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+
+    wbkgd(help_window, COLOR_PAIR(1));
+    box(side_window, 0, 0);
+    box(action_window, 0, 0);
+    mvwprintw(help_window, 0, 0, " help [F1]"); 
+    mvwprintw(side_window, 1, ((screen_x - action_cols) - strlen("VM list"))/2, "VM list"); 
+    mvwaddch(side_window, 2, 0, ACS_LTEE);
+    mvwhline(side_window, 2, 1, ACS_HLINE, screen_x - action_cols - 2);
+    mvwaddch(side_window, 2, screen_x - action_cols - 1, ACS_RTEE);
+    mvwprintw(action_window, 1, (action_cols - strlen("Action"))/2, "Action");
+    mvwaddch(action_window, 2, 0, ACS_LTEE);
+    mvwhline(action_window, 2, 1, ACS_HLINE, action_cols - 2);
+    mvwaddch(action_window, 2, action_cols - 1, ACS_RTEE);
+    // refresh each window 
+    wrefresh(help_window); 
+    wrefresh(side_window); 
+    wrefresh(action_window);
+    getchar();
+    delwin(help_window); 
+    delwin(side_window); 
+    delwin(action_window);
+    endwin(); 
 
     /* {{{ Main loop start, print main window */
+#if 0
     for (;;)
     {
         uint32_t choice = 0;
@@ -138,6 +183,7 @@ int main(int argc, char **argv)
             exit(NM_OK);
         }
     } /* }}} Main loop */
+#endif
 
     return NM_OK;
 }

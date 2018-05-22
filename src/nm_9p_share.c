@@ -49,7 +49,7 @@ void nm_9p_share(const nm_str_t *name)
     nm_vmctl_get_data(name, &vm);
 
     nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(11, 51, 3);
+    //window = nm_init_window(11, 51, 3);
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));

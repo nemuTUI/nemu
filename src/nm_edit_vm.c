@@ -49,7 +49,7 @@ void nm_edit_vm(const nm_str_t *name)
     if (getmaxy(stdscr) <= 28)
         mult = 1;
 
-    window = nm_init_window((mult == 2) ? 21 : 12, 67, 3);
+    //window = nm_init_window((mult == 2) ? 21 : 12, 67, 3);
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));

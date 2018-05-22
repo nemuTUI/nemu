@@ -103,7 +103,7 @@ void nm_print_vm_list(void)
                 vm_window = NULL;
             }
 
-            vm_window = nm_init_window(list_max + 4, 32, 7);
+            //vm_window = nm_init_window(list_max + 4, 32, 7);
 
             wtimeout(vm_window, 500);
             regen_data = 0;
@@ -113,7 +113,7 @@ void nm_print_vm_list(void)
         {
             if (!vm_window)
             {
-                vm_window = nm_init_window(list_max + 4, 32, 7);
+                //vm_window = nm_init_window(list_max + 4, 32, 7);
                 wtimeout(vm_window, 500);
             }
 
@@ -515,9 +515,11 @@ void nm_print_vm_list(void)
         /* {{{ Print help */
         else if (ch == KEY_F(1))
         {
+#if 0
             nm_window_t *help_window = nm_init_window(18, 40, 1);
             nm_print_help(help_window);
             delwin(help_window);
+#endif
         } /* }}} help */
 
         /* {{{ Back to main window */
@@ -578,7 +580,7 @@ static void nm_action_menu_s(const nm_str_t *name)
             w = NULL;
         }
 
-        w = nm_init_window(5, 20, 6);
+        //w = nm_init_window(5, 20, 6);
         box(w, 0, 0);
 
         for (size_t x = 2, y = 1, n = 0; n < act_len; n++, y++)
@@ -667,7 +669,7 @@ static void nm_action_menu_r(const nm_str_t *name)
             w = NULL;
         }
 
-        w = nm_init_window(ACT_INFO + 2, 20, 5);
+        //w = nm_init_window(ACT_INFO + 2, 20, 5);
         box(w, 0, 0);
 
         for (size_t x = 2, y = 1, n = 0; n < act_len; n++, y++)
@@ -736,7 +738,7 @@ static uint32_t nm_search_vm(const nm_vect_t *list)
     nm_window_t *window = NULL;
     nm_str_t input = NM_INIT_STR;
 
-    window = nm_init_window(5, 24, 4);
+    //window = nm_init_window(5, 24, 4);
 
     fields[0] = new_field(1, 20, 1, 1, 0, 0);
     fields[1] = NULL;

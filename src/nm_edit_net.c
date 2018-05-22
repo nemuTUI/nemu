@@ -92,9 +92,9 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
         mult = 1;
 
 #if defined (NM_OS_LINUX)
-    window = nm_init_window((mult == 2) ? 18 : 11, 51, 3);
+    //window = nm_init_window((mult == 2) ? 18 : 11, 51, 3);
 #else
-    window = nm_init_window((mult == 2) ? 12 : 8, 51, 3);
+    //window = nm_init_window((mult == 2) ? 12 : 8, 51, 3);
 #endif
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
@@ -157,7 +157,7 @@ static void nm_edit_net_select_iface(const nm_vmctl_data_t *vm, size_t ifcnt,
     nm_vect_end_zero(&ifaces);
 
     nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(7, 45, 3);
+    //window = nm_init_window(7, 45, 3);
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
 

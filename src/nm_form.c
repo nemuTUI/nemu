@@ -301,7 +301,7 @@ const char *nm_form_select_drive(const nm_vect_t *drives)
     nm_str_t buf = NM_INIT_STR;
 
     nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(7, 45, 3);
+    //window = nm_init_window(7, 45, 3);
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
 
@@ -354,7 +354,7 @@ int nm_print_empty_fields(const nm_vect_t *v)
         return NM_OK;
 
     msg_len = mbstowcs(NULL, _(NM_FORM_EMPTY_MSG), strlen(_(NM_FORM_EMPTY_MSG)));
-
+#if 0
     nm_window_t *err_window = nm_init_window(4 + v->n_memb, msg_len + 2, 2);
     curs_set(0);
     box(err_window, 0, 0);
@@ -367,6 +367,7 @@ int nm_print_empty_fields(const nm_vect_t *v)
     wgetch(err_window);
 
     delwin(err_window);
+#endif
 
     return NM_ERR;
 }

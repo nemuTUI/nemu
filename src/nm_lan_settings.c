@@ -119,19 +119,19 @@ void nm_lan_settings(void)
                 delwin(veth_window);
                 veth_window = NULL;
             }
-            veth_window = nm_init_window(list_max + 4, 40, 7);
+            //veth_window = nm_init_window(list_max + 4, 40, 7);
             nm_print_veth_menu(veth_window, &veths_data, 1);
             regen_data = 0;
         }
         else if (renew_status)
         {
-            veth_window = nm_init_window(list_max + 4, 40, 7);
+            //veth_window = nm_init_window(list_max + 4, 40, 7);
             nm_print_veth_menu(veth_window, &veths_data, 1);
             renew_status = 0;
         }
         else
         {
-            veth_window = nm_init_window(list_max + 4, 40, 7);
+            //veth_window = nm_init_window(list_max + 4, 40, 7);
             nm_print_veth_menu(veth_window, &veths_data, 0);
         }
 
@@ -277,7 +277,7 @@ static void nm_lan_help(void)
         _(" d - down veth interface")
     };
 
-    w = nm_init_window(8, 38, 1);
+    //w = nm_init_window(8, 38, 1);
     box(w, 0, 0);
 
     x = getmaxx(w);
@@ -305,7 +305,7 @@ static void nm_lan_add_veth(void)
     int done = 0;
 
     nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(9, 45, 3);
+    //window = nm_init_window(9, 45, 3);
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));

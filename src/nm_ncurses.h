@@ -5,11 +5,6 @@
 
 typedef WINDOW nm_window_t;
 
-void nm_ncurses_init(void);
-void nm_curses_deinit(void);
-nm_window_t *nm_init_window(int nlines, int ncols, int begin_x);
-void nm_clear_screen(void);
-
 typedef struct {
     int x;
     int y;
@@ -17,7 +12,14 @@ typedef struct {
     int cols;
 } nm_cord_t;
 
+void nm_ncurses_init(void);
+void nm_curses_deinit(void);
+nm_window_t *nm_init_window(const nm_cord_t *pos);
+void nm_clear_screen(void);
+
 #define NM_INIT_POS { 0, 0, 0, 0 }
+#define NM_SET_POS(l, c, x_, y_) \
+    (nm_cord_t) { .lines  = l, .cols = c, .x = x_, .y = y_ }
 
 #endif /* NM_NCURSES_H_*/
 /* vim:set ts=4 sw=4 fdm=marker: */

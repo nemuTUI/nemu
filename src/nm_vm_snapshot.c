@@ -66,7 +66,7 @@ void nm_vm_snapshot_create(const nm_str_t *name)
     }
 
     nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(9, 45, 3);
+    //window = nm_init_window(9, 45, 3);
 
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
@@ -153,7 +153,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
 
     nm_vect_end_zero(&choices);
 
-    window = nm_init_window(7, 45, 3);
+    //window = nm_init_window(7, 45, 3);
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(window, COLOR_PAIR(1));
 
@@ -259,7 +259,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
 
     nm_vect_end_zero(&choices);
 
-    revert_window = nm_init_window(7, 45, 3);
+    //revert_window = nm_init_window(7, 45, 3);
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wbkgd(revert_window, COLOR_PAIR(1));
 
