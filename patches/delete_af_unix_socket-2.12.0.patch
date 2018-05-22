@@ -1,72 +1,29 @@
-From 4013f8b39a0ce825f8b736efd8ff9bdc8d426a22 Mon Sep 17 00:00:00 2001
-From: 0x501D <mail@void.so>
-Date: Mon, 21 May 2018 13:42:09 +0300
+From 8cd3f98d62dbb6f641f7b8dbeb08c20a93548ac9 Mon Sep 17 00:00:00 2001
+From: Pavel Balaev <mail@void.so>
+Date: Mon, 21 May 2018 19:15:03 +0300
 Subject: [PATCH] Delete AF_UNIX socket after close
 
 Signed-off-by: Pavel Balaev <mail@void.so>
 ---
- include/qemu/sockets.h |  1 -
- io/channel-socket.c    | 40 +++++++++++++++-------------------------
- util/qemu-sockets.c    | 21 ---------------------
- 3 files changed, 15 insertions(+), 47 deletions(-)
+ io/channel-socket.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/include/qemu/sockets.h b/include/qemu/sockets.h
-index 8140fea685..a786bd76d7 100644
---- a/include/qemu/sockets.h
-+++ b/include/qemu/sockets.h
-@@ -42,7 +42,6 @@ int unix_connect(const char *path, Error **errp);
- SocketAddress *socket_parse(const char *str, Error **errp);
- int socket_connect(SocketAddress *addr, Error **errp);
- int socket_listen(SocketAddress *addr, Error **errp);
--void socket_listen_cleanup(int fd, Error **errp);
- int socket_dgram(SocketAddress *remote, SocketAddress *local, Error **errp);
- 
- /* Old, ipv4 only bits.  Don't use for new code. */
 diff --git a/io/channel-socket.c b/io/channel-socket.c
-index 57cfb4d3a6..3c88ca4130 100644
+index 57cfb4d3a6..b50e63a053 100644
 --- a/io/channel-socket.c
 +++ b/io/channel-socket.c
-@@ -383,30 +383,6 @@ static void qio_channel_socket_init(Object *obj)
-     ioc->fd = -1;
- }
- 
--static void qio_channel_socket_finalize(Object *obj)
--{
--    QIOChannelSocket *ioc = QIO_CHANNEL_SOCKET(obj);
--
--    if (ioc->fd != -1) {
--        QIOChannel *ioc_local = QIO_CHANNEL(ioc);
--        if (qio_channel_has_feature(ioc_local, QIO_CHANNEL_FEATURE_LISTEN)) {
--            Error *err = NULL;
--
--            socket_listen_cleanup(ioc->fd, &err);
--            if (err) {
--                error_report_err(err);
--                err = NULL;
--            }
--        }
--#ifdef WIN32
--        WSAEventSelect(ioc->fd, NULL, 0);
--#endif
--        closesocket(ioc->fd);
--        ioc->fd = -1;
--    }
--}
--
--
- #ifndef WIN32
- static void qio_channel_socket_copy_fds(struct msghdr *msg,
-                                         int **fds, size_t *nfds)
-@@ -687,6 +663,8 @@ qio_channel_socket_close(QIOChannel *ioc,
+@@ -685,8 +685,10 @@ qio_channel_socket_close(QIOChannel *ioc,
+                          Error **errp)
+ {
      QIOChannelSocket *sioc = QIO_CHANNEL_SOCKET(ioc);
++    int rc = 0;
  
      if (sioc->fd != -1) {
 +        SocketAddress *addr = socket_local_address(sioc->fd, errp);
-+
  #ifdef WIN32
          WSAEventSelect(sioc->fd, NULL, 0);
  #endif
-@@ -697,6 +675,19 @@ qio_channel_socket_close(QIOChannel *ioc,
+@@ -697,8 +699,22 @@ qio_channel_socket_close(QIOChannel *ioc,
              return -1;
          }
          sioc->fd = -1;
@@ -77,6 +34,7 @@ index 57cfb4d3a6..3c88ca4130 100644
 +                error_setg_errno(errp, errno,
 +                                 "Failed to unlink socket %s",
 +                                 addr->u.q_unix.path);
++                rc = -1;
 +            }
 +        }
 +
@@ -84,48 +42,11 @@ index 57cfb4d3a6..3c88ca4130 100644
 +            qapi_free_SocketAddress(addr);
 +        }
      }
-     return 0;
- }
-@@ -770,7 +761,6 @@ static const TypeInfo qio_channel_socket_info = {
-     .name = TYPE_QIO_CHANNEL_SOCKET,
-     .instance_size = sizeof(QIOChannelSocket),
-     .instance_init = qio_channel_socket_init,
--    .instance_finalize = qio_channel_socket_finalize,
-     .class_init = qio_channel_socket_class_init,
- };
- 
-diff --git a/util/qemu-sockets.c b/util/qemu-sockets.c
-index 8bd8bb64eb..aedcb5b9c0 100644
---- a/util/qemu-sockets.c
-+++ b/util/qemu-sockets.c
-@@ -1120,27 +1120,6 @@ int socket_listen(SocketAddress *addr, Error **errp)
-     return fd;
+-    return 0;
++    return rc;
  }
  
--void socket_listen_cleanup(int fd, Error **errp)
--{
--    SocketAddress *addr;
--
--    addr = socket_local_address(fd, errp);
--    if (!addr) {
--        return;
--    }
--
--    if (addr->type == SOCKET_ADDRESS_TYPE_UNIX
--        && addr->u.q_unix.path) {
--        if (unlink(addr->u.q_unix.path) < 0 && errno != ENOENT) {
--            error_setg_errno(errp, errno,
--                             "Failed to unlink socket %s",
--                             addr->u.q_unix.path);
--        }
--    }
--
--    qapi_free_SocketAddress(addr);
--}
--
- int socket_dgram(SocketAddress *remote, SocketAddress *local, Error **errp)
- {
-     int fd;
+ static int
 -- 
 2.16.1
 
