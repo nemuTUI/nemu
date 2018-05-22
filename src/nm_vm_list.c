@@ -431,7 +431,7 @@ void nm_print_vm_list(void)
             }
             else
             {
-                int ch = nm_print_warn(3, 6, _("Proceed? (y/n)"));
+                int ch = nm_print_warn(3, 6, _("Confirm deletion? (y/n)"));
                 if (ch == 'y')
                 {
                     nm_vmctl_delete(vm);
