@@ -66,13 +66,13 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
 
         nm_str_alloc_text(&vm_name, nm_vect_item_name(vm->v, n));
 
-        if (vm_name.len > (screen_x - 12))
+        if (vm_name.len > (screen_x - 4))
         {
-            nm_str_trunc(&vm_name, screen_x - 15);
+            nm_str_trunc(&vm_name, screen_x - 7);
             nm_str_add_text(&vm_name, "...");
         }
 
-        space_num = (screen_x - vm_name.len - 11);
+        space_num = (screen_x - vm_name.len - 4);
         if (space_num > 0)
         {
             for (int n = 0; n < space_num; n++)
@@ -98,14 +98,12 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
         if (vm->highlight == i + 1)
         {
             wattron(w, A_REVERSE);
-            mvwprintw(w, y, x, "%s%s", vm_name.data,
-                nm_vect_item_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
+            mvwprintw(w, y, x, "%s", vm_name.data);
             wattroff(w, A_REVERSE);
         }
         else
         {
-            mvwprintw(w, y, x, "%s%s", vm_name.data,
-                nm_vect_item_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
+            mvwprintw(w, y, x, "%s", vm_name.data);
         }
 
         y++;
