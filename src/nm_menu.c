@@ -50,8 +50,8 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
     /* TODO support 256 colors */
     init_pair(2, COLOR_WHITE, COLOR_BLACK);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
-    wattroff(w, COLOR_PAIR(1));
     wattroff(w, COLOR_PAIR(2));
+    wattroff(w, COLOR_PAIR(3));
 
     for (size_t n = vm->item_first, i = 0; n < vm->item_last; n++, i++)
     {
@@ -61,13 +61,10 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
         if (n >= vm->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
-        nm_str_alloc_text(&vm_name, nm_vect_item_name(vm->v, n));
-
         if (screen_x < 20) /* window to small */
-        {
-            nm_str_free(&vm_name);
             continue;
-        }
+
+        nm_str_alloc_text(&vm_name, nm_vect_item_name(vm->v, n));
 
         if (vm_name.len > (screen_x - 12))
         {

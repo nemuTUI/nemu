@@ -13,6 +13,9 @@ void nm_print_nemu(void);
 void nm_print_title(const char *msg);
 void nm_create_windows(void);
 void nm_destroy_windows(void);
+void nm_init_action(void);
+void nm_init_help(void);
+void nm_init_side(void);
 
 /* Help|Search window*/
 extern nm_window_t *help_window;

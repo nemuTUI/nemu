@@ -28,8 +28,8 @@ static int nm_search_cmp_cb(const void *s1, const void *s2);
 
 void nm_start_main_loop(void)
 {
-    int ch, nemu = 0;
-    size_t vm_list_len;
+    int ch, nemu = 0, regen_data = 1;
+    size_t vm_list_len, old_hl = 0;
     nm_menu_data_t vms = NM_INIT_MENU_DATA;
     nm_vect_t vms_v = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
@@ -40,39 +40,53 @@ void nm_start_main_loop(void)
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
     nm_create_windows();
+    nm_init_help();
+    nm_init_side();
+    nm_init_action();
 
-    wrefresh(help_window); 
-    wrefresh(side_window); 
-    wrefresh(action_window);
-
-    nm_db_select(NM_SQL_GET_VM, &vm_list);
-    vms.highlight = 1;
-    vms.item_last = vm_list_len;
-
-    if (vm_list_len >= vm_list.n_memb)
+    for (;;)
     {
-        vms.item_last = vm_list.n_memb;
-        vm_list_len = vm_list.n_memb;
-    }
+        if (regen_data)
+        {
+            nm_vect_free(&vm_list, nm_str_vect_free_cb);
+            nm_vect_free(&vms_v, NULL);
+            nm_db_select(NM_SQL_GET_VM, &vm_list);
 
-    for (size_t n = 0; n < vm_list.n_memb; n++)
-    {
-        nm_menu_item_t vm = NM_INIT_MENU_ITEM;
-        vm.name = (nm_str_t *) nm_vect_at(&vm_list, n);
-        nm_vect_insert(&vms_v, &vm, sizeof(vm), NULL);
-    }
+            vms.highlight = 1;
 
-    vms.v = &vms_v;
-    wtimeout(side_window, 500);
+            if (old_hl > 1)
+            {
+                if (vm_list.n_memb < old_hl)
+                    vms.highlight = (old_hl - 1);
+                else
+                    vms.highlight = old_hl;
+                old_hl = 0;
+            }
 
-    if (vm_list.n_memb > 0)
-    {
-        nm_print_vm_menu(side_window, &vms);
-        wrefresh(side_window);
-    }
+            if (vm_list_len >= vm_list.n_memb)
+            {
+                vms.item_last = vm_list.n_memb;
+                vm_list_len = vm_list.n_memb;
+            }
 
-    while ((ch = wgetch(side_window)))
-    {
+            for (size_t n = 0; n < vm_list.n_memb; n++)
+            {
+                nm_menu_item_t vm = NM_INIT_MENU_ITEM;
+                vm.name = (nm_str_t *) nm_vect_at(&vm_list, n);
+                nm_vect_insert(&vms_v, &vm, sizeof(vm), NULL);
+            }
+
+            vms.v = &vms_v;
+
+            regen_data = 0;
+        }
+
+        if (vm_list.n_memb > 0)
+        {
+            nm_print_vm_menu(side_window, &vms);
+            wrefresh(side_window);
+        }
+
         if (ch == NM_KEY_Q)
         {
             nm_destroy_windows();
@@ -94,10 +108,14 @@ void nm_start_main_loop(void)
             if (ch == 0x55 && nemu == 3)
             {
                 nm_print_nemu();
+                werase(action_window);
+                nm_init_action();
                 wrefresh(action_window);
                 nemu = 0;
             }
         }
+
+        ch = wgetch(side_window);
     }
 }
 

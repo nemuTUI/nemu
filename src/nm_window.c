@@ -10,6 +10,8 @@
 #define NM_VM_MSG   "F1 - help, ESC - main menu "
 #define NM_MAIN_MSG "Enter - select a choice, ESC - exit"
 
+static void nm_init_window__(nm_window_t *w, const char *msg);
+
 void nm_create_windows(void)
 {
     int action_cols, screen_x, screen_y; 
@@ -28,20 +30,37 @@ void nm_create_windows(void)
     help_window = nm_init_window(&help_size);
     side_window = nm_init_window(&side_size);
     action_window = nm_init_window(&action_size);
+}
 
+void nm_init_help(void)
+{
     wbkgd(help_window, COLOR_PAIR(1));
-    box(side_window, 0, 0);
-    box(action_window, 0, 0);
+    mvwprintw(help_window, 0, 0, " q:Quit ?:Help");
+    wrefresh(help_window);
+}
 
-    mvwprintw(help_window, 0, 0, " q:Quit ?:Help"); 
-    mvwprintw(side_window, 1, ((screen_x - action_cols) - strlen("VM list"))/2, "VM list"); 
-    mvwaddch(side_window, 2, 0, ACS_LTEE);
-    mvwhline(side_window, 2, 1, ACS_HLINE, screen_x - action_cols - 2);
-    mvwaddch(side_window, 2, screen_x - action_cols - 1, ACS_RTEE);
-    mvwprintw(action_window, 1, (action_cols - strlen("Action"))/2, "Action");
-    mvwaddch(action_window, 2, 0, ACS_LTEE);
-    mvwhline(action_window, 2, 1, ACS_HLINE, action_cols - 2);
-    mvwaddch(action_window, 2, action_cols - 1, ACS_RTEE);
+void nm_init_side(void)
+{
+    nm_init_window__(side_window, _("VM list"));
+    wtimeout(side_window, 500);
+}
+
+void nm_init_action(void)
+{
+    nm_init_window__(action_window, _("Action"));
+}
+
+static void nm_init_window__(nm_window_t *w, const char *msg)
+{
+    int cols = getmaxx(w);
+
+    box(w, 0, 0);
+    /* todo use UTF-8 safe strlen */
+    mvwprintw(w, 1, (cols - strlen(msg))/2, msg);
+    mvwaddch(w, 2, 0, ACS_LTEE);
+    mvwhline(w, 2, 1, ACS_HLINE, cols - 2);
+    mvwaddch(w, 2, cols - 1, ACS_RTEE);
+    wrefresh(w);
 }
 
 void nm_destroy_windows(void)
