@@ -413,6 +413,7 @@ void nm_print_help(nm_window_t *w)
 
 void nm_print_nemu(void)
 {
+    size_t max_y = getmaxy(action_window);
     const char *nemu[] = {
         "            .x@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@o.           ",
         "          .x@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@x.          ",
@@ -454,12 +455,12 @@ void nm_print_nemu(void)
         "                           ..                              "
     };
 
-    nm_clear_screen();
+    //nm_clear_screen();
 
-    for (size_t n = 0; n < nm_arr_len(nemu); n++)
-        mvprintw(n, 0, "%s", nemu[n]);
+    for (size_t l = 3, n = 0; n < (max_y - 4) && n < nm_arr_len(nemu); n++, l++)
+        mvwprintw(action_window, l, 1, "%s", nemu[n]);
 
-    getch();
+    wgetch(action_window);
 }
 
 void nm_print_title(const char *msg)

@@ -28,7 +28,7 @@ static int nm_search_cmp_cb(const void *s1, const void *s2);
 
 void nm_start_main_loop(void)
 {
-    int ch;
+    int ch, nemu = 0;
     size_t vm_list_len;
     nm_menu_data_t vms = NM_INIT_MENU_DATA;
     nm_vect_t vms_v = NM_INIT_VECT;
@@ -81,6 +81,22 @@ void nm_start_main_loop(void)
             nm_cfg_free();
             nm_mach_free();
             break;
+        }
+
+        else if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)
+        {
+            if (ch == 0x6e && !nemu)
+                 nemu++;
+            if (ch == 0x45 && nemu == 1)
+                 nemu++;
+            if (ch == 0x4d && nemu == 2)
+                 nemu++;
+            if (ch == 0x55 && nemu == 3)
+            {
+                nm_print_nemu();
+                wrefresh(action_window);
+                nemu = 0;
+            }
         }
     }
 }
