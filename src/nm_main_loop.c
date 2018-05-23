@@ -82,7 +82,6 @@ void nm_start_main_loop(void)
             nm_mach_free();
             break;
         }
-
     }
 }
 

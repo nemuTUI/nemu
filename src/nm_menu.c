@@ -38,33 +38,48 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
 
 void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
 {
-    int x = 2, y = 3, action_cols, screen_x;
+    int x = 2, y = 3;
+    size_t screen_x;
     struct stat file_info;
     nm_str_t lock_path = NM_INIT_STR;
 
-    screen_x = getmaxx(stdscr); 
-    action_cols = screen_x * 0.7;
+    screen_x = getmaxx(w);
 
     memset(&file_info, 0, sizeof(file_info));
 
+    /* TODO support 256 colors */
     init_pair(2, COLOR_WHITE, COLOR_BLACK);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
     wattroff(w, COLOR_PAIR(1));
     wattroff(w, COLOR_PAIR(2));
-    //box(w, 0, 0);
 
     for (size_t n = vm->item_first, i = 0; n < vm->item_last; n++, i++)
     {
         nm_str_t vm_name = NM_INIT_STR;
+        int space_num;
 
         if (n >= vm->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
         nm_str_alloc_text(&vm_name, nm_vect_item_name(vm->v, n));
-        if (vm_name.len > (screen_x - action_cols - 2))
+
+        if (screen_x < 20) /* window to small */
         {
-            nm_str_trunc(&vm_name, (screen_x - action_cols - 2));
+            nm_str_free(&vm_name);
+            continue;
+        }
+
+        if (vm_name.len > (screen_x - 12))
+        {
+            nm_str_trunc(&vm_name, screen_x - 15);
             nm_str_add_text(&vm_name, "...");
+        }
+
+        space_num = (screen_x - vm_name.len - 11);
+        if (space_num > 0)
+        {
+            for (int n = 0; n < space_num; n++)
+                nm_str_add_char_opt(&vm_name, ' ');
         }
 
         nm_str_alloc_str(&lock_path, &nm_cfg_get()->vm_dir);
@@ -86,13 +101,13 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
         if (vm->highlight == i + 1)
         {
             wattron(w, A_REVERSE);
-            mvwprintw(w, y, x, "%-42s%s", vm_name.data,
+            mvwprintw(w, y, x, "%s%s", vm_name.data,
                 nm_vect_item_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
             wattroff(w, A_REVERSE);
         }
         else
         {
-            mvwprintw(w, y, x, "%-42s%s", vm_name.data,
+            mvwprintw(w, y, x, "%s%s", vm_name.data,
                 nm_vect_item_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
         }
 
