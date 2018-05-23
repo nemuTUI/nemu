@@ -29,6 +29,7 @@ static int nm_search_cmp_cb(const void *s1, const void *s2);
 void nm_start_main_loop(void)
 {
     int ch, nemu = 0, regen_data = 1;
+    int clear_action = 0;
     size_t vm_list_len, old_hl = 0;
     nm_menu_data_t vms = NM_INIT_MENU_DATA;
     nm_vect_t vms_v = NM_INIT_VECT;
@@ -83,8 +84,84 @@ void nm_start_main_loop(void)
 
         if (vm_list.n_memb > 0)
         {
+            if (clear_action)
+            {
+                werase(action_window);
+                nm_init_action();
+                clear_action = 0;
+            }
+
             nm_print_vm_menu(side_window, &vms);
+            nm_print_vm_info(nm_vect_item_name_cur(vms));
             wrefresh(side_window);
+            wrefresh(action_window);
+        }
+
+        ch = wgetch(side_window);
+
+        /* Clear action window only if key pressed.
+         * Otherwise text will be flicker in tty. */
+        if (ch != ERR)
+            clear_action = 1;
+
+        if ((ch == KEY_UP) && (vms.highlight == 1) && (vms.item_first == 0) &&
+            (vm_list_len < vms.v->n_memb) && (vm_list.n_memb > 0))
+        {
+            vms.highlight = vm_list_len;
+            vms.item_first = vms.v->n_memb - vm_list_len;
+            vms.item_last = vms.v->n_memb;
+        }
+
+        else if ((ch == KEY_UP) && (vm_list.n_memb > 0))
+        {
+            if ((vms.highlight == 1) && (vms.v->n_memb <= vm_list_len))
+                vms.highlight = vms.v->n_memb;
+            else if ((vms.highlight == 1) && (vms.item_first != 0))
+            {
+                vms.item_first--;
+                vms.item_last--;
+            }
+            else
+            {
+                vms.highlight--;
+            }
+        }
+
+        else if ((ch == KEY_DOWN) && (vms.highlight == vm_list_len) &&
+                 (vms.item_last == vms.v->n_memb) && (vm_list.n_memb > 0))
+        {
+            vms.highlight = 1;
+            vms.item_first = 0;
+            vms.item_last = vm_list_len;
+        }
+
+        else if (ch == KEY_DOWN && vm_list.n_memb > 0)
+        {
+            if ((vms.highlight == vms.v->n_memb) && (vms.v->n_memb <= vm_list_len))
+                vms.highlight = 1;
+            else if ((vms.highlight == vm_list_len) && (vms.item_last < vms.v->n_memb))
+            {
+                vms.item_first++;
+                vms.item_last++;
+            }
+            else
+            {
+                vms.highlight++;
+            }
+        }
+
+        else if (ch == KEY_HOME && vm_list.n_memb > 0)
+        {
+            vms.highlight = 1;
+            vms.item_first = 0;
+            vms.item_last = vm_list_len;
+        }
+
+        else if (ch == KEY_END && vm_list.n_memb > 0)
+        {
+            vms.highlight = vm_list_len;
+            vms.item_first = vms.v->n_memb - vm_list_len;
+            vms.item_last = vms.v->n_memb;
         }
 
         if (ch == NM_KEY_Q)
@@ -114,8 +191,6 @@ void nm_start_main_loop(void)
                 nemu = 0;
             }
         }
-
-        ch = wgetch(side_window);
     }
 }
 

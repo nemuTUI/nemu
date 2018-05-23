@@ -47,7 +47,7 @@ void nm_init_side(void)
 
 void nm_init_action(void)
 {
-    nm_init_window__(action_window, _("Action"));
+    nm_init_window__(action_window, _("Properties"));
 }
 
 static void nm_init_window__(nm_window_t *w, const char *msg)
@@ -127,48 +127,43 @@ void nm_print_cmd(const nm_str_t *name)
 void nm_print_vm_info(const nm_str_t *name)
 {
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
-    int y = 1, x = 3;
-    int col = getmaxx(stdscr);
+    nm_str_t buf = NM_INIT_STR;
+    int y = 3, x = 2;
+    size_t cols = getmaxx(action_window);
     size_t ifs_count, drives_count;
 
     nm_vmctl_get_data(name, &vm);
 
-    nm_clear_screen();
-    border(0,0,0,0,0,0,0,0);
 
-    mvprintw(y++, (col - name->len) / 2, "%s", name->data);
-    mvaddch(y, 0, ACS_LTEE);
-    mvhline(y, 1, ACS_HLINE, col - 2);
-    mvaddch(y++, col - 1, ACS_RTEE);
-    mvprintw(y++, x, "%-12s%s", "arch: ",
+    mvwprintw(action_window, y++, x, "%-12s%s", "arch: ",
         nm_vect_str_ctx(&vm.main, NM_SQL_ARCH));
-    mvprintw(y++, x, "%-12s%s", "cores: ",
+    mvwprintw(action_window, y++, x, "%-12s%s", "cores: ",
         nm_vect_str_ctx(&vm.main, NM_SQL_SMP));
-    mvprintw(y++, x, "%-12s%s %s", "memory: ",
+    mvwprintw(action_window, y++, x, "%-12s%s %s", "memory: ",
         nm_vect_str_ctx(&vm.main, NM_SQL_MEM), "Mb");
 
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_KVM), NM_ENABLE) == NM_OK)
     {
         if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
-            mvprintw(y++, x, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
+            mvwprintw(action_window, y++, x, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
         else
-            mvprintw(y++, x, "%-12s%s", "kvm: ", "enabled");
+            mvwprintw(action_window, y++, x, "%-12s%s", "kvm: ", "enabled");
     }
     else
     {
-        mvprintw(y++, x, "%-12s%s", "kvm: ", "disabled");
+        mvwprintw(action_window, y++, x, "%-12s%s", "kvm: ", "disabled");
     }
 
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_USBF), "1") == NM_OK)
     {
-        mvprintw(y++, x, "%-12s%s", "usb: ", "enabled");
+        mvwprintw(action_window, y++, x, "%-12s%s", "usb: ", "enabled");
     }
     else
     {
-        mvprintw(y++, x, "%-12s%s", "usb: ", "disabled");
+        mvwprintw(action_window, y++, x, "%-12s%s", "usb: ", "disabled");
     }
 
-    mvprintw(y++, x, "%-12s%s [%u]", "vnc port: ",
+    mvwprintw(action_window, y++, x, "%-12s%s [%u]", "vnc port: ",
              nm_vect_str_ctx(&vm.main, NM_SQL_VNC),
              nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC), 10) + 5900);
 
@@ -179,16 +174,26 @@ void nm_print_vm_info(const nm_str_t *name)
     {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
 
-        mvprintw(y++, x, "eth%zu%-8s%s [%s %s%s]",
+        nm_str_format(&buf, "eth%zu%-8s%s [%s %s%s]",
                  n, ":",
                  nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
                  nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_MAC + idx_shift),
                  nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_DRV + idx_shift),
                  (nm_str_cmp_st(nm_vect_str(&vm.ifs, NM_SQL_IF_VHO + idx_shift),
                     NM_ENABLE) == NM_OK) ? "+vhost" : "");
+
+        /* TODO make function for this */    
+        if (buf.len > (cols - 4))
+        {
+            nm_str_trunc(&buf, cols - 7);
+            nm_str_add_text(&buf, "...");
+        }
+
+        mvwprintw(action_window, y++, x, "%s", buf.data);
     }
     /* }}} network */
 
+#if 0
     /* {{{ print drives info */
     drives_count = vm.drives.n_memb / NM_DRV_IDX_COUNT;
 
@@ -290,6 +295,8 @@ void nm_print_vm_info(const nm_str_t *name)
 
     refresh();
     getch();
+#endif
+    nm_str_free(&buf);
 }
 
 void nm_print_help(nm_window_t *w)
