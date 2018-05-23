@@ -134,7 +134,6 @@ void nm_print_vm_info(const nm_str_t *name)
 
     nm_vmctl_get_data(name, &vm);
 
-
     mvwprintw(action_window, y++, x, "%-12s%s", "arch: ",
         nm_vect_str_ctx(&vm.main, NM_SQL_ARCH));
     mvwprintw(action_window, y++, x, "%-12s%s", "cores: ",

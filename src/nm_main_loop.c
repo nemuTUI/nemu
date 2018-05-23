@@ -92,6 +92,7 @@ void nm_start_main_loop(void)
             }
 
             nm_print_vm_menu(side_window, &vms);
+            /* TODO cache DB data */
             nm_print_vm_info(nm_vect_item_name_cur(vms));
             wrefresh(side_window);
             wrefresh(action_window);
