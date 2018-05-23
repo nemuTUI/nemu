@@ -55,7 +55,7 @@ static void nm_init_window__(nm_window_t *w, const char *msg)
     int cols = getmaxx(w);
 
     box(w, 0, 0);
-    /* todo use UTF-8 safe strlen */
+    /* TODO use UTF-8 safe strlen */
     mvwprintw(w, 1, (cols - strlen(msg))/2, msg);
     mvwaddch(w, 2, 0, ACS_LTEE);
     mvwhline(w, 2, 1, ACS_HLINE, cols - 2);
@@ -73,7 +73,6 @@ void nm_destroy_windows(void)
     side_window = NULL;
     action_window = NULL;
 }
-
 
 void nm_print_main_window(void)
 {
