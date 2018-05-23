@@ -11,6 +11,17 @@ void nm_print_cmd(const nm_str_t *name);
 void nm_print_help(nm_window_t *w);
 void nm_print_nemu(void);
 void nm_print_title(const char *msg);
+void nm_create_windows(void);
+void nm_destroy_windows(void);
+
+/* Help|Search window*/
+extern nm_window_t *help_window;
+/* Side bar window. Moslty used for VM list */
+extern nm_window_t *side_window;
+/* Action|information window. */
+extern nm_window_t *action_window;
+/* Used in SIGWINCH signal handler */
+extern sig_atomic_t redraw_window;
 
 #define NM_EDIT_TITLE "ESC - cancel, ENTER - OK"
 #define NM_SPACES "                         "
@@ -34,6 +45,7 @@ enum nm_key {
     NM_KEY_M = 109,
     NM_KEY_O = 111,
     NM_KEY_P = 112,
+    NM_KEY_Q = 113,
     NM_KEY_R = 114,
     NM_KEY_S = 115,
     NM_KEY_T = 116,

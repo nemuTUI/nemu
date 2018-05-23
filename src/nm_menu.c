@@ -38,17 +38,20 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
 
 void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
 {
-    int x = 2, y = 2;
+    int x = 2, y = 3, action_cols, screen_x;
     struct stat file_info;
     nm_str_t lock_path = NM_INIT_STR;
 
+    screen_x = getmaxx(stdscr); 
+    action_cols = screen_x * 0.7;
+
     memset(&file_info, 0, sizeof(file_info));
 
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);
-    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(2, COLOR_WHITE, COLOR_BLACK);
+    init_pair(3, COLOR_GREEN, COLOR_BLACK);
     wattroff(w, COLOR_PAIR(1));
     wattroff(w, COLOR_PAIR(2));
-    box(w, 0, 0);
+    //box(w, 0, 0);
 
     for (size_t n = vm->item_first, i = 0; n < vm->item_last; n++, i++)
     {
@@ -58,9 +61,9 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
         nm_str_alloc_text(&vm_name, nm_vect_item_name(vm->v, n));
-        if (vm_name.len > 16)
+        if (vm_name.len > (screen_x - action_cols - 2))
         {
-            nm_str_trunc(&vm_name, 16);
+            nm_str_trunc(&vm_name, (screen_x - action_cols - 2));
             nm_str_add_text(&vm_name, "...");
         }
 
@@ -72,24 +75,24 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
         if (stat(lock_path.data, &file_info) != -1)
         {
             nm_vect_set_item_status(vm->v, n, 1);
-            wattron(w, COLOR_PAIR(2));
+            wattron(w, COLOR_PAIR(3));
         }
         else
         {
             nm_vect_set_item_status(vm->v, n, 0);
-            wattron(w, COLOR_PAIR(1));
+            wattron(w, COLOR_PAIR(2));
         }
 
         if (vm->highlight == i + 1)
         {
             wattron(w, A_REVERSE);
-            mvwprintw(w, y, x, "%-20s%s", vm_name.data,
+            mvwprintw(w, y, x, "%-42s%s", vm_name.data,
                 nm_vect_item_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
             wattroff(w, A_REVERSE);
         }
         else
         {
-            mvwprintw(w, y, x, "%-20s%s", vm_name.data,
+            mvwprintw(w, y, x, "%-42s%s", vm_name.data,
                 nm_vect_item_status(vm->v, n) ? NM_VM_RUNNING : NM_VM_STOPPED);
         }
 

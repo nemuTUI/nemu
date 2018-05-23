@@ -10,6 +10,52 @@
 #define NM_VM_MSG   "F1 - help, ESC - main menu "
 #define NM_MAIN_MSG "Enter - select a choice, ESC - exit"
 
+void nm_create_windows(void)
+{
+    int action_cols, screen_x, screen_y; 
+    nm_cord_t help_size = NM_INIT_POS;
+    nm_cord_t side_size = NM_INIT_POS;
+    nm_cord_t action_size = NM_INIT_POS;
+
+    getmaxyx(stdscr, screen_y, screen_x); 
+    /* TODO read param [0.7] from cfg file */
+    action_cols = screen_x * 0.7;
+
+    help_size = NM_SET_POS(1, screen_x, 0, 0);
+    side_size = NM_SET_POS(screen_y - 1, screen_x - action_cols, 0, 1);
+    action_size = NM_SET_POS(screen_y - 1, action_cols, screen_x - action_cols, 1);
+
+    help_window = nm_init_window(&help_size);
+    side_window = nm_init_window(&side_size);
+    action_window = nm_init_window(&action_size);
+
+    wbkgd(help_window, COLOR_PAIR(1));
+    box(side_window, 0, 0);
+    box(action_window, 0, 0);
+
+    mvwprintw(help_window, 0, 0, " q:Quit ?:Help"); 
+    mvwprintw(side_window, 1, ((screen_x - action_cols) - strlen("VM list"))/2, "VM list"); 
+    mvwaddch(side_window, 2, 0, ACS_LTEE);
+    mvwhline(side_window, 2, 1, ACS_HLINE, screen_x - action_cols - 2);
+    mvwaddch(side_window, 2, screen_x - action_cols - 1, ACS_RTEE);
+    mvwprintw(action_window, 1, (action_cols - strlen("Action"))/2, "Action");
+    mvwaddch(action_window, 2, 0, ACS_LTEE);
+    mvwhline(action_window, 2, 1, ACS_HLINE, action_cols - 2);
+    mvwaddch(action_window, 2, action_cols - 1, ACS_RTEE);
+}
+
+void nm_destroy_windows(void)
+{
+    delwin(help_window); 
+    delwin(side_window); 
+    delwin(action_window);
+
+    help_window = NULL;
+    side_window = NULL;
+    action_window = NULL;
+}
+
+
 void nm_print_main_window(void)
 {
     nm_print_title(_(NM_MAIN_MSG));
