@@ -36,8 +36,6 @@ void nm_start_main_loop(void)
     nm_vect_t vms_v = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
 
-    vm_list_len = (getmaxy(side_window) - 3);
-    
     /* TODO use 256 color schema if ncurses and terminal support it */
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
@@ -45,6 +43,8 @@ void nm_start_main_loop(void)
     nm_init_help();
     nm_init_side();
     nm_init_action();
+
+    vm_list_len = (getmaxy(side_window) - 4);
 
     for (;;)
     {
@@ -65,11 +65,10 @@ void nm_start_main_loop(void)
                 old_hl = 0;
             }
 
-            if (vm_list_len >= vm_list.n_memb)
-            {
-                vms.item_last = vm_list.n_memb;
-                vm_list_len = vm_list.n_memb;
-            }
+            if (vm_list_len < vm_list.n_memb)
+                vms.item_last = vm_list_len;
+            else
+                vms.item_last = vm_list_len = vm_list.n_memb;
 
             for (size_t n = 0; n < vm_list.n_memb; n++)
             {
