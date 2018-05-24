@@ -16,6 +16,7 @@ void nm_destroy_windows(void);
 void nm_init_action(void);
 void nm_init_help(void);
 void nm_init_side(void);
+void nm_align2line(nm_str_t *str, size_t line_len);
 
 /* Help|Search window*/
 extern nm_window_t *help_window;

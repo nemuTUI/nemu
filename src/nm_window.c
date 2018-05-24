@@ -10,6 +10,18 @@
 #define NM_VM_MSG   "F1 - help, ESC - main menu "
 #define NM_MAIN_MSG "Enter - select a choice, ESC - exit"
 
+/* Fit VM properties in action window */
+#define NM_PR_VM_INFO()                                   \
+    do {                                                  \
+        if (y > (rows - 3)) {                             \
+            mvwprintw(action_window, y, x, "...");        \
+            return;                                       \
+        }                                                 \
+        nm_align2line(&buf, cols);                        \
+        mvwprintw(action_window, y++, x, "%s", buf.data); \
+        nm_str_trunc(&buf, 0);                            \
+    } while (0)
+
 static void nm_init_window__(nm_window_t *w, const char *msg);
 
 void nm_create_windows(void)
@@ -128,43 +140,53 @@ void nm_print_vm_info(const nm_str_t *name)
 {
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_str_t buf = NM_INIT_STR;
-    int y = 3, x = 2;
-    size_t cols = getmaxx(action_window);
+    size_t y = 3, x = 2;
+    size_t cols, rows;
     size_t ifs_count, drives_count;
+
+    getmaxyx(action_window, rows, cols);
 
     nm_vmctl_get_data(name, &vm);
 
-    mvwprintw(action_window, y++, x, "%-12s%s", "arch: ",
+    nm_str_format(&buf, "%-12s%s", "arch: ",
         nm_vect_str_ctx(&vm.main, NM_SQL_ARCH));
-    mvwprintw(action_window, y++, x, "%-12s%s", "cores: ",
+    NM_PR_VM_INFO();
+
+    nm_str_format(&buf, "%-12s%s", "cores: ",
         nm_vect_str_ctx(&vm.main, NM_SQL_SMP));
-    mvwprintw(action_window, y++, x, "%-12s%s %s", "memory: ",
+    NM_PR_VM_INFO();
+
+    nm_str_format(&buf, "%-12s%s %s", "memory: ",
         nm_vect_str_ctx(&vm.main, NM_SQL_MEM), "Mb");
+    NM_PR_VM_INFO();
 
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_KVM), NM_ENABLE) == NM_OK)
     {
         if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
-            mvwprintw(action_window, y++, x, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
+            nm_str_format(&buf, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
         else
-            mvwprintw(action_window, y++, x, "%-12s%s", "kvm: ", "enabled");
+            nm_str_format(&buf, "%-12s%s", "kvm: ", "enabled");
     }
     else
     {
-        mvwprintw(action_window, y++, x, "%-12s%s", "kvm: ", "disabled");
+        nm_str_format(&buf, "%-12s%s", "kvm: ", "disabled");
     }
+    NM_PR_VM_INFO();
 
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_USBF), "1") == NM_OK)
     {
-        mvwprintw(action_window, y++, x, "%-12s%s", "usb: ", "enabled");
+        nm_str_format(&buf, "%-12s%s", "usb: ", "enabled");
     }
     else
     {
-        mvwprintw(action_window, y++, x, "%-12s%s", "usb: ", "disabled");
+        nm_str_format(&buf, "%-12s%s", "usb: ", "disabled");
     }
+    NM_PR_VM_INFO();
 
-    mvwprintw(action_window, y++, x, "%-12s%s [%u]", "vnc port: ",
+    nm_str_format(&buf, "%-12s%s [%u]", "vnc port: ",
              nm_vect_str_ctx(&vm.main, NM_SQL_VNC),
              nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC), 10) + 5900);
+    NM_PR_VM_INFO();
 
     /* {{{ print network interfaces info */
     ifs_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
@@ -181,18 +203,10 @@ void nm_print_vm_info(const nm_str_t *name)
                  (nm_str_cmp_st(nm_vect_str(&vm.ifs, NM_SQL_IF_VHO + idx_shift),
                     NM_ENABLE) == NM_OK) ? "+vhost" : "");
 
-        /* TODO make function for this */    
-        if (buf.len > (cols - 4))
-        {
-            nm_str_trunc(&buf, cols - 7);
-            nm_str_add_text(&buf, "...");
-        }
-
-        mvwprintw(action_window, y++, x, "%s", buf.data);
+        NM_PR_VM_INFO();
     }
     /* }}} network */
 
-#if 0
     /* {{{ print drives info */
     drives_count = vm.drives.n_memb / NM_DRV_IDX_COUNT;
 
@@ -207,38 +221,68 @@ void nm_print_vm_info(const nm_str_t *name)
             boot = 1;
         }
 
-        mvprintw(y++, x, "disk%zu%-7s%s [%sGb %s] %s", n, ":",
+        nm_str_format(&buf, "disk%zu%-7s%s [%sGb %s] %s", n, ":",
                  nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift),
                  nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_SIZE + idx_shift),
                  nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_TYPE + idx_shift),
                  boot ? "*" : "");
+        NM_PR_VM_INFO();
     }
     /* }}} drives */
 
     /* {{{ print 9pfs info */
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_9FLG), "1") == NM_OK)
     {
-        mvprintw(y++, x, "%-12s%s [%s]", "9pfs: ",
+        nm_str_format(&buf, "%-12s%s [%s]", "9pfs: ",
                  nm_vect_str_ctx(&vm.main, NM_SQL_9PTH),
                  nm_vect_str_ctx(&vm.main, NM_SQL_9ID));
+        NM_PR_VM_INFO();
     }
     /* }}} 9pfs */
 
     /* {{{ Generate guest boot settings info */
     if (nm_vect_str_len(&vm.main, NM_SQL_MACH))
-        mvprintw(y++, x, "%-12s%s", "machine: ", nm_vect_str_ctx(&vm.main, NM_SQL_MACH));
+    {
+        nm_str_format(&buf, "%-12s%s", "machine: ",
+                nm_vect_str_ctx(&vm.main, NM_SQL_MACH));
+        NM_PR_VM_INFO();
+    }
     if (nm_vect_str_len(&vm.main, NM_SQL_BIOS))
-        mvprintw(y++, x, "%-12s%s", "bios: ", nm_vect_str_ctx(&vm.main, NM_SQL_BIOS));
+    {
+        nm_str_format(&buf,"%-12s%s", "bios: ",
+                nm_vect_str_ctx(&vm.main, NM_SQL_BIOS));
+        NM_PR_VM_INFO();
+    }
     if (nm_vect_str_len(&vm.main, NM_SQL_KERN))
-        mvprintw(y++, x, "%-12s%s", "kernel: ", nm_vect_str_ctx(&vm.main, NM_SQL_KERN));
+    {
+        nm_str_format(&buf,"%-12s%s", "kernel: ",
+                nm_vect_str_ctx(&vm.main, NM_SQL_KERN));
+        NM_PR_VM_INFO();
+    }
     if (nm_vect_str_len(&vm.main, NM_SQL_KAPP))
-        mvprintw(y++, x, "%-12s%s", "cmdline: ", nm_vect_str_ctx(&vm.main, NM_SQL_KAPP));
+    {
+        nm_str_format(&buf, "%-12s%s", "cmdline: ",
+                nm_vect_str_ctx(&vm.main, NM_SQL_KAPP));
+        NM_PR_VM_INFO();
+    }
     if (nm_vect_str_len(&vm.main, NM_SQL_INIT))
-        mvprintw(y++, x, "%-12s%s", "initrd: ", nm_vect_str_ctx(&vm.main, NM_SQL_INIT));
+    {
+        nm_str_format(&buf, "%-12s%s", "initrd: ",
+                nm_vect_str_ctx(&vm.main, NM_SQL_INIT));
+        NM_PR_VM_INFO();
+    }
     if (nm_vect_str_len(&vm.main, NM_SQL_TTY))
-        mvprintw(y++, x, "%-12s%s", "tty: ", nm_vect_str_ctx(&vm.main, NM_SQL_TTY));
+    {
+        nm_str_format(&buf, "%-12s%s", "tty: ",
+                nm_vect_str_ctx(&vm.main, NM_SQL_TTY));
+        NM_PR_VM_INFO();
+    }
     if (nm_vect_str_len(&vm.main, NM_SQL_SOCK))
-        mvprintw(y++, x, "%-12s%s", "socket: ", nm_vect_str_ctx(&vm.main, NM_SQL_SOCK));
+    {
+        nm_str_format(&buf, "%-12s%s", "socket: ",
+                nm_vect_str_ctx(&vm.main, NM_SQL_SOCK));
+        NM_PR_VM_INFO();
+    }
     /* }}} boot settings */
 
     /* {{{ Print PID */
@@ -266,7 +310,8 @@ void nm_print_vm_info(const nm_str_t *name)
                 y++;
                 pid[nread - 1] = '\0';
                 pid_num = atoi(pid);
-                mvprintw(y++, x, "%-12s%d", "pid: ", pid_num);
+                nm_str_format(&buf, "%-12s%d", "pid: ", pid_num);
+                NM_PR_VM_INFO();
             }
             close(fd);
         }
@@ -284,17 +329,15 @@ void nm_print_vm_info(const nm_str_t *name)
         if (!nm_vect_str_len(&vm.ifs, NM_SQL_IF_IP4 + idx_shift))
             continue;
 
-        mvprintw(y++, x, "%-12s%s [%s]", "Host IP: ",
+        nm_str_format(&buf, "%-12s%s [%s]", "host IP: ",
             nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
             nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_IP4 + idx_shift));
+        NM_PR_VM_INFO();
 
     } /* }}} host IP addr */
 
     nm_vmctl_free_data(&vm);
 
-    refresh();
-    getch();
-#endif
     nm_str_free(&buf);
 }
 
@@ -499,6 +542,17 @@ void nm_print_title(const char *msg)
     border(0,0,0,0,0,0,0,0);
     mvprintw(1, (col - msg_len) / 2, msg);
     refresh();
+}
+
+void nm_align2line(nm_str_t *str, size_t line_len)
+{
+    assert(line_len > 4);
+
+    if (str->len > (line_len - 4))
+    {
+        nm_str_trunc(str, line_len - 7);
+        nm_str_add_text(str, "...");
+    }
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

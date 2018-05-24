@@ -2,6 +2,7 @@
 #include <nm_menu.h>
 #include <nm_utils.h>
 #include <nm_string.h>
+#include <nm_window.h>
 #include <nm_network.h>
 #include <nm_cfg_file.h>
 #include <nm_lan_settings.h>
@@ -65,12 +66,7 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
             continue;
 
         nm_str_alloc_text(&vm_name, nm_vect_item_name(vm->v, n));
-
-        if (vm_name.len > (screen_x - 4))
-        {
-            nm_str_trunc(&vm_name, screen_x - 7);
-            nm_str_add_text(&vm_name, "...");
-        }
+        nm_align2line(&vm_name, screen_x);
 
         space_num = (screen_x - vm_name.len - 4);
         if (space_num > 0)
