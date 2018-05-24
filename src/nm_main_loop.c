@@ -42,7 +42,7 @@ void nm_start_main_loop(void)
     nm_create_windows();
     nm_init_help();
     nm_init_side();
-    nm_init_action();
+    nm_init_action(NULL);
 
     vm_list_len = (getmaxy(side_window) - 4);
 
@@ -91,7 +91,7 @@ void nm_start_main_loop(void)
                 nm_vmctl_free_data(&vm_props);
                 nm_vmctl_get_data(name, &vm_props);
                 werase(action_window);
-                nm_init_action();
+                nm_init_action(NULL);
                 clear_action = 0;
             }
 
@@ -201,7 +201,7 @@ void nm_start_main_loop(void)
             }
         }
 
-        else if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)
+        if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)
         {
             if (ch == 0x6e && !nemu)
                  nemu++;
@@ -211,9 +211,11 @@ void nm_start_main_loop(void)
                  nemu++;
             if (ch == 0x55 && nemu == 3)
             {
+                werase(action_window);
+                nm_init_action("Nemu Kurotsuchi");
                 nm_print_nemu();
                 werase(action_window);
-                nm_init_action();
+                nm_init_action(NULL);
                 wrefresh(action_window);
                 nemu = 0;
             }

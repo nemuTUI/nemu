@@ -56,9 +56,9 @@ void nm_init_side(void)
     wtimeout(side_window, 500);
 }
 
-void nm_init_action(void)
+void nm_init_action(const char *msg)
 {
-    nm_init_window__(action_window, _("Properties"));
+    nm_init_window__(action_window, msg ? msg : _("Properties"));
 }
 
 static void nm_init_window__(nm_window_t *w, const char *msg)
