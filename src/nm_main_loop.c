@@ -178,6 +178,29 @@ void nm_start_main_loop(void)
             break;
         }
 
+        if (vm_list.n_memb > 0)
+        {
+            const nm_str_t *name = nm_vect_item_name_cur(vms);
+            int vm_status = nm_vect_item_status_cur(vms);
+
+            switch (ch) {
+            case NM_KEY_R:
+                if (!vm_status)
+                    nm_vmctl_start(name, 0);
+                break;
+
+            case NM_KEY_P:
+                if (vm_status)
+                    nm_qmp_vm_shut(name);
+                break;
+
+            case NM_KEY_C:
+                if (vm_status)
+                    nm_vmctl_connect(name);
+                break;
+            }
+        }
+
         else if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)
         {
             if (ch == 0x6e && !nemu)
