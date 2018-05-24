@@ -198,6 +198,12 @@ void nm_start_main_loop(void)
                 if (vm_status)
                     nm_vmctl_connect(name);
                 break;
+
+            case NM_KEY_E:
+                werase(action_window);
+                nm_init_action("__ololo__");
+                nm_edit_vm(name);
+                break;
             }
         }
 

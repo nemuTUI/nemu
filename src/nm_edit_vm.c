@@ -45,14 +45,15 @@ void nm_edit_vm(const nm_str_t *name)
 
     nm_vmctl_get_data(name, &cur_settings);
 
-    nm_print_title(_(NM_EDIT_TITLE));
-    if (getmaxy(stdscr) <= 28)
-        mult = 1;
+    //nm_print_title(_(NM_EDIT_TITLE));
+    //if (getmaxy(stdscr) <= 28)
+        //mult = 1;
 
     //window = nm_init_window((mult == 2) ? 21 : 12, 67, 3);
 
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
+    /* TODO colors! */
+    //init_pair(4, COLOR_BLACK, COLOR_WHITE);
+    //wbkgd(action_window, COLOR_PAIR(4));
 
     for (size_t n = 0; n < NM_EDIT_VM_FIELDS_NUM; ++n)
     {
@@ -63,10 +64,10 @@ void nm_edit_vm(const nm_str_t *name)
     fields[NM_EDIT_VM_FIELDS_NUM] = NULL;
 
     nm_edit_vm_field_setup(&cur_settings);
-    nm_edit_vm_field_names(name, window);
+    nm_edit_vm_field_names(name, action_window);
 
-    form = nm_post_form(window, fields, 21);
-    if (nm_draw_form(window, form) != NM_OK)
+    form = nm_post_form(action_window, fields, 21);
+    if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
     
     nm_form_get_last(&last_mac, NULL);
@@ -78,14 +79,14 @@ void nm_edit_vm(const nm_str_t *name)
     sp_data.stop = &done;
     sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
 
-    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
-        nm_bug(_("%s: cannot create thread"), __func__);
+    //if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
+    //    nm_bug(_("%s: cannot create thread"), __func__);
 
     nm_edit_vm_update_db(&vm, &cur_settings, last_mac);
 
-    done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
-        nm_bug(_("%s: cannot join thread"), __func__);
+    //done = 1;
+    //if (pthread_join(spin_th, NULL) != 0)
+     //   nm_bug(_("%s: cannot join thread"), __func__);
 
 out:
     nm_vm_free(&vm);
@@ -145,19 +146,19 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
 
 static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w)
 {
-    int y = 4, mult = 2;
+    int y = 3, mult = 2;
     nm_str_t buf = NM_INIT_STR;
 
-    if (getmaxy(stdscr) <= 28)
+    /*if (getmaxy(stdscr) <= 28)
     {
         mult = 1;
         y = 3;
-    }
+    }*/
 
-    nm_str_alloc_str(&buf, name);
+    /*nm_str_alloc_str(&buf, name);
     nm_str_add_text(&buf, _(" settings"));
-    mvwaddstr(w, 1, 2, buf.data);
-    nm_str_trunc(&buf, 0);
+    mvwaddstr(w, 4, 2, buf.data);
+    nm_str_trunc(&buf, 0);*/
 
     nm_str_add_text(&buf, _("CPU cores [1-"));
     nm_str_format(&buf, "%u", nm_hw_ncpus());

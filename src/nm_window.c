@@ -520,8 +520,6 @@ void nm_print_nemu(void)
         "                           ..                              "
     };
 
-    //nm_clear_screen();
-
     for (size_t l = 3, n = 0; n < (max_y - 4) && n < nm_arr_len(nemu); n++, l++)
         mvwprintw(action_window, l, 1, "%s", nemu[n]);
 
