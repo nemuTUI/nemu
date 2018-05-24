@@ -220,6 +220,30 @@ void nm_start_main_loop(void)
                 nemu = 0;
             }
         }
+
+        if (redraw_window)
+        {
+            nm_destroy_windows();
+            endwin();
+            refresh();
+            nm_create_windows();
+            nm_init_help();
+            nm_init_side();
+            nm_init_action(NULL);
+
+            vm_list_len = (getmaxy(side_window) - 4);
+            /* TODO save lost pos */
+            if (vm_list_len < vm_list.n_memb)
+            {
+                vms.item_last = vm_list_len;
+                vms.item_first = 0;
+                vms.highlight = 1;
+            }
+            else
+                vms.item_last = vm_list_len = vm_list.n_memb;
+
+            redraw_window = 0;
+        }
     }
 
     nm_vmctl_free_data(&vm_props);
