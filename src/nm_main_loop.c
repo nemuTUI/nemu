@@ -29,9 +29,10 @@ static int nm_search_cmp_cb(const void *s1, const void *s2);
 void nm_start_main_loop(void)
 {
     int ch, nemu = 0, regen_data = 1;
-    int clear_action = 0;
+    int clear_action = 1;
     size_t vm_list_len, old_hl = 0;
     nm_menu_data_t vms = NM_INIT_MENU_DATA;
+    nm_vmctl_data_t vm_props = NM_VMCTL_INIT_DATA;
     nm_vect_t vms_v = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
 
@@ -84,16 +85,19 @@ void nm_start_main_loop(void)
 
         if (vm_list.n_memb > 0)
         {
+            const nm_str_t *name = nm_vect_item_name_cur(vms);
+
             if (clear_action)
             {
+                nm_vmctl_free_data(&vm_props);
+                nm_vmctl_get_data(name, &vm_props);
                 werase(action_window);
                 nm_init_action();
                 clear_action = 0;
             }
 
             nm_print_vm_menu(side_window, &vms);
-            /* TODO cache DB data */
-            nm_print_vm_info(nm_vect_item_name_cur(vms));
+            nm_print_vm_info(name, &vm_props);
             wrefresh(side_window);
             wrefresh(action_window);
         }
@@ -193,6 +197,10 @@ void nm_start_main_loop(void)
             }
         }
     }
+
+    nm_vmctl_free_data(&vm_props);
+    nm_vect_free(&vms_v, NULL);
+    nm_vect_free(&vm_list, nm_str_vect_free_cb);
 }
 
 void nm_print_vm_list(void)
@@ -388,7 +396,7 @@ void nm_print_vm_list(void)
 
         else if (ch == NM_KEY_QUESTION && vm_list.n_memb > 0)
         {
-            nm_print_vm_info(nm_vect_item_name_cur(vms));
+            //nm_print_vm_info(nm_vect_item_name_cur(vms));
         }
 
 #if defined (NM_OS_LINUX)
@@ -779,8 +787,8 @@ static void nm_action_menu_s(const nm_str_t *name)
             if (hl == ACT_EDIT)
                 nm_edit_vm(name);
 
-            if (hl == ACT_INFO)
-                nm_print_vm_info(name);
+            //if (hl == ACT_INFO)
+                //nm_print_vm_info(name);
 
             break;
         }
@@ -884,8 +892,8 @@ static void nm_action_menu_r(const nm_str_t *name)
                 nm_usb_unplug(name);
 #endif
 
-            if (hl == ACT_INFO)
-                nm_print_vm_info(name);
+            //if (hl == ACT_INFO)
+             //   nm_print_vm_info(name);
 
             break;
         }

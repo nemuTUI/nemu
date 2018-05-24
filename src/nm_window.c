@@ -5,7 +5,6 @@
 #include <nm_ncurses.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
-#include <nm_vm_control.h>
 
 #define NM_VM_MSG   "F1 - help, ESC - main menu "
 #define NM_MAIN_MSG "Enter - select a choice, ESC - exit"
@@ -136,9 +135,8 @@ void nm_print_cmd(const nm_str_t *name)
     getch();
 }
 
-void nm_print_vm_info(const nm_str_t *name)
+void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)
 {
-    nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_str_t buf = NM_INIT_STR;
     size_t y = 3, x = 2;
     size_t cols, rows;
@@ -146,23 +144,21 @@ void nm_print_vm_info(const nm_str_t *name)
 
     getmaxyx(action_window, rows, cols);
 
-    nm_vmctl_get_data(name, &vm);
-
     nm_str_format(&buf, "%-12s%s", "arch: ",
-        nm_vect_str_ctx(&vm.main, NM_SQL_ARCH));
+        nm_vect_str_ctx(&vm->main, NM_SQL_ARCH));
     NM_PR_VM_INFO();
 
     nm_str_format(&buf, "%-12s%s", "cores: ",
-        nm_vect_str_ctx(&vm.main, NM_SQL_SMP));
+        nm_vect_str_ctx(&vm->main, NM_SQL_SMP));
     NM_PR_VM_INFO();
 
     nm_str_format(&buf, "%-12s%s %s", "memory: ",
-        nm_vect_str_ctx(&vm.main, NM_SQL_MEM), "Mb");
+        nm_vect_str_ctx(&vm->main, NM_SQL_MEM), "Mb");
     NM_PR_VM_INFO();
 
-    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_KVM), NM_ENABLE) == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_KVM), NM_ENABLE) == NM_OK)
     {
-        if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
+        if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
             nm_str_format(&buf, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
         else
             nm_str_format(&buf, "%-12s%s", "kvm: ", "enabled");
@@ -173,7 +169,7 @@ void nm_print_vm_info(const nm_str_t *name)
     }
     NM_PR_VM_INFO();
 
-    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_USBF), "1") == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBF), "1") == NM_OK)
     {
         nm_str_format(&buf, "%-12s%s", "usb: ", "enabled");
     }
@@ -184,12 +180,12 @@ void nm_print_vm_info(const nm_str_t *name)
     NM_PR_VM_INFO();
 
     nm_str_format(&buf, "%-12s%s [%u]", "vnc port: ",
-             nm_vect_str_ctx(&vm.main, NM_SQL_VNC),
-             nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC), 10) + 5900);
+             nm_vect_str_ctx(&vm->main, NM_SQL_VNC),
+             nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + 5900);
     NM_PR_VM_INFO();
 
     /* {{{ print network interfaces info */
-    ifs_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
+    ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
 
     for (size_t n = 0; n < ifs_count; n++)
     {
@@ -197,10 +193,10 @@ void nm_print_vm_info(const nm_str_t *name)
 
         nm_str_format(&buf, "eth%zu%-8s%s [%s %s%s]",
                  n, ":",
-                 nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
-                 nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_MAC + idx_shift),
-                 nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_DRV + idx_shift),
-                 (nm_str_cmp_st(nm_vect_str(&vm.ifs, NM_SQL_IF_VHO + idx_shift),
+                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift),
+                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + idx_shift),
+                 (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift),
                     NM_ENABLE) == NM_OK) ? "+vhost" : "");
 
         NM_PR_VM_INFO();
@@ -208,82 +204,98 @@ void nm_print_vm_info(const nm_str_t *name)
     /* }}} network */
 
     /* {{{ print drives info */
-    drives_count = vm.drives.n_memb / NM_DRV_IDX_COUNT;
+    drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
 
     for (size_t n = 0; n < drives_count; n++)
     {
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
         int boot = 0;
 
-        if (nm_str_cmp_st(nm_vect_str(&vm.drives, NM_SQL_DRV_BOOT + idx_shift),
+        if (nm_str_cmp_st(nm_vect_str(&vm->drives, NM_SQL_DRV_BOOT + idx_shift),
                 NM_ENABLE) == NM_OK)
         {
             boot = 1;
         }
 
         nm_str_format(&buf, "disk%zu%-7s%s [%sGb %s] %s", n, ":",
-                 nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift),
-                 nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_SIZE + idx_shift),
-                 nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_TYPE + idx_shift),
+                 nm_vect_str_ctx(&vm->drives, NM_SQL_DRV_NAME + idx_shift),
+                 nm_vect_str_ctx(&vm->drives, NM_SQL_DRV_SIZE + idx_shift),
+                 nm_vect_str_ctx(&vm->drives, NM_SQL_DRV_TYPE + idx_shift),
                  boot ? "*" : "");
         NM_PR_VM_INFO();
     }
     /* }}} drives */
 
     /* {{{ print 9pfs info */
-    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_9FLG), "1") == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_9FLG), "1") == NM_OK)
     {
         nm_str_format(&buf, "%-12s%s [%s]", "9pfs: ",
-                 nm_vect_str_ctx(&vm.main, NM_SQL_9PTH),
-                 nm_vect_str_ctx(&vm.main, NM_SQL_9ID));
+                 nm_vect_str_ctx(&vm->main, NM_SQL_9PTH),
+                 nm_vect_str_ctx(&vm->main, NM_SQL_9ID));
         NM_PR_VM_INFO();
     }
     /* }}} 9pfs */
 
     /* {{{ Generate guest boot settings info */
-    if (nm_vect_str_len(&vm.main, NM_SQL_MACH))
+    if (nm_vect_str_len(&vm->main, NM_SQL_MACH))
     {
         nm_str_format(&buf, "%-12s%s", "machine: ",
-                nm_vect_str_ctx(&vm.main, NM_SQL_MACH));
+                nm_vect_str_ctx(&vm->main, NM_SQL_MACH));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm.main, NM_SQL_BIOS))
+    if (nm_vect_str_len(&vm->main, NM_SQL_BIOS))
     {
         nm_str_format(&buf,"%-12s%s", "bios: ",
-                nm_vect_str_ctx(&vm.main, NM_SQL_BIOS));
+                nm_vect_str_ctx(&vm->main, NM_SQL_BIOS));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm.main, NM_SQL_KERN))
+    if (nm_vect_str_len(&vm->main, NM_SQL_KERN))
     {
         nm_str_format(&buf,"%-12s%s", "kernel: ",
-                nm_vect_str_ctx(&vm.main, NM_SQL_KERN));
+                nm_vect_str_ctx(&vm->main, NM_SQL_KERN));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm.main, NM_SQL_KAPP))
+    if (nm_vect_str_len(&vm->main, NM_SQL_KAPP))
     {
         nm_str_format(&buf, "%-12s%s", "cmdline: ",
-                nm_vect_str_ctx(&vm.main, NM_SQL_KAPP));
+                nm_vect_str_ctx(&vm->main, NM_SQL_KAPP));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm.main, NM_SQL_INIT))
+    if (nm_vect_str_len(&vm->main, NM_SQL_INIT))
     {
         nm_str_format(&buf, "%-12s%s", "initrd: ",
-                nm_vect_str_ctx(&vm.main, NM_SQL_INIT));
+                nm_vect_str_ctx(&vm->main, NM_SQL_INIT));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm.main, NM_SQL_TTY))
+    if (nm_vect_str_len(&vm->main, NM_SQL_TTY))
     {
         nm_str_format(&buf, "%-12s%s", "tty: ",
-                nm_vect_str_ctx(&vm.main, NM_SQL_TTY));
+                nm_vect_str_ctx(&vm->main, NM_SQL_TTY));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm.main, NM_SQL_SOCK))
+    if (nm_vect_str_len(&vm->main, NM_SQL_SOCK))
     {
         nm_str_format(&buf, "%-12s%s", "socket: ",
-                nm_vect_str_ctx(&vm.main, NM_SQL_SOCK));
+                nm_vect_str_ctx(&vm->main, NM_SQL_SOCK));
         NM_PR_VM_INFO();
     }
     /* }}} boot settings */
+
+    /* {{{ Print host IP addresses for TAP ints */
+    //y++;
+    for (size_t n = 0; n < ifs_count; n++)
+    {
+        size_t idx_shift = NM_IFS_IDX_COUNT * n;
+
+        if (!nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift))
+            continue;
+
+        nm_str_format(&buf, "%-12s%s [%s]", "host IP: ",
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
+        NM_PR_VM_INFO();
+
+    } /* }}} host IP addr */
 
     /* {{{ Print PID */
     {
@@ -307,7 +319,7 @@ void nm_print_vm_info(const nm_str_t *name)
         {
             if ((nread = read(fd, pid, sizeof(pid))) > 0)
             {
-                y++;
+                //y++;
                 pid[nread - 1] = '\0';
                 pid_num = atoi(pid);
                 nm_str_format(&buf, "%-12s%d", "pid: ", pid_num);
@@ -315,28 +327,14 @@ void nm_print_vm_info(const nm_str_t *name)
             }
             close(fd);
         }
+        else /* clear PID file info */
+        {
+            mvwhline(action_window, y, 1, ' ', cols - 4);
+        }
 
         nm_str_free(&pid_path);
         nm_str_free(&qmp_path);
     } /* }}} PID */
-
-    /* {{{ Print host IP addresses for TAP ints */
-    y++;
-    for (size_t n = 0; n < ifs_count; n++)
-    {
-        size_t idx_shift = NM_IFS_IDX_COUNT * n;
-
-        if (!nm_vect_str_len(&vm.ifs, NM_SQL_IF_IP4 + idx_shift))
-            continue;
-
-        nm_str_format(&buf, "%-12s%s [%s]", "host IP: ",
-            nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
-            nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_IP4 + idx_shift));
-        NM_PR_VM_INFO();
-
-    } /* }}} host IP addr */
-
-    nm_vmctl_free_data(&vm);
 
     nm_str_free(&buf);
 }
