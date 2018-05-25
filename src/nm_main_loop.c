@@ -201,7 +201,7 @@ void nm_start_main_loop(void)
 
             case NM_KEY_E:
                 werase(action_window);
-                nm_init_action("__ololo__");
+                nm_init_action("+++++++ololo++++++++");
                 nm_edit_vm(name);
                 break;
             }

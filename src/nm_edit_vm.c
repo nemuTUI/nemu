@@ -57,8 +57,8 @@ void nm_edit_vm(const nm_str_t *name)
 
     for (size_t n = 0; n < NM_EDIT_VM_FIELDS_NUM; ++n)
     {
-        fields[n] = new_field(1, 38, (n + 1) * mult, 5, 0, 0);
-        set_field_back(fields[n], A_UNDERLINE);
+        fields[n] = new_field(1, 38, n * mult, 5, 0, 0);
+        //set_field_back(fields[n], A_UNDERLINE);
     }
 
     fields[NM_EDIT_VM_FIELDS_NUM] = NULL;
@@ -67,6 +67,7 @@ void nm_edit_vm(const nm_str_t *name)
     nm_edit_vm_field_names(name, action_window);
 
     form = nm_post_form(action_window, fields, 21);
+    //nm_init_action("ololo");
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
     
@@ -146,7 +147,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
 
 static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w)
 {
-    int y = 3, mult = 2;
+    int y = 4, mult = 2;
     nm_str_t buf = NM_INIT_STR;
 
     /*if (getmaxy(stdscr) <= 28)
