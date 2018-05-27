@@ -21,6 +21,14 @@ typedef struct {
 } nm_vm_drive_t;
 
 typedef struct {
+    int form_len;
+    int w_start_x;
+    int w_cols;
+    int w_rows;
+    nm_window_t *form_window;
+} nm_form_data_t;
+
+typedef struct {
     nm_str_t driver;
     uint32_t count;
 } nm_vm_ifs_t;
@@ -68,6 +76,7 @@ typedef struct {
 } nm_spinner_data_t;
 
 nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x);
+nm_form_t *nm_post_form__(nm_window_t *w, nm_field_t **field, int begin_x);
 int nm_draw_form(nm_window_t *w, nm_form_t *form);
 void nm_form_free(nm_form_t *form, nm_field_t **fields);
 void nm_get_field_buf(nm_field_t *f, nm_str_t *res);
@@ -85,6 +94,9 @@ extern const char *nm_form_yes_no[];
 extern const char *nm_form_net_drv[];
 extern const char *nm_form_drive_drv[];
 extern const char *nm_form_macvtap[];
+
+#define NM_FORM_MIN_LEN 30
+#define NM_FORM_RATIO  0.80
 
 #define nm_form_check_data(name, val, v)                      \
     {                                                         \
@@ -106,6 +118,7 @@ extern const char *nm_form_macvtap[];
                            NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                            NM_INIT_STR, NM_INIT_STR, 0 }
 #define NM_INIT_SPINNER  { 0, 1, NULL }
+#define NM_INIT_FORM_DATA { 0, 0, 0, 0, NULL }
 
 #define NM_INIT_VM { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                      NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \

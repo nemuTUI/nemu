@@ -86,6 +86,32 @@ nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x)
     return form;
 }
 
+nm_form_t *nm_post_form__(nm_window_t *w, nm_field_t **field, int begin_x)
+{
+    nm_form_t *form;
+    int rows, cols; 
+
+    nm_window_t *form_win;
+
+    /*getmaxyx(action_window, rows, cols);
+    form_win = derwin(action_window, ((8*2)+1), cols - 2, 3, 1);*/
+    init_pair(4, COLOR_BLACK, COLOR_WHITE);
+    wbkgd(w, COLOR_PAIR(4));
+    //box(form_win, 0, 0);
+
+    form = new_form(field);
+    if (form == NULL)
+         nm_bug("%s: %s", __func__, strerror(errno));
+
+    set_form_win(form, w);
+    scale_form(form, &rows, &cols);
+    set_form_sub(form, derwin(w, rows, cols, 1, begin_x));
+    post_form(form);
+    curs_set(1);
+
+    return form;
+}
+
 int nm_draw_form(nm_window_t *w, nm_form_t *form)
 {
     int confirm = NM_ERR, rc = NM_OK;

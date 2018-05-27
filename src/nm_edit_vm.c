@@ -12,6 +12,7 @@
 #include <nm_qmp_control.h>
 
 #define NM_EDIT_VM_FIELDS_NUM 8
+#define NM_EXIT_VM_TXT_LEN   26
 
 static nm_window_t *window = NULL;
 static nm_form_t *form = NULL;
@@ -38,10 +39,21 @@ void nm_edit_vm(const nm_str_t *name)
     nm_vm_t vm = NM_INIT_VM;
     nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
+    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     uint64_t last_mac;
     size_t msg_len;
     pthread_t spin_th;
     int done = 0, mult = 2;
+    int cols;
+
+    cols = getmaxx(action_window);
+    form_data.w_cols = cols * NM_FORM_RATIO;
+    form_data.w_rows = (NM_EDIT_VM_FIELDS_NUM * 2) + 1;
+    form_data.w_start_x = ((1 - NM_FORM_RATIO) * cols) / 2;
+    form_data.form_len = form_data.w_cols - NM_EXIT_VM_TXT_LEN - 2;
+    nm_debug("::%d\n", form_data.w_start_x);
+    form_data.form_window = derwin(action_window, form_data.w_rows,
+            form_data.w_cols, 3, form_data.w_start_x);
 
     nm_vmctl_get_data(name, &cur_settings);
 
@@ -57,16 +69,16 @@ void nm_edit_vm(const nm_str_t *name)
 
     for (size_t n = 0; n < NM_EDIT_VM_FIELDS_NUM; ++n)
     {
-        fields[n] = new_field(1, 38, n * mult, 5, 0, 0);
+        fields[n] = new_field(1, form_data.form_len, n * mult, 5, 0, 0);
         //set_field_back(fields[n], A_UNDERLINE);
     }
 
     fields[NM_EDIT_VM_FIELDS_NUM] = NULL;
 
     nm_edit_vm_field_setup(&cur_settings);
-    nm_edit_vm_field_names(name, action_window);
+    nm_edit_vm_field_names(name, form_data.form_window);
 
-    form = nm_post_form(action_window, fields, 21);
+    form = nm_post_form__(form_data.form_window, fields, 21);
     //nm_init_action("ololo");
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
@@ -147,7 +159,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
 
 static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w)
 {
-    int y = 4, mult = 2;
+    int y = 1, mult = 2;
     nm_str_t buf = NM_INIT_STR;
 
     /*if (getmaxy(stdscr) <= 28)
