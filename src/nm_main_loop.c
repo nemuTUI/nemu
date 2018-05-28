@@ -96,7 +96,7 @@ void nm_start_main_loop(void)
                 clear_action = 0;
             }
 
-            nm_print_vm_menu(side_window, &vms);
+            nm_print_vm_menu(&vms);
             nm_print_vm_info(name, &vm_props);
             wrefresh(side_window);
             wrefresh(action_window);
@@ -352,7 +352,7 @@ void nm_print_vm_list(void)
                 wtimeout(vm_window, 500);
             }
 
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
         }
 
         ch = wgetch(vm_window);
@@ -503,7 +503,7 @@ void nm_print_vm_list(void)
         /* {{{ Start VM */
         else if (ch == NM_KEY_R && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -516,7 +516,7 @@ void nm_print_vm_list(void)
         /* {{{ Start VM in temporary mode */
         else if (ch == NM_KEY_T && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -529,7 +529,7 @@ void nm_print_vm_list(void)
         /* {{{ Create drive snapshot */
         else if (ch == NM_KEY_S && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -542,7 +542,7 @@ void nm_print_vm_list(void)
         /* {{{ Revert to snapshot */
         else if (ch == NM_KEY_X && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -556,7 +556,7 @@ void nm_print_vm_list(void)
         /* {{{ Create vm snapshot */
         else if (ch == NM_KEY_S_UP && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -569,7 +569,7 @@ void nm_print_vm_list(void)
         /* {{{ Load vm snapshot */
         else if (ch == NM_KEY_X_UP && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -579,7 +579,7 @@ void nm_print_vm_list(void)
         /* {{{ Delete vm snapshot */
         else if (ch == NM_KEY_D_UP && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -590,7 +590,7 @@ void nm_print_vm_list(void)
         /* {{{ Poweroff VM */
         else if (ch == NM_KEY_P && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -601,7 +601,7 @@ void nm_print_vm_list(void)
         /* {{{ stop VM */
         else if (ch == NM_KEY_F && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -612,7 +612,7 @@ void nm_print_vm_list(void)
         /* {{{ reset VM */
         else if (ch == NM_KEY_Z && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -623,7 +623,7 @@ void nm_print_vm_list(void)
         /* {{{ pause VM */
         else if (ch == NM_KEY_P_UP && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -634,7 +634,7 @@ void nm_print_vm_list(void)
         /* {{{ resume VM */
         else if (ch == NM_KEY_R_UP && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -645,7 +645,7 @@ void nm_print_vm_list(void)
         /* {{{ kill VM */
         else if (ch == NM_KEY_K && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -656,7 +656,7 @@ void nm_print_vm_list(void)
         /* {{{ Delete VM */
         else if (ch == NM_KEY_D && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
@@ -684,7 +684,7 @@ void nm_print_vm_list(void)
         /* {{{ Clone VM */
         else if (ch == NM_KEY_L && vm_list.n_memb > 0)
         {
-            nm_print_vm_menu(vm_window, &vms);
+            nm_print_vm_menu(&vms);
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 

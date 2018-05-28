@@ -37,22 +37,28 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
     }
 }
 
-void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
+void nm_print_vm_menu(nm_menu_data_t *vm)
 {
     int x = 2, y = 3;
     size_t screen_x;
     struct stat file_info;
     nm_str_t lock_path = NM_INIT_STR;
 
-    screen_x = getmaxx(w);
+    screen_x = getmaxx(side_window);
+    if (screen_x < 20) /* window to small */
+    {
+        mvwaddstr(side_window, 3, 1, "...");
+        wrefresh(side_window);
+        return;
+    }
 
     memset(&file_info, 0, sizeof(file_info));
 
     /* TODO support 256 colors */
     init_pair(2, COLOR_WHITE, COLOR_BLACK);
     init_pair(3, COLOR_GREEN, COLOR_BLACK);
-    wattroff(w, COLOR_PAIR(2));
-    wattroff(w, COLOR_PAIR(3));
+    wattroff(side_window, COLOR_PAIR(2));
+    wattroff(side_window, COLOR_PAIR(3));
 
     for (size_t n = vm->item_first, i = 0; n < vm->item_last; n++, i++)
     {
@@ -61,9 +67,6 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
 
         if (n >= vm->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
-
-        if (screen_x < 20) /* window to small */
-            continue;
 
         nm_str_alloc_text(&vm_name, nm_vect_item_name(vm->v, n));
         nm_align2line(&vm_name, screen_x);
@@ -83,27 +86,27 @@ void nm_print_vm_menu(nm_window_t *w, nm_menu_data_t *vm)
         if (stat(lock_path.data, &file_info) != -1)
         {
             nm_vect_set_item_status(vm->v, n, 1);
-            wattron(w, COLOR_PAIR(3));
+            wattron(side_window, COLOR_PAIR(3));
         }
         else
         {
             nm_vect_set_item_status(vm->v, n, 0);
-            wattron(w, COLOR_PAIR(2));
+            wattron(side_window, COLOR_PAIR(2));
         }
 
         if (vm->highlight == i + 1)
         {
-            wattron(w, A_REVERSE);
-            mvwprintw(w, y, x, "%s", vm_name.data);
-            wattroff(w, A_REVERSE);
+            wattron(side_window, A_REVERSE);
+            mvwprintw(side_window, y, x, "%s", vm_name.data);
+            wattroff(side_window, A_REVERSE);
         }
         else
         {
-            mvwprintw(w, y, x, "%s", vm_name.data);
+            mvwprintw(side_window, y, x, "%s", vm_name.data);
         }
 
         y++;
-        wrefresh(w);
+        wrefresh(side_window);
         nm_str_free(&vm_name);
     }
 
