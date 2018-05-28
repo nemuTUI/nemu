@@ -91,13 +91,7 @@ nm_form_t *nm_post_form__(nm_window_t *w, nm_field_t **field, int begin_x)
     nm_form_t *form;
     int rows, cols; 
 
-    nm_window_t *form_win;
-
-    /*getmaxyx(action_window, rows, cols);
-    form_win = derwin(action_window, ((8*2)+1), cols - 2, 3, 1);*/
-    init_pair(4, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(w, COLOR_PAIR(4));
-    //box(form_win, 0, 0);
+    wbkgd(w, COLOR_PAIR(1));
 
     form = new_form(field);
     if (form == NULL)
@@ -205,6 +199,34 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
     }
 
     return confirm;
+}
+
+int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form)
+{
+    size_t cols, rows;
+
+    getmaxyx(action_window, rows, cols);
+
+    form->w_cols = cols * NM_FORM_RATIO;
+    form->w_rows = (f_num * 2) + 1;
+
+    if (form->w_cols < (max_msg + 18) ||
+        form->w_rows > rows - 4)
+    {
+        werase(help_window);
+        nm_init_help(_("Window size to small, press any key"), 1);
+        wgetch(action_window);
+        werase(help_window);
+        nm_init_help(NULL, 0);
+        return NM_ERR;
+    }
+
+    form->w_start_x = ((1 - NM_FORM_RATIO) * cols) / 2;
+    form->form_len = form->w_cols - (max_msg + 6);
+    form->form_window = derwin(action_window, form->w_rows,
+            form->w_cols, 3, form->w_start_x);
+
+    return NM_OK;
 }
 
 void nm_get_field_buf(nm_field_t *f, nm_str_t *res)

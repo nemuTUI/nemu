@@ -12,11 +12,20 @@
 #include <nm_qmp_control.h>
 
 #define NM_EDIT_VM_FIELDS_NUM 8
-#define NM_EXIT_VM_TXT_LEN   26
 
 static nm_window_t *window = NULL;
 static nm_form_t *form = NULL;
 static nm_field_t *fields[NM_EDIT_VM_FIELDS_NUM + 1];
+
+static const char *nm_form_msg[] = {
+    "KVM [yes/no]",
+    "Host CPU [yes/no]",
+    "Network ",
+    "Disk interface",
+    "USB [yes/no]",
+    "Sync mouse position",
+    NULL
+};
 
 static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur);
 static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w);
@@ -41,45 +50,27 @@ void nm_edit_vm(const nm_str_t *name)
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     uint64_t last_mac;
-    size_t msg_len;
     pthread_t spin_th;
-    int done = 0, mult = 2;
-    int cols;
+    int done = 0;
+    size_t msg_len;
 
-    cols = getmaxx(action_window);
-    form_data.w_cols = cols * NM_FORM_RATIO;
-    form_data.w_rows = (NM_EDIT_VM_FIELDS_NUM * 2) + 1;
-    form_data.w_start_x = ((1 - NM_FORM_RATIO) * cols) / 2;
-    form_data.form_len = form_data.w_cols - NM_EXIT_VM_TXT_LEN - 2;
-    nm_debug("::%d\n", form_data.w_start_x);
-    form_data.form_window = derwin(action_window, form_data.w_rows,
-            form_data.w_cols, 3, form_data.w_start_x);
+    msg_len = nm_max_msg_len(nm_form_msg);
+
+    if (nm_form_calc_size(msg_len, NM_EDIT_VM_FIELDS_NUM, &form_data) != NM_OK)
+        return;
 
     nm_vmctl_get_data(name, &cur_settings);
 
-    //nm_print_title(_(NM_EDIT_TITLE));
-    //if (getmaxy(stdscr) <= 28)
-        //mult = 1;
-
-    //window = nm_init_window((mult == 2) ? 21 : 12, 67, 3);
-
-    /* TODO colors! */
-    //init_pair(4, COLOR_BLACK, COLOR_WHITE);
-    //wbkgd(action_window, COLOR_PAIR(4));
-
     for (size_t n = 0; n < NM_EDIT_VM_FIELDS_NUM; ++n)
-    {
-        fields[n] = new_field(1, form_data.form_len, n * mult, 5, 0, 0);
-        //set_field_back(fields[n], A_UNDERLINE);
-    }
+        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
     fields[NM_EDIT_VM_FIELDS_NUM] = NULL;
 
     nm_edit_vm_field_setup(&cur_settings);
     nm_edit_vm_field_names(name, form_data.form_window);
 
-    form = nm_post_form__(form_data.form_window, fields, 21);
-    //nm_init_action("ololo");
+    form = nm_post_form__(form_data.form_window, fields, msg_len + 4);
+
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
     
@@ -104,6 +95,7 @@ void nm_edit_vm(const nm_str_t *name)
 out:
     nm_vm_free(&vm);
     nm_form_free(form, fields);
+    delwin(form_data.form_window);
     nm_vmctl_free_data(&cur_settings);
 }
 
@@ -159,37 +151,22 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
 
 static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w)
 {
-    int y = 1, mult = 2;
+    int y = 1, x = 2, mult = 2;
     nm_str_t buf = NM_INIT_STR;
-
-    /*if (getmaxy(stdscr) <= 28)
-    {
-        mult = 1;
-        y = 3;
-    }*/
-
-    /*nm_str_alloc_str(&buf, name);
-    nm_str_add_text(&buf, _(" settings"));
-    mvwaddstr(w, 4, 2, buf.data);
-    nm_str_trunc(&buf, 0);*/
 
     nm_str_add_text(&buf, _("CPU cores [1-"));
     nm_str_format(&buf, "%u", nm_hw_ncpus());
     nm_str_add_char(&buf, ']');
-    mvwaddstr(w, y, 2, buf.data);
+    mvwaddstr(w, y, x, buf.data);
     nm_str_trunc(&buf, 0);
 
     nm_str_add_text(&buf, _("Memory [4-"));
     nm_str_format(&buf, "%u", nm_hw_total_ram());
     nm_str_add_text(&buf, "]Mb");
-    mvwaddstr(w, y += mult, 2, buf.data);
+    mvwaddstr(w, y += mult, x, buf.data);
 
-    mvwaddstr(w, y += mult, 2, _("KVM [yes/no]"));
-    mvwaddstr(w, y += mult, 2, _("Host CPU [yes/no]"));
-    mvwaddstr(w, y += mult, 2, _("Network interfaces"));
-    mvwaddstr(w, y += mult, 2, _("Disk interface"));
-    mvwaddstr(w, y += mult, 2, _("USB [yes/no]"));
-    mvwaddstr(w, y += mult, 2, _("Sync mouse position"));
+    for (size_t n = 0; n < 6; n++)
+        mvwaddstr(w, y += mult, x, _(nm_form_msg[n]));
 
     nm_str_free(&buf);
 }

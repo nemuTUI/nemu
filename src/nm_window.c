@@ -43,10 +43,10 @@ void nm_create_windows(void)
     action_window = nm_init_window(&action_size);
 }
 
-void nm_init_help(void)
+void nm_init_help(const char *msg, int err)
 {
-    wbkgd(help_window, COLOR_PAIR(1));
-    mvwprintw(help_window, 0, 0, " q:Quit ?:Help");
+    wbkgd(help_window, COLOR_PAIR(err ? 4 : 1));
+    mvwprintw(help_window, 0, 1, msg ? msg : _("q:Quit ?:Help"));
     wrefresh(help_window);
 }
 
@@ -64,10 +64,10 @@ void nm_init_action(const char *msg)
 static void nm_init_window__(nm_window_t *w, const char *msg)
 {
     int cols = getmaxx(w);
+    size_t mb_len = mbstowcs(NULL, msg, strlen(msg));
 
     box(w, 0, 0);
-    /* TODO use UTF-8 safe strlen */
-    mvwprintw(w, 1, (cols - strlen(msg))/2, msg);
+    mvwprintw(w, 1, (cols - mb_len) / 2, msg);
     mvwaddch(w, 2, 0, ACS_LTEE);
     mvwhline(w, 2, 1, ACS_HLINE, cols - 2);
     mvwaddch(w, 2, cols - 1, ACS_RTEE);
@@ -549,6 +549,22 @@ void nm_align2line(nm_str_t *str, size_t line_len)
         nm_str_trunc(str, line_len - 7);
         nm_str_add_text(str, "...");
     }
+}
+
+size_t nm_max_msg_len(const char **msg)
+{
+    size_t len = 0;
+
+    assert(msg != NULL);
+
+    while (*msg)
+    {
+        size_t mb_len = mbstowcs(NULL, *msg, strlen(*msg));
+        len = (mb_len > len) ? mb_len : len;
+        msg++;
+    }
+
+    return len;
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

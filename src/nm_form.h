@@ -21,10 +21,10 @@ typedef struct {
 } nm_vm_drive_t;
 
 typedef struct {
-    int form_len;
-    int w_start_x;
-    int w_cols;
-    int w_rows;
+    size_t form_len;
+    size_t w_start_x;
+    size_t w_cols;
+    size_t w_rows;
     nm_window_t *form_window;
 } nm_form_data_t;
 
@@ -89,13 +89,14 @@ const char *nm_form_select_drive(const nm_vect_t *drives);
 void nm_vm_free(nm_vm_t *vm);
 void nm_vm_free_boot(nm_vm_boot_t *vm);
 void *nm_spinner(void *data);
+/* TODO add comments */
+int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form);
 
 extern const char *nm_form_yes_no[];
 extern const char *nm_form_net_drv[];
 extern const char *nm_form_drive_drv[];
 extern const char *nm_form_macvtap[];
 
-#define NM_FORM_MIN_LEN 30
 #define NM_FORM_RATIO  0.80
 
 #define nm_form_check_data(name, val, v)                      \

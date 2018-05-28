@@ -38,9 +38,10 @@ void nm_start_main_loop(void)
 
     /* TODO use 256 color schema if ncurses and terminal support it */
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    init_pair(4, COLOR_RED, COLOR_WHITE);
 
     nm_create_windows();
-    nm_init_help();
+    nm_init_help(NULL, 0);
     nm_init_side();
     nm_init_action(NULL);
 
@@ -201,8 +202,12 @@ void nm_start_main_loop(void)
 
             case NM_KEY_E:
                 werase(action_window);
-                nm_init_action("+++++++ololo++++++++");
+                werase(help_window);
+                nm_init_action(_(NM_EDIT_VM_HEADER));
+                nm_init_help(_(NM_EDIT_HELP), 0);
                 nm_edit_vm(name);
+                werase(help_window);
+                nm_init_help(NULL, 0);
                 break;
             }
         }
@@ -233,7 +238,7 @@ void nm_start_main_loop(void)
             endwin();
             refresh();
             nm_create_windows();
-            nm_init_help();
+            nm_init_help(NULL, 0);
             nm_init_side();
             nm_init_action(NULL);
 
