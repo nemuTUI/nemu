@@ -20,10 +20,11 @@
 #include <nm_qmp_control.h>
 
 #define NM_SQL_GET_VM "SELECT name FROM vms ORDER BY name ASC"
+#define NM_SEARCH_STR "Search:"
 
 static void nm_action_menu_s(const nm_str_t *name);
 static void nm_action_menu_r(const nm_str_t *name);
-static uint32_t nm_search_vm(const nm_vect_t *list);
+static size_t nm_search_vm(const nm_vect_t *list, int *err);
 static int nm_search_cmp_cb(const void *s1, const void *s2);
 
 void nm_start_main_loop(void)
@@ -212,8 +213,15 @@ void nm_start_main_loop(void)
 
             case NM_KEY_SLASH:
                 {
-                    uint32_t pos = nm_search_vm(&vm_list);
+                    int err = NM_FALSE;
+                    size_t pos = nm_search_vm(&vm_list, &err);
                     int cols = getmaxx(side_window);
+
+                    if (err == NM_TRUE)
+                    {
+                        nm_warn_small_size();
+                        break;
+                    }
 
                     if (pos > vm_list_len)
                     {
@@ -227,7 +235,7 @@ void nm_start_main_loop(void)
                         vms.item_last = vm_list_len;
                         vms.highlight = pos;
                     }
-                    mvwhline(side_window, 1, 1, ' ', cols - 1);
+                    NM_ERASE_SIDE_TITLE(cols);
                     nm_init_side();
                 }
                 break;
@@ -753,7 +761,8 @@ void nm_print_vm_list(void)
         /* {{{ Search in VM list */
         else if (ch == NM_KEY_SLASH && vm_list.n_memb > 0)
         {
-            uint32_t pos = nm_search_vm(&vm_list);
+            //size_t pos = nm_search_vm(&vm_list);
+            size_t pos=0;
 
             if (pos > list_max)
             {
@@ -986,24 +995,40 @@ static void nm_action_menu_r(const nm_str_t *name)
     delwin(w);
 }
 
-static uint32_t nm_search_vm(const nm_vect_t *list)
+static size_t nm_search_vm(const nm_vect_t *list, int *err)
 {
-    uint32_t pos = 0;
+    size_t pos = 0;
     void *match = NULL;
     nm_form_t *form = NULL;
     nm_field_t *fields[2];
     nm_window_t *window = NULL;
     nm_str_t input = NM_INIT_STR;
+    int cols = getmaxx(side_window);
+    size_t msg_len = mbstowcs(NULL, _(NM_SEARCH_STR), strlen(NM_SEARCH_STR));
+    int req_len = msg_len + 9;
+    nm_form_data_t form_data = NM_INIT_FORM_DATA;
 
-    fields[0] = new_field(1, 20, 0, 1, 0, 0);
+    assert(err != NULL);
+
+    if (req_len > cols)
+    {
+        *err = NM_TRUE;
+        return 0;
+    }
+
+    form_data.form_len = cols - (5 + msg_len);
+    form_data.w_start_x = msg_len + 2;
+
+    fields[0] = new_field(1, form_data.form_len, 0, 1, 0, 0);
     fields[1] = NULL;
     set_field_back(fields[0], A_UNDERLINE);
     field_opts_off(fields[0], O_STATIC);
     wattroff(side_window, COLOR_PAIR(2));
-    mvwaddstr(side_window, 1, 2, _("Search:"));
+    NM_ERASE_SIDE_TITLE(cols);
+    mvwaddstr(side_window, 1, 2, _(NM_SEARCH_STR));
     wrefresh(side_window);
 
-    form = nm_post_form__(side_window, fields, 10, NM_FALSE);
+    form = nm_post_form__(side_window, fields, form_data.w_start_x, NM_FALSE);
     if (nm_draw_form(side_window, form) != NM_OK)
         goto out;
 

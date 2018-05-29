@@ -567,4 +567,13 @@ size_t nm_max_msg_len(const char **msg)
     return len;
 }
 
+void nm_warn_small_size(void)
+{
+    werase(help_window);
+    nm_init_help(_("Window size to small, press any key"), NM_TRUE);
+    wgetch(action_window);
+    werase(help_window);
+    nm_init_help(NULL, 0);
+}
+
 /* vim:set ts=4 sw=4 fdm=marker: */

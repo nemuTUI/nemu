@@ -215,11 +215,7 @@ int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form)
     if (form->w_cols < (max_msg + 18) ||
         form->w_rows > rows - 4)
     {
-        werase(help_window);
-        nm_init_help(_("Window size to small, press any key"), 1);
-        wgetch(action_window);
-        werase(help_window);
-        nm_init_help(NULL, 0);
+        nm_warn_small_size();
         return NM_ERR;
     }
 

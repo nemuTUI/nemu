@@ -18,6 +18,7 @@ void nm_init_action(const char *msg);
 void nm_init_help(const char *msg, int err);
 void nm_init_side(void);
 void nm_align2line(nm_str_t *str, size_t line_len);
+void nm_warn_small_size(void);
 size_t nm_max_msg_len(const char **msg);
 
 /* Help|Search window*/
@@ -32,6 +33,9 @@ extern sig_atomic_t redraw_window;
 #define NM_EDIT_TITLE "ESC - cancel, ENTER - OK"
 #define NM_EDIT_HELP  "esc:Cancel enter:Save"
 #define NM_SPACES "                         "
+
+#define NM_ERASE_SIDE_TITLE(cols) \
+    mvwhline(side_window, 1, 1, ' ', (cols) - 2)
 
 enum nm_key {
     NM_KEY_ENTER    = 10,
