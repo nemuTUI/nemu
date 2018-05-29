@@ -86,12 +86,14 @@ nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x)
     return form;
 }
 
-nm_form_t *nm_post_form__(nm_window_t *w, nm_field_t **field, int begin_x)
+nm_form_t *
+nm_post_form__(nm_window_t *w, nm_field_t **field, int begin_x, int color)
 {
     nm_form_t *form;
     int rows, cols; 
 
-    wbkgd(w, COLOR_PAIR(1));
+    if (color)
+        wbkgd(w, COLOR_PAIR(1));
 
     form = new_form(field);
     if (form == NULL)

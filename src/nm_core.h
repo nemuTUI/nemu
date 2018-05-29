@@ -46,6 +46,9 @@
 #define NM_OK   0
 #define NM_ERR -1
 
+#define NM_TRUE 1
+#define NM_FALSE 0
+
 #define NM_ENABLE  "1"
 #define NM_DISABLE "0"
 

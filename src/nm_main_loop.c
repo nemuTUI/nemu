@@ -213,6 +213,7 @@ void nm_start_main_loop(void)
             case NM_KEY_SLASH:
                 {
                     uint32_t pos = nm_search_vm(&vm_list);
+                    int cols = getmaxx(side_window);
 
                     if (pos > vm_list_len)
                     {
@@ -226,6 +227,8 @@ void nm_start_main_loop(void)
                         vms.item_last = vm_list_len;
                         vms.highlight = pos;
                     }
+                    mvwhline(side_window, 1, 1, ' ', cols - 1);
+                    nm_init_side();
                 }
                 break;
             }
@@ -991,20 +994,17 @@ static uint32_t nm_search_vm(const nm_vect_t *list)
     nm_field_t *fields[2];
     nm_window_t *window = NULL;
     nm_str_t input = NM_INIT_STR;
-    werase(help_window);
-    wattroff(help_window, COLOR_PAIR(1));
 
-    //window = nm_init_window(5, 24, 4);
-
-    fields[0] = new_field(1, 20, 1, 1, 0, 0);
+    fields[0] = new_field(1, 20, 0, 1, 0, 0);
     fields[1] = NULL;
     set_field_back(fields[0], A_UNDERLINE);
     field_opts_off(fields[0], O_STATIC);
-    mvwaddstr(help_window, 0, 1, _("Search:"));
-    wrefresh(help_window);
+    wattroff(side_window, COLOR_PAIR(2));
+    mvwaddstr(side_window, 1, 2, _("Search:"));
+    wrefresh(side_window);
 
-    form = nm_post_form(help_window, fields, 10);
-    if (nm_draw_form(help_window, form) != NM_OK)
+    form = nm_post_form__(side_window, fields, 10, NM_FALSE);
+    if (nm_draw_form(side_window, form) != NM_OK)
         goto out;
 
     nm_get_field_buf(fields[0], &input);
