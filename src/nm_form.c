@@ -316,6 +316,48 @@ out:
     return rc;
 }
 
+void *nm_progress_bar(void *data)
+{
+    struct timespec ts;
+    int cols = getmaxx(action_window);
+    int x1 = 1, x2 = cols - 2;
+    int x1_v = 0, x2_v = 1;
+    nm_spinner_data_t *dp = data;
+
+    memset(&ts, 0, sizeof(ts));
+    ts.tv_nsec = 3e+7; /* 0.03sec */
+
+    curs_set(0);
+
+    for (;;)
+    {
+        if (*dp->stop)
+            break;
+
+        NM_ERASE_TITLE(action, cols);
+        mvwaddch(action_window, 1, x1, x1_v ? '<' : '>');
+        mvwaddch(action_window, 1, x2, x2_v ? '<' : '>');
+        wrefresh(action_window);
+
+        (x1_v == 0) ? x1++ : x1--;
+        (x2_v == 0) ? x2++ : x2--;
+
+        if (x1 == cols - 2)
+            x1_v = 1;
+        if (x1 == 1)
+            x1_v = 0;
+
+        if (x2 == 1)
+            x2_v = 0;
+        if (x2 == cols - 2)
+            x2_v = 1;
+
+        nanosleep(&ts, NULL);
+    }
+
+    pthread_exit(NULL);
+}
+
 void *nm_spinner(void *data)
 {
     const char spin_chars[] ="/-\\|";
@@ -323,7 +365,6 @@ void *nm_spinner(void *data)
     struct timespec ts;
 
     memset(&ts, 0, sizeof(ts));
-
     ts.tv_nsec = 3e+7; /* 0.03sec */
 
     if (dp == NULL)

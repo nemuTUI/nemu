@@ -13,7 +13,6 @@
 
 #define NM_EDIT_VM_FIELDS_NUM 8
 
-static nm_window_t *window = NULL;
 static nm_form_t *form = NULL;
 static nm_field_t *fields[NM_EDIT_VM_FIELDS_NUM + 1];
 
@@ -28,7 +27,7 @@ static const char *nm_form_msg[] = {
 };
 
 static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur);
-static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w);
+static void nm_edit_vm_field_names(nm_window_t *w);
 static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur);
 static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac);
 
@@ -67,7 +66,7 @@ void nm_edit_vm(const nm_str_t *name)
     fields[NM_EDIT_VM_FIELDS_NUM] = NULL;
 
     nm_edit_vm_field_setup(&cur_settings);
-    nm_edit_vm_field_names(name, form_data.form_window);
+    nm_edit_vm_field_names(form_data.form_window);
 
     form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
 
@@ -79,18 +78,16 @@ void nm_edit_vm(const nm_str_t *name)
     if (nm_edit_vm_get_data(&vm, &cur_settings) != NM_OK)
         goto out;
 
-    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
     sp_data.stop = &done;
-    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
 
-    //if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
-    //    nm_bug(_("%s: cannot create thread"), __func__);
+    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
+        nm_bug(_("%s: cannot create thread"), __func__);
 
     nm_edit_vm_update_db(&vm, &cur_settings, last_mac);
 
-    //done = 1;
-    //if (pthread_join(spin_th, NULL) != 0)
-     //   nm_bug(_("%s: cannot join thread"), __func__);
+    done = 1;
+    if (pthread_join(spin_th, NULL) != 0)
+       nm_bug(_("%s: cannot join thread"), __func__);
 
 out:
     nm_vm_free(&vm);
@@ -149,7 +146,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     nm_str_free(&buf);
 }
 
-static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w)
+static void nm_edit_vm_field_names(nm_window_t *w)
 {
     int y = 1, x = 2, mult = 2;
     nm_str_t buf = NM_INIT_STR;

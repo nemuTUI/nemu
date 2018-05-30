@@ -89,6 +89,7 @@ int nm_print_empty_fields(const nm_vect_t *v);
 const char *nm_form_select_drive(const nm_vect_t *drives);
 void nm_vm_free(nm_vm_t *vm);
 void nm_vm_free_boot(nm_vm_boot_t *vm);
+void *nm_progress_bar(void *data);
 void *nm_spinner(void *data);
 /* TODO add comments */
 int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form);

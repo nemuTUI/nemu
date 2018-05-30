@@ -235,7 +235,7 @@ void nm_start_main_loop(void)
                         vms.item_last = vm_list_len;
                         vms.highlight = pos;
                     }
-                    NM_ERASE_SIDE_TITLE(cols);
+                    NM_ERASE_TITLE(side, cols);
                     nm_init_side();
                 }
                 break;
@@ -1024,7 +1024,7 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
     set_field_back(fields[0], A_UNDERLINE);
     field_opts_off(fields[0], O_STATIC);
     wattroff(side_window, COLOR_PAIR(2));
-    NM_ERASE_SIDE_TITLE(cols);
+    NM_ERASE_TITLE(side, cols);
     mvwaddstr(side_window, 1, 2, _(NM_SEARCH_STR));
     wrefresh(side_window);
 

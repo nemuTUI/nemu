@@ -34,8 +34,8 @@ extern sig_atomic_t redraw_window;
 #define NM_EDIT_HELP  "esc:Cancel enter:Save"
 #define NM_SPACES "                         "
 
-#define NM_ERASE_SIDE_TITLE(cols) \
-    mvwhline(side_window, 1, 1, ' ', (cols) - 2)
+#define NM_ERASE_TITLE(t, cols) \
+    mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)
 
 enum nm_key {
     NM_KEY_ENTER    = 10,
