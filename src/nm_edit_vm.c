@@ -46,11 +46,11 @@ void nm_edit_vm(const nm_str_t *name)
 {
     nm_vm_t vm = NM_INIT_VM;
     nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
-    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
+    //nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     uint64_t last_mac;
-    pthread_t spin_th;
-    int done = 0;
+/*    pthread_t spin_th;
+    int done = 0;*/
     size_t msg_len;
 
     msg_len = nm_max_msg_len(nm_form_msg);
@@ -78,6 +78,8 @@ void nm_edit_vm(const nm_str_t *name)
     if (nm_edit_vm_get_data(&vm, &cur_settings) != NM_OK)
         goto out;
 
+    nm_edit_vm_update_db(&vm, &cur_settings, last_mac);
+#if 0
     sp_data.stop = &done;
 
     if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
@@ -88,8 +90,10 @@ void nm_edit_vm(const nm_str_t *name)
     done = 1;
     if (pthread_join(spin_th, NULL) != 0)
        nm_bug(_("%s: cannot join thread"), __func__);
+#endif
 
 out:
+    wtimeout(action_window, -1);
     nm_vm_free(&vm);
     nm_form_free(form, fields);
     delwin(form_data.form_window);
