@@ -21,9 +21,9 @@ void nm_align2line(nm_str_t *str, size_t line_len);
 void nm_warn_small_size(void);
 size_t nm_max_msg_len(const char **msg);
 
-/* Help|Search window*/
+/* Help window*/
 extern nm_window_t *help_window;
-/* Side bar window. Moslty used for VM list */
+/* Side bar window. Mostly used for VM list */
 extern nm_window_t *side_window;
 /* Action|information window. */
 extern nm_window_t *action_window;
