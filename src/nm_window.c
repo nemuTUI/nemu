@@ -339,8 +339,81 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)
     nm_str_free(&buf);
 }
 
-void nm_print_help(nm_window_t *w)
+void nm_print_help(void)
 {
+    size_t cols, rows;
+
+    const char *keys[] = {
+        "r", "t",
+#if (NM_WITH_VNC_CLIENT)
+        "c",
+#endif
+        "p", "z", "f", "d", "e", "i",
+        "a", "l", "b", "s", "x", "h",
+        "m", "v", "u", "P", "R",
+#if (NM_SAVEVM_SNAPSHOTS)
+        "S", "X", "D",
+#endif
+#if defined (NM_OS_LINUX)
+        "+", "-",
+#endif
+        "k"
+};
+
+    const char *values[] = {
+        "start vm",
+        "start vm in temporary mode",
+#if (NM_WITH_VNC_CLIENT)
+        "connect to vm via vnc",
+#endif
+        "powerdown vm",
+        "reset vm",
+        "force stop vm",
+        "delete vm",
+        "edit vm settings",
+        "edit network settings",
+        "add virtual disk",
+        "clone vm",
+        "edit boot settings",
+        "take drive snapshot",
+        "revert drive snapshot",
+        "share host filesystem",
+        "show command",
+        "delete virtual disk",
+        "delete unused tap interfaces",
+        "pause vm",
+        "resume vm",
+#if (NM_SAVEVM_SNAPSHOTS)
+        "take vm snapshot",
+        "revert vm snapshot",
+        "delete vm snapshot",
+#endif
+#if defined (NM_OS_LINUX)
+        "attach usb device",
+        "detach usb device",
+#endif
+        "kill vm process"
+    };
+
+    size_t hotkey_num = nm_arr_len(keys);
+
+    getmaxyx(action_window, rows, cols);
+    rows -= 3;
+    cols -= 2;
+
+    werase(action_window);
+    nm_init_action(_("Help"));
+
+    for (size_t n = 0, y = 3; n < hotkey_num; n++, y++)
+    {
+        mvwprintw(action_window, y, 1, "%s", keys[n]);
+        mvwprintw(action_window, y, 10, "%s", values[n]);
+    }
+
+    wrefresh(action_window);
+    wgetch(action_window);
+    nm_init_action(NULL);
+#if 0
     int curr_p = 1;
     char prog_name[50] = {0};
     int space_num = (38 - (sizeof(NM_VERSION) + 4)) / 2;
@@ -474,6 +547,7 @@ void nm_print_help(nm_window_t *w)
         for (int i = 0; i <= y; i++)
             mvwhline(w, i, 0, ' ', x);
     }
+#endif
 }
 
 void nm_print_nemu(void)

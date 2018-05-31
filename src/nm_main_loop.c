@@ -242,6 +242,11 @@ void nm_start_main_loop(void)
             }
         }
 
+        if (ch == NM_KEY_QUESTION)
+        {
+            nm_print_help();
+        }
+
         if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)
         {
             if (ch == 0x6e && !nemu)
