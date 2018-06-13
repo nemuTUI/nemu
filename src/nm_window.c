@@ -396,158 +396,76 @@ void nm_print_help(void)
     };
 
     size_t hotkey_num = nm_arr_len(keys);
+    size_t maxlen = nm_max_msg_len(values);
+    size_t n = 0, last;
+    int perc;
+    nm_str_t help_title = NM_INIT_STR;
 
     getmaxyx(action_window, rows, cols);
-    rows -= 3;
+    rows -= 4;
     cols -= 2;
 
-    werase(action_window);
-    nm_init_action(_("Help"));
-
-    for (size_t n = 0, y = 3; n < hotkey_num; n++, y++)
+    if (maxlen + 10 > cols)
     {
-        mvwprintw(action_window, y, 1, "%s", keys[n]);
-        mvwprintw(action_window, y, 10, "%s", values[n]);
+        nm_warn_small_size();
+        return;
     }
 
-    wrefresh(action_window);
-    wgetch(action_window);
-    nm_init_action(NULL);
-#if 0
-    int curr_p = 1;
-    char prog_name[50] = {0};
-    int space_num = (38 - (sizeof(NM_VERSION) + 4)) / 2;
+    perc = (hotkey_num > rows) ? ((rows * 100) / hotkey_num) : 100;
+    if (perc == 100)
+        nm_str_format(&help_title, _("Help [all]"));
+    else
+        nm_str_format(&help_title, _("Help [%d%%]") , perc);
 
-    snprintf(prog_name, sizeof(prog_name), "%.*snEMU %s",
-             space_num, NM_SPACES, NM_VERSION);
+    werase(action_window);
+    nm_init_action(help_title.data);
 
-    const char *msg_p1[] = {
-        prog_name,
-          "",
-        _(" r - start vm"),
-        _(" t - start vm in temporary mode"),
-#if (NM_WITH_VNC_CLIENT)
-        _(" c - connect to vm via vnc"),
-#endif
-        _(" p - powerdown vm"),
-        _(" z - reset vm"),
-        _(" f - force stop vm"),
-        _(" d - delete vm"),
-        _(" e - edit vm settings"),
-        _(" i - edit network settings"),
-        _(" a - add virtual disk"),
-        _(" l - clone vm"),
-        _(" b - edit boot settings"),
-#ifndef NM_WITH_VNC_CLIENT
-        "",
-#endif
-        "",
-        _(" Page 1. \"->\" - next, \"<-\" - prev")
-    };
+    for (size_t y = 3; n < rows && n < hotkey_num; n++, y++)
+        mvwprintw(action_window, y, 2, "%-10s%s", keys[n], values[n]);
 
-    const char *msg_p2[] = {
-        prog_name,
-          "",
-        _(" s - take drive snapshot"),
-        _(" x - revert drive snapshot"),
-        _(" h - share host filesystem"),
-        _(" m - show command"),
-        _(" v - delete virtual disk"),
-        _(" u - delete unused tap interfaces"),
-        _(" P - pause vm"),
-        _(" R - resume vm"),
-        _(" k - kill vm process"),
-#if (NM_SAVEVM_SNAPSHOTS)
-        _(" S - take vm snapshot"),
-        _(" X - revert vm snapshot"),
-        _(" D - delete vm snapshot"),
-#else
-          "",
-          "",
-          "",
-#endif /* NM_SAVEVM_SNAPSHOTS */
-          "",
-        _(" Page 2. \"->\" - next, \"<-\" - prev")
-    };
-
-    const char *msg_p3[] = {
-        prog_name,
-          "",
-        _(" ? - print vm info"),
-        _(" / - search"),
-#if defined (NM_OS_LINUX)
-        _(" + - attach usb device"),
-        _(" - - detach usb device"),
-#else
-          "",
-          "",
-#endif
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-        _(" Page 3. \"->\" - next, \"<-\" - prev")
-    };
-
-    for (;;)
+    if (perc != 100)
     {
         int ch;
-        int x, y;
-        const char **curr_page = NULL;
-        size_t lines = 0;
+        size_t shift = 0;
 
-        switch (curr_p) {
-        case 1:
-            curr_page = msg_p1;
-            lines = nm_arr_len(msg_p1);
-            break;
-        case 2:
-            curr_page = msg_p2;
-            lines = nm_arr_len(msg_p2);
-            break;
-        case 3:
-            curr_page = msg_p3;
-            lines = nm_arr_len(msg_p3);
-            break;
-        default:
-            nm_bug("%s, no such page: %d", __func__, curr_p);
+        for (;;)
+        {
+            ch = wgetch(action_window);
+
+            if (ch == NM_KEY_ENTER)
+            {
+                shift++;
+                n = shift;
+                werase(action_window);
+
+                if (last == hotkey_num)
+                    break;
+
+                for (size_t y = 3, l = 0; l < rows && n < hotkey_num; n++, y++, l++)
+                    mvwprintw(action_window, y, 2, "%-10s%s", keys[n], values[n]);
+
+                last = n;
+                nm_str_trunc(&help_title, 0);
+                if (last < hotkey_num)
+                {
+                    perc = 100 * last / hotkey_num;
+                    nm_str_format(&help_title, _("Help [%d%%]") , perc);
+                }
+                else
+                    nm_str_format(&help_title, _("Help [end]"));
+
+                nm_init_action(help_title.data);
+            }
+            else
+                break;
         }
-
-        box(w, 0, 0);
-        getmaxyx(w, y, x);
-        mvwaddch(w, 2, 0, ACS_LTEE);
-        mvwhline(w, 2, 1, ACS_HLINE, x - 2);
-        mvwaddch(w, 2, x - 1, ACS_RTEE);
-        for (size_t n = 0, y = 1; n < lines; n++, y++)
-            mvwprintw(w, y, 1, "%s", curr_page[n]);
-
-        ch = wgetch(w);
-        if (ch != KEY_LEFT && ch != KEY_RIGHT)
-            break;
-
-        switch (ch) {
-        case KEY_LEFT:
-            curr_p--;
-            break;
-        case KEY_RIGHT:
-            curr_p++;
-            break;
-        }
-
-        if (curr_p == 0)
-            curr_p = 3;
-        if (curr_p == 4)
-            curr_p = 1;
-
-        for (int i = 0; i <= y; i++)
-            mvwhline(w, i, 0, ' ', x);
     }
-#endif
+    else
+        wgetch(action_window);
+
+    wrefresh(action_window);
+    nm_init_action(NULL);
+    nm_str_free(&help_title);
 }
 
 void nm_print_nemu(void)
