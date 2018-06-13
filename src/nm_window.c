@@ -392,7 +392,8 @@ void nm_print_help(void)
         "attach usb device",
         "detach usb device",
 #endif
-        "kill vm process"
+        "kill vm process",
+        NULL
     };
 
     size_t hotkey_num = nm_arr_len(keys);
