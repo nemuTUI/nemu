@@ -1,5 +1,6 @@
 #include <nm_core.h>
 #include <nm_form.h>
+#include <nm_menu.h>
 #include <nm_utils.h>
 #include <nm_window.h>
 #include <nm_network.h>
@@ -44,7 +45,7 @@ static nm_field_t *fields[NM_NET_FIELDS_NUM + 1];
 
 static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm,
                                     const nm_sel_iface_t *iface);
-static void nm_edit_net_field_names(const nm_str_t *name, nm_window_t *w,
+static void nm_edit_net_field_names(const nm_str_t *name,
                                     const nm_sel_iface_t *ifname);
 static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
                                 const nm_sel_iface_t *ifname);
@@ -66,13 +67,39 @@ enum {
 
 void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
 {
-    nm_form_t *form = NULL;
-    nm_window_t *window = NULL;
-    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
+    nm_menu_data_t ifs = NM_INIT_MENU_DATA;
+    nm_vect_t ifaces = NM_INIT_VECT;
+    size_t vm_list_len = (getmaxy(side_window) - 4);
+    size_t iface_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
+    
+    ifs.highlight = 1;
+    if (vm_list_len < vm->ifs.n_memb)
+        ifs.item_last = vm_list_len;
+    else
+        ifs.item_last = vm_list_len = vm->ifs.n_memb;
+
+    for (size_t n = 0; n < iface_count; n++)
+    {
+        size_t idx_shift = NM_IFS_IDX_COUNT * n;
+        nm_vect_insert(&ifaces,
+                       nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                       nm_vect_str_len(&vm->ifs, NM_SQL_IF_NAME + idx_shift) + 1,
+                       NULL);
+    }
+
+    ifs.v = &ifaces;
+    nm_print_iface_menu(&ifs);
+    wgetch(action_window);
+
+    nm_vect_free(&ifaces, NULL);
+#if 0
+    for (;;)
+    {
+        //...
+    }
     nm_iface_t iface = NM_INIT_NET_IF;
     nm_sel_iface_t sel_iface = NM_INIT_SEL_IF;
     size_t msg_len;
-    pthread_t spin_th;
     int done = 0, mult = 2;
     size_t iface_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
 
@@ -97,9 +124,6 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
     //window = nm_init_window((mult == 2) ? 12 : 8, 51, 3);
 #endif
 
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
-
     for (size_t n = 0; n < NM_NET_FIELDS_NUM; ++n)
     {
         fields[n] = new_field(1, 27, ((n + 1) * mult) + 1, 3, 0, 0);
@@ -109,7 +133,7 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
     fields[NM_NET_FIELDS_NUM] = NULL;
 
     nm_edit_net_field_setup(vm, &sel_iface);
-    nm_edit_net_field_names(name, window, &sel_iface);
+    nm_edit_net_field_names(name, &sel_iface);
 
     form = nm_post_form(window, fields, 18);
     if (nm_draw_form(window, form) != NM_OK)
@@ -118,21 +142,12 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
     if (nm_edit_net_get_data(name, &iface, &sel_iface) != NM_OK)
         goto out;
 
-    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
-    sp_data.stop = &done;
-    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
-
-    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
-        nm_bug(_("%s: cannot create thread"), __func__);
-
     nm_edit_net_update_db(name, &iface, &sel_iface);
 
-    done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
-        nm_bug(_("%s: cannot join thread"), __func__);
 out:
     nm_form_free(form, fields);
     nm_edit_net_iface_free(&iface);
+#endif
 }
 
 static void nm_edit_net_select_iface(const nm_vmctl_data_t *vm, size_t ifcnt,
@@ -252,7 +267,7 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, const nm_sel_ifac
         set_field_status(fields[n], 0);
 }
 
-static void nm_edit_net_field_names(const nm_str_t *name, nm_window_t *w,
+static void nm_edit_net_field_names(const nm_str_t *name,
                                     const nm_sel_iface_t *ifname)
 {
     int y = 3, mult = 2;
@@ -264,15 +279,15 @@ static void nm_edit_net_field_names(const nm_str_t *name, nm_window_t *w,
     nm_str_alloc_str(&buf, name);
     nm_str_add_text(&buf, _(" network settings:"));
 
-    mvwaddstr(w, 1,         2,  buf.data);
-    mvwaddstr(w, 2,         2,  ifname->name);
-    mvwaddstr(w, y += mult, 2, _("Net driver"));
-    mvwaddstr(w, y += mult, 2, _("Mac address"));
-    mvwaddstr(w, y += mult, 2, _("IPv4 address"));
+    mvwaddstr(action_window, 1,         2,  buf.data);
+    mvwaddstr(action_window, 2,         2,  ifname->name);
+    mvwaddstr(action_window, y += mult, 2, _("Net driver"));
+    mvwaddstr(action_window, y += mult, 2, _("Mac address"));
+    mvwaddstr(action_window, y += mult, 2, _("IPv4 address"));
 #if defined (NM_OS_LINUX)
-    mvwaddstr(w, y += mult, 2, _("Enable vhost"));
-    mvwaddstr(w, y += mult, 2, _("Enable MacVTap"));
-    mvwaddstr(w, y += mult, 2, _("MacVTap iface"));
+    mvwaddstr(action_window, y += mult, 2, _("Enable vhost"));
+    mvwaddstr(action_window, y += mult, 2, _("Enable MacVTap"));
+    mvwaddstr(action_window, y += mult, 2, _("MacVTap iface"));
 #endif
 
     nm_str_free(&buf);

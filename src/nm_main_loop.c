@@ -211,6 +211,23 @@ void nm_start_main_loop(void)
                 nm_init_help(NULL, 0);
                 break;
 
+            case NM_KEY_I:
+                {
+                    nm_vmctl_data_t vm_data = NM_VMCTL_INIT_DATA;
+                    nm_vmctl_get_data(name, &vm_data);
+
+                    if (vm_data.ifs.n_memb == 0)
+                    {
+                        nm_warn(_(NM_MSG_NO_IFACES));
+                    }
+                    else
+                    {
+                        nm_edit_net(name, &vm_data);
+                    }
+                    nm_vmctl_free_data(&vm_data);
+                }
+                break;
+
             case NM_KEY_SLASH:
                 {
                     int err = NM_FALSE;
@@ -219,7 +236,7 @@ void nm_start_main_loop(void)
 
                     if (err == NM_TRUE)
                     {
-                        nm_warn_small_size();
+                        nm_warn(_(NM_MSG_SMALL_WIN));
                         break;
                     }
 
@@ -278,7 +295,7 @@ void nm_start_main_loop(void)
             nm_init_action(NULL);
 
             vm_list_len = (getmaxy(side_window) - 4);
-            /* TODO save lost pos */
+            /* TODO save last pos */
             if (vm_list_len < vm_list.n_memb)
             {
                 vms.item_last = vm_list_len;

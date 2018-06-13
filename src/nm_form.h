@@ -9,9 +9,6 @@
 #include <form.h>
 #include <pthread.h>
 
-#define NM_FORM_EMPTY_MSG  "These fields cannot be empty:"
-#define NM_FORM_VMNAME_MSG "This name is already used"
-
 typedef FORM nm_form_t;
 typedef FIELD nm_field_t;
 
@@ -100,6 +97,13 @@ extern const char *nm_form_drive_drv[];
 extern const char *nm_form_macvtap[];
 
 #define NM_FORM_RATIO  0.80
+
+#define NM_FORM_RESET()                                       \
+                do {                                          \
+                    curs_set(0);                              \
+                    wtimeout(action_window, -1);              \
+                }                                             \
+                while (0);
 
 #define nm_form_check_data(name, val, v)                      \
     {                                                         \

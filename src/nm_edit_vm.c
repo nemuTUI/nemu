@@ -46,11 +46,8 @@ void nm_edit_vm(const nm_str_t *name)
 {
     nm_vm_t vm = NM_INIT_VM;
     nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
-    //nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     uint64_t last_mac;
-/*    pthread_t spin_th;
-    int done = 0;*/
     size_t msg_len;
 
     msg_len = nm_max_msg_len(nm_form_msg);
@@ -72,25 +69,13 @@ void nm_edit_vm(const nm_str_t *name)
 
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
-    
+
     nm_form_get_last(&last_mac, NULL);
 
     if (nm_edit_vm_get_data(&vm, &cur_settings) != NM_OK)
         goto out;
 
     nm_edit_vm_update_db(&vm, &cur_settings, last_mac);
-#if 0
-    sp_data.stop = &done;
-
-    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
-        nm_bug(_("%s: cannot create thread"), __func__);
-
-    nm_edit_vm_update_db(&vm, &cur_settings, last_mac);
-
-    done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
-       nm_bug(_("%s: cannot join thread"), __func__);
-#endif
 
 out:
     wtimeout(action_window, -1);
@@ -222,7 +207,8 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
                 (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_HCPU), NM_ENABLE) == NM_OK))
             {
                 rc = NM_ERR;
-                nm_print_warn(3, 6, _("Host CPU requires KVM enabled"));
+                NM_FORM_RESET();
+                nm_warn(_(NM_MSG_HCPU_KVM));
                 goto out;
             }
         }
@@ -237,7 +223,8 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
                  !field_status(fields[NM_FLD_KVMFLG])))
             {
                 rc = NM_ERR;
-                nm_print_warn(3, 6, _("Host CPU requires KVM enabled"));
+                NM_FORM_RESET();
+                nm_warn(_(NM_MSG_HCPU_KVM));
                 goto out;
             }
             vm->kvm.hostcpu_enable = 1;

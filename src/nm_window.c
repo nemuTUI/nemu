@@ -46,7 +46,7 @@ void nm_create_windows(void)
 void nm_init_help(const char *msg, int err)
 {
     wbkgd(help_window, COLOR_PAIR(err ? 4 : 1));
-    mvwprintw(help_window, 0, 1, msg ? msg : _("q:Quit ?:Help"));
+    mvwprintw(help_window, 0, 1, msg ? msg : _("q:Quit I:Install O:Import ?:Help"));
     wrefresh(help_window);
 }
 
@@ -408,7 +408,7 @@ void nm_print_help(void)
 
     if (maxlen + 10 > cols)
     {
-        nm_warn_small_size();
+        nm_warn(_(NM_MSG_SMALL_WIN));
         return;
     }
 
@@ -560,10 +560,11 @@ size_t nm_max_msg_len(const char **msg)
     return len;
 }
 
-void nm_warn_small_size(void)
+void nm_warn(const char *msg)
 {
+    assert(msg != NULL);
     werase(help_window);
-    nm_init_help(_("Window size to small, press any key"), NM_TRUE);
+    nm_init_help(msg, NM_TRUE);
     wgetch(action_window);
     werase(help_window);
     nm_init_help(NULL, 0);

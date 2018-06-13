@@ -18,7 +18,7 @@ void nm_init_action(const char *msg);
 void nm_init_help(const char *msg, int err);
 void nm_init_side(void);
 void nm_align2line(nm_str_t *str, size_t line_len);
-void nm_warn_small_size(void);
+void nm_warn(const char *msg);
 size_t nm_max_msg_len(const char **msg);
 
 /* Help window*/
@@ -33,6 +33,13 @@ extern sig_atomic_t redraw_window;
 #define NM_EDIT_TITLE "ESC - cancel, ENTER - OK"
 #define NM_EDIT_HELP  "esc:Cancel enter:Save"
 #define NM_SPACES "                         "
+#define NM_MSG_ANY_KEY   ", press any key"
+#define NM_MSG_SMALL_WIN "Window size to small" NM_MSG_ANY_KEY
+#define NM_MSG_NO_IFACES "No network configured" NM_MSG_ANY_KEY
+#define NM_MSG_HCPU_KVM  "Host CPU requires KVM enabled" NM_MSG_ANY_KEY
+#define NM_MSG_BAD_CTX   "Contents of field is invalid" NM_MSG_ANY_KEY
+#define NM_MSG_NULL_FLD  "These fields cannot be empty:"
+#define NM_MSG_NAME_BUSY "This name is already used"
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)
@@ -69,6 +76,8 @@ enum nm_key {
 
 enum nm_key_upper {
     NM_KEY_D_UP = 68,
+    NM_KEY_I_UP = 73,
+    NM_KEY_O_UP = 79,
     NM_KEY_P_UP = 80,
     NM_KEY_R_UP = 82,
     NM_KEY_S_UP = 83,

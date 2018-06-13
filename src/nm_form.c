@@ -197,7 +197,8 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
     if ((confirm == NM_OK) && (rc == NM_ERR))
     {
         confirm = NM_ERR;
-        nm_print_warn(3, 2, _("Contents of field is invalid"));
+        NM_FORM_RESET();
+        nm_warn(_(NM_MSG_BAD_CTX));
     }
 
     return confirm;
@@ -215,7 +216,7 @@ int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form)
     if (form->w_cols < (max_msg + 18) ||
         form->w_rows > rows - 4)
     {
-        nm_warn_small_size();
+        nm_warn(_(NM_MSG_SMALL_WIN));
         return NM_ERR;
     }
 
@@ -440,27 +441,20 @@ out:
 
 int nm_print_empty_fields(const nm_vect_t *v)
 {
-    int y = 1;
-    size_t msg_len;
+    nm_str_t msg = NM_INIT_STR;
 
     if (v->n_memb == 0)
         return NM_OK;
 
-    msg_len = mbstowcs(NULL, _(NM_FORM_EMPTY_MSG), strlen(_(NM_FORM_EMPTY_MSG)));
-#if 0
-    nm_window_t *err_window = nm_init_window(4 + v->n_memb, msg_len + 2, 2);
-    curs_set(0);
-    box(err_window, 0, 0);
-    mvwprintw(err_window, y++, 1, "%s", _(NM_FORM_EMPTY_MSG));
+    NM_FORM_RESET();
+
+    nm_str_alloc_text(&msg, _(NM_MSG_NULL_FLD));
 
     for (size_t n = 0; n < v->n_memb; n++)
-        mvwprintw(err_window, ++y, 1, "%s", (char *) v->data[n]);
+        nm_str_format(&msg, " '%s'", (char *) v->data[n]);
 
-    wrefresh(err_window);
-    wgetch(err_window);
-
-    delwin(err_window);
-#endif
+    nm_warn(msg.data);
+    nm_str_free(&msg);
 
     return NM_ERR;
 }
@@ -480,7 +474,7 @@ int nm_form_name_used(const nm_str_t *name)
     if (res.n_memb > 0)
     {
         rc = NM_ERR;
-        nm_print_warn(3, 2, _(NM_FORM_VMNAME_MSG));
+        nm_warn(_(NM_MSG_NAME_BUSY));
     }
 
     nm_vect_free(&res, NULL);

@@ -37,6 +37,54 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
     }
 }
 
+void nm_print_iface_menu(nm_menu_data_t *ifs)
+{
+    int x = 2, y = 3;
+    size_t screen_x;
+
+    screen_x = getmaxx(side_window);
+    if (screen_x < 20) /* window to small */
+    {
+        mvwaddstr(side_window, 3, 1, "...");
+        wrefresh(side_window);
+        return;
+    }
+
+    for (size_t n = ifs->item_first, i = 0; n < ifs->item_last; n++, i++)
+    {
+        nm_str_t if_name = NM_INIT_STR;
+        int space_num;
+
+        if (n >= ifs->v->n_memb)
+            nm_bug(_("%s: invalid index: %zu"), __func__, n);
+
+        nm_str_alloc_str(&if_name, nm_vect_str(ifs->v, n));
+        nm_align2line(&if_name, screen_x);
+
+        space_num = (screen_x - if_name.len - 4);
+        if (space_num > 0)
+        {
+            for (int n = 0; n < space_num; n++)
+                nm_str_add_char_opt(&if_name, ' ');
+        }
+
+        if (ifs->highlight == i + 1)
+        {
+            wattron(side_window, A_REVERSE);
+            mvwprintw(side_window, y, x, "%s", if_name.data);
+            wattroff(side_window, A_REVERSE);
+        }
+        else
+        {
+            mvwprintw(side_window, y, x, "%s", if_name.data);
+        }
+
+        y++;
+        wrefresh(side_window);
+        nm_str_free(&if_name);
+    }
+}
+
 void nm_print_vm_menu(nm_menu_data_t *vm)
 {
     int x = 2, y = 3;

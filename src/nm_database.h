@@ -67,6 +67,9 @@
     "SELECT drive_name FROM drives " \
     "WHERE vm_name='%s' AND boot='1'"
 
+#define NM_GET_IFACES_SQL \
+    "SELECT if_name FROM ifaces WHERE vm_name='%s'"
+
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
 void nm_db_edit(const char *query);
