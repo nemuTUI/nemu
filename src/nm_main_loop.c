@@ -222,7 +222,17 @@ void nm_start_main_loop(void)
                     }
                     else
                     {
+                        werase(side_window);
+                        werase(action_window);
+                        werase(help_window);
+                        nm_init_help(_(NM_MSG_HELP_IFACE), 0);
+                        nm_init_action(_(NM_MSG_IF_PROP));
+                        nm_init_side_if_list();
                         nm_edit_net(name, &vm_data);
+                        werase(side_window);
+                        werase(help_window);
+                        nm_init_side();
+                        nm_init_help(NULL, 0);
                     }
                     nm_vmctl_free_data(&vm_data);
                 }

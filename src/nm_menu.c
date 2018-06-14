@@ -42,6 +42,9 @@ void nm_print_iface_menu(nm_menu_data_t *ifs)
     int x = 2, y = 3;
     size_t screen_x;
 
+    wattroff(side_window, COLOR_PAIR(2));
+    wattroff(side_window, COLOR_PAIR(3));
+
     screen_x = getmaxx(side_window);
     if (screen_x < 20) /* window to small */
     {
@@ -58,7 +61,7 @@ void nm_print_iface_menu(nm_menu_data_t *ifs)
         if (n >= ifs->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
-        nm_str_alloc_str(&if_name, nm_vect_str(ifs->v, n));
+        nm_str_alloc_text(&if_name, (char *) ifs->v->data[n]);
         nm_align2line(&if_name, screen_x);
 
         space_num = (screen_x - if_name.len - 4);
@@ -103,8 +106,8 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
     memset(&file_info, 0, sizeof(file_info));
 
     /* TODO support 256 colors */
-    init_pair(2, COLOR_WHITE, COLOR_BLACK);
-    init_pair(3, COLOR_GREEN, COLOR_BLACK);
+    //init_pair(2, COLOR_WHITE, COLOR_BLACK);
+    init_pair(3, COLOR_GREEN, -1);
     wattroff(side_window, COLOR_PAIR(2));
     wattroff(side_window, COLOR_PAIR(3));
 
@@ -139,7 +142,7 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         else
         {
             nm_vect_set_item_status(vm->v, n, 0);
-            wattron(side_window, COLOR_PAIR(2));
+            //wattron(side_window, COLOR_PAIR(2));
         }
 
         if (vm->highlight == i + 1)

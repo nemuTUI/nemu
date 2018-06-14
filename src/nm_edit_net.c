@@ -73,10 +73,10 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
     size_t iface_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
     
     ifs.highlight = 1;
-    if (vm_list_len < vm->ifs.n_memb)
+    if (vm_list_len < iface_count)
         ifs.item_last = vm_list_len;
     else
-        ifs.item_last = vm_list_len = vm->ifs.n_memb;
+        ifs.item_last = iface_count;
 
     for (size_t n = 0; n < iface_count; n++)
     {
@@ -89,6 +89,7 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
 
     ifs.v = &ifaces;
     nm_print_iface_menu(&ifs);
+    nm_print_iface_info(vm, ifs.highlight);
     wgetch(action_window);
 
     nm_vect_free(&ifaces, NULL);

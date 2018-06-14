@@ -56,6 +56,14 @@ void nm_init_side(void)
     wtimeout(side_window, 500);
 }
 
+void nm_init_side_if_list(void)
+{
+    //wattroff(side_window, COLOR_PAIR(2));
+    wattroff(side_window, COLOR_PAIR(3));
+    nm_init_window__(side_window, _("Iface list"));
+    wtimeout(side_window, -1);
+}
+
 void nm_init_action(const char *msg)
 {
     nm_init_window__(action_window, msg ? msg : _("Properties"));
@@ -133,6 +141,36 @@ void nm_print_cmd(const nm_str_t *name)
 
     refresh();
     getch();
+}
+
+void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
+{
+    nm_str_t buf = NM_INIT_STR;
+    size_t y = 3, x = 2;
+    size_t cols, rows;
+    size_t idx_shift;
+
+    assert(idx > 0);
+    idx_shift = NM_IFS_IDX_COUNT * (--idx);
+
+    getmaxyx(action_window, rows, cols);
+
+    nm_str_format(&buf, "%-12s%s", "hwaddr: ",
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
+    NM_PR_VM_INFO();
+
+    nm_str_format(&buf, "%-12s%s", "driver: ",
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
+    NM_PR_VM_INFO();
+
+    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) > 0)
+    {
+        nm_str_format(&buf, "%-12s%s", "host addr: ",
+                nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
+        NM_PR_VM_INFO();
+    }
+
+    nm_str_free(&buf);
 }
 
 void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)

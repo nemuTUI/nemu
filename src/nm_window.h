@@ -8,6 +8,7 @@ void nm_print_main_window(void);
 void nm_print_vm_window(void);
 int nm_print_warn(int nlines, int begin_x, const char *msg);
 void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm);
+void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx);
 void nm_print_cmd(const nm_str_t *name);
 void nm_print_help(void);
 void nm_print_nemu(void);
@@ -17,6 +18,7 @@ void nm_destroy_windows(void);
 void nm_init_action(const char *msg);
 void nm_init_help(const char *msg, int err);
 void nm_init_side(void);
+void nm_init_side_if_list(void);
 void nm_align2line(nm_str_t *str, size_t line_len);
 void nm_warn(const char *msg);
 size_t nm_max_msg_len(const char **msg);
@@ -33,13 +35,16 @@ extern sig_atomic_t redraw_window;
 #define NM_EDIT_TITLE "ESC - cancel, ENTER - OK"
 #define NM_EDIT_HELP  "esc:Cancel enter:Save"
 #define NM_SPACES "                         "
-#define NM_MSG_ANY_KEY   ", press any key"
-#define NM_MSG_SMALL_WIN "Window size to small" NM_MSG_ANY_KEY
-#define NM_MSG_NO_IFACES "No network configured" NM_MSG_ANY_KEY
-#define NM_MSG_HCPU_KVM  "Host CPU requires KVM enabled" NM_MSG_ANY_KEY
-#define NM_MSG_BAD_CTX   "Contents of field is invalid" NM_MSG_ANY_KEY
-#define NM_MSG_NULL_FLD  "These fields cannot be empty:"
-#define NM_MSG_NAME_BUSY "This name is already used"
+
+#define NM_MSG_ANY_KEY    ", press any key"
+#define NM_MSG_SMALL_WIN  "Window size to small" NM_MSG_ANY_KEY
+#define NM_MSG_NO_IFACES  "No network configured" NM_MSG_ANY_KEY
+#define NM_MSG_HCPU_KVM   "Host CPU requires KVM enabled" NM_MSG_ANY_KEY
+#define NM_MSG_BAD_CTX    "Contents of field is invalid" NM_MSG_ANY_KEY
+#define NM_MSG_NULL_FLD   "These fields cannot be empty:"
+#define NM_MSG_NAME_BUSY  "This name is already used"
+#define NM_MSG_IF_PROP    "Interface properties"
+#define NM_MSG_HELP_IFACE "q:Back enter:Edit"
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)
