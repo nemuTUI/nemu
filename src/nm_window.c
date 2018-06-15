@@ -96,8 +96,8 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err)
             x+=2;
         }
 
-        mvwprintw(help_window, y, x, msg[n]);
-        x += mbstowcs(NULL, msg[n], strlen(msg[n]));
+        mvwprintw(help_window, y, x, _(msg[n]));
+        x += mbstowcs(NULL, _(msg[n]), strlen(_(msg[n])));
     }
 
     wrefresh(help_window);
