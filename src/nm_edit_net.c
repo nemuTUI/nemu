@@ -43,10 +43,9 @@ typedef struct {
 
 static nm_field_t *fields[NM_NET_FIELDS_NUM + 1];
 
+static void nm_edit_net_field_names(nm_window_t *w);
 static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm,
-                                    const nm_sel_iface_t *iface);
-static void nm_edit_net_field_names(const nm_str_t *name,
-                                    const nm_sel_iface_t *ifname);
+                                    size_t if_idx);
 static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
                                 const nm_sel_iface_t *ifname);
 static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
@@ -55,6 +54,22 @@ static inline void nm_edit_net_iface_free(nm_iface_t *ifp);
 static int nm_edit_net_maddr_busy(const nm_str_t *mac);
 static void nm_edit_net_select_iface(const nm_vmctl_data_t *vm, size_t ifcnt,
                                      nm_sel_iface_t *ifp);
+static int nm_edit_net_action(const nm_str_t *name,
+                              const nm_vmctl_data_t *vm, size_t if_idx);
+
+static const char *nm_form_msg[] = {
+    "Net driver",
+    "Mac address",
+    "IPv4 address",
+#if defined (NM_OS_LINUX)
+    "Enable vhost",
+    "Enable MacVTap",
+    "MacVTap iface",
+#endif
+    NULL
+};
+
+static nm_form_t *form = NULL;
 
 enum {
     NM_FLD_NDRV = 0,
@@ -65,11 +80,12 @@ enum {
     NM_FLD_PETH
 };
 
-void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
+void nm_edit_net(const nm_str_t *name, nm_vmctl_data_t *vm)
 {
     int ch;
     nm_menu_data_t ifs = NM_INIT_MENU_DATA;
     nm_vect_t ifaces = NM_INIT_VECT;
+    nm_iface_t iface_data = NM_INIT_NET_IF;
     size_t vm_list_len = (getmaxy(side_window) - 4);
     size_t iface_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
     
@@ -152,10 +168,19 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
 
         else if (ch == NM_KEY_ENTER)
         {
-            //...
+            werase(action_window);
+            nm_init_action(_(NM_MSG_IF_PROP));
+
+            if (nm_edit_net_action(name, vm, ifs.highlight) == NM_OK)
+            {
+                nm_vmctl_free_data(vm);
+                nm_vmctl_get_data(name, vm);
+            }
         }
 
         nm_print_iface_menu(&ifs);
+        werase(action_window);
+        nm_init_action(_(NM_MSG_IF_PROP));
         nm_print_iface_info(vm, ifs.highlight);
 
         if (redraw_window)
@@ -242,6 +267,44 @@ out:
 #endif
 }
 
+static int
+nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_idx)
+{
+    int rc = NM_OK;
+    size_t msg_len = nm_max_msg_len(nm_form_msg);
+    nm_form_data_t form_data = NM_INIT_FORM_DATA;
+
+    werase(help_window);
+    nm_init_help_edit();
+
+    if (nm_form_calc_size(msg_len, NM_NET_FIELDS_NUM, &form_data) != NM_OK)
+        return NM_ERR;
+
+    for (size_t n = 0; n < NM_NET_FIELDS_NUM; ++n)
+        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+
+    fields[NM_NET_FIELDS_NUM] = NULL;
+
+    nm_edit_net_field_setup(vm, if_idx);
+    nm_edit_net_field_names(form_data.form_window);
+
+    form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+
+    if (nm_draw_form(action_window, form) != NM_OK)
+    {
+        rc = NM_ERR;
+        goto out;
+    }
+
+out:
+    nm_form_free(form, fields);
+    delwin(form_data.form_window);
+    werase(help_window);
+    nm_init_help_iface();
+
+    return rc;
+}
+
 static void nm_edit_net_select_iface(const nm_vmctl_data_t *vm, size_t ifcnt,
                                      nm_sel_iface_t *ifp)
 {
@@ -309,9 +372,13 @@ out:
     nm_str_free(&buf);
 }
 
-static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, const nm_sel_iface_t *iface)
+static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, size_t if_idx)
 {
     size_t mvtap_idx = 0;
+    size_t idx_shift;
+
+    assert(if_idx > 0);
+    idx_shift = NM_IFS_IDX_COUNT * (--if_idx);
 
     set_field_type(fields[NM_FLD_NDRV], TYPE_ENUM, nm_form_net_drv, false, false);
     set_field_type(fields[NM_FLD_MADR], TYPE_REGEXP, ".*");
@@ -329,27 +396,27 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, const nm_sel_ifac
 #endif
 
     set_field_buffer(fields[NM_FLD_NDRV], 0,
-        nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + iface->if_idx));
+        nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
     set_field_buffer(fields[NM_FLD_MADR], 0,
-        nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + iface->if_idx));
-    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + iface->if_idx) > 0)
+        nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
+    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) > 0)
     {
         set_field_buffer(fields[NM_FLD_IPV4], 0,
-            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + iface->if_idx));
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
     }
 #if defined (NM_OS_LINUX)
     set_field_buffer(fields[NM_FLD_VHST], 0,
-        (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + iface->if_idx),
+        (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift),
             NM_ENABLE) == NM_OK) ? "yes" : "no");
 
-    mvtap_idx = nm_str_stoui(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + iface->if_idx), 10);
+    mvtap_idx = nm_str_stoui(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift), 10);
     if (mvtap_idx > NM_NET_MACVTAP_NUM)
         nm_bug("%s: invalid macvtap array index: %zu", __func__, mvtap_idx);
     set_field_buffer(fields[NM_FLD_MTAP], 0, nm_form_macvtap[mvtap_idx]);
-    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_PET + iface->if_idx) > 0)
+    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_PET + idx_shift) > 0)
     {
         set_field_buffer(fields[NM_FLD_PETH], 0,
-            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_PET + iface->if_idx));
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_PET + idx_shift));
     }
 #else
     (void) mvtap_idx;
@@ -359,30 +426,15 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, const nm_sel_ifac
         set_field_status(fields[n], 0);
 }
 
-static void nm_edit_net_field_names(const nm_str_t *name,
-                                    const nm_sel_iface_t *ifname)
+static void nm_edit_net_field_names(nm_window_t *w)
 {
-    int y = 3, mult = 2;
-    nm_str_t buf = NM_INIT_STR;
+    int y = 1, x = 2, mult = 2;
 
-    if (getmaxy(stdscr) <= 28)
-        mult = 1;
-
-    nm_str_alloc_str(&buf, name);
-    nm_str_add_text(&buf, _(" network settings:"));
-
-    mvwaddstr(action_window, 1,         2,  buf.data);
-    mvwaddstr(action_window, 2,         2,  ifname->name);
-    mvwaddstr(action_window, y += mult, 2, _("Net driver"));
-    mvwaddstr(action_window, y += mult, 2, _("Mac address"));
-    mvwaddstr(action_window, y += mult, 2, _("IPv4 address"));
-#if defined (NM_OS_LINUX)
-    mvwaddstr(action_window, y += mult, 2, _("Enable vhost"));
-    mvwaddstr(action_window, y += mult, 2, _("Enable MacVTap"));
-    mvwaddstr(action_window, y += mult, 2, _("MacVTap iface"));
-#endif
-
-    nm_str_free(&buf);
+    for (size_t n = 0; n < NM_NET_FIELDS_NUM; n++)
+    {
+        mvwaddstr(w, y, x, _(nm_form_msg[n]));
+        y += mult;
+    }
 }
 
 static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
