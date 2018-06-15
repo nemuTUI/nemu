@@ -67,6 +67,7 @@ enum {
 
 void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
 {
+    int ch;
     nm_menu_data_t ifs = NM_INIT_MENU_DATA;
     nm_vect_t ifaces = NM_INIT_VECT;
     size_t vm_list_len = (getmaxy(side_window) - 4);
@@ -76,7 +77,7 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
     if (vm_list_len < iface_count)
         ifs.item_last = vm_list_len;
     else
-        ifs.item_last = iface_count;
+        ifs.item_last = vm_list_len = iface_count;
 
     for (size_t n = 0; n < iface_count; n++)
     {
@@ -88,9 +89,99 @@ void nm_edit_net(const nm_str_t *name, const nm_vmctl_data_t *vm)
     }
 
     ifs.v = &ifaces;
-    nm_print_iface_menu(&ifs);
-    nm_print_iface_info(vm, ifs.highlight);
-    wgetch(action_window);
+    do {
+        if ((ch == KEY_UP) && (ifs.highlight == 1) && (ifs.item_first == 0) &&
+            (vm_list_len < ifs.v->n_memb))
+        {
+            ifs.highlight = vm_list_len;
+            ifs.item_first = ifs.v->n_memb - vm_list_len;
+            ifs.item_last = ifs.v->n_memb;
+        }
+
+        else if (ch == KEY_UP)
+        {
+            if ((ifs.highlight == 1) && (ifs.v->n_memb <= vm_list_len))
+                ifs.highlight = ifs.v->n_memb;
+            else if ((ifs.highlight == 1) && (ifs.item_first != 0))
+            {
+                ifs.item_first--;
+                ifs.item_last--;
+            }
+            else
+            {
+                ifs.highlight--;
+            }
+        }
+
+        else if ((ch == KEY_DOWN) && (ifs.highlight == vm_list_len) &&
+                 (ifs.item_last == ifs.v->n_memb))
+        {
+            ifs.highlight = 1;
+            ifs.item_first = 0;
+            ifs.item_last = vm_list_len;
+        }
+
+        else if (ch == KEY_DOWN)
+        {
+            if ((ifs.highlight == ifs.v->n_memb) && (ifs.v->n_memb <= vm_list_len))
+                ifs.highlight = 1;
+            else if ((ifs.highlight == vm_list_len) && (ifs.item_last < ifs.v->n_memb))
+            {
+                ifs.item_first++;
+                ifs.item_last++;
+            }
+            else
+            {
+                ifs.highlight++;
+            }
+        }
+
+        else if (ch == KEY_HOME)
+        {
+            ifs.highlight = 1;
+            ifs.item_first = 0;
+            ifs.item_last = vm_list_len;
+        }
+
+        else if (ch == KEY_END)
+        {
+            ifs.highlight = vm_list_len;
+            ifs.item_first = ifs.v->n_memb - vm_list_len;
+            ifs.item_last = ifs.v->n_memb;
+        }
+
+        else if (ch == NM_KEY_ENTER)
+        {
+            //...
+        }
+
+        nm_print_iface_menu(&ifs);
+        nm_print_iface_info(vm, ifs.highlight);
+
+        if (redraw_window)
+        {
+            nm_destroy_windows();
+            endwin();
+            refresh();
+            nm_create_windows();
+            nm_init_help_iface();
+            nm_init_side_if_list();
+            nm_init_action(_(NM_MSG_IF_PROP));
+
+            vm_list_len = (getmaxy(side_window) - 4);
+            /* TODO save last pos */
+            if (vm_list_len < iface_count)
+            {
+                ifs.item_last = vm_list_len;
+                ifs.item_first = 0;
+                ifs.highlight = 1;
+            }
+            else
+                ifs.item_last = vm_list_len = iface_count;
+
+            redraw_window = 0;
+        }
+    } while ((ch = wgetch(action_window)) != NM_KEY_Q);
 
     nm_vect_free(&ifaces, NULL);
 #if 0
