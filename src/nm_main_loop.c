@@ -42,7 +42,7 @@ void nm_start_main_loop(void)
     init_pair(4, COLOR_RED, COLOR_WHITE);
 
     nm_create_windows();
-    nm_init_help(NULL, 0);
+    nm_init_help_main();
     nm_init_side();
     nm_init_action(NULL);
 
@@ -205,10 +205,10 @@ void nm_start_main_loop(void)
                 werase(action_window);
                 werase(help_window);
                 nm_init_action(_(NM_EDIT_VM_HEADER));
-                nm_init_help(_(NM_EDIT_HELP), 0);
+                nm_init_help_edit();
                 nm_edit_vm(name);
                 werase(help_window);
-                nm_init_help(NULL, 0);
+                nm_init_help_main();
                 break;
 
             case NM_KEY_I:
@@ -225,14 +225,14 @@ void nm_start_main_loop(void)
                         werase(side_window);
                         werase(action_window);
                         werase(help_window);
-                        nm_init_help(_(NM_MSG_HELP_IFACE), 0);
+                        nm_init_help_iface();
                         nm_init_action(_(NM_MSG_IF_PROP));
                         nm_init_side_if_list();
                         nm_edit_net(name, &vm_data);
                         werase(side_window);
                         werase(help_window);
                         nm_init_side();
-                        nm_init_help(NULL, 0);
+                        nm_init_help_main();
                     }
                     nm_vmctl_free_data(&vm_data);
                 }
@@ -300,7 +300,7 @@ void nm_start_main_loop(void)
             endwin();
             refresh();
             nm_create_windows();
-            nm_init_help(NULL, 0);
+            nm_init_help_main();
             nm_init_side();
             nm_init_action(NULL);
 

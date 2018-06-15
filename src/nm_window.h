@@ -17,6 +17,9 @@ void nm_create_windows(void);
 void nm_destroy_windows(void);
 void nm_init_action(const char *msg);
 void nm_init_help(const char *msg, int err);
+void nm_init_help_main(void);
+void nm_init_help_edit(void);
+void nm_init_help_iface(void);
 void nm_init_side(void);
 void nm_init_side_if_list(void);
 void nm_align2line(nm_str_t *str, size_t line_len);
@@ -33,7 +36,6 @@ extern nm_window_t *action_window;
 extern sig_atomic_t redraw_window;
 
 #define NM_EDIT_TITLE "ESC - cancel, ENTER - OK"
-#define NM_EDIT_HELP  "esc:Cancel enter:Save"
 #define NM_SPACES "                         "
 
 #define NM_MSG_ANY_KEY    ", press any key"
@@ -44,7 +46,6 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_NULL_FLD   "These fields cannot be empty:"
 #define NM_MSG_NAME_BUSY  "This name is already used"
 #define NM_MSG_IF_PROP    "Interface properties"
-#define NM_MSG_HELP_IFACE "q:Back enter:Edit"
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)
@@ -80,8 +81,10 @@ enum nm_key {
 };
 
 enum nm_key_upper {
+    NM_KEY_A_UP = 65,
     NM_KEY_D_UP = 68,
     NM_KEY_I_UP = 73,
+    NM_KEY_N_UP = 78,
     NM_KEY_O_UP = 79,
     NM_KEY_P_UP = 80,
     NM_KEY_R_UP = 82,

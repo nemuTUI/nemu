@@ -22,6 +22,20 @@
     } while (0)
 
 static void nm_init_window__(nm_window_t *w, const char *msg);
+static void nm_print_help_lines(const char **msg, size_t objs, int err);
+
+static const char *nm_help_main_msg[] = {
+    "q:Quit", "I:Install VM", "O:Import OVA",
+    "A:Import image", "?:Help"
+};
+
+static const char *nm_help_iface_msg[] = {
+    "q:Back", "enter:Edit"
+};
+
+static const char *nm_help_edit_msg[] = {
+    "esc:Cancel",  "enter:Save"
+};
 
 void nm_create_windows(void)
 {
@@ -43,10 +57,49 @@ void nm_create_windows(void)
     action_window = nm_init_window(&action_size);
 }
 
+void nm_init_help_main(void)
+{
+    nm_print_help_lines(nm_help_main_msg,
+            nm_arr_len(nm_help_main_msg), NM_FALSE);
+}
+
+void nm_init_help_edit(void)
+{
+    nm_print_help_lines(nm_help_edit_msg,
+            nm_arr_len(nm_help_edit_msg), NM_FALSE);
+}
+
+void nm_init_help_iface(void)
+{
+    nm_print_help_lines(nm_help_iface_msg,
+            nm_arr_len(nm_help_iface_msg), NM_FALSE);
+}
+
 void nm_init_help(const char *msg, int err)
 {
+    nm_print_help_lines(&msg, 1, err);
+}
+
+static void nm_print_help_lines(const char **msg, size_t objs, int err)
+{
+    int x = 1, y = 0;
+
+    assert(msg);
     wbkgd(help_window, COLOR_PAIR(err ? 4 : 1));
-    mvwprintw(help_window, 0, 1, msg ? msg : _("q:Quit I:Install O:Import ?:Help"));
+
+    for (size_t n = 0; n < objs; n++)
+    {
+        if (n > 0)
+        {
+            x++;
+            mvwaddch(help_window, y, x, ACS_VLINE);
+            x+=2;
+        }
+
+        mvwprintw(help_window, y, x, msg[n]);
+        x += mbstowcs(NULL, msg[n], strlen(msg[n]));
+    }
+
     wrefresh(help_window);
 }
 
@@ -605,7 +658,7 @@ void nm_warn(const char *msg)
     nm_init_help(msg, NM_TRUE);
     wgetch(action_window);
     werase(help_window);
-    nm_init_help(NULL, 0);
+    nm_init_help_main();
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
