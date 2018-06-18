@@ -21,6 +21,7 @@ void nm_init_help_main(void);
 void nm_init_help_edit(void);
 void nm_init_help_iface(void);
 void nm_init_help_import(void);
+void nm_init_help_install(void);
 void nm_init_side(void);
 void nm_init_side_if_list(void);
 void nm_align2line(nm_str_t *str, size_t line_len);
@@ -46,11 +47,15 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_HCPU_KVM   "Host CPU requires KVM enabled" NM_MSG_ANY_KEY
 #define NM_MSG_BAD_CTX    "Contents of field is invalid" NM_MSG_ANY_KEY
 #define NM_MSG_NULL_FLD   "These fields cannot be empty:"
-#define NM_MSG_NAME_BUSY  "This name is already used"
+#define NM_MSG_NAME_BUSY  "This name is already used" NM_MSG_ANY_KEY
 #define NM_MSG_IF_PROP    "Interface properties"
 #define NM_MSG_OVA_HEADER "Import OVA image"
 #define NM_MSG_MUST_STOP  "VM must be stopped"
 #define NM_MSG_DELETE     "Confirm deletion? (y/n)"
+#define NM_MSG_INSTALL    "Install VM"
+#define NM_MSG_IMPORT     "Import drive image"
+#define NM_MSG_INST_CONF  "Already installed (y/n)"
+#define NM_MSG_NO_SPACE   "No space left for importing drive image" NM_MSG_ANY_KEY
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)

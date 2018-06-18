@@ -223,6 +223,7 @@ out:
 cancel:
     nm_form_free(form, fields);
     nm_vm_free(&vm);
+    delwin(form_data.form_window);
 }
 
 static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,

@@ -41,6 +41,10 @@ static const char *nm_help_import_msg[] = {
     "esc:Cancel",  "enter:Import"
 };
 
+static const char *nm_help_install_msg[] = {
+    "esc:Cancel",  "enter:Install"
+};
+
 void nm_create_windows(void)
 {
     int action_cols, screen_x, screen_y; 
@@ -77,6 +81,12 @@ void nm_init_help_import(void)
 {
     nm_print_help_lines(nm_help_import_msg,
             nm_arr_len(nm_help_import_msg), NM_FALSE);
+}
+
+void nm_init_help_install(void)
+{
+    nm_print_help_lines(nm_help_install_msg,
+            nm_arr_len(nm_help_install_msg), NM_FALSE);
 }
 
 void nm_init_help_iface(void)

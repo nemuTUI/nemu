@@ -4,6 +4,7 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_add_vm.h>
 #include <nm_machine.h>
 #include <nm_edit_vm.h>
 #include <nm_clone_vm.h>
@@ -291,6 +292,32 @@ void nm_start_main_loop(void)
                 }
                 break;
             }
+        }
+
+        if (ch == NM_KEY_I_UP)
+        {
+            werase(action_window);
+            werase(help_window);
+            nm_init_action(_(NM_MSG_INSTALL));
+            nm_init_help_install();
+            nm_add_vm();
+            werase(action_window);
+            werase(help_window);
+            nm_init_help_main();
+            regen_data = 1;
+        }
+
+        if (ch == NM_KEY_A_UP)
+        {
+            werase(action_window);
+            werase(help_window);
+            nm_init_action(_(NM_MSG_IMPORT));
+            nm_init_help_import();
+            nm_import_vm();
+            werase(action_window);
+            werase(help_window);
+            nm_init_help_main();
+            regen_data = 1;
         }
 #if defined (NM_WITH_OVF_SUPPORT)
         if (ch == NM_KEY_O_UP)

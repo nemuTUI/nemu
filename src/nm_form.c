@@ -474,6 +474,7 @@ int nm_form_name_used(const nm_str_t *name)
     if (res.n_memb > 0)
     {
         rc = NM_ERR;
+        curs_set(0);
         nm_warn(_(NM_MSG_NAME_BUSY));
     }
 

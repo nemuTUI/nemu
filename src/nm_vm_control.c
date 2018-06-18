@@ -50,7 +50,7 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
     /* {{{ Check if VM is already installed */
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_INST), NM_ENABLE) == NM_OK)
     {
-        int ch = nm_print_warn(3, 6, _("Already installed (y/n)"));
+        int ch = nm_notify(_(NM_MSG_INST_CONF));
         if (ch == 'y')
         {
             flags &= ~NM_VMCTL_TEMP;

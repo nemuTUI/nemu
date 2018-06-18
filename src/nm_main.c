@@ -1,7 +1,6 @@
 #include <nm_core.h>
 #include <nm_menu.h>
 #include <nm_string.h>
-#include <nm_add_vm.h>
 #include <nm_main_loop.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
