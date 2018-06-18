@@ -16,16 +16,18 @@
 #if defined (NM_OS_LINUX)
 #define NM_INIT_NET_IF { NM_INIT_STR, NM_INIT_STR, \
                          NM_INIT_STR, NM_INIT_STR, \
-                         NM_INIT_STR, NM_INIT_STR }
+                         NM_INIT_STR, NM_INIT_STR, \
+                         NM_INIT_STR }
 #else
 #define NM_INIT_NET_IF { NM_INIT_STR, NM_INIT_STR, \
-                         NM_INIT_STR }
+                         NM_INIT_STR, NM_INIT_STR }
 #endif
 
 #define NM_INIT_SEL_IF { NULL, 0 }
 #define NM_NET_MACVTAP_NUM 2
 
 typedef struct {
+    nm_str_t name;
     nm_str_t drv;
     nm_str_t maddr;
     nm_str_t ipv4;
@@ -46,14 +48,10 @@ static nm_field_t *fields[NM_NET_FIELDS_NUM + 1];
 static void nm_edit_net_field_names(nm_window_t *w);
 static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm,
                                     size_t if_idx);
-static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
-                                const nm_sel_iface_t *ifname);
-static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
-                                  const nm_sel_iface_t *ifname);
+static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp);
+static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp);
 static inline void nm_edit_net_iface_free(nm_iface_t *ifp);
 static int nm_edit_net_maddr_busy(const nm_str_t *mac);
-static void nm_edit_net_select_iface(const nm_vmctl_data_t *vm, size_t ifcnt,
-                                     nm_sel_iface_t *ifp);
 static int nm_edit_net_action(const nm_str_t *name,
                               const nm_vmctl_data_t *vm, size_t if_idx);
 
@@ -208,62 +206,6 @@ void nm_edit_net(const nm_str_t *name, nm_vmctl_data_t *vm)
     } while ((ch = wgetch(action_window)) != NM_KEY_Q);
 
     nm_vect_free(&ifaces, NULL);
-#if 0
-    for (;;)
-    {
-        //...
-    }
-    nm_iface_t iface = NM_INIT_NET_IF;
-    nm_sel_iface_t sel_iface = NM_INIT_SEL_IF;
-    size_t msg_len;
-    int done = 0, mult = 2;
-    size_t iface_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
-
-    if (iface_count > 1)
-    {
-        nm_edit_net_select_iface(vm, iface_count, &sel_iface);
-        if (sel_iface.name == NULL)
-            goto out;
-    }
-    else
-    {
-        sel_iface.name = nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME);
-    }
-
-    nm_print_title(_(NM_EDIT_TITLE));
-    if (getmaxy(stdscr) <= 28)
-        mult = 1;
-
-#if defined (NM_OS_LINUX)
-    //window = nm_init_window((mult == 2) ? 18 : 11, 51, 3);
-#else
-    //window = nm_init_window((mult == 2) ? 12 : 8, 51, 3);
-#endif
-
-    for (size_t n = 0; n < NM_NET_FIELDS_NUM; ++n)
-    {
-        fields[n] = new_field(1, 27, ((n + 1) * mult) + 1, 3, 0, 0);
-        set_field_back(fields[n], A_UNDERLINE);
-    }
-
-    fields[NM_NET_FIELDS_NUM] = NULL;
-
-    nm_edit_net_field_setup(vm, &sel_iface);
-    nm_edit_net_field_names(name, &sel_iface);
-
-    form = nm_post_form(window, fields, 18);
-    if (nm_draw_form(window, form) != NM_OK)
-        goto out;
-
-    if (nm_edit_net_get_data(name, &iface, &sel_iface) != NM_OK)
-        goto out;
-
-    nm_edit_net_update_db(name, &iface, &sel_iface);
-
-out:
-    nm_form_free(form, fields);
-    nm_edit_net_iface_free(&iface);
-#endif
 }
 
 static int
@@ -273,6 +215,16 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
     size_t msg_len = nm_max_msg_len(nm_form_msg);
     nm_iface_t iface_data = NM_INIT_NET_IF;
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
+    size_t idx_shift;
+
+    assert(if_idx > 0);
+    idx_shift = NM_IFS_IDX_COUNT * (--if_idx);
+    if_idx++; /* restore idx */
+
+    nm_str_alloc_str(&iface_data.name,
+            nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+
+    assert(iface_data.name.len > 0);
 
     werase(help_window);
     nm_init_help_edit();
@@ -296,8 +248,10 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
         goto out;
     }
 
-    if (nm_edit_net_get_data(name, &iface, &sel_iface) != NM_OK)
+    if (nm_edit_net_get_data(name, &iface_data) != NM_OK)
         goto out;
+
+    nm_edit_net_update_db(name, &iface_data);
 
 out:
     nm_edit_net_iface_free(&iface_data);
@@ -307,73 +261,6 @@ out:
     nm_init_help_iface();
 
     return rc;
-}
-
-static void nm_edit_net_select_iface(const nm_vmctl_data_t *vm, size_t ifcnt,
-                                     nm_sel_iface_t *ifp)
-{
-    nm_vect_t ifaces = NM_INIT_VECT;
-    nm_form_t *form = NULL;
-    nm_window_t *window = NULL;
-    nm_field_t *if_fields[2] = {NULL};
-    nm_vect_t err = NM_INIT_VECT;
-    nm_str_t buf = NM_INIT_STR;
-
-    for (size_t n = 0; n < ifcnt; n++)
-    {
-        size_t idx_shift = NM_IFS_IDX_COUNT * n;
-        nm_vect_insert(&ifaces,
-                       nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
-                       nm_vect_str_len(&vm->ifs, NM_SQL_IF_NAME + idx_shift) + 1,
-                       NULL);
-    }
-
-    nm_vect_end_zero(&ifaces);
-
-    nm_print_title(_(NM_EDIT_TITLE));
-    //window = nm_init_window(7, 45, 3);
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
-
-    if_fields[0] = new_field(1, 30, 2, 1, 0, 0);
-    set_field_back(if_fields[0], A_UNDERLINE);
-    if_fields[1] = NULL;
-
-    set_field_type(if_fields[0], TYPE_ENUM, ifaces.data, false, false);
-    set_field_buffer(if_fields[0], 0, *ifaces.data);
-
-    mvwaddstr(window, 1, 2, _("Select interface"));
-    mvwaddstr(window, 4, 2, _("Interface"));
-
-    form = nm_post_form(window, if_fields, 11);
-    if (nm_draw_form(window, form) != NM_OK)
-        goto out;
-
-    nm_get_field_buf(if_fields[0], &buf);
-    nm_form_check_data(_("Interface"), buf, err);
-
-    if (nm_print_empty_fields(&err) == NM_ERR)
-    {
-        nm_vect_free(&err, NULL);
-        goto out;
-    }
-
-    for (size_t n = 0; n < ifcnt; n++)
-    {
-        size_t idx_shift = NM_IFS_IDX_COUNT * n;
-        char *i = nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift);
-        if (nm_str_cmp_st(&buf, i) == NM_OK)
-        {
-            ifp->name = i;
-            ifp->if_idx = idx_shift;
-            break;
-        }
-    }
-
-out:
-    nm_vect_free(&ifaces, NULL);
-    nm_form_free(form, if_fields);
-    nm_str_free(&buf);
 }
 
 static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, size_t if_idx)
@@ -441,8 +328,7 @@ static void nm_edit_net_field_names(nm_window_t *w)
     }
 }
 
-static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
-                                const nm_sel_iface_t *ifname)
+static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
 {
     int rc = NM_OK;
     nm_vect_t err = NM_INIT_VECT;
@@ -518,7 +404,7 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp,
 
             nm_str_format(&query,
                 "SELECT id FROM ifaces WHERE vm_name='%s' AND if_name='%s' AND if_drv='%s'",
-                name->data, ifname->name, NM_DEFAULT_NETDRV);
+                name->data, ifp->name.data, NM_DEFAULT_NETDRV);
             nm_db_select(query.data, &netv);
 
             if (netv.n_memb == 0)
@@ -555,8 +441,7 @@ out:
     return rc;
 }
 
-static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
-                                  const nm_sel_iface_t *ifname)
+static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
 {
     nm_str_t query = NM_INIT_STR;
 
@@ -564,7 +449,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
     {
         nm_str_alloc_text(&query, "UPDATE ifaces SET if_drv='");
         nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
-            ifp->drv.data, name->data, ifname->name);
+            ifp->drv.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
 
@@ -574,7 +459,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
         {
             nm_str_alloc_text(&query, "UPDATE ifaces SET vhost='0' ");
             nm_str_format(&query, "WHERE vm_name='%s' AND if_name='%s'",
-                name->data, ifname->name);
+                name->data, ifp->name.data);
             nm_db_edit(query.data);
             nm_str_trunc(&query, 0);
         }
@@ -585,7 +470,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
     {
         nm_str_add_text(&query, "UPDATE ifaces SET mac_addr='");
         nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
-            ifp->maddr.data, name->data, ifname->name);
+            ifp->maddr.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }
@@ -594,7 +479,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
     {
         nm_str_add_text(&query, "UPDATE ifaces SET ipv4_addr='");
         nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
-            ifp->ipv4.data, name->data, ifname->name);
+            ifp->ipv4.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }
@@ -605,7 +490,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
         nm_str_alloc_text(&query, "UPDATE ifaces SET vhost='");
         nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
             (nm_str_cmp_st(&ifp->vhost, "yes") == NM_OK) ? NM_ENABLE : NM_DISABLE,
-            name->data, ifname->name);
+            name->data, ifp->name.data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }
@@ -629,7 +514,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
 
         nm_str_alloc_text(&query, "UPDATE ifaces SET macvtap='");
         nm_str_format(&query, "%zd' WHERE vm_name='%s' AND if_name='%s'",
-            macvtap_idx, name->data, ifname->name);
+            macvtap_idx, name->data, ifp->name.data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }
@@ -638,7 +523,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
     {
         nm_str_alloc_text(&query, "UPDATE ifaces SET parent_eth='");
         nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
-            ifp->parent_eth.data, name->data, ifname->name);
+            ifp->parent_eth.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
 #endif
@@ -648,6 +533,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp,
 
 static inline void nm_edit_net_iface_free(nm_iface_t *ifp)
 {
+    nm_str_free(&ifp->name);
     nm_str_free(&ifp->drv);
     nm_str_free(&ifp->maddr);
     nm_str_free(&ifp->ipv4);
