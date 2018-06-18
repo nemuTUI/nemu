@@ -142,6 +142,7 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         else
         {
             nm_vect_set_item_status(vm->v, n, 0);
+            wattroff(side_window, COLOR_PAIR(3));
             //wattron(side_window, COLOR_PAIR(2));
         }
 
