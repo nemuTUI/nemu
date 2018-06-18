@@ -143,7 +143,6 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         {
             nm_vect_set_item_status(vm->v, n, 0);
             wattroff(side_window, COLOR_PAIR(3));
-            //wattron(side_window, COLOR_PAIR(2));
         }
 
         if (vm->highlight == i + 1)

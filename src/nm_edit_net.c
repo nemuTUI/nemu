@@ -85,7 +85,6 @@ void nm_edit_net(const nm_str_t *name, nm_vmctl_data_t *vm)
     int ch;
     nm_menu_data_t ifs = NM_INIT_MENU_DATA;
     nm_vect_t ifaces = NM_INIT_VECT;
-    nm_iface_t iface_data = NM_INIT_NET_IF;
     size_t vm_list_len = (getmaxy(side_window) - 4);
     size_t iface_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
     
@@ -272,6 +271,7 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
 {
     int rc = NM_OK;
     size_t msg_len = nm_max_msg_len(nm_form_msg);
+    nm_iface_t iface_data = NM_INIT_NET_IF;
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
 
     werase(help_window);
@@ -296,7 +296,11 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
         goto out;
     }
 
+    if (nm_edit_net_get_data(name, &iface, &sel_iface) != NM_OK)
+        goto out;
+
 out:
+    nm_edit_net_iface_free(&iface_data);
     nm_form_free(form, fields);
     delwin(form_data.form_window);
     werase(help_window);
