@@ -218,7 +218,7 @@ void nm_start_main_loop(void)
                     break;
                 }
                 {
-                    int ch = nm_warn(_(NM_MSG_DELETE));
+                    int ch = nm_notify(_(NM_MSG_DELETE));
                     if (ch == 'y')
                     {
                         nm_vmctl_delete(name);

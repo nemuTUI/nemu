@@ -25,6 +25,7 @@ void nm_init_side(void);
 void nm_init_side_if_list(void);
 void nm_align2line(nm_str_t *str, size_t line_len);
 int nm_warn(const char *msg);
+int nm_notify(const char *msg);
 size_t nm_max_msg_len(const char **msg);
 
 /* Help window*/

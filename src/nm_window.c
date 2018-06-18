@@ -661,18 +661,28 @@ size_t nm_max_msg_len(const char **msg)
     return len;
 }
 
-int nm_warn(const char *msg)
+int nm_warn__(const char *msg, int red)
 {
     int ch;
 
     assert(msg != NULL);
     werase(help_window);
-    nm_init_help(msg, NM_TRUE);
+    nm_init_help(msg, red);
     ch = wgetch(help_window);
     werase(help_window);
     nm_init_help_main();
 
     return ch;
+}
+
+int nm_warn(const char *msg)
+{
+    return nm_warn__(msg, NM_TRUE);
+}
+
+int nm_notify(const char *msg)
+{
+    return nm_warn__(msg, NM_FALSE);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
