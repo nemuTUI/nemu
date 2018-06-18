@@ -107,6 +107,7 @@ static void nm_add_vm_main(int import)
     }
 
 out:
+    wtimeout(action_window, -1);
     nm_vm_free(&vm);
     nm_form_free(form, fields);
     delwin(form_data.form_window);
