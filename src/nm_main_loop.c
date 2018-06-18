@@ -15,6 +15,7 @@
 #include <nm_usb_plug.h>
 #include <nm_add_drive.h>
 #include <nm_edit_boot.h>
+#include <nm_ovf_import.h>
 #include <nm_vm_control.h>
 #include <nm_vm_snapshot.h>
 #include <nm_qmp_control.h>
@@ -46,8 +47,6 @@ void nm_start_main_loop(void)
     nm_init_side();
     nm_init_action(NULL);
 
-    vm_list_len = (getmaxy(side_window) - 4);
-
     for (;;)
     {
         if (regen_data)
@@ -55,6 +54,7 @@ void nm_start_main_loop(void)
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
             nm_vect_free(&vms_v, NULL);
             nm_db_select(NM_SQL_GET_VM, &vm_list);
+            vm_list_len = (getmaxy(side_window) - 4);
 
             vms.highlight = 1;
 
@@ -268,6 +268,20 @@ void nm_start_main_loop(void)
                 break;
             }
         }
+#if defined (NM_WITH_OVF_SUPPORT)
+        if (ch == NM_KEY_O_UP)
+        {
+            werase(action_window);
+            werase(help_window);
+            nm_init_action(_(NM_MSG_OVA_HEADER));
+            nm_init_help_edit();
+            nm_ovf_import();
+            werase(action_window);
+            werase(help_window);
+            nm_init_help_main();
+            regen_data = 1;
+        }
+#endif
 
         if (ch == NM_KEY_QUESTION)
         {

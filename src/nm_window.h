@@ -46,6 +46,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_NULL_FLD   "These fields cannot be empty:"
 #define NM_MSG_NAME_BUSY  "This name is already used"
 #define NM_MSG_IF_PROP    "Interface properties"
+#define NM_MSG_OVA_HEADER "Import OVA image"
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)

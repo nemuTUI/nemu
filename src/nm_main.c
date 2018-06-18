@@ -5,7 +5,6 @@
 #include <nm_main_loop.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
-#include <nm_ovf_import.h>
 #include <nm_lan_settings.h>
 
 static void signals_handler(int signal);
