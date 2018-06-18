@@ -20,10 +20,11 @@ void nm_init_help(const char *msg, int err);
 void nm_init_help_main(void);
 void nm_init_help_edit(void);
 void nm_init_help_iface(void);
+void nm_init_help_import(void);
 void nm_init_side(void);
 void nm_init_side_if_list(void);
 void nm_align2line(nm_str_t *str, size_t line_len);
-void nm_warn(const char *msg);
+int nm_warn(const char *msg);
 size_t nm_max_msg_len(const char **msg);
 
 /* Help window*/
@@ -47,6 +48,8 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_NAME_BUSY  "This name is already used"
 #define NM_MSG_IF_PROP    "Interface properties"
 #define NM_MSG_OVA_HEADER "Import OVA image"
+#define NM_MSG_MUST_STOP  "VM must be stopped"
+#define NM_MSG_DELETE     "Confirm deletion? (y/n)"
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)

@@ -106,9 +106,7 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
     memset(&file_info, 0, sizeof(file_info));
 
     /* TODO support 256 colors */
-    //init_pair(2, COLOR_WHITE, COLOR_BLACK);
     init_pair(3, COLOR_GREEN, -1);
-    wattroff(side_window, COLOR_PAIR(2));
     wattroff(side_window, COLOR_PAIR(3));
 
     for (size_t n = vm->item_first, i = 0; n < vm->item_last; n++, i++)

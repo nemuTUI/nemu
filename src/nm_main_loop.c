@@ -211,6 +211,30 @@ void nm_start_main_loop(void)
                 nm_init_help_main();
                 break;
 
+            case NM_KEY_D:
+                if (vm_status)
+                {
+                    nm_warn(_(NM_MSG_MUST_STOP));
+                    break;
+                }
+                {
+                    int ch = nm_warn(_(NM_MSG_DELETE));
+                    if (ch == 'y')
+                    {
+                        nm_vmctl_delete(name);
+                        regen_data = 1;
+                        old_hl = vms.highlight;
+                        if (vms.item_first != 0)
+                        {
+                            vms.item_first--;
+                            vms.item_last--;
+                        }
+                    }
+                    werase(side_window);
+                    nm_init_side();
+                }
+                break;
+
             case NM_KEY_I:
                 {
                     nm_vmctl_data_t vm_data = NM_VMCTL_INIT_DATA;
@@ -274,7 +298,7 @@ void nm_start_main_loop(void)
             werase(action_window);
             werase(help_window);
             nm_init_action(_(NM_MSG_OVA_HEADER));
-            nm_init_help_edit();
+            nm_init_help_import();
             nm_ovf_import();
             werase(action_window);
             werase(help_window);

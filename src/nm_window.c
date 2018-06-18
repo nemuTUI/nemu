@@ -37,6 +37,10 @@ static const char *nm_help_edit_msg[] = {
     "esc:Cancel",  "enter:Save"
 };
 
+static const char *nm_help_import_msg[] = {
+    "esc:Cancel",  "enter:Import"
+};
+
 void nm_create_windows(void)
 {
     int action_cols, screen_x, screen_y; 
@@ -67,6 +71,12 @@ void nm_init_help_edit(void)
 {
     nm_print_help_lines(nm_help_edit_msg,
             nm_arr_len(nm_help_edit_msg), NM_FALSE);
+}
+
+void nm_init_help_import(void)
+{
+    nm_print_help_lines(nm_help_import_msg,
+            nm_arr_len(nm_help_import_msg), NM_FALSE);
 }
 
 void nm_init_help_iface(void)
@@ -105,13 +115,13 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err)
 
 void nm_init_side(void)
 {
+    wattroff(side_window, COLOR_PAIR(3));
     nm_init_window__(side_window, _("VM list"));
     wtimeout(side_window, 500);
 }
 
 void nm_init_side_if_list(void)
 {
-    //wattroff(side_window, COLOR_PAIR(2));
     wattroff(side_window, COLOR_PAIR(3));
     nm_init_window__(side_window, _("Iface list"));
     wtimeout(side_window, -1);
@@ -651,14 +661,18 @@ size_t nm_max_msg_len(const char **msg)
     return len;
 }
 
-void nm_warn(const char *msg)
+int nm_warn(const char *msg)
 {
+    int ch;
+
     assert(msg != NULL);
     werase(help_window);
     nm_init_help(msg, NM_TRUE);
-    wgetch(action_window);
+    ch = wgetch(help_window);
     werase(help_window);
     nm_init_help_main();
+
+    return ch;
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
