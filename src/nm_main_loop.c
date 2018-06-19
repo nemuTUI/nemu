@@ -212,6 +212,24 @@ void nm_start_main_loop(void)
                 nm_init_help_main();
                 break;
 
+            case NM_KEY_L:
+                if (vm_status)
+                {
+                    nm_warn(_(NM_MSG_MUST_STOP));
+                    break;
+                }
+
+                werase(action_window);
+                werase(help_window);
+                nm_init_action(_(NM_MSG_CLONE));
+                nm_init_help_clone();
+                nm_clone_vm(name);
+                werase(help_window);
+                nm_init_help_main();
+                regen_data = 1;
+                old_hl = vms.highlight;
+                break;
+
             case NM_KEY_D:
                 if (vm_status)
                 {

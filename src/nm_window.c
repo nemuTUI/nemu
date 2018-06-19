@@ -45,6 +45,10 @@ static const char *nm_help_install_msg[] = {
     "esc:Cancel",  "enter:Install"
 };
 
+static const char *nm_help_clone_msg[] = {
+    "esc:Cancel",  "enter:Clone"
+};
+
 void nm_create_windows(void)
 {
     int action_cols, screen_x, screen_y; 
@@ -93,6 +97,12 @@ void nm_init_help_iface(void)
 {
     nm_print_help_lines(nm_help_iface_msg,
             nm_arr_len(nm_help_iface_msg), NM_FALSE);
+}
+
+void nm_init_help_clone(void)
+{
+    nm_print_help_lines(nm_help_clone_msg,
+            nm_arr_len(nm_help_clone_msg), NM_FALSE);
 }
 
 void nm_init_help(const char *msg, int err)
