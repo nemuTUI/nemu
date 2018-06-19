@@ -842,7 +842,7 @@ void nm_vmctl_clear_tap(void)
         nm_vect_free(&ifaces, nm_str_vect_free_cb);
     }
 
-    nm_print_warn(3, 6, clear_done ? _("Unused ifaces deleted") : _("No unused ifaces"));
+    nm_notify(clear_done ? _(NM_MSG_IFCLR_DONE) : _(NM_MSG_IFCLR_NONE));
 
     nm_str_free(&query);
     nm_str_free(&lock_path);

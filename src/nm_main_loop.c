@@ -319,6 +319,11 @@ void nm_start_main_loop(void)
             nm_init_help_main();
             regen_data = 1;
         }
+
+        if (ch == NM_KEY_U)
+        {
+            nm_vmctl_clear_tap();
+        }
 #if defined (NM_WITH_OVF_SUPPORT)
         if (ch == NM_KEY_O_UP)
         {
