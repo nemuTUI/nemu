@@ -188,13 +188,36 @@ void nm_start_main_loop(void)
 
             switch (ch) {
             case NM_KEY_R:
-                if (!vm_status)
-                    nm_vmctl_start(name, 0);
+                if (vm_status)
+                {
+                    nm_warn(_(NM_MSG_RUNNING));
+                    break;
+                }
+                nm_vmctl_start(name, 0);
+                break;
+
+            case NM_KEY_T:
+                if (vm_status)
+                {
+                    nm_warn(_(NM_MSG_RUNNING));
+                    break;
+                }
+                nm_vmctl_start(name, NM_VMCTL_TEMP);
                 break;
 
             case NM_KEY_P:
                 if (vm_status)
                     nm_qmp_vm_shut(name);
+                break;
+
+            case NM_KEY_F:
+                if (vm_status)
+                    nm_qmp_vm_stop(name);
+                break;
+
+            case NM_KEY_Z:
+                if (vm_status)
+                    nm_qmp_vm_reset(name);
                 break;
 
             case NM_KEY_P_UP:

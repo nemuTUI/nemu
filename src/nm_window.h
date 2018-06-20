@@ -57,6 +57,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_IMPORT     "Import drive image"
 #define NM_MSG_CLONE      "Clone VM"
 #define NM_MSG_INST_CONF  "Already installed (y/n)"
+#define NM_MSG_RUNNING    "Already running" NM_MSG_ANY_KEY
 #define NM_MSG_NO_SPACE   "No space left for importing drive image" NM_MSG_ANY_KEY
 #define NM_MSG_IFCLR_DONE "Unused ifaces deleted" NM_MSG_ANY_KEY
 #define NM_MSG_IFCLR_NONE "No unused ifaces" NM_MSG_ANY_KEY
