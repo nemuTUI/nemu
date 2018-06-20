@@ -291,6 +291,43 @@ void nm_start_main_loop(void)
                 nm_init_help_main();
                 break;
 
+#ifdef NM_SAVEVM_SNAPSHOTS
+            case NM_KEY_S_UP:
+                if (!vm_status)
+                {
+                    nm_warn(NM_MSG_MUST_RUN);
+                    break;
+                }
+                werase(action_window);
+                werase(help_window);
+                nm_init_action(_(NM_MSG_SNAP_CRT));
+                nm_init_help_edit();
+                nm_vm_snapshot_create(name);
+                werase(help_window);
+                nm_init_help_main();
+                break;
+
+            case NM_KEY_X_UP:
+                werase(action_window);
+                werase(help_window);
+                nm_init_action(_(NM_MSG_SNAP_REV));
+                nm_init_help_edit();
+                nm_vm_snapshot_load(name, vm_status);
+                werase(help_window);
+                nm_init_help_main();
+                break;
+
+            case NM_KEY_D_UP:
+                werase(action_window);
+                werase(help_window);
+                nm_init_action(_(NM_MSG_SNAP_DEL));
+                nm_init_help_edit();
+                nm_vm_snapshot_delete(name, vm_status);
+                werase(help_window);
+                nm_init_help_main();
+                break;
+#endif /* NM_SAVEVM_SNAPSHOTS */
+
             case NM_KEY_L:
                 if (vm_status)
                 {

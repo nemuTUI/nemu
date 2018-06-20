@@ -86,7 +86,7 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
 
             nm_str_free(&qmp_path);
 
-            nm_print_warn(3, 6, _("start failed, error was logged"));
+            nm_warn(_(NM_MSG_START_ERR));
         }
         else
         {
@@ -204,7 +204,7 @@ void nm_vmctl_delete(const nm_str_t *name)
     nm_db_edit(query.data);
 
     if (!delete_ok)
-        nm_print_warn(3, 6, _("Some files was not deleted!"));
+        nm_warn(_(NM_MSG_INC_DEL));
 
     nm_str_free(&vmdir);
     nm_str_free(&query);
@@ -291,7 +291,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 
         if ((srcp_len == 0) && (!(flags & NM_VMCTL_INFO)))
         {
-            nm_print_warn(3, 6, _("ISO/IMG path is not set"));
+            nm_warn(_(NM_MSG_ISO_MISS));
             nm_str_trunc(res, 0);
             goto out;
         }
@@ -543,7 +543,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 
             if (stat(nm_vect_str_ctx(&vm->main, NM_SQL_SOCK), &info) != -1)
             {
-                nm_print_warn(3, 6, _("Socket is already used!"));
+                nm_warn(_(NM_MSG_SOCK_USED));
                 nm_str_trunc(res, 0);
                 goto out;
             }
@@ -566,7 +566,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 
             if ((fd = open(nm_vect_str_ctx(&vm->main, NM_SQL_TTY), O_RDONLY)) == -1)
             {
-                nm_print_warn(3, 6, _("TTY is missing!"));
+                nm_warn(_(NM_MSG_TTY_MISS));
                 nm_str_trunc(res, 0);
                 goto out;
             }
@@ -574,7 +574,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
             if (!isatty(fd))
             {
                 close(fd);
-                nm_print_warn(3, 6, _("TTY is not terminal!"));
+                nm_warn(_(NM_MSG_TTY_INVAL));
                 nm_str_trunc(res, 0);
                 goto out;
             }
@@ -666,7 +666,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
                     /* check for lower iface (parent) exists */
                     if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_PET + idx_shift) == 0)
                     {
-                        nm_print_warn(3, 6, _("MacVTap parent iface is not set"));
+                        nm_warn(_(NM_MSG_MTAP_NSET));
                         nm_str_trunc(res, 0);
                         goto out;
                     }
@@ -704,7 +704,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
                     }
                     if (!tap_rw_ok)
                     {
-                        nm_print_warn(3, 6, _("access to tap iface is missing"));
+                        nm_warn(_(NM_MSG_TAP_EACC));
                         nm_str_trunc(res, 0);
                         goto out;
                     }

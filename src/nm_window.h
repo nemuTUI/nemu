@@ -52,6 +52,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_IF_PROP    "Interface properties"
 #define NM_MSG_OVA_HEADER "Import OVA image"
 #define NM_MSG_MUST_STOP  "VM must be stopped" NM_MSG_ANY_KEY
+#define NM_MSG_MUST_RUN   "VM must be running" NM_MSG_ANY_KEY
 #define NM_MSG_DELETE     "Confirm deletion? (y/n)"
 #define NM_MSG_INSTALL    "Install VM"
 #define NM_MSG_IMPORT     "Import drive image"
@@ -61,6 +62,9 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_9P_SHARE   "Share host filesystem"
 #define NM_MSG_USB_ATTACH "Attach USB device"
 #define NM_MSG_USB_DETACH "Detach USB device"
+#define NM_MSG_SNAP_CRT   "Create VM snapshot"
+#define NM_MSG_SNAP_REV   "Revert VM snapshot"
+#define NM_MSG_SNAP_DEL   "Delete VM snapshot"
 #define NM_MSG_INST_CONF  "Already installed (y/n)"
 #define NM_MSG_RUNNING    "Already running" NM_MSG_ANY_KEY
 #define NM_MSG_NO_SPACE   "No space left for importing drive image" NM_MSG_ANY_KEY
@@ -70,6 +74,20 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_USB_DIS    "USB must be enabled at boot time" NM_MSG_ANY_KEY
 #define NM_MSG_USB_MISS   "There are no usb devices" NM_MSG_ANY_KEY
 #define NM_MSG_USB_NONE   "There are no devices attached" NM_MSG_ANY_KEY
+#define NM_MSG_Q_CR_ERR   "QMP: cannot create socket" NM_MSG_ANY_KEY
+#define NM_MSG_Q_FL_ERR   "QMP: cannot set socket options" NM_MSG_ANY_KEY
+#define NM_MSG_Q_CN_ERR   "QMP: cannot connect to socket" NM_MSG_ANY_KEY
+#define NM_MSG_Q_SE_ERR   "Error send message to QMP socket" NM_MSG_ANY_KEY
+#define NM_MSG_Q_NO_ANS   "QMP: no answer" NM_MSG_ANY_KEY
+#define NM_MSG_Q_EXEC_E   "QMP: execute error" NM_MSG_ANY_KEY
+#define NM_MSG_START_ERR  "Start failed, error was logged" NM_MSG_ANY_KEY
+#define NM_MSG_INC_DEL    "Some files was not deleted!" NM_MSG_ANY_KEY
+#define NM_MSG_SOCK_USED  "Socket is already used!" NM_MSG_ANY_KEY
+#define NM_MSG_TTY_MISS   "TTY is missing!" NM_MSG_ANY_KEY
+#define NM_MSG_TTY_INVAL  "TTY is not terminal!" NM_MSG_ANY_KEY
+#define NM_MSG_MTAP_NSET  "MacVTap parent iface is not set" NM_MSG_ANY_KEY
+#define NM_MSG_TAP_EACC   "Access to tap iface is missing" NM_MSG_ANY_KEY
+#define NM_MSG_NO_SNAPS   "There are no snapshots" NM_MSG_ANY_KEY
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)
