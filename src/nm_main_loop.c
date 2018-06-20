@@ -243,9 +243,19 @@ void nm_start_main_loop(void)
             case NM_KEY_E:
                 werase(action_window);
                 werase(help_window);
-                nm_init_action(_(NM_EDIT_VM_HEADER));
+                nm_init_action(_(NM_MSG_EDIT_VM));
                 nm_init_help_edit();
                 nm_edit_vm(name);
+                werase(help_window);
+                nm_init_help_main();
+                break;
+
+            case NM_KEY_B:
+                werase(action_window);
+                werase(help_window);
+                nm_init_action(_(NM_MSG_EDIT_BOOT));
+                nm_init_help_edit();
+                nm_edit_boot(name);
                 werase(help_window);
                 nm_init_help_main();
                 break;
