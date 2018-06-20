@@ -470,8 +470,8 @@ void nm_print_help(void)
         "c",
 #endif
         "p", "z", "f", "d", "e", "i",
-        "a", "l", "b", "s", "x", "h",
-        "m", "v", "u", "P", "R",
+        "a", "l", "b", "h", "m", "v", 
+        "u", "P", "R",
 #if (NM_SAVEVM_SNAPSHOTS)
         "S", "X", "D",
 #endif
@@ -496,8 +496,6 @@ void nm_print_help(void)
         "add virtual disk",
         "clone vm",
         "edit boot settings",
-        "take drive snapshot",
-        "revert drive snapshot",
         "share host filesystem",
         "show command",
         "delete virtual disk",

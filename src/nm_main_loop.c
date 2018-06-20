@@ -10,7 +10,6 @@
 #include <nm_clone_vm.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
-#include <nm_snapshot.h>
 #include <nm_edit_net.h>
 #include <nm_9p_share.h>
 #include <nm_usb_plug.h>
