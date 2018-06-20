@@ -240,6 +240,16 @@ void nm_start_main_loop(void)
                     nm_vmctl_connect(name);
                 break;
 
+            case NM_KEY_H:
+                werase(action_window);
+                werase(help_window);
+                nm_init_action(_(NM_MSG_9P_SHARE));
+                nm_init_help_edit();
+                nm_9p_share(name);
+                werase(help_window);
+                nm_init_help_main();
+                break;
+
             case NM_KEY_E:
                 werase(action_window);
                 werase(help_window);

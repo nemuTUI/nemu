@@ -29,6 +29,11 @@ enum {
     NM_FLD_9PNAME
 };
 
+static const char *nm_form_msg[] = {
+    "Enable sharing", "Path to directory",
+    "Name of the share", NULL
+};
+
 static nm_field_t *fields[NM_9P_FIELDS_NUM + 1];
 
 static int nm_9p_get_data(nm_9p_data_t *data, const nm_vmctl_data_t *cur);
@@ -37,28 +42,19 @@ static void nm_9p_update_db(const nm_str_t *name, const nm_9p_data_t *data);
 void nm_9p_share(const nm_str_t *name)
 {
     nm_form_t *form = NULL;
-    nm_window_t *window = NULL;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
-    nm_str_t buf = NM_INIT_STR;
     nm_9p_data_t data = NM_INIT_9P_DATA;
-    size_t msg_len;
-    pthread_t spin_th;
-    int done = 0;
+    nm_form_data_t form_data = NM_INIT_FORM_DATA;
+    size_t msg_len = nm_max_msg_len(nm_form_msg);
+
+    if (nm_form_calc_size(msg_len, NM_9P_FIELDS_NUM, &form_data) != NM_OK)
+        return;
 
     nm_vmctl_get_data(name, &vm);
 
-    nm_print_title(_(NM_EDIT_TITLE));
-    //window = nm_init_window(11, 51, 3);
-
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
-
     for (size_t n = 0; n < NM_9P_FIELDS_NUM; ++n)
-    {
-        fields[n] = new_field(1, 25, (n + 1) * 2, 1, 0, 0);
-        set_field_back(fields[n], A_UNDERLINE);
-    }
+        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
     fields[NM_9P_FIELDS_NUM] = NULL;
 
@@ -74,40 +70,29 @@ void nm_9p_share(const nm_str_t *name)
     set_field_buffer(fields[NM_FLD_9PPATH], 0, nm_vect_str_ctx(&vm.main, NM_SQL_9PTH));
     set_field_buffer(fields[NM_FLD_9PNAME], 0, nm_vect_str_ctx(&vm.main, NM_SQL_9ID));
 
-    nm_str_alloc_text(&buf, _("Share files to "));
-    nm_str_add_str(&buf, name);
-    mvwaddstr(window, 1, 2, buf.data);
-    mvwaddstr(window, 4, 2, _("Enable sharing"));
-    mvwaddstr(window, 6, 2, _("Path to directory"));
-    mvwaddstr(window, 8, 2, _("Name of the share"));
+    for (size_t n = 0, y = 1, x = 2; n < NM_9P_FIELDS_NUM; n++)
+    {
+        mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
+        y += 2;
+    }
 
-    form = nm_post_form(window, fields, 22);
-    if (nm_draw_form(window, form) != NM_OK)
+    form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
     if (nm_9p_get_data(&data, &vm) != NM_OK)
         goto out;
 
-    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
-    sp_data.stop = &done;
-    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
-
-    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
-        nm_bug(_("%s: cannot create thread"), __func__);
-
     nm_9p_update_db(name, &data);
 
-    done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
-        nm_bug(_("%s: cannot join thread"), __func__);
-
 out:
+    wtimeout(action_window, -1);
+    delwin(form_data.form_window);
     nm_str_free(&data.mode);
     nm_str_free(&data.name);
     nm_str_free(&data.path);
     nm_vmctl_free_data(&vm);
     nm_form_free(form, fields);
-    nm_str_free(&buf);
 }
 
 static int nm_9p_get_data(nm_9p_data_t *data, const nm_vmctl_data_t *cur)
@@ -130,8 +115,8 @@ static int nm_9p_get_data(nm_9p_data_t *data, const nm_vmctl_data_t *cur)
             goto out;
     }
 
-    nm_form_check_data(_("Path to directory"), data->path, err);
-    nm_form_check_data(_("Name of the share"), data->name, err);
+    nm_form_check_data(_(nm_form_msg[1]), data->path, err);
+    nm_form_check_data(_(nm_form_msg[2]), data->name, err);
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         nm_vect_free(&err, NULL);
