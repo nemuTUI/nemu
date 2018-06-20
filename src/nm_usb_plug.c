@@ -8,6 +8,8 @@
 #include <nm_usb_devices.h>
 #include <nm_qmp_control.h>
 
+#define NM_USB_FORM_MSG "Device"
+
 static void nm_usb_plug_list(nm_vect_t *devs, nm_vect_t *names);
 static void nm_usb_unplug_list(const nm_vect_t *db_list, nm_vect_t *names);
 static int nm_usb_plug_get_data(const nm_str_t *name, nm_usb_data_t *usb,
@@ -20,25 +22,24 @@ static nm_field_t *fields[2];
 void nm_usb_plug(const nm_str_t *name)
 {
     nm_form_t *form = NULL;
-    nm_window_t *window = NULL;
-    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     nm_str_t buf = NM_INIT_STR;
-    size_t msg_len;
-    pthread_t spin_th;
-    int done = 0;
     nm_vect_t usb_devs = NM_INIT_VECT;
     nm_vect_t usb_names = NM_INIT_VECT;
     nm_vect_t db_result = NM_INIT_VECT;
     nm_usb_data_t usb = NM_INIT_USB_DATA;
+    nm_form_data_t form_data = NM_INIT_FORM_DATA;
+    size_t msg_len = mbstowcs(NULL, NM_USB_FORM_MSG, strlen(NM_USB_FORM_MSG));
+
+    if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
+        return;
 
     /* check for usb enabled first */
     nm_str_format(&buf, NM_USB_CHECK_SQL, name->data);
     nm_db_select(buf.data, &db_result);
-    nm_str_trunc(&buf, 0);
 
     if (nm_str_cmp_st(nm_vect_str(&db_result, 0), NM_DISABLE) == NM_OK)
     {
-        nm_print_warn(3, 2, _("USB must be enabled at boot time"));
+        nm_warn(_(NM_MSG_USB_DIS));
         goto out;
     }
 
@@ -46,49 +47,32 @@ void nm_usb_plug(const nm_str_t *name)
 
     if (usb_names.n_memb == 0)
     {
-        nm_print_warn(3, 2, _("There are no usb devices"));
+        nm_warn(_(NM_MSG_USB_MISS));
         goto out;
     }
     
-    nm_print_title(_(NM_EDIT_TITLE));
-    //window = nm_init_window(7, 62, 3);
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
-
-    fields[0] = new_field(1, 45, 2, 0, 0, 0);
-    set_field_back(fields[0], A_UNDERLINE);
+    fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
     fields[1] = NULL;
 
     set_field_type(fields[0], TYPE_ENUM, usb_names.data, false, false);
     field_opts_off(fields[0], O_STATIC);
     set_field_buffer(fields[0], 0, *usb_names.data);
 
-    nm_str_format(&buf, _("Attach usb to %s"), name->data);
-    mvwaddstr(window, 1, 2, buf.data);
-    mvwaddstr(window, 4, 2, _("Device"));
+    mvwaddstr(form_data.form_window, 1, 2, _(NM_USB_FORM_MSG));
 
-    form = nm_post_form(window, fields, 14);
-    if (nm_draw_form(window, form) != NM_OK)
+    form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
     if ((nm_usb_plug_get_data(name, &usb, &usb_devs)) != NM_OK)
         goto out;
 
-    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
-    sp_data.stop = &done;
-    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
-
-    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
-        nm_bug(_("%s: cannot create thread"), __func__);
-    
     if (nm_qmp_usb_attach(name, &usb) == NM_OK)
         nm_usb_plug_update_db(name, &usb);
 
-    done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
-        nm_bug(_("%s: cannot join thread"), __func__);
-
 out:
+    wtimeout(action_window, -1);
+    delwin(form_data.form_window);
     nm_vect_free(&usb_names, NULL);
     nm_vect_free(&usb_devs, nm_usb_vect_free_cb);
     nm_vect_free(&db_result, nm_str_vect_free_cb);
@@ -101,16 +85,16 @@ out:
 void nm_usb_unplug(const nm_str_t *name)
 {
     nm_form_t *form = NULL;
-    nm_window_t *window = NULL;
-    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     nm_str_t buf = NM_INIT_STR;
-    size_t msg_len;
-    pthread_t spin_th;
-    int done = 0;
     nm_usb_data_t usb_data = NM_INIT_USB_DATA;
     nm_usb_dev_t usb_dev = NM_INIT_USB;
     nm_vect_t usb_names = NM_INIT_VECT;
     nm_vect_t db_result = NM_INIT_VECT;
+    nm_form_data_t form_data = NM_INIT_FORM_DATA;
+    size_t msg_len = mbstowcs(NULL, NM_USB_FORM_MSG, strlen(NM_USB_FORM_MSG));
+
+    if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
+        return;
 
     usb_data.dev = &usb_dev;
 
@@ -120,43 +104,28 @@ void nm_usb_unplug(const nm_str_t *name)
 
     if (!db_result.n_memb)
     {
-        nm_print_warn(3, 2, _("There are no devices attached"));
+        nm_warn(_(NM_MSG_USB_NONE));
         goto out;
     }
 
     nm_usb_unplug_list(&db_result, &usb_names);
 
-    nm_print_title(_(NM_EDIT_TITLE));
-    //window = nm_init_window(7, 62, 3);
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
-
-    fields[0] = new_field(1, 45, 2, 0, 0, 0);
-    set_field_back(fields[0], A_UNDERLINE);
+    fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
     fields[1] = NULL;
 
     set_field_type(fields[0], TYPE_ENUM, usb_names.data, false, false);
     field_opts_off(fields[0], O_STATIC);
     set_field_buffer(fields[0], 0, *usb_names.data);
 
-    nm_str_format(&buf, _("Detach usb from %s"), name->data);
-    mvwaddstr(window, 1, 2, buf.data);
-    mvwaddstr(window, 4, 2, _("Device"));
+    mvwaddstr(form_data.form_window, 1, 2, _(NM_USB_FORM_MSG));
 
-    form = nm_post_form(window, fields, 14);
-    if (nm_draw_form(window, form) != NM_OK)
+    form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
     if (nm_usb_unplug_get_data(&usb_data, &db_result) != NM_OK)
         goto out;
     
-    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
-    sp_data.stop = &done;
-    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
-
-    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
-        nm_bug(_("%s: cannot create thread"), __func__);
-
     nm_qmp_usb_detach(name, &usb_data);
 
     nm_str_trunc(&buf, 0);
@@ -168,11 +137,9 @@ void nm_usb_unplug(const nm_str_t *name)
             usb_data.serial.data);
     nm_db_edit(buf.data);
 
-    done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
-        nm_bug(_("%s: cannot join thread"), __func__);
-
 out:
+    wtimeout(action_window, -1);
+    delwin(form_data.form_window);
     nm_vect_free(&usb_names, NULL);
     nm_vect_free(&db_result, nm_str_vect_free_cb);
     nm_form_free(form, fields);

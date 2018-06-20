@@ -240,6 +240,27 @@ void nm_start_main_loop(void)
                     nm_vmctl_connect(name);
                 break;
 
+#if defined (NM_OS_LINUX)
+            case NM_KEY_PLUS:
+                werase(action_window);
+                werase(help_window);
+                nm_init_action(_(NM_MSG_USB_ATTACH));
+                nm_init_help_edit();
+                nm_usb_plug(name);
+                werase(help_window);
+                nm_init_help_main();
+                break;
+
+            case NM_KEY_MINUS:
+                werase(action_window);
+                werase(help_window);
+                nm_init_action(_(NM_MSG_USB_DETACH));
+                nm_init_help_edit();
+                nm_usb_unplug(name);
+                werase(help_window);
+                nm_init_help_main();
+                break;
+
             case NM_KEY_H:
                 werase(action_window);
                 werase(help_window);
@@ -249,6 +270,7 @@ void nm_start_main_loop(void)
                 werase(help_window);
                 nm_init_help_main();
                 break;
+#endif /* NM_OS_LINUX */
 
             case NM_KEY_E:
                 werase(action_window);

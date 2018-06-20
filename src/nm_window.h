@@ -59,12 +59,17 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_EDIT_VM    "Edit properties"
 #define NM_MSG_EDIT_BOOT  "Edit boot settings"
 #define NM_MSG_9P_SHARE   "Share host filesystem"
+#define NM_MSG_USB_ATTACH "Attach USB device"
+#define NM_MSG_USB_DETACH "Detach USB device"
 #define NM_MSG_INST_CONF  "Already installed (y/n)"
 #define NM_MSG_RUNNING    "Already running" NM_MSG_ANY_KEY
 #define NM_MSG_NO_SPACE   "No space left for importing drive image" NM_MSG_ANY_KEY
 #define NM_MSG_IFCLR_DONE "Unused ifaces deleted" NM_MSG_ANY_KEY
 #define NM_MSG_IFCLR_NONE "No unused ifaces" NM_MSG_ANY_KEY
 #define NM_MSG_ISO_MISS   "ISO/IMG path not set" NM_MSG_ANY_KEY
+#define NM_MSG_USB_DIS    "USB must be enabled at boot time" NM_MSG_ANY_KEY
+#define NM_MSG_USB_MISS   "There are no usb devices" NM_MSG_ANY_KEY
+#define NM_MSG_USB_NONE   "There are no devices attached" NM_MSG_ANY_KEY
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)
