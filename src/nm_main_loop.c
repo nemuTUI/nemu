@@ -762,10 +762,10 @@ void nm_print_vm_list(void)
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
-            if (vm_status)
+            /*if (vm_status)
                 nm_snapshot_create(vm);
             else
-                nm_print_warn(3, 6, _("VM must be running"));
+                nm_print_warn(3, 6, _("VM must be running"));*/
         } /* }}} drive snapshot */
 
         /* {{{ Revert to snapshot */
@@ -775,10 +775,10 @@ void nm_print_vm_list(void)
             const nm_str_t *vm = nm_vect_item_name_cur(vms);
             int vm_status = nm_vect_item_status_cur(vms);
 
-            if (!vm_status)
+            /*if (!vm_status)
                 nm_snapshot_revert(vm);
             else
-                nm_print_warn(3, 6, _("VM must be stopped"));
+                nm_print_warn(3, 6, _("VM must be stopped"));*/
         } /* }}} revert to snapshot */
 
 #ifdef NM_SAVEVM_SNAPSHOTS
