@@ -197,6 +197,21 @@ void nm_start_main_loop(void)
                     nm_qmp_vm_shut(name);
                 break;
 
+            case NM_KEY_P_UP:
+                if (vm_status)
+                    nm_qmp_vm_pause(name);
+                break;
+
+            case NM_KEY_R_UP:
+                if (vm_status)
+                    nm_qmp_vm_resume(name);
+                break;
+
+            case NM_KEY_K:
+                if (vm_status)
+                    nm_vmctl_kill(name);
+                break;
+
             case NM_KEY_C:
                 if (vm_status)
                     nm_vmctl_connect(name);
