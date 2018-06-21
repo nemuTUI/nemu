@@ -66,6 +66,8 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_SNAP_CRT   "Create VM snapshot"
 #define NM_MSG_SNAP_REV   "Revert VM snapshot"
 #define NM_MSG_SNAP_DEL   "Delete VM snapshot"
+#define NM_MSG_VDRIVE_ADD "Add virtual drive"
+#define NM_MSG_VDRIVE_DEL "Delete virtual drive"
 #define NM_MSG_INST_CONF  "Already installed (y/n)"
 #define NM_MSG_RUNNING    "Already running" NM_MSG_ANY_KEY
 #define NM_MSG_NO_SPACE   "No space left for importing drive image" NM_MSG_ANY_KEY
@@ -89,6 +91,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_MTAP_NSET  "MacVTap parent iface is not set" NM_MSG_ANY_KEY
 #define NM_MSG_TAP_EACC   "Access to tap iface is missing" NM_MSG_ANY_KEY
 #define NM_MSG_NO_SNAPS   "There are no snapshots" NM_MSG_ANY_KEY
+#define NM_NSG_DRV_LIM    "3 disks limit reached" NM_MSG_ANY_KEY
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)

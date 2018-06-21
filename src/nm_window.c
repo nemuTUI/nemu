@@ -719,7 +719,7 @@ size_t nm_max_msg_len(const char **msg)
 
     while (*msg)
     {
-        size_t mb_len = mbstowcs(NULL, *msg, strlen(*msg));
+        size_t mb_len = mbstowcs(NULL, _(*msg), strlen(_(*msg)));
         len = (mb_len > len) ? mb_len : len;
         msg++;
     }

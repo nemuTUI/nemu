@@ -115,7 +115,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     int done = 0;
     pthread_t spin_th;
     size_t snaps_count = 0;
-    size_t msg_len = mbstowcs(NULL, NM_FORMSTR_SNAP, strlen(NM_FORMSTR_SNAP));
+    size_t msg_len = mbstowcs(NULL, _(NM_FORMSTR_SNAP), strlen(_(NM_FORMSTR_SNAP)));
 
     nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, name->data);
     nm_db_select(query.data, &snaps);
