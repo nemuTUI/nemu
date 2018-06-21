@@ -538,7 +538,7 @@ void nm_print_vm_list(void)
     nm_vect_t vms_v = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
 
-    vms.item_last = nm_cfg_get()->list_max;
+    //vms.item_last = nm_cfg_get()->list_max;
 
     nm_print_vm_window();
 
@@ -572,7 +572,7 @@ void nm_print_vm_list(void)
         if (regen_data)
         {
             vms.highlight = 1;
-            list_max = nm_cfg_get()->list_max;
+            //list_max = nm_cfg_get()->list_max;
 
             if (old_hl > 1)
             {

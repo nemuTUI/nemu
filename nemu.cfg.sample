@@ -5,9 +5,6 @@ vmdir = /home/user/qemu_vm
 # path to database file.
 db = /home/user/.nemu.db
 
-# maximum guests numbers in list.
-list_max = 10
-
 [vnc]
 # vnc binary path.
 binary = /usr/bin/vncviewer

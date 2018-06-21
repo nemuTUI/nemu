@@ -36,7 +36,7 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err);
 
 static const char *nm_help_main_msg[] = {
     "q:Quit", "I:Install VM", "O:Import OVA",
-    "A:Import image", "?:Help"
+    "A:Import image", "N:Network", "?:Help"
 };
 
 static const char *nm_help_iface_msg[] = {
@@ -67,7 +67,6 @@ void nm_create_windows(void)
     nm_cord_t action_size = NM_INIT_POS;
 
     getmaxyx(stdscr, screen_y, screen_x); 
-    /* TODO read param [0.7] from cfg file */
     action_cols = screen_x * 0.7;
 
     help_size = NM_SET_POS(1, screen_x, 0, 0);

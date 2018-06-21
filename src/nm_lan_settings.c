@@ -61,7 +61,7 @@ void nm_lan_settings(void)
 
     nm_db_select(query.data, &veths);
 
-    veths_data.item_last = nm_cfg_get()->list_max;
+    //veths_data.item_last = nm_cfg_get()->list_max;
 
     for (;;)
     {
@@ -88,7 +88,7 @@ void nm_lan_settings(void)
         if (regen_data)
         {
             veths_data.highlight = 1;
-            list_max = nm_cfg_get()->list_max;
+            //list_max = nm_cfg_get()->list_max;
 
             if (old_hl > 1)
             {
