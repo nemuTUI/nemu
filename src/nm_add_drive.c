@@ -1,5 +1,6 @@
 #include <nm_core.h>
 #include <nm_form.h>
+#include <nm_menu.h>
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
@@ -107,56 +108,92 @@ out:
 
 void nm_del_drive(const nm_str_t *name)
 {
+    int ch, delete_drive = 0;
     nm_str_t query = NM_INIT_STR;
     nm_str_t drive_path = NM_INIT_STR;
-    nm_vect_t v = NM_INIT_VECT;
+    nm_vect_t drv_list = NM_INIT_VECT;
     nm_vect_t drives = NM_INIT_VECT;
-    const char *drive = NULL;
+    nm_menu_data_t m_drvs = NM_INIT_MENU_DATA;
+    size_t drv_list_len = (getmaxy(side_window) - 4);
+    size_t drv_count;
 
-    nm_str_format(&query,
-        "SELECT drive_name FROM drives WHERE vm_name='%s' "
-        "AND boot='0'", name->data);
+    nm_str_format(&query, NM_VM_GET_ADDDRIVES_SQL, name->data);
 
-    nm_db_select(query.data, &v);
+    nm_db_select(query.data, &drives);
     nm_str_trunc(&query, 0);
 
-    if (v.n_memb == 0)
+    if (drives.n_memb == 0)
     {
-        nm_print_warn(3, 6, _("No additional disks"));
+        nm_warn(_(NM_MSG_DRV_NONE));
         goto out;
     }
 
-    for (size_t n = 0; n < v.n_memb; n++)
+    drv_count = drives.n_memb / 2;
+
+    werase(side_window);
+    werase(action_window);
+    werase(help_window);
+    nm_init_side_drives();
+    nm_init_help_delete();
+
+    m_drvs.highlight = 1;
+    if (drv_list_len < drv_count)
+        m_drvs.item_last = drv_list_len;
+    else
+        m_drvs.item_last = drv_list_len = drv_count;
+
+    for (size_t n = 0; n < drv_count; n++)
     {
-        nm_str_t *drive = (nm_str_t *) v.data[n];
-        nm_vect_insert(&drives, drive->data, drive->len + 1, NULL);
+        size_t idx_shift = 2 * n;
+        nm_vect_insert(&drv_list,
+                       nm_vect_str_ctx(&drives, idx_shift),
+                       nm_vect_str_len(&drives, idx_shift) + 1,
+                       NULL);
     }
 
-    nm_vect_end_zero(&drives);
+    m_drvs.v = &drv_list;
 
-    if ((drive = nm_form_select_drive(&drives)) == NULL)
-    {
-        nm_print_warn(3, 2, _("Incorrect disk name"));
-        goto out;
-    }
+    do {
+        nm_menu_scroll(&m_drvs, drv_count, drv_list_len, ch);
+
+        if (ch == NM_KEY_ENTER)
+        {
+            delete_drive = 1;
+            break;
+        }
+
+        nm_print_base_menu(&m_drvs);
+        werase(action_window);
+        nm_init_action(_(NM_MSG_VDRIVE_DEL));
+        nm_print_drive_info(&drives, m_drvs.highlight);
+    } while ((ch = wgetch(action_window)) != NM_KEY_Q);
+
+    if (!delete_drive)
+        goto quit;
 
     nm_str_alloc_str(&drive_path, &nm_cfg_get()->vm_dir);
-    nm_str_format(&drive_path, "/%s/%s", name->data, drive);
+    nm_str_format(&drive_path, "/%s/%s", name->data,
+            nm_vect_str_ctx(&drives, 2 * (m_drvs.highlight - 1)));
 
     if (unlink(drive_path.data) == -1)
-        nm_print_warn(3, 2, _("Cannot delete drive from fylesystem"));
+        nm_warn(_(NM_MSG_DRV_EDEL));
 
     nm_str_format(&query,
         "DELETE FROM drives WHERE vm_name='%s' "
         "AND drive_name='%s'",
-        name->data, drive);
+        name->data, nm_vect_str_ctx(&drives, 2 * (m_drvs.highlight - 1)));
 
+quit:
     nm_db_edit(query.data);
+    werase(side_window);
+    werase(help_window);
+    nm_init_side();
+    nm_init_help_main();
 
 out:
     nm_str_free(&query);
     nm_str_free(&drive_path);
-    nm_vect_free(&v, nm_str_vect_free_cb);
+    nm_vect_free(&drv_list, NULL);
     nm_vect_free(&drives, NULL);
 }
 

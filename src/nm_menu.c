@@ -37,7 +37,7 @@ void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
     }
 }
 
-void nm_print_iface_menu(nm_menu_data_t *ifs)
+void nm_print_base_menu(nm_menu_data_t *ifs)
 {
     int x = 2, y = 3;
     size_t screen_x;
@@ -160,6 +160,69 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
     }
 
     nm_str_free(&lock_path);
+}
+
+void nm_menu_scroll(nm_menu_data_t *menu, size_t n_memb, size_t list_len, int ch)
+{
+    if ((ch == KEY_UP) && (menu->highlight == 1) && (menu->item_first == 0) &&
+            (list_len < n_memb))
+    {
+        menu->highlight = list_len;
+        menu->item_first = n_memb - list_len;
+        menu->item_last = n_memb;
+    }
+
+    else if (ch == KEY_UP)
+    {
+        if ((menu->highlight == 1) && (n_memb <= list_len))
+            menu->highlight = n_memb;
+        else if ((menu->highlight == 1) && (menu->item_first != 0))
+        {
+            menu->item_first--;
+            menu->item_last--;
+        }
+        else
+        {
+            menu->highlight--;
+        }
+    }
+
+    else if ((ch == KEY_DOWN) && (menu->highlight == list_len) &&
+            (menu->item_last == n_memb))
+    {
+        menu->highlight = 1;
+        menu->item_first = 0;
+        menu->item_last = list_len;
+    }
+
+    else if (ch == KEY_DOWN)
+    {
+        if ((menu->highlight == n_memb) && (n_memb <= list_len))
+            menu->highlight = 1;
+        else if ((menu->highlight == list_len) && (menu->item_last < n_memb))
+        {
+            menu->item_first++;
+            menu->item_last++;
+        }
+        else
+        {
+            menu->highlight++;
+        }
+    }
+
+    else if (ch == KEY_HOME)
+    {
+        menu->highlight = 1;
+        menu->item_first = 0;
+        menu->item_last = list_len;
+    }
+
+    else if (ch == KEY_END)
+    {
+        menu->highlight = list_len;
+        menu->item_first = n_memb - list_len;
+        menu->item_last = n_memb;
+    }
 }
 
 #if defined (NM_OS_LINUX)

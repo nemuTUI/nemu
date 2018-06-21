@@ -249,6 +249,15 @@ void nm_start_main_loop(void)
                 nm_add_drive(name);
                 break;
 
+            case NM_KEY_V:
+                if (vm_status)
+                {
+                    nm_warn(_(NM_MSG_MUST_STOP));
+                    break;
+                }
+                nm_del_drive(name);
+                break;
+
 #if defined (NM_OS_LINUX)
             case NM_KEY_PLUS:
                 werase(action_window);
@@ -261,6 +270,7 @@ void nm_start_main_loop(void)
                 break;
 
             case NM_KEY_MINUS:
+                /* TODO do not draw if no devices */
                 werase(action_window);
                 werase(help_window);
                 nm_init_action(_(NM_MSG_USB_DETACH));
@@ -382,6 +392,7 @@ void nm_start_main_loop(void)
 
             case NM_KEY_I:
                 {
+                    /* TODO move check inside nm_edit_net() */
                     nm_vmctl_data_t vm_data = NM_VMCTL_INIT_DATA;
                     nm_vmctl_get_data(name, &vm_data);
 

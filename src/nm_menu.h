@@ -32,9 +32,10 @@ typedef struct {
 } nm_menu_item_t;
 
 void nm_print_main_menu(nm_window_t *w, uint32_t highlight);
-void nm_print_iface_menu(nm_menu_data_t *ifs);
+void nm_print_base_menu(nm_menu_data_t *ifs);
 void nm_print_vm_menu(nm_menu_data_t *vm);
 void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status);
+void nm_menu_scroll(nm_menu_data_t *menu, size_t n_memb, size_t list_len, int ch);
 
 #define NM_VM_RUNNING "running"
 #define NM_VM_STOPPED "stopped"

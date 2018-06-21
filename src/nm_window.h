@@ -9,6 +9,7 @@ void nm_print_vm_window(void);
 int nm_print_warn(int nlines, int begin_x, const char *msg);
 void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm);
 void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx);
+void nm_print_drive_info(const nm_vect_t *v, size_t idx);
 void nm_print_snapshots(const nm_vect_t *v);
 void nm_print_cmd(const nm_str_t *name);
 void nm_print_help(void);
@@ -24,8 +25,10 @@ void nm_init_help_iface(void);
 void nm_init_help_import(void);
 void nm_init_help_install(void);
 void nm_init_help_clone(void);
+void nm_init_help_delete(void);
 void nm_init_side(void);
 void nm_init_side_if_list(void);
+void nm_init_side_drives(void);
 void nm_align2line(nm_str_t *str, size_t line_len);
 int nm_warn(const char *msg);
 int nm_notify(const char *msg);
@@ -69,6 +72,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_VDRIVE_ADD "Add virtual drive"
 #define NM_MSG_VDRIVE_DEL "Delete virtual drive"
 #define NM_MSG_INST_CONF  "Already installed (y/n)"
+#define NM_MSG_SNAP_OVER  "Override snapshot? (y/n)"
 #define NM_MSG_RUNNING    "Already running" NM_MSG_ANY_KEY
 #define NM_MSG_NO_SPACE   "No space left for importing drive image" NM_MSG_ANY_KEY
 #define NM_MSG_IFCLR_DONE "Unused ifaces deleted" NM_MSG_ANY_KEY
@@ -92,6 +96,8 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_TAP_EACC   "Access to tap iface is missing" NM_MSG_ANY_KEY
 #define NM_MSG_NO_SNAPS   "There are no snapshots" NM_MSG_ANY_KEY
 #define NM_NSG_DRV_LIM    "3 disks limit reached" NM_MSG_ANY_KEY
+#define NM_MSG_DRV_NONE   "No additional disks" NM_MSG_ANY_KEY
+#define NM_MSG_DRV_EDEL   "Cannot delete drive from filesystem" NM_MSG_ANY_KEY
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)

@@ -175,7 +175,7 @@ void nm_edit_net(const nm_str_t *name, nm_vmctl_data_t *vm)
             }
         }
 
-        nm_print_iface_menu(&ifs);
+        nm_print_base_menu(&ifs);
         werase(action_window);
         nm_init_action(_(NM_MSG_IF_PROP));
         nm_print_iface_info(vm, ifs.highlight);

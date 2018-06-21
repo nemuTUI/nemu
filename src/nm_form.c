@@ -385,7 +385,7 @@ void *nm_spinner(void *data)
     pthread_exit(NULL);
 }
 
-const char *nm_form_select_drive(const nm_vect_t *drives)
+const char *nm_form_select_drive_TODO_DELETE(const nm_vect_t *drives)
 {
     char *drive = NULL;
     nm_form_t *form = NULL;

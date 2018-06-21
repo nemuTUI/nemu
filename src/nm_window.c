@@ -44,19 +44,23 @@ static const char *nm_help_iface_msg[] = {
 };
 
 static const char *nm_help_edit_msg[] = {
-    "esc:Cancel",  "enter:Save"
+    "esc:Cancel", "enter:Save"
 };
 
 static const char *nm_help_import_msg[] = {
-    "esc:Cancel",  "enter:Import"
+    "esc:Cancel", "enter:Import"
 };
 
 static const char *nm_help_install_msg[] = {
-    "esc:Cancel",  "enter:Install"
+    "esc:Cancel", "enter:Install"
 };
 
 static const char *nm_help_clone_msg[] = {
-    "esc:Cancel",  "enter:Clone"
+    "esc:Cancel", "enter:Clone"
+};
+
+static const char *nm_help_del_msg[] = {
+    "q:Back", "enter:Delete"
 };
 
 void nm_create_windows(void)
@@ -114,6 +118,12 @@ void nm_init_help_clone(void)
             nm_arr_len(nm_help_clone_msg), NM_FALSE);
 }
 
+void nm_init_help_delete(void)
+{
+    nm_print_help_lines(nm_help_del_msg,
+            nm_arr_len(nm_help_del_msg), NM_FALSE);
+}
+
 void nm_init_help(const char *msg, int err)
 {
     nm_print_help_lines(&msg, 1, err);
@@ -153,6 +163,13 @@ void nm_init_side_if_list(void)
 {
     wattroff(side_window, COLOR_PAIR(3));
     nm_init_window__(side_window, _("Iface list"));
+    wtimeout(side_window, -1);
+}
+
+void nm_init_side_drives(void)
+{
+    wattroff(side_window, COLOR_PAIR(3));
+    nm_init_window__(side_window, _("Drive list"));
     wtimeout(side_window, -1);
 }
 
@@ -266,6 +283,27 @@ void nm_print_snapshots(const nm_vect_t *v)
                 nm_vect_str_ctx(v, NM_SQL_VMSNAP_TIME + idx_shift));
         NM_PR_VM_INFO();
     }
+
+    nm_str_free(&buf);
+}
+
+void nm_print_drive_info(const nm_vect_t *v, size_t idx)
+{
+    nm_str_t buf = NM_INIT_STR;
+    size_t y = 3, x = 2;
+    size_t cols, rows;
+    size_t idx_shift;
+    chtype ch1, ch2;
+    ch1 = ch2 = 0;
+
+    assert(idx > 0);
+    idx_shift = 2 * (--idx);
+
+    getmaxyx(action_window, rows, cols);
+
+    nm_str_format(&buf, "%-12s%sGb", "capacity: ",
+            nm_vect_str_ctx(v, 1 + idx_shift));
+    NM_PR_VM_INFO();
 
     nm_str_free(&buf);
 }

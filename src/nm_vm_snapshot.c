@@ -372,7 +372,8 @@ static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data)
 
     if (names.n_memb != 0)
     {
-        int ch = nm_print_warn(3, 2, _("Override snapshot? (y/n)"));
+        curs_set(0);
+        int ch = nm_notify(_(NM_MSG_SNAP_OVER));
 
         if (ch == 'y')
             data->update = 1;
