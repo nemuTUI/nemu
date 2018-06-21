@@ -114,9 +114,10 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     int done = 0;
     pthread_t spin_th;
+    size_t snaps_count = 0;
     size_t msg_len = mbstowcs(NULL, NM_FORMSTR_SNAP, strlen(NM_FORMSTR_SNAP));
 
-    nm_str_format(&query, NM_GET_SNAPS_NAME_SQL, name->data);
+    nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, name->data);
     nm_db_select(query.data, &snaps);
 
     if (snaps.n_memb == 0)
@@ -128,11 +129,16 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
         return;
 
-    for (size_t n = 0; n < snaps.n_memb; n++)
+    nm_print_snapshots(&snaps);
+
+    snaps_count = snaps.n_memb / 5;
+    for (size_t n = 0; n < snaps_count; n++)
     {
+        size_t idx_shift = 5 * n;
+
         nm_vect_insert(&choices,
-            nm_vect_str_ctx(&snaps, n),
-            nm_vect_str_len(&snaps, n) + 1,
+            nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_NAME + idx_shift),
+            nm_vect_str_len(&snaps, NM_SQL_VMSNAP_NAME + idx_shift) + 1,
             NULL);
     }
 
@@ -191,7 +197,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     size_t snaps_count = 0;
-    int pos_y = 7, pos_x = 2, done = 0;
+    int done = 0;
     pthread_t spin_th;
     size_t msg_len = mbstowcs(NULL, NM_FORMSTR_SNAP, strlen(NM_FORMSTR_SNAP));
 
@@ -207,33 +213,18 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
         return;
 
+    nm_print_snapshots(&snaps);
+
     snaps_count = snaps.n_memb / 5;
     for (size_t n = 0; n < snaps_count; n++)
     {
         size_t idx_shift = 5 * n;
-
-        if (pos_x >= (getmaxx(action_window) - 40))
-        {
-            pos_y++;
-            pos_x = 2;
-        }
-
-        mvwprintw(action_window, pos_y, pos_x, nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_NAME + idx_shift));
-        pos_x += nm_vect_str_len(&snaps, NM_SQL_VMSNAP_NAME + idx_shift);
-        mvwprintw(action_window, pos_y, pos_x, "(");
-        pos_x++;
-        mvwprintw(action_window, pos_y, pos_x, nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_TIME + idx_shift));
-        pos_x += nm_vect_str_len(&snaps, NM_SQL_VMSNAP_TIME + idx_shift);
-        mvwprintw(action_window, pos_y, pos_x, ") -> ");
-        pos_x += 5;
 
         nm_vect_insert(&choices,
             nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_NAME + idx_shift),
             nm_vect_str_len(&snaps, NM_SQL_VMSNAP_NAME + idx_shift) + 1,
             NULL);
     }
-
-    mvwprintw(action_window, pos_y, pos_x, "current");
 
     nm_vect_end_zero(&choices);
 

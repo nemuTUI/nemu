@@ -9,6 +9,7 @@ void nm_print_vm_window(void);
 int nm_print_warn(int nlines, int begin_x, const char *msg);
 void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm);
 void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx);
+void nm_print_snapshots(const nm_vect_t *v);
 void nm_print_cmd(const nm_str_t *name);
 void nm_print_help(void);
 void nm_print_nemu(void);

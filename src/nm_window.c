@@ -9,16 +9,26 @@
 #define NM_VM_MSG   "F1 - help, ESC - main menu "
 #define NM_MAIN_MSG "Enter - select a choice, ESC - exit"
 
-/* Fit VM properties in action window */
-#define NM_PR_VM_INFO()                                   \
-    do {                                                  \
-        if (y > (rows - 3)) {                             \
-            mvwprintw(action_window, y, x, "...");        \
-            return;                                       \
-        }                                                 \
-        nm_align2line(&buf, cols);                        \
-        mvwprintw(action_window, y++, x, "%s", buf.data); \
-        nm_str_trunc(&buf, 0);                            \
+/*
+** Fit string in action window.
+** ch1 and ch2 need for snapshot tree.
+** I dont know how to print ACS_* chars in mvwprintw().
+*/
+#define NM_PR_VM_INFO()                                         \
+    do {                                                        \
+        if (y > (rows - 3)) {                                   \
+            mvwprintw(action_window, y, x, "...");              \
+            return;                                             \
+        }                                                       \
+        if (ch1 && ch2) {                                       \
+            mvwaddch(action_window, y, x, ch1 );                \
+            mvwaddch(action_window, y, x + 1, ch2 );            \
+        }                                                       \
+        nm_align2line(&buf, (ch1 && ch2) ? cols - 2 : cols);    \
+        mvwprintw(action_window, y++,                           \
+                (ch1 && ch2) ? x + 2 : x, "%s", buf.data);      \
+        nm_str_trunc(&buf, 0);                                  \
+        ch1 = ch2 = 0;                                          \
     } while (0)
 
 static void nm_init_window__(nm_window_t *w, const char *msg);
@@ -226,12 +236,49 @@ void nm_print_cmd(const nm_str_t *name)
     getch();
 }
 
+void nm_print_snapshots(const nm_vect_t *v)
+{
+    nm_str_t buf = NM_INIT_STR;
+    size_t count = v->n_memb / 5;
+    size_t y = 7, x = 2;
+    size_t cols, rows;
+    chtype ch1, ch2;
+    ch1 = ch2 = 0;
+
+    getmaxyx(action_window, rows, cols);
+
+    enum {
+        NM_SQL_VMSNAP_NAME = 2,
+        NM_SQL_VMSNAP_TIME = 4
+    };
+
+    for (size_t n = 0; n < count; n++)
+    {
+        size_t idx_shift = 5 * n;
+        if (n && n < count)
+        {
+
+            ch1 = (n != (count - 1)) ? ACS_LTEE : ACS_LLCORNER;
+            ch2 = ACS_HLINE;
+        }
+
+        nm_str_format(&buf, "%s (%s)",
+                nm_vect_str_ctx(v, NM_SQL_VMSNAP_NAME + idx_shift),
+                nm_vect_str_ctx(v, NM_SQL_VMSNAP_TIME + idx_shift));
+        NM_PR_VM_INFO();
+    }
+
+    nm_str_free(&buf);
+}
+
 void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
 {
     nm_str_t buf = NM_INIT_STR;
     size_t y = 3, x = 2;
     size_t cols, rows;
     size_t idx_shift;
+    chtype ch1, ch2;
+    ch1 = ch2 = 0;
 
     assert(idx > 0);
     idx_shift = NM_IFS_IDX_COUNT * (--idx);
@@ -262,6 +309,8 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)
     size_t y = 3, x = 2;
     size_t cols, rows;
     size_t ifs_count, drives_count;
+    chtype ch1, ch2;
+    ch1 = ch2 = 0;
 
     getmaxyx(action_window, rows, cols);
 
