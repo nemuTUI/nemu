@@ -239,6 +239,12 @@ void nm_start_main_loop(void)
                     nm_vmctl_connect(name);
                 break;
 
+            case NM_KEY_M:
+                nm_print_cmd(name);
+                nm_init_side();
+                nm_init_help_main();
+                break;
+
 #if defined (NM_OS_LINUX)
             case NM_KEY_PLUS:
                 werase(action_window);
