@@ -246,13 +246,7 @@ void nm_start_main_loop(void)
                 break;
 
             case NM_KEY_A:
-                werase(action_window);
-                werase(help_window);
-                nm_init_action(_(NM_MSG_VDRIVE_ADD));
-                nm_init_help_edit();
                 nm_add_drive(name);
-                werase(help_window);
-                nm_init_help_main();
                 break;
 
 #if defined (NM_OS_LINUX)

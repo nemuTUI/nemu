@@ -43,6 +43,11 @@ void nm_add_drive(const nm_str_t *name)
         goto out;
     }
 
+    werase(action_window);
+    werase(help_window);
+    nm_init_action(_(NM_MSG_VDRIVE_ADD));
+    nm_init_help_edit();
+
     nm_str_add_text(&buf, _(NM_DRIVE_SZ_START));
     nm_str_format(&buf, "%u", nm_hw_disk_free());
     nm_str_add_text(&buf, NM_DRIVE_SZ_END);
@@ -86,10 +91,12 @@ void nm_add_drive(const nm_str_t *name)
 
     nm_add_drive_to_fs(name, &drv_size, &vm.drives);
     nm_add_drive_to_db(name, &drv_size, &drv_type, &vm.drives);
-
-out:
+    werase(help_window);
+    nm_init_help_main();
     wtimeout(action_window, -1);
     delwin(form_data.form_window);
+
+out:
     nm_vect_free(&msg_fields, NULL);
     nm_vmctl_free_data(&vm);
     nm_form_free(form, fields);
