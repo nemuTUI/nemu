@@ -166,6 +166,30 @@ void nm_del_drive(const nm_str_t *name)
         werase(action_window);
         nm_init_action(_(NM_MSG_VDRIVE_DEL));
         nm_print_drive_info(&drives, m_drvs.highlight);
+
+        if (redraw_window)
+        {
+            nm_destroy_windows();
+            endwin();
+            refresh();
+            nm_create_windows();
+            nm_init_side_drives();
+            nm_init_help_delete();
+            nm_init_action(_(NM_MSG_VDRIVE_DEL));
+
+            drv_list_len = (getmaxy(side_window) - 4);
+            /* TODO save last pos */
+            if (drv_list_len < drv_count)
+            {
+                m_drvs.item_last = drv_list_len;
+                m_drvs.item_first = 0;
+                m_drvs.highlight = 1;
+            }
+            else
+                m_drvs.item_last = drv_list_len = drv_count;
+
+            redraw_window = 0;
+        }
     } while ((ch = wgetch(action_window)) != NM_KEY_Q);
 
     if (!delete_drive)
