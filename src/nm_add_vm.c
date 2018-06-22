@@ -12,11 +12,25 @@
 
 #define NM_ADD_VM_FIELDS_NUM 9
 
+#define NM_VM_FORM_NAME      "Name"
+#define NM_VM_FORM_ARCH      "Architecture"
+#define NM_VM_FORM_CPU_BEGIN "CPU cores [1-"
+#define NM_VM_FORM_CPU_END   "]"
+#define NM_VM_FORM_MEM_BEGIN "Memory [4-"
+#define NM_VM_FORM_MEM_END   "]Mb"
+#define NM_VM_FORM_DRV_BEGIN "Disk [1-"
+#define NM_VM_FORM_DRV_END   "]Gb"
+#define NM_VM_FORM_DRV_IF    "Disk interface"
+#define NM_VM_FORM_IMP_PATH  "Path to disk image"
+#define NM_VM_FORM_INS_PATH  "Path to ISO/IMG"
+#define NM_VM_FORM_NET_IFS   "Network interfaces"
+#define NM_VM_FORM_NET_DRV   "Net driver"
+
 static nm_form_t *form = NULL;
 static nm_field_t *fields[NM_ADD_VM_FIELDS_NUM + 1];
 
 static void nm_add_vm_field_setup(int import);
-static void nm_add_vm_field_names(nm_window_t *w, int import);
+static void nm_add_vm_field_names(nm_vect_t *msg, int import);
 static int nm_add_vm_get_data(nm_vm_t *vm, int import);
 static void nm_add_vm_to_fs(nm_vm_t *vm, int import);
 static void nm_add_vm_main(int import);
@@ -33,16 +47,6 @@ enum {
     NM_FLD_IFSDRV
 };
 
-static const char *nm_form_msg_install[] = {
-    "Disk interface", "Path to ISO/IMG",
-    "Network interfaces", "Net driver", NULL
-};
-
-static const char *nm_form_msg_import[] = {
-    "Disk interface", "Path to disk image",
-    "Network interfaces", "Net driver", NULL
-};
-
 void nm_import_vm(void)
 {
     nm_add_vm_main(NM_IMPORT_VM);
@@ -56,6 +60,7 @@ void nm_add_vm(void)
 static void nm_add_vm_main(int import)
 {
     nm_vm_t vm = NM_INIT_VM;
+    nm_vect_t msg_fields = NM_INIT_VECT;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     uint64_t last_mac;
@@ -64,8 +69,8 @@ static void nm_add_vm_main(int import)
     pthread_t spin_th;
     int done = 0;
 
-    msg_len = nm_max_msg_len(import ?
-            nm_form_msg_import : nm_form_msg_install);
+    nm_add_vm_field_names(&msg_fields, import);
+    msg_len = nm_max_msg_len((const char **) msg_fields.data);
 
     if (nm_form_calc_size(msg_len, NM_ADD_VM_FIELDS_NUM, &form_data) != NM_OK)
         return;
@@ -76,7 +81,11 @@ static void nm_add_vm_main(int import)
     fields[NM_ADD_VM_FIELDS_NUM] = NULL;
 
     nm_add_vm_field_setup(import);
-    nm_add_vm_field_names(form_data.form_window, import);
+    for (size_t n = 0, y = 1, x = 2; n < NM_ADD_VM_FIELDS_NUM; n++)
+    {
+        mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
+        y += 2;
+    }
 
     form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     if (nm_draw_form(action_window, form) != NM_OK)
@@ -108,6 +117,7 @@ static void nm_add_vm_main(int import)
 
 out:
     wtimeout(action_window, -1);
+    nm_vect_free(&msg_fields, NULL);
     nm_vm_free(&vm);
     nm_form_free(form, fields);
     delwin(form_data.form_window);
@@ -139,41 +149,37 @@ static void nm_add_vm_field_setup(int import)
     field_opts_off(fields[NM_FLD_SOURCE], O_STATIC);
 }
 
-static void nm_add_vm_field_names(nm_window_t *w, int import)
+static void nm_add_vm_field_names(nm_vect_t *msg, int import)
 {
-    int y = 1, x = 2, mult = 2;
     nm_str_t buf = NM_INIT_STR;
 
-    mvwaddstr(w, y, x, _("Name"));
-    mvwaddstr(w, y += mult, x, _("Architecture"));
+    nm_vect_insert(msg, _(NM_VM_FORM_NAME), strlen(_(NM_VM_FORM_NAME)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_ARCH), strlen(_(NM_VM_FORM_ARCH)), NULL);
 
-    nm_str_alloc_text(&buf, _("CPU cores [1-"));
-    nm_str_format(&buf, "%u", nm_hw_ncpus());
-    nm_str_add_char(&buf, ']');
-    mvwaddstr(w, y += mult, x, buf.data);
+    nm_str_format(&buf, "%s%u%s",
+        _(NM_VM_FORM_CPU_BEGIN), nm_hw_ncpus(), _(NM_VM_FORM_CPU_END));
+    nm_vect_insert(msg, buf.data, buf.len, NULL);
     nm_str_trunc(&buf, 0);
 
-    nm_str_add_text(&buf, _("Memory [4-"));
-    nm_str_format(&buf, "%u", nm_hw_total_ram());
-    nm_str_add_text(&buf, "]Mb");
-    mvwaddstr(w, y += mult, x, buf.data);
+    nm_str_format(&buf, "%s%u%s",
+        _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
+    nm_vect_insert(msg, buf.data, buf.len, NULL);
     nm_str_trunc(&buf, 0);
 
-    nm_str_add_text(&buf, _("Disk [1-"));
-    nm_str_format(&buf, "%u", nm_hw_disk_free());
-    nm_str_add_text(&buf, "]Gb");
-    mvwaddstr(w, y += mult, x, buf.data);
+    nm_str_format(&buf, "%s%u%s",
+        _(NM_VM_FORM_DRV_BEGIN), nm_hw_disk_free(), _(NM_VM_FORM_DRV_END));
+    nm_vect_insert(msg, buf.data, buf.len, NULL);
+    nm_str_trunc(&buf, 0);
 
-    mvwaddstr(w, y += mult, x, _("Disk interface"));
+    nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)), NULL);
     if (import)
-        mvwaddstr(w, y += mult, x, _("Path to disk image"));
+        nm_vect_insert(msg, _(NM_VM_FORM_IMP_PATH), strlen(_(NM_VM_FORM_IMP_PATH)), NULL);
     else
-        mvwaddstr(w, y += mult, x, _("Path to ISO/IMG"));
-    mvwaddstr(w, y += mult, x, _("Network interfaces"));
-    mvwaddstr(w, y += mult, x, _("Net driver"));
-    for (size_t n = 0; n < 4; n++)
-        mvwaddstr(w, y += mult, x, import ?
-                _(nm_form_msg_import[n]) : _(nm_form_msg_install[n]));
+        nm_vect_insert(msg, _(NM_VM_FORM_INS_PATH), strlen(_(NM_VM_FORM_INS_PATH)), NULL);
+
+    nm_vect_insert(msg, _(NM_VM_FORM_NET_IFS), strlen(_(NM_VM_FORM_NET_IFS)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_NET_DRV), strlen(_(NM_VM_FORM_NET_DRV)), NULL);
+    nm_vect_end_zero(msg);
 
     nm_str_free(&buf);
 }

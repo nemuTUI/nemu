@@ -49,9 +49,8 @@ void nm_add_drive(const nm_str_t *name)
     nm_init_action(_(NM_MSG_VDRIVE_ADD));
     nm_init_help_edit();
 
-    nm_str_add_text(&buf, _(NM_DRIVE_SZ_START));
-    nm_str_format(&buf, "%u", nm_hw_disk_free());
-    nm_str_add_text(&buf, NM_DRIVE_SZ_END);
+    nm_str_format(&buf, "%s%u%s",
+        _(NM_DRIVE_SZ_START), nm_hw_disk_free(), _(NM_DRIVE_SZ_END));
 
     nm_vect_insert(&msg_fields, buf.data, buf.len, NULL);
     nm_vect_insert(&msg_fields, _(NM_DRIVE_FORM_MSG),

@@ -13,21 +13,22 @@
 
 #define NM_EDIT_VM_FIELDS_NUM 8
 
+#define NM_VM_FORM_CPU_BEGIN "CPU cores [1-"
+#define NM_VM_FORM_CPU_END   "]"
+#define NM_VM_FORM_MEM_BEGIN "Memory [4-"
+#define NM_VM_FORM_MEM_END   "]Mb"
+#define NM_VM_FORM_KVM       "KVM [yes/no]"
+#define NM_VM_FORM_HCPU      "Host CPU [yes/no]"
+#define NM_VM_FORM_NET_IFS   "Network interfaces"
+#define NM_VM_FORM_DRV_IF    "Disk interface"
+#define NM_VM_FORM_USB       "USB [yes/no]"
+#define NM_VM_FORM_SYNC      "Sync mouse position"
+
 static nm_form_t *form = NULL;
 static nm_field_t *fields[NM_EDIT_VM_FIELDS_NUM + 1];
 
-static const char *nm_form_msg[] = {
-    "KVM [yes/no]",
-    "Host CPU [yes/no]",
-    "Network ",
-    "Disk interface",
-    "USB [yes/no]",
-    "Sync mouse position",
-    NULL
-};
-
 static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur);
-static void nm_edit_vm_field_names(nm_window_t *w);
+static void nm_edit_vm_field_names(nm_vect_t *msg);
 static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur);
 static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac);
 
@@ -45,12 +46,14 @@ enum {
 void nm_edit_vm(const nm_str_t *name)
 {
     nm_vm_t vm = NM_INIT_VM;
+    nm_vect_t msg_fields = NM_INIT_VECT;
     nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     uint64_t last_mac;
     size_t msg_len;
 
-    msg_len = nm_max_msg_len(nm_form_msg);
+    nm_edit_vm_field_names(&msg_fields);
+    msg_len = nm_max_msg_len((const char **) msg_fields.data);
 
     if (nm_form_calc_size(msg_len, NM_EDIT_VM_FIELDS_NUM, &form_data) != NM_OK)
         return;
@@ -63,7 +66,11 @@ void nm_edit_vm(const nm_str_t *name)
     fields[NM_EDIT_VM_FIELDS_NUM] = NULL;
 
     nm_edit_vm_field_setup(&cur_settings);
-    nm_edit_vm_field_names(form_data.form_window);
+    for (size_t n = 0, y = 1, x = 2; n < NM_EDIT_VM_FIELDS_NUM; n++)
+    {
+        mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
+        y += 2;
+    }
 
     form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
 
@@ -80,6 +87,7 @@ void nm_edit_vm(const nm_str_t *name)
 out:
     wtimeout(action_window, -1);
     nm_vm_free(&vm);
+    nm_vect_free(&msg_fields, NULL);
     nm_form_free(form, fields);
     delwin(form_data.form_window);
     nm_vmctl_free_data(&cur_settings);
@@ -135,24 +143,27 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     nm_str_free(&buf);
 }
 
-static void nm_edit_vm_field_names(nm_window_t *w)
+static void nm_edit_vm_field_names(nm_vect_t *msg)
 {
-    int y = 1, x = 2, mult = 2;
     nm_str_t buf = NM_INIT_STR;
 
-    nm_str_add_text(&buf, _("CPU cores [1-"));
-    nm_str_format(&buf, "%u", nm_hw_ncpus());
-    nm_str_add_char(&buf, ']');
-    mvwaddstr(w, y, x, buf.data);
+    nm_str_format(&buf, "%s%u%s",
+        _(NM_VM_FORM_CPU_BEGIN), nm_hw_ncpus(), _(NM_VM_FORM_CPU_END));
+    nm_vect_insert(msg, buf.data, buf.len, NULL);
     nm_str_trunc(&buf, 0);
 
-    nm_str_add_text(&buf, _("Memory [4-"));
-    nm_str_format(&buf, "%u", nm_hw_total_ram());
-    nm_str_add_text(&buf, "]Mb");
-    mvwaddstr(w, y += mult, x, buf.data);
+    nm_str_format(&buf, "%s%u%s",
+        _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
+    nm_vect_insert(msg, buf.data, buf.len, NULL);
+    nm_str_trunc(&buf, 0);
 
-    for (size_t n = 0; n < 6; n++)
-        mvwaddstr(w, y += mult, x, _(nm_form_msg[n]));
+    nm_vect_insert(msg, _(NM_VM_FORM_KVM), strlen(_(NM_VM_FORM_KVM)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_HCPU), strlen(_(NM_VM_FORM_HCPU)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_NET_IFS), strlen(_(NM_VM_FORM_NET_IFS)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_USB), strlen(_(NM_VM_FORM_USB)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_SYNC), strlen(_(NM_VM_FORM_SYNC)), NULL);
+    nm_vect_end_zero(msg);
 
     nm_str_free(&buf);
 }
