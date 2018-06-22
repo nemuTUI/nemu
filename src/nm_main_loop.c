@@ -110,65 +110,8 @@ void nm_start_main_loop(void)
         if (ch != ERR)
             clear_action = 1;
 
-        if ((ch == KEY_UP) && (vms.highlight == 1) && (vms.item_first == 0) &&
-            (vm_list_len < vms.v->n_memb) && (vm_list.n_memb > 0))
-        {
-            vms.highlight = vm_list_len;
-            vms.item_first = vms.v->n_memb - vm_list_len;
-            vms.item_last = vms.v->n_memb;
-        }
-
-        else if ((ch == KEY_UP) && (vm_list.n_memb > 0))
-        {
-            if ((vms.highlight == 1) && (vms.v->n_memb <= vm_list_len))
-                vms.highlight = vms.v->n_memb;
-            else if ((vms.highlight == 1) && (vms.item_first != 0))
-            {
-                vms.item_first--;
-                vms.item_last--;
-            }
-            else
-            {
-                vms.highlight--;
-            }
-        }
-
-        else if ((ch == KEY_DOWN) && (vms.highlight == vm_list_len) &&
-                 (vms.item_last == vms.v->n_memb) && (vm_list.n_memb > 0))
-        {
-            vms.highlight = 1;
-            vms.item_first = 0;
-            vms.item_last = vm_list_len;
-        }
-
-        else if (ch == KEY_DOWN && vm_list.n_memb > 0)
-        {
-            if ((vms.highlight == vms.v->n_memb) && (vms.v->n_memb <= vm_list_len))
-                vms.highlight = 1;
-            else if ((vms.highlight == vm_list_len) && (vms.item_last < vms.v->n_memb))
-            {
-                vms.item_first++;
-                vms.item_last++;
-            }
-            else
-            {
-                vms.highlight++;
-            }
-        }
-
-        else if (ch == KEY_HOME && vm_list.n_memb > 0)
-        {
-            vms.highlight = 1;
-            vms.item_first = 0;
-            vms.item_last = vm_list_len;
-        }
-
-        else if (ch == KEY_END && vm_list.n_memb > 0)
-        {
-            vms.highlight = vm_list_len;
-            vms.item_first = vms.v->n_memb - vm_list_len;
-            vms.item_last = vms.v->n_memb;
-        }
+        if (vm_list.n_memb > 0)
+            nm_menu_scroll(&vms, vm_list_len, ch);
 
         if (ch == NM_KEY_Q)
         {
