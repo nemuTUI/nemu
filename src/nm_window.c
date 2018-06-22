@@ -35,7 +35,10 @@ static void nm_init_window__(nm_window_t *w, const char *msg);
 static void nm_print_help_lines(const char **msg, size_t objs, int err);
 
 static const char *nm_help_main_msg[] = {
-    "q:Quit", "I:Install VM", "O:Import OVA",
+    "q:Quit", "I:Install VM",
+#if defined (NM_WITH_OVF_SUPPORT)
+    "O:Import OVA",
+#endif
     "A:Import image", "N:Network", "?:Help"
 };
 
