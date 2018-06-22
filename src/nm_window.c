@@ -42,6 +42,10 @@ static const char *nm_help_main_msg[] = {
     "A:Import image", "N:Network", "?:Help"
 };
 
+static const char *nm_help_lan_msg[] = {
+    "q:Back", "?:Help"
+};
+
 static const char *nm_help_iface_msg[] = {
     "q:Back", "enter:Edit"
 };
@@ -89,6 +93,12 @@ void nm_init_help_main(void)
 {
     nm_print_help_lines(nm_help_main_msg,
             nm_arr_len(nm_help_main_msg), NM_FALSE);
+}
+
+void nm_init_help_lan(void)
+{
+    nm_print_help_lines(nm_help_lan_msg,
+            nm_arr_len(nm_help_lan_msg), NM_FALSE);
 }
 
 void nm_init_help_edit(void)
@@ -160,6 +170,13 @@ void nm_init_side(void)
     wattroff(side_window, COLOR_PAIR(3));
     nm_init_window__(side_window, _("VM list"));
     wtimeout(side_window, 500);
+}
+
+void nm_init_side_lan(void)
+{
+    wattroff(side_window, COLOR_PAIR(3));
+    nm_init_window__(side_window, _("veth list"));
+    wtimeout(side_window, -1);
 }
 
 void nm_init_side_if_list(void)

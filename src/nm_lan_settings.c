@@ -53,28 +53,62 @@ void nm_lan_settings(void)
     nm_vect_t veths = NM_INIT_VECT;
     nm_vect_t veths_list = NM_INIT_VECT;
     nm_menu_data_t veths_data = NM_INIT_MENU_DATA;
-    uint32_t list_max = 0, old_hl = 0;
+    size_t veth_list_len, old_hl = 0;
 
-    nm_str_alloc_text(&query, NM_LAN_GET_VETH_SQL);
+    werase(side_window);
+    werase(action_window);
+    werase(help_window);
+    nm_init_help_lan();
+    nm_init_action(_(NM_MSG_LAN));
+    nm_init_side_lan();
 
-    keypad(stdscr, 1);
+    //nm_str_alloc_text(&query, NM_LAN_GET_VETH_SQL);
 
-    nm_db_select(query.data, &veths);
+    //keypad(stdscr, 1);
+
+    //nm_db_select(query.data, &veths);
 
     //veths_data.item_last = nm_cfg_get()->list_max;
 
-    for (;;)
-    {
-        nm_print_vm_window();
+    do {
+        //nm_print_vm_window();
 
         if (regen_data)
         {
             nm_vect_free(&veths_list, NULL);
             nm_vect_free(&veths, nm_str_vect_free_cb);
-            nm_db_select(query.data, &veths);
+            nm_db_select(NM_LAN_GET_VETH_SQL, &veths);
+            veth_list_len = (getmaxy(side_window) - 4);
+
+            veths_data.highlight = 1;
+
+            if (old_hl > 1)
+            {
+                if (veths.n_memb < old_hl)
+                    veths_data.highlight = (old_hl - 1);
+                else
+                    veths_data.highlight = old_hl;
+                old_hl = 0;
+            }
+
+            if (veth_list_len < veths.n_memb)
+                veths_data.item_last = veth_list_len;
+            else
+                veths_data.item_last = veth_list_len = veths.n_memb;
+
+            for (size_t n = 0; n < veths.n_memb; n++)
+            {
+                nm_menu_item_t veth = NM_INIT_MENU_ITEM;
+                veth.name = (nm_str_t *) nm_vect_at(&veths, n);
+                nm_vect_insert(&veths_list, &veth, sizeof(veth), NULL);
+            }
+
+            veths_data.v = &veths_list;
+
+            regen_data = 0;
         }
 
-        if (veths.n_memb == 0)
+        /*if (veths.n_memb == 0)
         {
             int col;
             size_t msg_len;
@@ -122,8 +156,12 @@ void nm_lan_settings(void)
             //veth_window = nm_init_window(list_max + 4, 40, 7);
             nm_print_veth_menu(veth_window, &veths_data, 1);
             regen_data = 0;
+        }*/
+        if (veths.n_memb > 0)
+        {
+            nm_print_veth_menu(veth_window, &veths_data, renew_status);
         }
-        else if (renew_status)
+        /*else if (renew_status)
         {
             //veth_window = nm_init_window(list_max + 4, 40, 7);
             nm_print_veth_menu(veth_window, &veths_data, 1);
@@ -134,8 +172,6 @@ void nm_lan_settings(void)
             //veth_window = nm_init_window(list_max + 4, 40, 7);
             nm_print_veth_menu(veth_window, &veths_data, 0);
         }
-
-        ch = getch();
 
         if ((veths.n_memb > 0) && (ch == KEY_UP) && (veths_data.highlight == 1) &&
             (veths_data.item_first == 0) && (list_max < veths_data.v->n_memb))
@@ -194,7 +230,7 @@ void nm_lan_settings(void)
             {
                 veths_data.highlight++;
             }
-        }
+        }*/
 
         else if (ch == NM_KEY_A)
         {
@@ -249,7 +285,7 @@ void nm_lan_settings(void)
             clear();
             redraw_window = 0;
         }
-    }
+    } while ((ch = wgetch(action_window)) != NM_KEY_Q);
 
 out:
     nm_vect_free(&veths, nm_str_vect_free_cb);

@@ -19,6 +19,7 @@
 #include <nm_vm_control.h>
 #include <nm_vm_snapshot.h>
 #include <nm_qmp_control.h>
+#include <nm_lan_settings.h>
 
 #define NM_SQL_GET_VM "SELECT name FROM vms ORDER BY name ASC"
 #define NM_SEARCH_STR "Search:"
@@ -335,6 +336,12 @@ void nm_start_main_loop(void)
                 nm_edit_net(name);
                 break;
 
+#if defined (NM_OS_LINUX)
+            case NM_KEY_N_UP:
+                nm_lan_settings();
+                break;
+#endif
+
             case NM_KEY_SLASH:
                 {
                     int err = NM_FALSE;
@@ -472,7 +479,6 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
     void *match = NULL;
     nm_form_t *form = NULL;
     nm_field_t *fields[2];
-    nm_window_t *window = NULL;
     nm_str_t input = NM_INIT_STR;
     int cols = getmaxx(side_window);
     size_t msg_len = mbstowcs(NULL, _(NM_SEARCH_STR), strlen(NM_SEARCH_STR));

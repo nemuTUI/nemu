@@ -20,6 +20,7 @@ void nm_destroy_windows(void);
 void nm_init_action(const char *msg);
 void nm_init_help(const char *msg, int err);
 void nm_init_help_main(void);
+void nm_init_help_lan(void);
 void nm_init_help_edit(void);
 void nm_init_help_iface(void);
 void nm_init_help_import(void);
@@ -27,6 +28,7 @@ void nm_init_help_install(void);
 void nm_init_help_clone(void);
 void nm_init_help_delete(void);
 void nm_init_side(void);
+void nm_init_side_lan(void);
 void nm_init_side_if_list(void);
 void nm_init_side_drives(void);
 void nm_align2line(nm_str_t *str, size_t line_len);
@@ -61,6 +63,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_INSTALL    "Install VM"
 #define NM_MSG_IMPORT     "Import drive image"
 #define NM_MSG_CLONE      "Clone VM"
+#define NM_MSG_LAN        "Connected VM's"
 #define NM_MSG_EDIT_VM    "Edit properties"
 #define NM_MSG_EDIT_BOOT  "Edit boot settings"
 #define NM_MSG_9P_SHARE   "Share host filesystem"
@@ -141,6 +144,7 @@ enum nm_key_upper {
     NM_KEY_P_UP = 80,
     NM_KEY_R_UP = 82,
     NM_KEY_S_UP = 83,
+    NM_KEY_V_UP = 86,
     NM_KEY_X_UP = 88
 };
 

@@ -43,7 +43,6 @@ void nm_9p_share(const nm_str_t *name)
 {
     nm_form_t *form = NULL;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
-    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     nm_9p_data_t data = NM_INIT_9P_DATA;
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     size_t msg_len = nm_max_msg_len(nm_form_msg);
