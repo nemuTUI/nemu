@@ -391,31 +391,7 @@ void nm_start_main_loop(void)
                 break;
 
             case NM_KEY_I:
-                {
-                    /* TODO move check inside nm_edit_net() */
-                    nm_vmctl_data_t vm_data = NM_VMCTL_INIT_DATA;
-                    nm_vmctl_get_data(name, &vm_data);
-
-                    if (vm_data.ifs.n_memb == 0)
-                    {
-                        nm_warn(_(NM_MSG_NO_IFACES));
-                    }
-                    else
-                    {
-                        werase(side_window);
-                        werase(action_window);
-                        werase(help_window);
-                        nm_init_help_iface();
-                        nm_init_action(_(NM_MSG_IF_PROP));
-                        nm_init_side_if_list();
-                        nm_edit_net(name, &vm_data);
-                        werase(side_window);
-                        werase(help_window);
-                        nm_init_side();
-                        nm_init_help_main();
-                    }
-                    nm_vmctl_free_data(&vm_data);
-                }
+                nm_edit_net(name);
                 break;
 
             case NM_KEY_SLASH:
@@ -776,14 +752,14 @@ void nm_print_vm_list(void)
             nm_vmctl_data_t vm_data = NM_VMCTL_INIT_DATA;
             nm_vmctl_get_data(vm, &vm_data);
 
-            if (vm_data.ifs.n_memb == 0)
+            /*if (vm_data.ifs.n_memb == 0)
             {
                 nm_print_warn(3, 6, _("No network configured"));
             }
             else
             {
                 nm_edit_net(vm, &vm_data);
-            }
+            }*/
             nm_vmctl_free_data(&vm_data);
         } /* }}} net settings */
 

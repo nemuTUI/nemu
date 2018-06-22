@@ -78,13 +78,31 @@ enum {
     NM_FLD_PETH
 };
 
-void nm_edit_net(const nm_str_t *name, nm_vmctl_data_t *vm)
+void nm_edit_net(const nm_str_t *name)
 {
     int ch;
     nm_menu_data_t ifs = NM_INIT_MENU_DATA;
     nm_vect_t ifaces = NM_INIT_VECT;
+    nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     size_t vm_list_len = (getmaxy(side_window) - 4);
-    size_t iface_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
+    size_t iface_count;
+
+    nm_vmctl_get_data(name, &vm);
+
+    if (vm.ifs.n_memb == 0)
+    {
+        nm_warn(_(NM_MSG_NO_IFACES));
+        goto out;
+    }
+
+    werase(side_window);
+    werase(action_window);
+    werase(help_window);
+    nm_init_help_iface();
+    nm_init_action(_(NM_MSG_IF_PROP));
+    nm_init_side_if_list();
+
+    iface_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
     
     ifs.highlight = 1;
     if (vm_list_len < iface_count)
@@ -96,8 +114,8 @@ void nm_edit_net(const nm_str_t *name, nm_vmctl_data_t *vm)
     {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
         nm_vect_insert(&ifaces,
-                       nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
-                       nm_vect_str_len(&vm->ifs, NM_SQL_IF_NAME + idx_shift) + 1,
+                       nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
+                       nm_vect_str_len(&vm.ifs, NM_SQL_IF_NAME + idx_shift) + 1,
                        NULL);
     }
 
@@ -110,17 +128,17 @@ void nm_edit_net(const nm_str_t *name, nm_vmctl_data_t *vm)
             werase(action_window);
             nm_init_action(_(NM_MSG_IF_PROP));
 
-            if (nm_edit_net_action(name, vm, ifs.highlight) == NM_OK)
+            if (nm_edit_net_action(name, &vm, ifs.highlight) == NM_OK)
             {
-                nm_vmctl_free_data(vm);
-                nm_vmctl_get_data(name, vm);
+                nm_vmctl_free_data(&vm);
+                nm_vmctl_get_data(name, &vm);
             }
         }
 
         nm_print_base_menu(&ifs);
         werase(action_window);
         nm_init_action(_(NM_MSG_IF_PROP));
-        nm_print_iface_info(vm, ifs.highlight);
+        nm_print_iface_info(&vm, ifs.highlight);
 
         if (redraw_window)
         {
@@ -147,7 +165,14 @@ void nm_edit_net(const nm_str_t *name, nm_vmctl_data_t *vm)
         }
     } while ((ch = wgetch(action_window)) != NM_KEY_Q);
 
+    werase(side_window);
+    werase(help_window);
+    nm_init_side();
+    nm_init_help_main();
+
+out:
     nm_vect_free(&ifaces, NULL);
+    nm_vmctl_free_data(&vm);
 }
 
 static int
