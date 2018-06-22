@@ -103,67 +103,9 @@ void nm_edit_net(const nm_str_t *name, nm_vmctl_data_t *vm)
 
     ifs.v = &ifaces;
     do {
-        if ((ch == KEY_UP) && (ifs.highlight == 1) && (ifs.item_first == 0) &&
-            (vm_list_len < ifs.v->n_memb))
-        {
-            ifs.highlight = vm_list_len;
-            ifs.item_first = ifs.v->n_memb - vm_list_len;
-            ifs.item_last = ifs.v->n_memb;
-        }
+        nm_menu_scroll(&ifs, vm_list_len, ch);
 
-        else if (ch == KEY_UP)
-        {
-            if ((ifs.highlight == 1) && (ifs.v->n_memb <= vm_list_len))
-                ifs.highlight = ifs.v->n_memb;
-            else if ((ifs.highlight == 1) && (ifs.item_first != 0))
-            {
-                ifs.item_first--;
-                ifs.item_last--;
-            }
-            else
-            {
-                ifs.highlight--;
-            }
-        }
-
-        else if ((ch == KEY_DOWN) && (ifs.highlight == vm_list_len) &&
-                 (ifs.item_last == ifs.v->n_memb))
-        {
-            ifs.highlight = 1;
-            ifs.item_first = 0;
-            ifs.item_last = vm_list_len;
-        }
-
-        else if (ch == KEY_DOWN)
-        {
-            if ((ifs.highlight == ifs.v->n_memb) && (ifs.v->n_memb <= vm_list_len))
-                ifs.highlight = 1;
-            else if ((ifs.highlight == vm_list_len) && (ifs.item_last < ifs.v->n_memb))
-            {
-                ifs.item_first++;
-                ifs.item_last++;
-            }
-            else
-            {
-                ifs.highlight++;
-            }
-        }
-
-        else if (ch == KEY_HOME)
-        {
-            ifs.highlight = 1;
-            ifs.item_first = 0;
-            ifs.item_last = vm_list_len;
-        }
-
-        else if (ch == KEY_END)
-        {
-            ifs.highlight = vm_list_len;
-            ifs.item_first = ifs.v->n_memb - vm_list_len;
-            ifs.item_last = ifs.v->n_memb;
-        }
-
-        else if (ch == NM_KEY_ENTER)
+        if (ch == NM_KEY_ENTER)
         {
             werase(action_window);
             nm_init_action(_(NM_MSG_IF_PROP));

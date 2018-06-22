@@ -154,7 +154,7 @@ void nm_del_drive(const nm_str_t *name)
     m_drvs.v = &drv_list;
 
     do {
-        nm_menu_scroll(&m_drvs, drv_count, drv_list_len, ch);
+        nm_menu_scroll(&m_drvs, drv_list_len, ch);
 
         if (ch == NM_KEY_ENTER)
         {

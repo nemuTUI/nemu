@@ -162,20 +162,20 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
     nm_str_free(&lock_path);
 }
 
-void nm_menu_scroll(nm_menu_data_t *menu, size_t n_memb, size_t list_len, int ch)
+void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
 {
     if ((ch == KEY_UP) && (menu->highlight == 1) && (menu->item_first == 0) &&
-            (list_len < n_memb))
+            (list_len < menu->v->n_memb))
     {
         menu->highlight = list_len;
-        menu->item_first = n_memb - list_len;
-        menu->item_last = n_memb;
+        menu->item_first = menu->v->n_memb - list_len;
+        menu->item_last = menu->v->n_memb;
     }
 
     else if (ch == KEY_UP)
     {
-        if ((menu->highlight == 1) && (n_memb <= list_len))
-            menu->highlight = n_memb;
+        if ((menu->highlight == 1) && (menu->v->n_memb <= list_len))
+            menu->highlight = menu->v->n_memb;
         else if ((menu->highlight == 1) && (menu->item_first != 0))
         {
             menu->item_first--;
@@ -188,7 +188,7 @@ void nm_menu_scroll(nm_menu_data_t *menu, size_t n_memb, size_t list_len, int ch
     }
 
     else if ((ch == KEY_DOWN) && (menu->highlight == list_len) &&
-            (menu->item_last == n_memb))
+            (menu->item_last == menu->v->n_memb))
     {
         menu->highlight = 1;
         menu->item_first = 0;
@@ -197,9 +197,9 @@ void nm_menu_scroll(nm_menu_data_t *menu, size_t n_memb, size_t list_len, int ch
 
     else if (ch == KEY_DOWN)
     {
-        if ((menu->highlight == n_memb) && (n_memb <= list_len))
+        if ((menu->highlight == menu->v->n_memb) && (menu->v->n_memb <= list_len))
             menu->highlight = 1;
-        else if ((menu->highlight == list_len) && (menu->item_last < n_memb))
+        else if ((menu->highlight == list_len) && (menu->item_last < menu->v->n_memb))
         {
             menu->item_first++;
             menu->item_last++;
@@ -220,8 +220,8 @@ void nm_menu_scroll(nm_menu_data_t *menu, size_t n_memb, size_t list_len, int ch
     else if (ch == KEY_END)
     {
         menu->highlight = list_len;
-        menu->item_first = n_memb - list_len;
-        menu->item_last = n_memb;
+        menu->item_first = menu->v->n_memb - list_len;
+        menu->item_last = menu->v->n_memb;
     }
 }
 
