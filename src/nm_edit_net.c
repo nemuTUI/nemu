@@ -400,7 +400,7 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
     }
 #else
     (void) name;
-    (void) ifname;
+    (void) ifp;
 #endif /* NM_OS_LINUX */
 
 out:
