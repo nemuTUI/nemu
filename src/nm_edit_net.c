@@ -328,14 +328,14 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
     {
         if (nm_net_verify_mac(&ifp->maddr) != NM_OK)
         {
-            nm_print_warn(3, 2, _("Invalid mac address"));
+            nm_warn(_(NM_MSG_MAC_INVAL));
             rc = NM_ERR;
             goto out;
         }
 
         if (nm_edit_net_maddr_busy(&ifp->maddr) != NM_OK)
         {
-            nm_print_warn(3, 2, _("This mac is already used"));
+            nm_warn(_(NM_MSG_MAC_USED));
             rc = NM_ERR;
             goto out;
         }
@@ -346,7 +346,7 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
         nm_str_t err_msg = NM_INIT_STR;
         if (nm_net_verify_ipaddr4(&ifp->ipv4, NULL, &err_msg) != NM_OK)
         {
-            nm_print_warn(3, 2, err_msg.data);
+            nm_warn(err_msg.data);
             rc = NM_ERR;
             goto out;
         }
@@ -385,7 +385,7 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
         if (!vhost_ok)
         {
             rc = NM_ERR;
-            nm_print_warn(3, 2, _("vhost can be enabled only on virtio-net"));
+            nm_warn(_(NM_MSG_VHOST_ERR));
         }
     }
 
@@ -395,7 +395,7 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
         if (nm_net_iface_exists(&ifp->parent_eth) != NM_OK)
         {
             rc = NM_ERR;
-            nm_print_warn(3, 2, _("MacVTap parent interface does not exists"));
+            nm_warn(_(NM_MSG_VTAP_NOP));
         }
     }
 #else

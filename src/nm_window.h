@@ -4,9 +4,6 @@
 #include <nm_ncurses.h>
 #include <nm_vm_control.h>
 
-void nm_print_main_window(void);
-void nm_print_vm_window(void);
-int nm_print_warn(int nlines, int begin_x, const char *msg);
 void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm);
 void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx);
 void nm_print_drive_info(const nm_vect_t *v, size_t idx);
@@ -103,6 +100,18 @@ extern sig_atomic_t redraw_window;
 #define NM_NSG_DRV_LIM    "3 disks limit reached" NM_MSG_ANY_KEY
 #define NM_MSG_DRV_NONE   "No additional disks" NM_MSG_ANY_KEY
 #define NM_MSG_DRV_EDEL   "Cannot delete drive from filesystem" NM_MSG_ANY_KEY
+#define NM_MSG_MAC_INVAL  "Invalid mac address" NM_MSG_ANY_KEY
+#define NM_MSG_MAC_USED   "This mac address is already used" NM_MSG_ANY_KEY
+#define NM_MSG_VHOST_ERR  "vhost can be enabled only on virtio-net" NM_MSG_ANY_KEY
+#define NM_MSG_VTAP_NOP   "MacVTap parent interface does not exists" NM_MSG_ANY_KEY
+#define NM_MSG_NAME_DIFF  "Names must be different" NM_MSG_ANY_KEY
+#define NM_MSG_OVF_MISS   "OVF file is not found" NM_MSG_ANY_KEY
+#define NM_MSG_OVF_EPAR   "Cannot parse OVF file" NM_MSG_ANY_KEY
+#define NM_MSG_XPATH_ERR  "Cannot create new XPath context" NM_MSG_ANY_KEY
+#define NM_MSG_NS_ERROR   "Cannot register xml namespaces" NM_MSG_ANY_KEY
+#define NM_MSG_USB_EMPTY  "Empty device name" NM_MSG_ANY_KEY
+#define NM_MSG_USB_EDATA  "Malformed input data" NM_MSG_ANY_KEY
+#define NM_MSG_USB_ATTAC  "Already attached" NM_MSG_ANY_KEY
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)

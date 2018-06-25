@@ -204,7 +204,7 @@ static int nm_usb_plug_get_data(const nm_str_t *name, nm_usb_data_t *usb,
     nm_get_field_buf(fields[0], &input);
     if (!input.len)
     {
-        nm_print_warn(3, 2, _("Empty device name"));
+        nm_warn(_(NM_MSG_USB_EMPTY));
         goto out;
     }
 
@@ -212,7 +212,7 @@ static int nm_usb_plug_get_data(const nm_str_t *name, nm_usb_data_t *usb,
     if ((fo = strchr(buf.data, ':')) == NULL)
     {
         /* Reinsurance, "fo" will always be OK */
-        nm_print_warn(3, 2, _("Malformed input data"));
+        nm_warn(_(NM_MSG_USB_EDATA));
         goto out;
     }
 
@@ -237,7 +237,7 @@ static int nm_usb_plug_get_data(const nm_str_t *name, nm_usb_data_t *usb,
 
     if (db_list.n_memb)
     {
-        nm_print_warn(3, 2, _("Already attached"));
+        nm_warn(_(NM_MSG_USB_ATTAC));
         goto out;
     }
 
@@ -261,7 +261,7 @@ static int nm_usb_unplug_get_data(nm_usb_data_t *usb, const nm_vect_t *db_list)
     nm_get_field_buf(fields[0], &input);
     if (!input.len)
     {
-        nm_print_warn(3, 2, _("Empty device name"));
+        nm_warn(_(NM_MSG_USB_EMPTY));
         goto out;
     }
 
@@ -269,7 +269,7 @@ static int nm_usb_unplug_get_data(nm_usb_data_t *usb, const nm_vect_t *db_list)
     if ((fo = strchr(buf.data, ':')) == NULL)
     {
         /* Reinsurance, "fo" will always be OK */
-        nm_print_warn(3, 2, _("Malformed input data"));
+        nm_warn(_(NM_MSG_USB_EDATA));
         goto out;
     }
 

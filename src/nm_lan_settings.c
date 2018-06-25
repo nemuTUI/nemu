@@ -265,7 +265,7 @@ static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn)
     nm_db_select(query.data, &names);
     if (names.n_memb > 0)
     {
-        nm_print_warn(3, 2, _("This name is already taken"));
+        nm_warn(_(NM_MSG_NAME_BUSY));
         rc = NM_ERR;
         goto out;
     }
@@ -275,14 +275,14 @@ static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn)
     nm_db_select(query.data, &names);
     if (names.n_memb > 0)
     {
-        nm_print_warn(3, 2, _("This name is already taken"));
+        nm_warn(_(NM_MSG_NAME_BUSY));
         rc = NM_ERR;
         goto out;
     }
 
     if (nm_str_cmp_ss(ln, rn) == NM_OK)
     {
-        nm_print_warn(3, 2, _("Names must be different"));
+        nm_warn(_(NM_MSG_NAME_DIFF));
         rc = NM_ERR;
     }
 

@@ -166,7 +166,7 @@ void nm_ovf_import(void)
 
     if ((ovf_file = nm_find_ovf(&files)) == NULL)
     {
-        nm_print_warn(3, 6, _("OVF file is not found!"));
+        nm_warn(_(NM_MSG_OVF_MISS));
         goto out;
     }
 
@@ -174,19 +174,19 @@ void nm_ovf_import(void)
 
     if ((doc = nm_ovf_open(templ_path, ovf_file)) == NULL)
     {
-        nm_print_warn(3, 6, _("Cannot parse OVF file"));
+        nm_warn(_(NM_MSG_OVF_EPAR));
         goto out;
     }
 
     if ((xpath_ctx = xmlXPathNewContext(doc)) == NULL)
     {
-        nm_print_warn(3, 6, _("Cannot create new XPath context"));
+        nm_warn(_(NM_MSG_XPATH_ERR));
         goto out;
     }
 
     if (nm_register_xml_ns(xpath_ctx) != NM_OK)
     {
-        nm_print_warn(3, 6, _("Cannot register xml namespaces"));
+        nm_warn(_(NM_MSG_ANY_KEY));
         goto out;
     }
 
@@ -211,7 +211,7 @@ void nm_ovf_import(void)
 
 out:
     if (nm_clean_temp_dir(templ_path, &files) != NM_OK)
-        nm_print_warn(3, 6, _("Some files was not deleted"));
+        nm_warn(_(NM_MSG_INC_DEL));
 
     xmlXPathFreeContext(xpath_ctx);
     xmlFreeDoc(doc);

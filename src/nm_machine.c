@@ -85,7 +85,7 @@ static void nm_mach_get_data(const char *arch)
         nm_str_t warn_msg = NM_INIT_STR;
         nm_str_format(&warn_msg,
             _("Cannot get mach for %-6s  . Error was logged"), arch);
-        nm_print_warn(3, 3, warn_msg.data);
+        nm_warn(warn_msg.data);
         nm_str_free(&warn_msg);
         goto out;
     }

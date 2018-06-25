@@ -6,9 +6,6 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 
-#define NM_VM_MSG   "F1 - help, ESC - main menu "
-#define NM_MAIN_MSG "Enter - select a choice, ESC - exit"
-
 static void nm_init_window__(nm_window_t *w, const char *msg);
 static void nm_print_help_lines(const char **msg, size_t objs, int err);
 static void nm_print_help__(const char **keys, const char **values,
@@ -200,36 +197,6 @@ void nm_destroy_windows(void)
     help_window = NULL;
     side_window = NULL;
     action_window = NULL;
-}
-
-void nm_print_main_window(void)
-{
-    nm_print_title(_(NM_MAIN_MSG));
-}
-
-void nm_print_vm_window(void)
-{
-    nm_print_title(_(NM_VM_MSG));
-}
-
-int nm_print_warn(int nlines, int begin_x, const char *msg)
-{
-    size_t msg_len;
-    nm_window_t *w;
-    int ch;
-
-    msg_len = mbstowcs(NULL, msg, strlen(msg));
-    if (msg_len % 2 != 0)
-        msg_len--;
-    //w = nm_init_window(nlines, msg_len + 6, begin_x);
-    curs_set(0);
-    box(w, 0, 0);
-    mvwprintw(w, 1, 2, " %s ", msg);
-    wrefresh(w);
-    ch = wgetch(w);
-    delwin(w);
-
-    return ch;
 }
 
 void nm_print_cmd(const nm_str_t *name)
@@ -548,8 +515,6 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)
 
 void nm_lan_help(void)
 {
-    size_t cols, rows;
-
     const char *keys[] = {
         "a", "r", "u", "d"
     };
