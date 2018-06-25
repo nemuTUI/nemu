@@ -80,7 +80,7 @@ enum {
 
 void nm_edit_net(const nm_str_t *name)
 {
-    int ch;
+    int ch = 0;
     nm_menu_data_t ifs = NM_INIT_MENU_DATA;
     nm_vect_t ifaces = NM_INIT_VECT;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;

@@ -64,9 +64,6 @@ void nm_lan_settings(void)
     nm_init_side_lan();
 
     do {
-        if (veths.n_memb > 0)
-            nm_menu_scroll(&veths_data, veth_list_len, ch);
-
         if (ch == NM_KEY_QUESTION)
             nm_lan_help();
 
@@ -149,6 +146,9 @@ void nm_lan_settings(void)
             regen_data = 0;
             renew_status = 1;
         }
+
+        if (veths.n_memb > 0)
+            nm_menu_scroll(&veths_data, veth_list_len, ch);
 
         if (veths.n_memb > 0)
         {

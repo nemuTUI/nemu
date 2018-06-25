@@ -597,7 +597,7 @@ nm_print_help__(const char **keys, const char **values,
                 size_t hotkey_num, size_t maxlen)
 {
     size_t cols, rows;
-    size_t n = 0, last;
+    size_t n = 0, last = 0;
     int perc;
     nm_str_t help_title = NM_INIT_STR;
 

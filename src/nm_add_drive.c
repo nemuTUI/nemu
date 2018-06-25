@@ -107,7 +107,7 @@ out:
 
 void nm_del_drive(const nm_str_t *name)
 {
-    int ch, delete_drive = 0;
+    int ch = 0, delete_drive = 0;
     nm_str_t query = NM_INIT_STR;
     nm_str_t drive_path = NM_INIT_STR;
     nm_vect_t drv_list = NM_INIT_VECT;
