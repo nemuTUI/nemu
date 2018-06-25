@@ -176,10 +176,12 @@ void nm_start_main_loop(void)
                     nm_vmctl_kill(name);
                 break;
 
+#if defined (NM_WITH_VNC_CLIENT)
             case NM_KEY_C:
                 if (vm_status)
                     nm_vmctl_connect(name);
                 break;
+#endif
 
             case NM_KEY_M:
                 nm_print_cmd(name);
