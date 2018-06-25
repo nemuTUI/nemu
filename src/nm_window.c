@@ -5,39 +5,198 @@
 #include <nm_ncurses.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
-#include <nm_vm_control.h>
 
-#define NM_VM_MSG   "F1 - help, ESC - main menu "
-#define NM_MAIN_MSG "Enter - select a choice, ESC - exit"
+static void nm_init_window__(nm_window_t *w, const char *msg);
+static void nm_print_help_lines(const char **msg, size_t objs, int err);
+static void nm_print_help__(const char **keys, const char **values,
+                            size_t hotkey_num, size_t maxlen);
 
-void nm_print_main_window(void)
+static const char *nm_help_main_msg[] = {
+    "q:Quit", "I:Install VM",
+#if defined (NM_WITH_OVF_SUPPORT)
+    "O:Import OVA",
+#endif
+    "A:Import image", "N:Network", "?:Help"
+};
+
+static const char *nm_help_lan_msg[] = {
+    "q:Back", "?:Help"
+};
+
+static const char *nm_help_iface_msg[] = {
+    "q:Back", "enter:Edit"
+};
+
+static const char *nm_help_edit_msg[] = {
+    "esc:Cancel", "enter:Save"
+};
+
+static const char *nm_help_import_msg[] = {
+    "esc:Cancel", "enter:Import"
+};
+
+static const char *nm_help_install_msg[] = {
+    "esc:Cancel", "enter:Install"
+};
+
+static const char *nm_help_clone_msg[] = {
+    "esc:Cancel", "enter:Clone"
+};
+
+static const char *nm_help_del_msg[] = {
+    "q:Back", "enter:Delete"
+};
+
+void nm_create_windows(void)
 {
-    nm_print_title(_(NM_MAIN_MSG));
+    int action_cols, screen_x, screen_y; 
+    nm_cord_t help_size = NM_INIT_POS;
+    nm_cord_t side_size = NM_INIT_POS;
+    nm_cord_t action_size = NM_INIT_POS;
+
+    getmaxyx(stdscr, screen_y, screen_x); 
+    action_cols = screen_x * 0.7;
+
+    help_size = NM_SET_POS(1, screen_x, 0, 0);
+    side_size = NM_SET_POS(screen_y - 1, screen_x - action_cols, 0, 1);
+    action_size = NM_SET_POS(screen_y - 1, action_cols, screen_x - action_cols, 1);
+
+    help_window = nm_init_window(&help_size);
+    side_window = nm_init_window(&side_size);
+    action_window = nm_init_window(&action_size);
 }
 
-void nm_print_vm_window(void)
+void nm_init_help_main(void)
 {
-    nm_print_title(_(NM_VM_MSG));
+    nm_print_help_lines(nm_help_main_msg,
+            nm_arr_len(nm_help_main_msg), NM_FALSE);
 }
 
-int nm_print_warn(int nlines, int begin_x, const char *msg)
+void nm_init_help_lan(void)
 {
-    size_t msg_len;
-    nm_window_t *w;
-    int ch;
+    nm_print_help_lines(nm_help_lan_msg,
+            nm_arr_len(nm_help_lan_msg), NM_FALSE);
+}
 
-    msg_len = mbstowcs(NULL, msg, strlen(msg));
-    if (msg_len % 2 != 0)
-        msg_len--;
-    w = nm_init_window(nlines, msg_len + 6, begin_x);
-    curs_set(0);
+void nm_init_help_edit(void)
+{
+    nm_print_help_lines(nm_help_edit_msg,
+            nm_arr_len(nm_help_edit_msg), NM_FALSE);
+}
+
+void nm_init_help_import(void)
+{
+    nm_print_help_lines(nm_help_import_msg,
+            nm_arr_len(nm_help_import_msg), NM_FALSE);
+}
+
+void nm_init_help_install(void)
+{
+    nm_print_help_lines(nm_help_install_msg,
+            nm_arr_len(nm_help_install_msg), NM_FALSE);
+}
+
+void nm_init_help_iface(void)
+{
+    nm_print_help_lines(nm_help_iface_msg,
+            nm_arr_len(nm_help_iface_msg), NM_FALSE);
+}
+
+void nm_init_help_clone(void)
+{
+    nm_print_help_lines(nm_help_clone_msg,
+            nm_arr_len(nm_help_clone_msg), NM_FALSE);
+}
+
+void nm_init_help_delete(void)
+{
+    nm_print_help_lines(nm_help_del_msg,
+            nm_arr_len(nm_help_del_msg), NM_FALSE);
+}
+
+void nm_init_help(const char *msg, int err)
+{
+    nm_print_help_lines(&msg, 1, err);
+}
+
+static void nm_print_help_lines(const char **msg, size_t objs, int err)
+{
+    int x = 1, y = 0;
+
+    assert(msg);
+    wbkgd(help_window, COLOR_PAIR(err ? 4 : 1));
+
+    for (size_t n = 0; n < objs; n++)
+    {
+        if (n > 0)
+        {
+            x++;
+            mvwaddch(help_window, y, x, ACS_VLINE);
+            x+=2;
+        }
+
+        mvwprintw(help_window, y, x, _(msg[n]));
+        x += mbstowcs(NULL, _(msg[n]), strlen(_(msg[n])));
+    }
+
+    wrefresh(help_window);
+}
+
+void nm_init_side(void)
+{
+    wattroff(side_window, COLOR_PAIR(3));
+    nm_init_window__(side_window, _("VM list"));
+    wtimeout(side_window, 500);
+}
+
+void nm_init_side_lan(void)
+{
+    wattroff(side_window, COLOR_PAIR(3));
+    nm_init_window__(side_window, _("veth list"));
+    wtimeout(side_window, -1);
+}
+
+void nm_init_side_if_list(void)
+{
+    wattroff(side_window, COLOR_PAIR(3));
+    nm_init_window__(side_window, _("Iface list"));
+    wtimeout(side_window, -1);
+}
+
+void nm_init_side_drives(void)
+{
+    wattroff(side_window, COLOR_PAIR(3));
+    nm_init_window__(side_window, _("Drive list"));
+    wtimeout(side_window, -1);
+}
+
+void nm_init_action(const char *msg)
+{
+    nm_init_window__(action_window, msg ? msg : _("Properties"));
+}
+
+static void nm_init_window__(nm_window_t *w, const char *msg)
+{
+    int cols = getmaxx(w);
+    size_t mb_len = mbstowcs(NULL, msg, strlen(msg));
+
     box(w, 0, 0);
-    mvwprintw(w, 1, 2, " %s ", msg);
+    mvwprintw(w, 1, (cols - mb_len) / 2, msg);
+    mvwaddch(w, 2, 0, ACS_LTEE);
+    mvwhline(w, 2, 1, ACS_HLINE, cols - 2);
+    mvwaddch(w, 2, cols - 1, ACS_RTEE);
     wrefresh(w);
-    ch = wgetch(w);
-    delwin(w);
+}
 
-    return ch;
+void nm_destroy_windows(void)
+{
+    delwin(help_window); 
+    delwin(side_window); 
+    delwin(action_window);
+
+    help_window = NULL;
+    side_window = NULL;
+    action_window = NULL;
 }
 
 void nm_print_cmd(const nm_str_t *name)
@@ -60,118 +219,257 @@ void nm_print_cmd(const nm_str_t *name)
     getch();
 }
 
-void nm_print_vm_info(const nm_str_t *name)
+void nm_print_snapshots(const nm_vect_t *v)
 {
-    nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
-    int y = 1, x = 3;
-    int col = getmaxx(stdscr);
+    nm_str_t buf = NM_INIT_STR;
+    size_t count = v->n_memb / 5;
+    size_t y = 7, x = 2;
+    size_t cols, rows;
+    chtype ch1, ch2;
+    ch1 = ch2 = 0;
+
+    getmaxyx(action_window, rows, cols);
+
+    enum {
+        NM_SQL_VMSNAP_NAME = 2,
+        NM_SQL_VMSNAP_TIME = 4
+    };
+
+    for (size_t n = 0; n < count; n++)
+    {
+        size_t idx_shift = 5 * n;
+        if (n && n < count)
+        {
+
+            ch1 = (n != (count - 1)) ? ACS_LTEE : ACS_LLCORNER;
+            ch2 = ACS_HLINE;
+        }
+
+        nm_str_format(&buf, "%s (%s)",
+                nm_vect_str_ctx(v, NM_SQL_VMSNAP_NAME + idx_shift),
+                nm_vect_str_ctx(v, NM_SQL_VMSNAP_TIME + idx_shift));
+        NM_PR_VM_INFO();
+    }
+
+    nm_str_free(&buf);
+}
+
+void nm_print_drive_info(const nm_vect_t *v, size_t idx)
+{
+    nm_str_t buf = NM_INIT_STR;
+    size_t y = 3, x = 2;
+    size_t cols, rows;
+    size_t idx_shift;
+    chtype ch1, ch2;
+    ch1 = ch2 = 0;
+
+    assert(idx > 0);
+    idx_shift = 2 * (--idx);
+
+    getmaxyx(action_window, rows, cols);
+
+    nm_str_format(&buf, "%-12s%sGb", "capacity: ",
+            nm_vect_str_ctx(v, 1 + idx_shift));
+    NM_PR_VM_INFO();
+
+    nm_str_free(&buf);
+}
+
+void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
+{
+    nm_str_t buf = NM_INIT_STR;
+    size_t y = 3, x = 2;
+    size_t cols, rows;
+    size_t idx_shift;
+    chtype ch1, ch2;
+    ch1 = ch2 = 0;
+
+    assert(idx > 0);
+    idx_shift = NM_IFS_IDX_COUNT * (--idx);
+
+    getmaxyx(action_window, rows, cols);
+
+    nm_str_format(&buf, "%-12s%s", "hwaddr: ",
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
+    NM_PR_VM_INFO();
+
+    nm_str_format(&buf, "%-12s%s", "driver: ",
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
+    NM_PR_VM_INFO();
+
+    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) > 0)
+    {
+        nm_str_format(&buf, "%-12s%s", "host addr: ",
+                nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
+        NM_PR_VM_INFO();
+    }
+
+    nm_str_free(&buf);
+}
+
+void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)
+{
+    nm_str_t buf = NM_INIT_STR;
+    size_t y = 3, x = 2;
+    size_t cols, rows;
     size_t ifs_count, drives_count;
+    chtype ch1, ch2;
+    ch1 = ch2 = 0;
 
-    nm_vmctl_get_data(name, &vm);
+    getmaxyx(action_window, rows, cols);
 
-    nm_clear_screen();
-    border(0,0,0,0,0,0,0,0);
+    nm_str_format(&buf, "%-12s%s", "arch: ",
+        nm_vect_str_ctx(&vm->main, NM_SQL_ARCH));
+    NM_PR_VM_INFO();
 
-    mvprintw(y++, (col - name->len) / 2, "%s", name->data);
-    mvaddch(y, 0, ACS_LTEE);
-    mvhline(y, 1, ACS_HLINE, col - 2);
-    mvaddch(y++, col - 1, ACS_RTEE);
-    mvprintw(y++, x, "%-12s%s", "arch: ",
-        nm_vect_str_ctx(&vm.main, NM_SQL_ARCH));
-    mvprintw(y++, x, "%-12s%s", "cores: ",
-        nm_vect_str_ctx(&vm.main, NM_SQL_SMP));
-    mvprintw(y++, x, "%-12s%s %s", "memory: ",
-        nm_vect_str_ctx(&vm.main, NM_SQL_MEM), "Mb");
+    nm_str_format(&buf, "%-12s%s", "cores: ",
+        nm_vect_str_ctx(&vm->main, NM_SQL_SMP));
+    NM_PR_VM_INFO();
 
-    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_KVM), NM_ENABLE) == NM_OK)
+    nm_str_format(&buf, "%-12s%s %s", "memory: ",
+        nm_vect_str_ctx(&vm->main, NM_SQL_MEM), "Mb");
+    NM_PR_VM_INFO();
+
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_KVM), NM_ENABLE) == NM_OK)
     {
-        if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
-            mvprintw(y++, x, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
+        if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
+            nm_str_format(&buf, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
         else
-            mvprintw(y++, x, "%-12s%s", "kvm: ", "enabled");
+            nm_str_format(&buf, "%-12s%s", "kvm: ", "enabled");
     }
     else
     {
-        mvprintw(y++, x, "%-12s%s", "kvm: ", "disabled");
+        nm_str_format(&buf, "%-12s%s", "kvm: ", "disabled");
     }
+    NM_PR_VM_INFO();
 
-    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_USBF), "1") == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBF), "1") == NM_OK)
     {
-        mvprintw(y++, x, "%-12s%s", "usb: ", "enabled");
+        nm_str_format(&buf, "%-12s%s", "usb: ", "enabled");
     }
     else
     {
-        mvprintw(y++, x, "%-12s%s", "usb: ", "disabled");
+        nm_str_format(&buf, "%-12s%s", "usb: ", "disabled");
     }
+    NM_PR_VM_INFO();
 
-    mvprintw(y++, x, "%-12s%s [%u]", "vnc port: ",
-             nm_vect_str_ctx(&vm.main, NM_SQL_VNC),
-             nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC), 10) + 5900);
+    nm_str_format(&buf, "%-12s%s [%u]", "vnc port: ",
+             nm_vect_str_ctx(&vm->main, NM_SQL_VNC),
+             nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + 5900);
+    NM_PR_VM_INFO();
 
     /* {{{ print network interfaces info */
-    ifs_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
+    ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
 
     for (size_t n = 0; n < ifs_count; n++)
     {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
 
-        mvprintw(y++, x, "eth%zu%-8s%s [%s %s%s]",
+        nm_str_format(&buf, "eth%zu%-8s%s [%s %s%s]",
                  n, ":",
-                 nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
-                 nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_MAC + idx_shift),
-                 nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_DRV + idx_shift),
-                 (nm_str_cmp_st(nm_vect_str(&vm.ifs, NM_SQL_IF_VHO + idx_shift),
+                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift),
+                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + idx_shift),
+                 (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift),
                     NM_ENABLE) == NM_OK) ? "+vhost" : "");
+
+        NM_PR_VM_INFO();
     }
     /* }}} network */
 
     /* {{{ print drives info */
-    drives_count = vm.drives.n_memb / NM_DRV_IDX_COUNT;
+    drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
 
     for (size_t n = 0; n < drives_count; n++)
     {
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
         int boot = 0;
 
-        if (nm_str_cmp_st(nm_vect_str(&vm.drives, NM_SQL_DRV_BOOT + idx_shift),
+        if (nm_str_cmp_st(nm_vect_str(&vm->drives, NM_SQL_DRV_BOOT + idx_shift),
                 NM_ENABLE) == NM_OK)
         {
             boot = 1;
         }
 
-        mvprintw(y++, x, "disk%zu%-7s%s [%sGb %s] %s", n, ":",
-                 nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift),
-                 nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_SIZE + idx_shift),
-                 nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_TYPE + idx_shift),
+        nm_str_format(&buf, "disk%zu%-7s%s [%sGb %s] %s", n, ":",
+                 nm_vect_str_ctx(&vm->drives, NM_SQL_DRV_NAME + idx_shift),
+                 nm_vect_str_ctx(&vm->drives, NM_SQL_DRV_SIZE + idx_shift),
+                 nm_vect_str_ctx(&vm->drives, NM_SQL_DRV_TYPE + idx_shift),
                  boot ? "*" : "");
+        NM_PR_VM_INFO();
     }
     /* }}} drives */
 
     /* {{{ print 9pfs info */
-    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_9FLG), "1") == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_9FLG), "1") == NM_OK)
     {
-        mvprintw(y++, x, "%-12s%s [%s]", "9pfs: ",
-                 nm_vect_str_ctx(&vm.main, NM_SQL_9PTH),
-                 nm_vect_str_ctx(&vm.main, NM_SQL_9ID));
+        nm_str_format(&buf, "%-12s%s [%s]", "9pfs: ",
+                 nm_vect_str_ctx(&vm->main, NM_SQL_9PTH),
+                 nm_vect_str_ctx(&vm->main, NM_SQL_9ID));
+        NM_PR_VM_INFO();
     }
     /* }}} 9pfs */
 
     /* {{{ Generate guest boot settings info */
-    if (nm_vect_str_len(&vm.main, NM_SQL_MACH))
-        mvprintw(y++, x, "%-12s%s", "machine: ", nm_vect_str_ctx(&vm.main, NM_SQL_MACH));
-    if (nm_vect_str_len(&vm.main, NM_SQL_BIOS))
-        mvprintw(y++, x, "%-12s%s", "bios: ", nm_vect_str_ctx(&vm.main, NM_SQL_BIOS));
-    if (nm_vect_str_len(&vm.main, NM_SQL_KERN))
-        mvprintw(y++, x, "%-12s%s", "kernel: ", nm_vect_str_ctx(&vm.main, NM_SQL_KERN));
-    if (nm_vect_str_len(&vm.main, NM_SQL_KAPP))
-        mvprintw(y++, x, "%-12s%s", "cmdline: ", nm_vect_str_ctx(&vm.main, NM_SQL_KAPP));
-    if (nm_vect_str_len(&vm.main, NM_SQL_INIT))
-        mvprintw(y++, x, "%-12s%s", "initrd: ", nm_vect_str_ctx(&vm.main, NM_SQL_INIT));
-    if (nm_vect_str_len(&vm.main, NM_SQL_TTY))
-        mvprintw(y++, x, "%-12s%s", "tty: ", nm_vect_str_ctx(&vm.main, NM_SQL_TTY));
-    if (nm_vect_str_len(&vm.main, NM_SQL_SOCK))
-        mvprintw(y++, x, "%-12s%s", "socket: ", nm_vect_str_ctx(&vm.main, NM_SQL_SOCK));
+    if (nm_vect_str_len(&vm->main, NM_SQL_MACH))
+    {
+        nm_str_format(&buf, "%-12s%s", "machine: ",
+                nm_vect_str_ctx(&vm->main, NM_SQL_MACH));
+        NM_PR_VM_INFO();
+    }
+    if (nm_vect_str_len(&vm->main, NM_SQL_BIOS))
+    {
+        nm_str_format(&buf,"%-12s%s", "bios: ",
+                nm_vect_str_ctx(&vm->main, NM_SQL_BIOS));
+        NM_PR_VM_INFO();
+    }
+    if (nm_vect_str_len(&vm->main, NM_SQL_KERN))
+    {
+        nm_str_format(&buf,"%-12s%s", "kernel: ",
+                nm_vect_str_ctx(&vm->main, NM_SQL_KERN));
+        NM_PR_VM_INFO();
+    }
+    if (nm_vect_str_len(&vm->main, NM_SQL_KAPP))
+    {
+        nm_str_format(&buf, "%-12s%s", "cmdline: ",
+                nm_vect_str_ctx(&vm->main, NM_SQL_KAPP));
+        NM_PR_VM_INFO();
+    }
+    if (nm_vect_str_len(&vm->main, NM_SQL_INIT))
+    {
+        nm_str_format(&buf, "%-12s%s", "initrd: ",
+                nm_vect_str_ctx(&vm->main, NM_SQL_INIT));
+        NM_PR_VM_INFO();
+    }
+    if (nm_vect_str_len(&vm->main, NM_SQL_TTY))
+    {
+        nm_str_format(&buf, "%-12s%s", "tty: ",
+                nm_vect_str_ctx(&vm->main, NM_SQL_TTY));
+        NM_PR_VM_INFO();
+    }
+    if (nm_vect_str_len(&vm->main, NM_SQL_SOCK))
+    {
+        nm_str_format(&buf, "%-12s%s", "socket: ",
+                nm_vect_str_ctx(&vm->main, NM_SQL_SOCK));
+        NM_PR_VM_INFO();
+    }
     /* }}} boot settings */
+
+    /* {{{ Print host IP addresses for TAP ints */
+    //y++;
+    for (size_t n = 0; n < ifs_count; n++)
+    {
+        size_t idx_shift = NM_IFS_IDX_COUNT * n;
+
+        if (!nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift))
+            continue;
+
+        nm_str_format(&buf, "%-12s%s [%s]", "host IP: ",
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
+        NM_PR_VM_INFO();
+
+    } /* }}} host IP addr */
 
     /* {{{ Print PID */
     {
@@ -195,178 +493,184 @@ void nm_print_vm_info(const nm_str_t *name)
         {
             if ((nread = read(fd, pid, sizeof(pid))) > 0)
             {
-                y++;
+                //y++;
                 pid[nread - 1] = '\0';
                 pid_num = atoi(pid);
-                mvprintw(y++, x, "%-12s%d", "pid: ", pid_num);
+                nm_str_format(&buf, "%-12s%d", "pid: ", pid_num);
+                NM_PR_VM_INFO();
             }
             close(fd);
+        }
+        else /* clear PID file info */
+        {
+            mvwhline(action_window, y, 1, ' ', cols - 4);
         }
 
         nm_str_free(&pid_path);
         nm_str_free(&qmp_path);
     } /* }}} PID */
 
-    /* {{{ Print host IP addresses for TAP ints */
-    y++;
-    for (size_t n = 0; n < ifs_count; n++)
-    {
-        size_t idx_shift = NM_IFS_IDX_COUNT * n;
-
-        if (!nm_vect_str_len(&vm.ifs, NM_SQL_IF_IP4 + idx_shift))
-            continue;
-
-        mvprintw(y++, x, "%-12s%s [%s]", "Host IP: ",
-            nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
-            nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_IP4 + idx_shift));
-
-    } /* }}} host IP addr */
-
-    nm_vmctl_free_data(&vm);
-
-    refresh();
-    getch();
+    nm_str_free(&buf);
 }
 
-void nm_print_help(nm_window_t *w)
+void nm_lan_help(void)
 {
-    int curr_p = 1;
-    char prog_name[50] = {0};
-    int space_num = (38 - (sizeof(NM_VERSION) + 4)) / 2;
+    const char *keys[] = {
+        "a", "r", "u", "d"
+    };
 
-    snprintf(prog_name, sizeof(prog_name), "%.*snEMU %s",
-             space_num, NM_SPACES, NM_VERSION);
+    const char *values[] = {
+        "add veth interface",
+        "remove veth interface",
+        "up veth interface",
+        "down veth interface",
+        NULL
+    };
 
-    const char *msg_p1[] = {
-        prog_name,
-          "",
-        _(" r - start vm"),
-        _(" t - start vm in temporary mode"),
+    size_t hotkey_num = nm_arr_len(keys);
+    size_t maxlen = nm_max_msg_len(values);
+
+    nm_print_help__(keys, values, hotkey_num, maxlen);
+}
+
+void nm_print_help(void)
+{
+    const char *keys[] = {
+        "r", "t",
 #if (NM_WITH_VNC_CLIENT)
-        _(" c - connect to vm via vnc"),
+        "c",
 #endif
-        _(" p - powerdown vm"),
-        _(" z - reset vm"),
-        _(" f - force stop vm"),
-        _(" d - delete vm"),
-        _(" e - edit vm settings"),
-        _(" i - edit network settings"),
-        _(" a - add virtual disk"),
-        _(" l - clone vm"),
-        _(" b - edit boot settings"),
-#ifndef NM_WITH_VNC_CLIENT
-        "",
-#endif
-        "",
-        _(" Page 1. \"->\" - next, \"<-\" - prev")
-    };
-
-    const char *msg_p2[] = {
-        prog_name,
-          "",
-        _(" s - take drive snapshot"),
-        _(" x - revert drive snapshot"),
-        _(" h - share host filesystem"),
-        _(" m - show command"),
-        _(" v - delete virtual disk"),
-        _(" u - delete unused tap interfaces"),
-        _(" P - pause vm"),
-        _(" R - resume vm"),
-        _(" k - kill vm process"),
+        "p", "z", "f", "d", "e", "i",
+        "a", "l", "b", "h", "m", "v", 
+        "u", "P", "R",
 #if (NM_SAVEVM_SNAPSHOTS)
-        _(" S - take vm snapshot"),
-        _(" X - revert vm snapshot"),
-        _(" D - delete vm snapshot"),
-#else
-          "",
-          "",
-          "",
-#endif /* NM_SAVEVM_SNAPSHOTS */
-          "",
-        _(" Page 2. \"->\" - next, \"<-\" - prev")
-    };
-
-    const char *msg_p3[] = {
-        prog_name,
-          "",
-        _(" ? - print vm info"),
-        _(" / - search"),
-#if defined (NM_OS_LINUX)
-        _(" + - attach usb device"),
-        _(" - - detach usb device"),
-#else
-          "",
-          "",
+        "S", "X", "D",
 #endif
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-        _(" Page 3. \"->\" - next, \"<-\" - prev")
+#if defined (NM_OS_LINUX)
+        "+", "-",
+#endif
+        "k"
+};
+
+    const char *values[] = {
+        "start vm",
+        "start vm in temporary mode",
+#if (NM_WITH_VNC_CLIENT)
+        "connect to vm via vnc",
+#endif
+        "powerdown vm",
+        "reset vm",
+        "force stop vm",
+        "delete vm",
+        "edit vm settings",
+        "edit network settings",
+        "add virtual disk",
+        "clone vm",
+        "edit boot settings",
+        "share host filesystem",
+        "show command",
+        "delete virtual disk",
+        "delete unused tap interfaces",
+        "pause vm",
+        "resume vm",
+#if (NM_SAVEVM_SNAPSHOTS)
+        "take vm snapshot",
+        "revert vm snapshot",
+        "delete vm snapshot",
+#endif
+#if defined (NM_OS_LINUX)
+        "attach usb device",
+        "detach usb device",
+#endif
+        "kill vm process",
+        NULL
     };
 
-    for (;;)
+    size_t hotkey_num = nm_arr_len(keys);
+    size_t maxlen = nm_max_msg_len(values);
+
+    nm_print_help__(keys, values, hotkey_num, maxlen);
+}
+
+static void
+nm_print_help__(const char **keys, const char **values,
+                size_t hotkey_num, size_t maxlen)
+{
+    size_t cols, rows;
+    size_t n = 0, last;
+    int perc;
+    nm_str_t help_title = NM_INIT_STR;
+
+    getmaxyx(action_window, rows, cols);
+    rows -= 4;
+    cols -= 2;
+
+    if (maxlen + 10 > cols)
+    {
+        nm_warn(_(NM_MSG_SMALL_WIN));
+        return;
+    }
+
+    perc = (hotkey_num > rows) ? ((rows * 100) / hotkey_num) : 100;
+    if (perc == 100)
+        nm_str_format(&help_title, _("Help [all]"));
+    else
+        nm_str_format(&help_title, _("Help [%d%%]") , perc);
+
+    werase(action_window);
+    nm_init_action(help_title.data);
+
+    for (size_t y = 3; n < rows && n < hotkey_num; n++, y++)
+        mvwprintw(action_window, y, 2, "%-10s%s", keys[n], values[n]);
+
+    if (perc != 100)
     {
         int ch;
-        int x, y;
-        const char **curr_page = NULL;
-        size_t lines = 0;
+        size_t shift = 0;
 
-        switch (curr_p) {
-        case 1:
-            curr_page = msg_p1;
-            lines = nm_arr_len(msg_p1);
-            break;
-        case 2:
-            curr_page = msg_p2;
-            lines = nm_arr_len(msg_p2);
-            break;
-        case 3:
-            curr_page = msg_p3;
-            lines = nm_arr_len(msg_p3);
-            break;
-        default:
-            nm_bug("%s, no such page: %d", __func__, curr_p);
+        for (;;)
+        {
+            ch = wgetch(action_window);
+
+            if (ch == NM_KEY_ENTER)
+            {
+                shift++;
+                n = shift;
+                werase(action_window);
+
+                if (last == hotkey_num)
+                    break;
+
+                for (size_t y = 3, l = 0; l < rows && n < hotkey_num; n++, y++, l++)
+                    mvwprintw(action_window, y, 2, "%-10s%s", keys[n], values[n]);
+
+                last = n;
+                nm_str_trunc(&help_title, 0);
+                if (last < hotkey_num)
+                {
+                    perc = 100 * last / hotkey_num;
+                    nm_str_format(&help_title, _("Help [%d%%]") , perc);
+                }
+                else
+                    nm_str_format(&help_title, _("Help [end]"));
+
+                nm_init_action(help_title.data);
+            }
+            else
+                break;
         }
-
-        box(w, 0, 0);
-        getmaxyx(w, y, x);
-        mvwaddch(w, 2, 0, ACS_LTEE);
-        mvwhline(w, 2, 1, ACS_HLINE, x - 2);
-        mvwaddch(w, 2, x - 1, ACS_RTEE);
-        for (size_t n = 0, y = 1; n < lines; n++, y++)
-            mvwprintw(w, y, 1, "%s", curr_page[n]);
-
-        ch = wgetch(w);
-        if (ch != KEY_LEFT && ch != KEY_RIGHT)
-            break;
-
-        switch (ch) {
-        case KEY_LEFT:
-            curr_p--;
-            break;
-        case KEY_RIGHT:
-            curr_p++;
-            break;
-        }
-
-        if (curr_p == 0)
-            curr_p = 3;
-        if (curr_p == 4)
-            curr_p = 1;
-
-        for (int i = 0; i <= y; i++)
-            mvwhline(w, i, 0, ' ', x);
     }
+    else
+        wgetch(action_window);
+
+    wrefresh(action_window);
+    nm_init_action(NULL);
+    nm_str_free(&help_title);
 }
 
 void nm_print_nemu(void)
 {
+    size_t max_y = getmaxy(action_window);
     const char *nemu[] = {
         "            .x@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@o.           ",
         "          .x@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@x.          ",
@@ -408,12 +712,10 @@ void nm_print_nemu(void)
         "                           ..                              "
     };
 
-    nm_clear_screen();
+    for (size_t l = 3, n = 0; n < (max_y - 4) && n < nm_arr_len(nemu); n++, l++)
+        mvwprintw(action_window, l, 1, "%s", nemu[n]);
 
-    for (size_t n = 0; n < nm_arr_len(nemu); n++)
-        mvprintw(n, 0, "%s", nemu[n]);
-
-    getch();
+    wgetch(action_window);
 }
 
 void nm_print_title(const char *msg)
@@ -428,6 +730,57 @@ void nm_print_title(const char *msg)
     border(0,0,0,0,0,0,0,0);
     mvprintw(1, (col - msg_len) / 2, msg);
     refresh();
+}
+
+void nm_align2line(nm_str_t *str, size_t line_len)
+{
+    assert(line_len > 4);
+
+    if (str->len > (line_len - 4))
+    {
+        nm_str_trunc(str, line_len - 7);
+        nm_str_add_text(str, "...");
+    }
+}
+
+size_t nm_max_msg_len(const char **msg)
+{
+    size_t len = 0;
+
+    assert(msg != NULL);
+
+    while (*msg)
+    {
+        size_t mb_len = mbstowcs(NULL, _(*msg), strlen(_(*msg)));
+        len = (mb_len > len) ? mb_len : len;
+        msg++;
+    }
+
+    return len;
+}
+
+int nm_warn__(const char *msg, int red)
+{
+    int ch;
+
+    assert(msg != NULL);
+    werase(help_window);
+    nm_init_help(msg, red);
+    ch = wgetch(help_window);
+    werase(help_window);
+    nm_init_help_main();
+
+    return ch;
+}
+
+int nm_warn(const char *msg)
+{
+    return nm_warn__(msg, NM_TRUE);
+}
+
+int nm_notify(const char *msg)
+{
+    return nm_warn__(msg, NM_FALSE);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

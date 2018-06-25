@@ -17,7 +17,6 @@
 
 #define NM_INI_P_VM       "vmdir"
 #define NM_INI_P_DB       "db"
-#define NM_INI_P_LIST     "list_max"
 #define NM_INI_P_VBIN     "binary"
 #define NM_INI_P_VANY     "listen_any"
 #define NM_INI_P_QTRG     "targets"
@@ -68,16 +67,6 @@ void nm_cfg_init(void)
         nm_bug(_("cfg: no write access to %s"), tmp_buf.data);
     nm_str_trunc(&tmp_buf, 0);
 
-    /* Get the size of the displayed list of VMs */
-    nm_get_param(ini, NM_INI_S_MAIN, NM_INI_P_LIST, &tmp_buf);
-
-    cfg.list_max = nm_str_stoui(&tmp_buf, 10);
-    nm_str_trunc(&tmp_buf, 0);
-    if ((cfg.list_max == 0) || (cfg.list_max > 100))
-    {
-        nm_bug(_("cfg: bad list_max value: %u, expected: [1-100]"),
-            cfg.list_max);
-    }
 #ifdef NM_WITH_VNC_CLIENT
     /* Get the VNC client binary path */
     nm_get_param(ini, NM_INI_S_VNC, NM_INI_P_VBIN, &cfg.vnc_bin);
@@ -237,7 +226,6 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 
             fprintf(cfg, "[main]\n# VM storage directory\nvmdir = %s\n\n", vmdir.data);
             fprintf(cfg, "# VM settings database path\ndb = %s\n\n", db.data);
-            fprintf(cfg, "# maximum guests numbers in list.\nlist_max = 10\n\n");
             fprintf(cfg, "[vnc]\n");
 #ifdef NM_WITH_VNC_CLIENT
             fprintf(cfg, "# Path to VNC client\nbinary = %s\n\n", vnc.data);

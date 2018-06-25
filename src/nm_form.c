@@ -60,20 +60,22 @@ void nm_form_free(nm_form_t *form, nm_field_t **fields)
     curs_set(0);
 }
 
-nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x)
+nm_form_t *
+nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x, int color)
 {
     nm_form_t *form;
     int rows, cols; 
+
+    if (color)
+        wbkgd(w, COLOR_PAIR(1));
 
     form = new_form(field);
     if (form == NULL)
          nm_bug("%s: %s", __func__, strerror(errno));
 
-    refresh();
-    scale_form(form, &rows, &cols);
     set_form_win(form, w);
-    set_form_sub(form, derwin(w, rows, cols, 2, begin_x));
-    box(w, 0, 0);
+    scale_form(form, &rows, &cols);
+    set_form_sub(form, derwin(w, rows, cols, 1, begin_x));
     post_form(form);
     curs_set(1);
 
@@ -169,10 +171,35 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
     if ((confirm == NM_OK) && (rc == NM_ERR))
     {
         confirm = NM_ERR;
-        nm_print_warn(3, 2, _("Contents of field is invalid"));
+        NM_FORM_RESET();
+        nm_warn(_(NM_MSG_BAD_CTX));
     }
 
     return confirm;
+}
+
+int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form)
+{
+    size_t cols, rows;
+
+    getmaxyx(action_window, rows, cols);
+
+    form->w_cols = cols * NM_FORM_RATIO;
+    form->w_rows = (f_num * 2) + 1;
+
+    if (form->w_cols < (max_msg + 18) ||
+        form->w_rows > rows - 4)
+    {
+        nm_warn(_(NM_MSG_SMALL_WIN));
+        return NM_ERR;
+    }
+
+    form->w_start_x = ((1 - NM_FORM_RATIO) * cols) / 2;
+    form->form_len = form->w_cols - (max_msg + 6);
+    form->form_window = derwin(action_window, form->w_rows,
+            form->w_cols, 3, form->w_start_x);
+
+    return NM_OK;
 }
 
 void nm_get_field_buf(nm_field_t *f, nm_str_t *res)
@@ -264,6 +291,48 @@ out:
     return rc;
 }
 
+void *nm_progress_bar(void *data)
+{
+    struct timespec ts;
+    int cols = getmaxx(action_window);
+    int x1 = 1, x2 = cols - 2;
+    int x1_v = 0, x2_v = 1;
+    nm_spinner_data_t *dp = data;
+
+    memset(&ts, 0, sizeof(ts));
+    ts.tv_nsec = 3e+7; /* 0.03sec */
+
+    curs_set(0);
+
+    for (;;)
+    {
+        if (*dp->stop)
+            break;
+
+        NM_ERASE_TITLE(action, cols);
+        mvwaddch(action_window, 1, x1, x1_v ? '<' : '>');
+        mvwaddch(action_window, 1, x2, x2_v ? '<' : '>');
+        wrefresh(action_window);
+
+        (x1_v == 0) ? x1++ : x1--;
+        (x2_v == 0) ? x2++ : x2--;
+
+        if (x1 == cols - 2)
+            x1_v = 1;
+        if (x1 == 1)
+            x1_v = 0;
+
+        if (x2 == 1)
+            x2_v = 0;
+        if (x2 == cols - 2)
+            x2_v = 1;
+
+        nanosleep(&ts, NULL);
+    }
+
+    pthread_exit(NULL);
+}
+
 void *nm_spinner(void *data)
 {
     const char spin_chars[] ="/-\\|";
@@ -271,7 +340,6 @@ void *nm_spinner(void *data)
     struct timespec ts;
 
     memset(&ts, 0, sizeof(ts));
-
     ts.tv_nsec = 3e+7; /* 0.03sec */
 
     if (dp == NULL)
@@ -291,82 +359,22 @@ void *nm_spinner(void *data)
     pthread_exit(NULL);
 }
 
-const char *nm_form_select_drive(const nm_vect_t *drives)
-{
-    char *drive = NULL;
-    nm_form_t *form = NULL;
-    nm_window_t *window = NULL;
-    nm_field_t *fields[2];
-    nm_vect_t err = NM_INIT_VECT;
-    nm_str_t buf = NM_INIT_STR;
-
-    nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(7, 45, 3);
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
-
-    fields[0] = new_field(1, 30, 2, 1, 0, 0);
-    set_field_back(fields[0], A_UNDERLINE);
-    fields[1] = NULL;
-
-    set_field_type(fields[0], TYPE_ENUM, drives->data, false, false);
-    set_field_buffer(fields[0], 0, *drives->data);
-
-    mvwaddstr(window, 1, 2, _("Select drive"));
-    mvwaddstr(window, 4, 2, _("Drive"));
-
-    form = nm_post_form(window, fields, 11);
-    if (nm_draw_form(window, form) != NM_OK)
-        goto out;
-
-    nm_get_field_buf(fields[0], &buf);
-    nm_form_check_data(_("Drive"), buf, err);
-
-    if (nm_print_empty_fields(&err) == NM_ERR)
-    {
-        nm_vect_free(&err, NULL);
-        goto out;
-    }
-
-    for (size_t n = 0; n < drives->n_memb; n++)
-    {
-        char *d = drives->data[n];
-        if (nm_str_cmp_st(&buf, d) == NM_OK)
-        {
-            drive = d;
-            break;
-        }
-    }
-
-out:
-    nm_form_free(form, fields);
-    nm_str_free(&buf);
-
-    return drive;
-}
-
 int nm_print_empty_fields(const nm_vect_t *v)
 {
-    int y = 1;
-    size_t msg_len;
+    nm_str_t msg = NM_INIT_STR;
 
     if (v->n_memb == 0)
         return NM_OK;
 
-    msg_len = mbstowcs(NULL, _(NM_FORM_EMPTY_MSG), strlen(_(NM_FORM_EMPTY_MSG)));
+    NM_FORM_RESET();
 
-    nm_window_t *err_window = nm_init_window(4 + v->n_memb, msg_len + 2, 2);
-    curs_set(0);
-    box(err_window, 0, 0);
-    mvwprintw(err_window, y++, 1, "%s", _(NM_FORM_EMPTY_MSG));
+    nm_str_alloc_text(&msg, _(NM_MSG_NULL_FLD));
 
     for (size_t n = 0; n < v->n_memb; n++)
-        mvwprintw(err_window, ++y, 1, "%s", (char *) v->data[n]);
+        nm_str_format(&msg, " '%s'", (char *) v->data[n]);
 
-    wrefresh(err_window);
-    wgetch(err_window);
-
-    delwin(err_window);
+    nm_warn(msg.data);
+    nm_str_free(&msg);
 
     return NM_ERR;
 }
@@ -386,7 +394,8 @@ int nm_form_name_used(const nm_str_t *name)
     if (res.n_memb > 0)
     {
         rc = NM_ERR;
-        nm_print_warn(3, 2, _(NM_FORM_VMNAME_MSG));
+        curs_set(0);
+        nm_warn(_(NM_MSG_NAME_BUSY));
     }
 
     nm_vect_free(&res, NULL);

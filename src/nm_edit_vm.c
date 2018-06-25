@@ -13,12 +13,22 @@
 
 #define NM_EDIT_VM_FIELDS_NUM 8
 
-static nm_window_t *window = NULL;
+#define NM_VM_FORM_CPU_BEGIN "CPU cores [1-"
+#define NM_VM_FORM_CPU_END   "]"
+#define NM_VM_FORM_MEM_BEGIN "Memory [4-"
+#define NM_VM_FORM_MEM_END   "]Mb"
+#define NM_VM_FORM_KVM       "KVM [yes/no]"
+#define NM_VM_FORM_HCPU      "Host CPU [yes/no]"
+#define NM_VM_FORM_NET_IFS   "Network interfaces"
+#define NM_VM_FORM_DRV_IF    "Disk interface"
+#define NM_VM_FORM_USB       "USB [yes/no]"
+#define NM_VM_FORM_SYNC      "Sync mouse position"
+
 static nm_form_t *form = NULL;
 static nm_field_t *fields[NM_EDIT_VM_FIELDS_NUM + 1];
 
 static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur);
-static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w);
+static void nm_edit_vm_field_names(nm_vect_t *msg);
 static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur);
 static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac);
 
@@ -36,60 +46,50 @@ enum {
 void nm_edit_vm(const nm_str_t *name)
 {
     nm_vm_t vm = NM_INIT_VM;
+    nm_vect_t msg_fields = NM_INIT_VECT;
     nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
-    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
+    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     uint64_t last_mac;
     size_t msg_len;
-    pthread_t spin_th;
-    int done = 0, mult = 2;
+
+    nm_edit_vm_field_names(&msg_fields);
+    msg_len = nm_max_msg_len((const char **) msg_fields.data);
+
+    if (nm_form_calc_size(msg_len, NM_EDIT_VM_FIELDS_NUM, &form_data) != NM_OK)
+        return;
 
     nm_vmctl_get_data(name, &cur_settings);
 
-    nm_print_title(_(NM_EDIT_TITLE));
-    if (getmaxy(stdscr) <= 28)
-        mult = 1;
-
-    window = nm_init_window((mult == 2) ? 21 : 12, 67, 3);
-
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
-
     for (size_t n = 0; n < NM_EDIT_VM_FIELDS_NUM; ++n)
-    {
-        fields[n] = new_field(1, 38, (n + 1) * mult, 5, 0, 0);
-        set_field_back(fields[n], A_UNDERLINE);
-    }
+        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
     fields[NM_EDIT_VM_FIELDS_NUM] = NULL;
 
     nm_edit_vm_field_setup(&cur_settings);
-    nm_edit_vm_field_names(name, window);
+    for (size_t n = 0, y = 1, x = 2; n < NM_EDIT_VM_FIELDS_NUM; n++)
+    {
+        mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
+        y += 2;
+    }
 
-    form = nm_post_form(window, fields, 21);
-    if (nm_draw_form(window, form) != NM_OK)
+    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+
+    if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
-    
+
     nm_form_get_last(&last_mac, NULL);
 
     if (nm_edit_vm_get_data(&vm, &cur_settings) != NM_OK)
         goto out;
 
-    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
-    sp_data.stop = &done;
-    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
-
-    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
-        nm_bug(_("%s: cannot create thread"), __func__);
-
     nm_edit_vm_update_db(&vm, &cur_settings, last_mac);
 
-    done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
-        nm_bug(_("%s: cannot join thread"), __func__);
-
 out:
+    wtimeout(action_window, -1);
     nm_vm_free(&vm);
+    nm_vect_free(&msg_fields, NULL);
     nm_form_free(form, fields);
+    delwin(form_data.form_window);
     nm_vmctl_free_data(&cur_settings);
 }
 
@@ -143,39 +143,27 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     nm_str_free(&buf);
 }
 
-static void nm_edit_vm_field_names(const nm_str_t *name, nm_window_t *w)
+static void nm_edit_vm_field_names(nm_vect_t *msg)
 {
-    int y = 4, mult = 2;
     nm_str_t buf = NM_INIT_STR;
 
-    if (getmaxy(stdscr) <= 28)
-    {
-        mult = 1;
-        y = 3;
-    }
-
-    nm_str_alloc_str(&buf, name);
-    nm_str_add_text(&buf, _(" settings"));
-    mvwaddstr(w, 1, 2, buf.data);
+    nm_str_format(&buf, "%s%u%s",
+        _(NM_VM_FORM_CPU_BEGIN), nm_hw_ncpus(), _(NM_VM_FORM_CPU_END));
+    nm_vect_insert(msg, buf.data, buf.len, NULL);
     nm_str_trunc(&buf, 0);
 
-    nm_str_add_text(&buf, _("CPU cores [1-"));
-    nm_str_format(&buf, "%u", nm_hw_ncpus());
-    nm_str_add_char(&buf, ']');
-    mvwaddstr(w, y, 2, buf.data);
+    nm_str_format(&buf, "%s%u%s",
+        _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
+    nm_vect_insert(msg, buf.data, buf.len, NULL);
     nm_str_trunc(&buf, 0);
 
-    nm_str_add_text(&buf, _("Memory [4-"));
-    nm_str_format(&buf, "%u", nm_hw_total_ram());
-    nm_str_add_text(&buf, "]Mb");
-    mvwaddstr(w, y += mult, 2, buf.data);
-
-    mvwaddstr(w, y += mult, 2, _("KVM [yes/no]"));
-    mvwaddstr(w, y += mult, 2, _("Host CPU [yes/no]"));
-    mvwaddstr(w, y += mult, 2, _("Network interfaces"));
-    mvwaddstr(w, y += mult, 2, _("Disk interface"));
-    mvwaddstr(w, y += mult, 2, _("USB [yes/no]"));
-    mvwaddstr(w, y += mult, 2, _("Sync mouse position"));
+    nm_vect_insert(msg, _(NM_VM_FORM_KVM), strlen(_(NM_VM_FORM_KVM)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_HCPU), strlen(_(NM_VM_FORM_HCPU)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_NET_IFS), strlen(_(NM_VM_FORM_NET_IFS)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_USB), strlen(_(NM_VM_FORM_USB)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_SYNC), strlen(_(NM_VM_FORM_SYNC)), NULL);
+    nm_vect_end_zero(msg);
 
     nm_str_free(&buf);
 }
@@ -230,7 +218,8 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
                 (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_HCPU), NM_ENABLE) == NM_OK))
             {
                 rc = NM_ERR;
-                nm_print_warn(3, 6, _("Host CPU requires KVM enabled"));
+                NM_FORM_RESET();
+                nm_warn(_(NM_MSG_HCPU_KVM));
                 goto out;
             }
         }
@@ -245,7 +234,8 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
                  !field_status(fields[NM_FLD_KVMFLG])))
             {
                 rc = NM_ERR;
-                nm_print_warn(3, 6, _("Host CPU requires KVM enabled"));
+                NM_FORM_RESET();
+                nm_warn(_(NM_MSG_HCPU_KVM));
                 goto out;
             }
             vm->kvm.hostcpu_enable = 1;

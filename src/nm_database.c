@@ -37,9 +37,6 @@ void nm_db_init(void)
             "if_drv char, vhost integer, macvtap integer, parent_eth char)",
         "CREATE TABLE drives(id integer primary key autoincrement, "
             "vm_name char, drive_name char, drive_drv char, capacity integer, boot integer)",
-        "CREATE TABLE snapshots(id integer primary key autoincrement, "
-            "vm_name char, snap_name char, backing_drive char, snap_idx integer, active integer, "
-            "TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)",
         "CREATE TABLE vmsnapshots(id integer primary key autoincrement, "
             "vm_name char, snap_name char, load integer, timestamp char)",
         "CREATE TABLE veth(id integer primary key autoincrement, l_name char, r_name char)",

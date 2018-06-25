@@ -220,21 +220,21 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
 
     if ((h->sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
     {
-        nm_print_warn(3, 6, _("QMP: cannot create socket"));
+        nm_warn(_(NM_MSG_Q_CR_ERR));
         return NM_ERR;
     }
 
     if (fcntl(h->sd, F_SETFL, O_NONBLOCK) == -1)
     {
         close(h->sd);
-        nm_print_warn(3, 6, _("QMP: cannot set socket options"));
+        nm_warn(_(NM_MSG_Q_FL_ERR));
         return NM_ERR;
     }
 
     if (connect(h->sd, (struct sockaddr *) &h->sock, len) == -1)
     {
         close(h->sd);
-        nm_print_warn(3, 6, _("QMP: cannot connect to socket"));
+        nm_warn(_(NM_MSG_Q_CN_ERR));
         return NM_ERR;
     }
 
@@ -280,7 +280,7 @@ static int nm_qmp_talk(int sd, const char *cmd,
     if (write(sd, cmd, len) == -1)
     {
         close(sd);
-        nm_print_warn(3, 6, _("error send message to QMP socket"));
+        nm_warn(_(NM_MSG_Q_SE_ERR));
         return NM_ERR;
     }
 
@@ -311,7 +311,7 @@ static int nm_qmp_talk(int sd, const char *cmd,
 
     if (answer.len == 0)
     {
-        nm_print_warn(3, 6, "QMP: no answer");
+        nm_warn(_(NM_MSG_Q_NO_ANS));
         rc = NM_ERR;
         goto err;
     }
@@ -319,7 +319,7 @@ static int nm_qmp_talk(int sd, const char *cmd,
 out:
     nm_debug("QMP: %s\n", answer.data);
     if (rc != NM_OK)
-        nm_print_warn(3, 6, "QMP: execute error");
+        nm_warn(_(NM_MSG_Q_EXEC_E));
 err:
     nm_str_free(&answer);
 

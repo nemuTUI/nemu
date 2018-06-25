@@ -18,6 +18,8 @@ inline void nm_ncurses_init(void)
 #else
     ESCDELAY = 1;
 #endif
+    start_color();
+    use_default_colors();
 }
 
 inline void nm_curses_deinit(void)
@@ -30,16 +32,11 @@ inline void nm_curses_deinit(void)
 #endif
 }
 
-nm_window_t *nm_init_window(int nlines, int ncols, int begin_y)
+nm_window_t *nm_init_window(const nm_cord_t *pos)
 {
     nm_window_t *w;
-    int col;
-
-    start_color();
-    use_default_colors();
-    col = getmaxx(stdscr);
-
-    w = newwin(nlines, ncols, begin_y, (col - ncols) / 2);
+    
+    w = newwin(pos->lines, pos->cols, pos->y, pos->x);
     if (w == NULL)
         nm_bug(_("%s: cannot create window"), __func__);
 

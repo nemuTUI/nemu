@@ -36,59 +36,92 @@ enum {
     NM_FLD_RNAME
 };
 
-static void nm_lan_help(void);
+static const char *nm_form_add_msg[] = {
+    "Name", "Peer name", NULL
+};
+
 static void nm_lan_add_veth(void);
 static void nm_lan_del_veth(const nm_str_t *name);
 static void nm_lan_up_veth(const nm_str_t *name);
 static void nm_lan_down_veth(const nm_str_t *name);
 static void nm_lan_veth_info(const nm_str_t *name);
 static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn);
-static void nm_lan_draw_veth(const nm_str_t *name, const nm_vect_t *ifs, nm_cord_t *p);
 
 void nm_lan_settings(void)
 {
     int ch = 0, regen_data = 1, renew_status = 0;
     nm_str_t query = NM_INIT_STR;
-    nm_window_t *veth_window = NULL;
     nm_vect_t veths = NM_INIT_VECT;
     nm_vect_t veths_list = NM_INIT_VECT;
     nm_menu_data_t veths_data = NM_INIT_MENU_DATA;
-    uint32_t list_max = 0, old_hl = 0;
+    size_t veth_list_len, old_hl = 0;
 
-    nm_str_alloc_text(&query, NM_LAN_GET_VETH_SQL);
+    werase(side_window);
+    werase(action_window);
+    werase(help_window);
+    nm_init_help_lan();
+    nm_init_action(_(NM_MSG_LAN));
+    nm_init_side_lan();
 
-    keypad(stdscr, 1);
+    do {
+        if (veths.n_memb > 0)
+            nm_menu_scroll(&veths_data, veth_list_len, ch);
 
-    nm_db_select(query.data, &veths);
+        if (ch == NM_KEY_QUESTION)
+            nm_lan_help();
 
-    veths_data.item_last = nm_cfg_get()->list_max;
+        else if (ch == NM_KEY_A)
+        {
+            werase(action_window);
+            nm_init_action(_(NM_MSG_ADD_VETH));
+            nm_lan_add_veth();
+            regen_data = 1;
+            old_hl = veths_data.highlight;
+        }
 
-    for (;;)
-    {
-        nm_print_vm_window();
+        else if (ch == NM_KEY_R)
+        {
+            if (veths.n_memb > 0)
+            {
+                nm_lan_del_veth(nm_vect_item_name_cur(veths_data));
+                regen_data = 1;
+                old_hl = veths_data.highlight;
+                if (veths_data.item_first != 0)
+                {
+                    veths_data.item_first--;
+                    veths_data.item_last--;
+                }
+                werase(side_window);
+                nm_init_side_lan();
+            }
+        }
+
+        else if (ch == NM_KEY_D)
+        {
+            if (veths.n_memb > 0)
+            {
+                nm_lan_down_veth(nm_vect_item_name_cur(veths_data));
+                renew_status = 1;
+            }
+        }
+
+        else if (ch == NM_KEY_U)
+        {
+            if (veths.n_memb > 0)
+            {
+                nm_lan_up_veth(nm_vect_item_name_cur(veths_data));
+                renew_status = 1;
+            }
+        }
 
         if (regen_data)
         {
             nm_vect_free(&veths_list, NULL);
             nm_vect_free(&veths, nm_str_vect_free_cb);
-            nm_db_select(query.data, &veths);
-        }
+            nm_db_select(NM_LAN_GET_VETH_SQL, &veths);
+            veth_list_len = (getmaxy(side_window) - 4);
 
-        if (veths.n_memb == 0)
-        {
-            int col;
-            size_t msg_len;
-            const char *msg = _("No VETH interfaces configured");
-
-            col = getmaxx(stdscr);
-            msg_len = mbstowcs(NULL, msg, strlen(msg));
-            mvprintw(4, (col - msg_len) / 2, msg);
-        }
-
-        if (regen_data)
-        {
             veths_data.highlight = 1;
-            list_max = nm_cfg_get()->list_max;
 
             if (old_hl > 1)
             {
@@ -99,11 +132,10 @@ void nm_lan_settings(void)
                 old_hl = 0;
             }
 
-            if (list_max >= veths.n_memb)
-            {
-                veths_data.item_last = veths.n_memb;
-                list_max = veths.n_memb;
-            }
+            if (veth_list_len < veths.n_memb)
+                veths_data.item_last = veth_list_len;
+            else
+                veths_data.item_last = veth_list_len = veths.n_memb;
 
             for (size_t n = 0; n < veths.n_memb; n++)
             {
@@ -114,182 +146,53 @@ void nm_lan_settings(void)
 
             veths_data.v = &veths_list;
 
-            if (veth_window)
-            {
-                delwin(veth_window);
-                veth_window = NULL;
-            }
-            veth_window = nm_init_window(list_max + 4, 40, 7);
-            nm_print_veth_menu(veth_window, &veths_data, 1);
             regen_data = 0;
-        }
-        else if (renew_status)
-        {
-            veth_window = nm_init_window(list_max + 4, 40, 7);
-            nm_print_veth_menu(veth_window, &veths_data, 1);
-            renew_status = 0;
-        }
-        else
-        {
-            veth_window = nm_init_window(list_max + 4, 40, 7);
-            nm_print_veth_menu(veth_window, &veths_data, 0);
-        }
-
-        ch = getch();
-
-        if ((veths.n_memb > 0) && (ch == KEY_UP) && (veths_data.highlight == 1) &&
-            (veths_data.item_first == 0) && (list_max < veths_data.v->n_memb))
-        {
-            veths_data.highlight = list_max;
-            veths_data.item_first = veths_data.v->n_memb - list_max;
-            veths_data.item_last = veths_data.v->n_memb;
             renew_status = 1;
         }
 
-        else if ((veths.n_memb > 0) && (ch == KEY_UP))
+        if (veths.n_memb > 0)
         {
-            if ((veths_data.highlight == 1) && (veths_data.v->n_memb <= list_max))
-            {
-                veths_data.highlight = veths_data.v->n_memb;
-                renew_status = 1;
-            }
-            else if ((veths_data.highlight == 1) && (veths_data.item_first != 0))
-            {
-                veths_data.item_first--;
-                veths_data.item_last--;
-                renew_status = 1;
-            }
-            else
-            {
-                veths_data.highlight--;
-            }
+            werase(action_window);
+            nm_init_action(_(NM_MSG_LAN));
+            nm_print_veth_menu(&veths_data, renew_status);
+            nm_lan_veth_info(nm_vect_item_name_cur(veths_data));
+
+            if (renew_status)
+                renew_status = 0;
         }
-
-        else if ((veths.n_memb > 0) && (ch == KEY_DOWN) &&
-                 (veths_data.highlight == list_max) &&
-                 (veths_data.item_last == veths_data.v->n_memb))
-        {
-            veths_data.highlight = 1;
-            veths_data.item_first = 0;
-            veths_data.item_last = list_max;
-            renew_status = 1;
-        }
-
-        else if ((veths.n_memb > 0) && (ch == KEY_DOWN))
-        {
-            if ((veths_data.highlight == veths_data.v->n_memb) &&
-                (veths_data.v->n_memb <= list_max))
-            {
-                veths_data.highlight = 1;
-                renew_status = 1;
-            }
-            else if ((veths_data.highlight == list_max) &&
-                     (veths_data.item_last < veths_data.v->n_memb))
-            {
-                veths_data.item_first++;
-                veths_data.item_last++;
-                renew_status = 1;
-            }
-            else
-            {
-                veths_data.highlight++;
-            }
-        }
-
-        else if (ch == NM_KEY_A)
-        {
-            nm_lan_add_veth();
-            regen_data = 1;
-            old_hl = veths_data.highlight;
-        }
-
-        else if (ch == NM_KEY_R)
-        {
-            if (veths.n_memb > 0)
-                nm_lan_del_veth(nm_vect_item_name_cur(veths_data));
-            regen_data = 1;
-            old_hl = veths_data.highlight;
-            if (veths_data.item_first != 0)
-            {
-                veths_data.item_first--;
-                veths_data.item_last--;
-            }
-        }
-
-        else if (ch == NM_KEY_U)
-        {
-            if (veths.n_memb > 0)
-                nm_lan_up_veth(nm_vect_item_name_cur(veths_data));
-            renew_status = 1;
-        }
-
-        else if (ch == NM_KEY_D)
-        {
-            if (veths.n_memb > 0)
-                nm_lan_down_veth(nm_vect_item_name_cur(veths_data));
-            renew_status = 1;
-        }
-
-        else if (ch == NM_KEY_ENTER)
-        {
-            if (veths.n_memb > 0)
-                nm_lan_veth_info(nm_vect_item_name_cur(veths_data));
-        }
-
-        else if (ch == KEY_F(1))
-            nm_lan_help();
-
-        else if (ch == NM_KEY_ESC)
-            goto out;
 
         if (redraw_window)
         {
+            nm_destroy_windows();
             endwin();
             refresh();
-            clear();
+            nm_create_windows();
+            nm_init_help_lan();
+            nm_init_action(_(NM_MSG_LAN));
+            nm_init_side_lan();
+
+            veth_list_len = (getmaxy(side_window) - 4);
+            /* TODO save last pos */
+            if (veth_list_len < veths.n_memb)
+            {
+                veths_data.item_last = veth_list_len;
+                veths_data.item_first = 0;
+                veths_data.highlight = 1;
+            }
+            else
+                veths_data.item_last = veth_list_len = veths.n_memb;
+
             redraw_window = 0;
         }
-    }
+    } while ((ch = wgetch(action_window)) != NM_KEY_Q);
 
-out:
+    werase(side_window);
+    werase(help_window);
+    nm_init_side();
+    nm_init_help_main();
     nm_vect_free(&veths, nm_str_vect_free_cb);
     nm_vect_free(&veths_list, NULL);
     nm_str_free(&query);
-    keypad(stdscr, 0);
-}
-
-static void nm_lan_help(void)
-{
-    nm_window_t *w = NULL;
-    int x;
-    char prog_name[50] = {0};
-    int space_num = (38 - (sizeof(NM_VERSION) + 4)) / 2;
-
-    snprintf(prog_name, sizeof(prog_name), "%.*snEMU %s",
-             space_num, NM_SPACES, NM_VERSION);
-
-    const char *msg[] = {
-        prog_name,
-          "",
-        _(" a - add veth interface"),
-        _(" r - remove veth interface"),
-        _(" u - up veth interface"),
-        _(" d - down veth interface")
-    };
-
-    w = nm_init_window(8, 38, 1);
-    box(w, 0, 0);
-
-    x = getmaxx(w);
-    mvwaddch(w, 2, 0, ACS_LTEE);
-    mvwhline(w, 2, 1, ACS_HLINE, x - 2);
-    mvwaddch(w, 2, x - 1, ACS_RTEE);
-
-    for (size_t n = 0, y = 1; n < nm_arr_len(msg); n++, y++)
-        mvwprintw(w, y, 1, "%s", msg[n]);
-
-    wgetch(w);
-    delwin(w);
 }
 
 static void nm_lan_add_veth(void)
@@ -297,47 +200,33 @@ static void nm_lan_add_veth(void)
     nm_str_t l_name = NM_INIT_STR;
     nm_str_t r_name = NM_INIT_STR;
     nm_str_t query = NM_INIT_STR;
+    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     nm_form_t *form = NULL;
-    nm_window_t *window = NULL;
-    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
-    size_t msg_len;
-    pthread_t spin_th;
-    int done = 0;
+    size_t msg_len = nm_max_msg_len(nm_form_add_msg);
 
-    nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(9, 45, 3);
-
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
+    if (nm_form_calc_size(msg_len, NM_LAN_FIELDS_NUM, &form_data) != NM_OK)
+        return;
 
     for (size_t n = 0; n < NM_LAN_FIELDS_NUM; ++n)
-    {
-        fields[n] = new_field(1, 19, (n + 1) * 2, 1, 0, 0);
-        set_field_back(fields[n], A_UNDERLINE);
-    }
+        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
     fields[NM_LAN_FIELDS_NUM] = NULL;
 
     set_field_type(fields[NM_FLD_LNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,15} *$");
     set_field_type(fields[NM_FLD_RNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,15} *$");
 
-    mvwaddstr(window, 1, 2, _("Create VETH interface"));
-    mvwaddstr(window, 4, 2, _("Name"));
-    mvwaddstr(window, 6, 2, _("Peer name"));
+    for (size_t n = 0, y = 1, x = 2; n < NM_LAN_FIELDS_NUM; n++)
+    {
+        mvwaddstr(form_data.form_window, y, x, nm_form_add_msg[n]);
+        y += 2;
+    }
 
-    form = nm_post_form(window, fields, 22);
-    if (nm_draw_form(window, form) != NM_OK)
+    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
     if (nm_lan_add_get_data(&l_name, &r_name) != NM_OK)
         goto out;
-
-    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
-    sp_data.stop = &done;
-    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
-
-    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
-        nm_bug(_("%s: cannot create thread"), __func__);
 
     nm_net_add_veth(&l_name, &r_name);
     nm_net_link_up(&l_name);
@@ -345,10 +234,6 @@ static void nm_lan_add_veth(void)
 
     nm_str_format(&query, NM_LAN_ADD_VETH_SQL, l_name.data, r_name.data);
     nm_db_edit(query.data);
-
-    done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
-        nm_bug(_("%s: cannot join thread"), __func__);
 
 out:
     nm_form_free(form, fields);
@@ -380,7 +265,7 @@ static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn)
     nm_db_select(query.data, &names);
     if (names.n_memb > 0)
     {
-        nm_print_warn(3, 2, _("This name is already taken"));
+        nm_warn(_(NM_MSG_NAME_BUSY));
         rc = NM_ERR;
         goto out;
     }
@@ -390,14 +275,14 @@ static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn)
     nm_db_select(query.data, &names);
     if (names.n_memb > 0)
     {
-        nm_print_warn(3, 2, _("This name is already taken"));
+        nm_warn(_(NM_MSG_NAME_BUSY));
         rc = NM_ERR;
         goto out;
     }
 
     if (nm_str_cmp_ss(ln, rn) == NM_OK)
     {
-        nm_print_warn(3, 2, _("Names must be different"));
+        nm_warn(_(NM_MSG_NAME_DIFF));
         rc = NM_ERR;
     }
 
@@ -457,78 +342,51 @@ static void nm_lan_down_veth(const nm_str_t *name)
 
 static void nm_lan_veth_info(const nm_str_t *name)
 {
-    nm_str_t lname = NM_INIT_STR;
+    chtype ch1, ch2;
+    size_t y = 3, x = 2;
+    size_t cols, rows;
     nm_str_t rname = NM_INIT_STR;
     nm_str_t query = NM_INIT_STR;
+    nm_str_t buf = NM_INIT_STR;
     nm_vect_t ifs = NM_INIT_VECT;
-    nm_cord_t pos = NM_INIT_POS;
 
-    pos.x = 3;
-    pos.y = 1;
-    pos.cols = getmaxx(stdscr);
+    ch1 = ch2 = 0;
+    getmaxyx(action_window, rows, cols);
+    nm_lan_parse_name(name, &buf, &rname);
 
-    nm_clear_screen();
-    border(0,0,0,0,0,0,0,0);
-
-    mvprintw(pos.y++, (pos.cols - name->len) / 2, "%s", name->data);
-    mvaddch(pos.y, 0, ACS_LTEE);
-    mvhline(pos.y, 1, ACS_HLINE, pos.cols - 2);
-    mvaddch(pos.y++, pos.cols - 1, ACS_RTEE);
-
-    nm_lan_parse_name(name, &lname, &rname);
-
-    mvprintw(pos.y, pos.x, "%s:", lname.data);
-
-    nm_str_format(&query, NM_LAN_VETH_INF_SQL, lname.data);
+    nm_str_format(&query, NM_LAN_VETH_INF_SQL, buf.data);
     nm_db_select(query.data, &ifs);
+    nm_str_add_char(&buf, ':');
 
-    pos.x += (lname.len + 2);
+    if (ifs.n_memb > 0)
+        for (size_t n = 0; n < ifs.n_memb; n++)
+            nm_str_format(&buf, " %s", nm_vect_str_ctx(&ifs, n));
+    else
+        nm_str_add_text(&buf, _(" [none]"));
 
-    nm_lan_draw_veth(&lname, &ifs, &pos);
+    NM_PR_VM_INFO();
+    nm_str_trunc(&buf, 0);
 
     nm_vect_free(&ifs, nm_str_vect_free_cb);
     nm_str_trunc(&query, 0);
+    nm_str_copy(&buf, &rname);
 
-    pos.y += 2;
-    pos.x = 3;
-    mvprintw(pos.y, pos.x, "%s:", rname.data);
-
-    nm_str_format(&query, NM_LAN_VETH_INF_SQL, rname.data);
+    nm_str_format(&query, NM_LAN_VETH_INF_SQL, buf.data);
     nm_db_select(query.data, &ifs);
+    nm_str_add_char(&buf, ':');
 
-    pos.x += (rname.len + 2);
-
-    nm_lan_draw_veth(&rname, &ifs, &pos);
+    if (ifs.n_memb > 0)
+        for (size_t n = 0; n < ifs.n_memb; n++)
+            nm_str_format(&buf, " %s", nm_vect_str_ctx(&ifs, n));
+    else
+        nm_str_add_text(&buf, _(" [none]"));
+    NM_PR_VM_INFO();
 
     nm_vect_free(&ifs, nm_str_vect_free_cb);
-    nm_str_free(&lname);
     nm_str_free(&rname);
     nm_str_free(&query);
 
-    refresh();
-    getch();
-}
-
-static void nm_lan_draw_veth(const nm_str_t *name, const nm_vect_t *ifs, nm_cord_t *p)
-{
-    if (ifs->n_memb > 0)
-    {
-        for (size_t n = 0; n < ifs->n_memb; n++)
-        {
-            if (p->x >= (p->cols - 16))
-            {
-                p->y++;
-                p->x = (name->len + 5);
-            }
-
-            mvprintw(p->y, p->x, "%s", nm_vect_str_ctx(ifs, n));
-            p->x += (nm_vect_str_len(ifs, n) + 1);
-        }
-    }
-    else
-    {
-        mvprintw(p->y, p->x, "%s", _("[none]"));
-    }
+    nm_str_free(&buf);
 }
 
 void nm_lan_parse_name(const nm_str_t *name, nm_str_t *ln, nm_str_t *rn)

@@ -61,6 +61,11 @@ enum {
     NM_OVA_FLD_NAME
 };
 
+static const char *nm_form_msg[] = {
+    NM_OVF_FORM_PATH, NM_OVF_FORM_ARCH,
+    NM_OVF_FORM_NAME, NULL
+};
+
 typedef struct archive nm_archive_t;
 typedef struct archive_entry nm_archive_entry_t;
 
@@ -110,24 +115,21 @@ void nm_ovf_import(void)
     nm_vm_t vm = NM_INIT_VM;
     nm_xml_doc_pt doc = NULL;
     nm_xml_xpath_ctx_pt xpath_ctx = NULL;
-    nm_window_t *window = NULL;
     nm_form_t *form = NULL;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
+    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     size_t msg_len;
     pthread_t spin_th;
     int done = 0;
 
-    nm_print_title(_(NM_EDIT_TITLE));
-    window = nm_init_window(9, 67, 3);
+    msg_len = nm_max_msg_len(nm_form_msg);
 
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
+    if (nm_form_calc_size(msg_len, NM_OVF_FIELDS_NUM, &form_data) != NM_OK)
+        return;
 
     for (size_t n = 0; n < NM_OVF_FIELDS_NUM; ++n)
-    {
-        fields[n] = new_field(1, 38, n * 2, 5, 0, 0);
-        set_field_back(fields[n], A_UNDERLINE);
-    }
+        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+
     fields[NM_OVF_FIELDS_NUM] = NULL;
 
     set_field_type(fields[NM_OVA_FLD_SRC], TYPE_REGEXP, "^/.*");
@@ -139,22 +141,22 @@ void nm_ovf_import(void)
     field_opts_off(fields[NM_OVA_FLD_SRC], O_STATIC);
     field_opts_off(fields[NM_OVA_FLD_NAME], O_STATIC);
 
-    mvwaddstr(window, 2, 2, _(NM_OVF_FORM_PATH));
-    mvwaddstr(window, 4, 2, _(NM_OVF_FORM_ARCH));
-    mvwaddstr(window, 6, 2, _(NM_OVF_FORM_NAME));
+    for (size_t n = 0, y = 1, x = 2; n < NM_OVF_FIELDS_NUM; n++)
+    {
+        mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
+        y += 2;
+    }
 
-    form = nm_post_form(window, fields, 21);
-    if (nm_draw_form(window, form) != NM_OK)
+    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    if (nm_draw_form(action_window, form) != NM_OK)
         goto cancel;
 
     if (nm_ova_get_data(&vm) != NM_OK)
         goto cancel;
 
-    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
     sp_data.stop = &done;
-    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
 
-    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
+    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
     if (mkdtemp(templ_path) == NULL)
@@ -164,7 +166,7 @@ void nm_ovf_import(void)
 
     if ((ovf_file = nm_find_ovf(&files)) == NULL)
     {
-        nm_print_warn(3, 6, _("OVF file is not found!"));
+        nm_warn(_(NM_MSG_OVF_MISS));
         goto out;
     }
 
@@ -172,19 +174,19 @@ void nm_ovf_import(void)
 
     if ((doc = nm_ovf_open(templ_path, ovf_file)) == NULL)
     {
-        nm_print_warn(3, 6, _("Cannot parse OVF file"));
+        nm_warn(_(NM_MSG_OVF_EPAR));
         goto out;
     }
 
     if ((xpath_ctx = xmlXPathNewContext(doc)) == NULL)
     {
-        nm_print_warn(3, 6, _("Cannot create new XPath context"));
+        nm_warn(_(NM_MSG_XPATH_ERR));
         goto out;
     }
 
     if (nm_register_xml_ns(xpath_ctx) != NM_OK)
     {
-        nm_print_warn(3, 6, _("Cannot register xml namespaces"));
+        nm_warn(_(NM_MSG_ANY_KEY));
         goto out;
     }
 
@@ -209,7 +211,7 @@ void nm_ovf_import(void)
 
 out:
     if (nm_clean_temp_dir(templ_path, &files) != NM_OK)
-        nm_print_warn(3, 6, _("Some files was not deleted"));
+        nm_warn(_(NM_MSG_INC_DEL));
 
     xmlXPathFreeContext(xpath_ctx);
     xmlFreeDoc(doc);
@@ -219,8 +221,10 @@ out:
     nm_vect_free(&drives, nm_drive_vect_free_cb);
 
 cancel:
+    wtimeout(action_window, -1);
     nm_form_free(form, fields);
     nm_vm_free(&vm);
+    delwin(form_data.form_window);
 }
 
 static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,

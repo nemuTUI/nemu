@@ -40,11 +40,14 @@
 
 #define NM_PROGNAME "nemu"
 #ifndef NM_VERSION
-# define NM_VERSION "v1.4.1"
+# define NM_VERSION "v2.0.0"
 #endif
 
 #define NM_OK   0
 #define NM_ERR -1
+
+#define NM_TRUE 1
+#define NM_FALSE 0
 
 #define NM_ENABLE  "1"
 #define NM_DISABLE "0"

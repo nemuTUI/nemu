@@ -23,65 +23,51 @@ enum {
     NM_FLD_SOCK
 };
 
+static const char *nm_form_msg[] = {
+    "OS Installed", "Path to ISO/IMG", "Machine type",
+    "Path to BIOS", "Path to kernel", "Kernel cmdline",
+    "Path to initrd", "Serial TTY", "Serial socket",
+    NULL
+};
+
 static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur);
-static void nm_edit_boot_field_names(const nm_str_t *name, nm_window_t *w);
+static void nm_edit_boot_field_names(nm_window_t *w);
 static int nm_edit_boot_get_data(nm_vm_boot_t *vm);
 static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm);
 
 void nm_edit_boot(const nm_str_t *name)
 {
     nm_form_t *form = NULL;
-    nm_window_t *window = NULL;
     nm_vm_boot_t vm = NM_INIT_VM_BOOT;
+    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
-    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
-    size_t msg_len;
-    pthread_t spin_th;
-    int done = 0, mult = 2;
+    size_t msg_len = nm_max_msg_len(nm_form_msg);
+
+    if (nm_form_calc_size(msg_len, NM_BOOT_FIELDS_NUM, &form_data) != NM_OK)
+        return;
 
     nm_vmctl_get_data(name, &cur_settings);
 
-    nm_print_title(_(NM_EDIT_TITLE));
-    if (getmaxy(stdscr) <= 28)
-        mult = 1;
-
-    window = nm_init_window((mult == 2) ? 23 : 13, 67, 3);
-
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
-
     for (size_t n = 0; n < NM_BOOT_FIELDS_NUM; ++n)
-    {
-        fields[n] = new_field(1, 41, (n + 1) * mult, 5, 0, 0);
-        set_field_back(fields[n], A_UNDERLINE);
-    }
+        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
     fields[NM_BOOT_FIELDS_NUM] = NULL;
 
     nm_edit_boot_field_setup(&cur_settings);
-    nm_edit_boot_field_names(name, window);
+    nm_edit_boot_field_names(form_data.form_window);
 
-    form = nm_post_form(window, fields, 18);
-    if (nm_draw_form(window, form) != NM_OK)
+    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
     if (nm_edit_boot_get_data(&vm) != NM_OK)
         goto out;
 
-    msg_len = mbstowcs(NULL, _(NM_EDIT_TITLE), strlen(_(NM_EDIT_TITLE)));
-    sp_data.stop = &done;
-    sp_data.x = (getmaxx(stdscr) + msg_len + 2) / 2;
-
-    if (pthread_create(&spin_th, NULL, nm_spinner, (void *) &sp_data) != 0)
-        nm_bug(_("%s: cannot create thread"), __func__);
-
     nm_edit_boot_update_db(name, &vm);
 
-    done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
-        nm_bug(_("%s: cannot join thread"), __func__);
-
 out:
+    wtimeout(action_window, -1);
+    delwin(form_data.form_window);
     nm_vmctl_free_data(&cur_settings);
     nm_vm_free_boot(&vm);
     nm_form_free(form, fields);
@@ -127,32 +113,15 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
         set_field_status(fields[n], 0);
 }
 
-static void nm_edit_boot_field_names(const nm_str_t *name, nm_window_t *w)
+static void nm_edit_boot_field_names(nm_window_t *w)
 {
-    int y = 4, mult = 2;
-    nm_str_t buf = NM_INIT_STR;
+    int y = 1, x = 2, mult = 2;
 
-    if (getmaxy(stdscr) <= 28)
+    for (size_t n = 0; n < NM_BOOT_FIELDS_NUM; n++)
     {
-        mult = 1;
-        y = 3;
+        mvwaddstr(w, y, x, _(nm_form_msg[n]));
+        y += mult;
     }
-
-    nm_str_alloc_str(&buf, name);
-    nm_str_add_text(&buf, _(" boot settings"));
-
-    mvwaddstr(w, 1,         2,  buf.data);
-    mvwaddstr(w, y,         2, _("OS Installed"));
-    mvwaddstr(w, y += mult, 2, _("Path to ISO/IMG"));
-    mvwaddstr(w, y += mult, 2, _("Machine type"));
-    mvwaddstr(w, y += mult, 2, _("Path to BIOS"));
-    mvwaddstr(w, y += mult, 2, _("Path to kernel"));
-    mvwaddstr(w, y += mult, 2, _("Kernel cmdline"));
-    mvwaddstr(w, y += mult, 2, _("Path to initrd"));
-    mvwaddstr(w, y += mult, 2, _("Serial TTY"));
-    mvwaddstr(w, y += mult, 2, _("Serial socket"));
-
-    nm_str_free(&buf);
 }
 
 static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
@@ -183,7 +152,7 @@ static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
 
         if (vm->inst_path.len == 0)
         {
-            nm_print_warn(3, 2, _("ISO/IMG path not set"));
+            nm_warn(_(NM_MSG_ISO_MISS));
             rc = NM_ERR;
             goto out;
         }

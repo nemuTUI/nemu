@@ -9,9 +9,6 @@
 #include <form.h>
 #include <pthread.h>
 
-#define NM_FORM_EMPTY_MSG  "These fields cannot be empty:"
-#define NM_FORM_VMNAME_MSG "This name is already used"
-
 typedef FORM nm_form_t;
 typedef FIELD nm_field_t;
 
@@ -19,6 +16,14 @@ typedef struct {
     nm_str_t driver;
     nm_str_t size;
 } nm_vm_drive_t;
+
+typedef struct {
+    size_t form_len;
+    size_t w_start_x;
+    size_t w_cols;
+    size_t w_rows;
+    nm_window_t *form_window;
+} nm_form_data_t;
 
 typedef struct {
     nm_str_t driver;
@@ -67,7 +72,8 @@ typedef struct {
     const int *stop;
 } nm_spinner_data_t;
 
-nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x);
+nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field,
+                          int begin_x, int color);
 int nm_draw_form(nm_window_t *w, nm_form_t *form);
 void nm_form_free(nm_form_t *form, nm_field_t **fields);
 void nm_get_field_buf(nm_field_t *f, nm_str_t *res);
@@ -76,15 +82,26 @@ void nm_form_get_last(uint64_t *mac, uint32_t *vnc);
 void nm_form_update_last_mac(uint64_t mac);
 void nm_form_update_last_vnc(uint32_t vnc);
 int nm_print_empty_fields(const nm_vect_t *v);
-const char *nm_form_select_drive(const nm_vect_t *drives);
 void nm_vm_free(nm_vm_t *vm);
 void nm_vm_free_boot(nm_vm_boot_t *vm);
+void *nm_progress_bar(void *data);
 void *nm_spinner(void *data);
+/* TODO add comments */
+int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form);
 
 extern const char *nm_form_yes_no[];
 extern const char *nm_form_net_drv[];
 extern const char *nm_form_drive_drv[];
 extern const char *nm_form_macvtap[];
+
+#define NM_FORM_RATIO  0.80
+
+#define NM_FORM_RESET()                                       \
+                do {                                          \
+                    curs_set(0);                              \
+                    wtimeout(action_window, -1);              \
+                }                                             \
+                while (0);
 
 #define nm_form_check_data(name, val, v)                      \
     {                                                         \
@@ -106,6 +123,7 @@ extern const char *nm_form_macvtap[];
                            NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                            NM_INIT_STR, NM_INIT_STR, 0 }
 #define NM_INIT_SPINNER  { 0, 1, NULL }
+#define NM_INIT_FORM_DATA { 0, 0, 0, 0, NULL }
 
 #define NM_INIT_VM { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                      NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
