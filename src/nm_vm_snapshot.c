@@ -75,7 +75,7 @@ void nm_vm_snapshot_create(const nm_str_t *name)
         y += 2;
     }
 
-    form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
@@ -152,7 +152,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
 
     mvwaddstr(form_data.form_window, 1, 2, _(NM_FORMSTR_SNAP));
 
-    form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     curs_set(0);
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
@@ -237,7 +237,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
 
     mvwaddstr(form_data.form_window, 1, 2, _(NM_FORMSTR_SNAP));
 
-    snap_form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    snap_form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     curs_set(0);
     if (nm_draw_form(action_window, snap_form) != NM_OK)
         goto out;

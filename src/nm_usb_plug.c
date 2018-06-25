@@ -60,7 +60,7 @@ void nm_usb_plug(const nm_str_t *name)
 
     mvwaddstr(form_data.form_window, 1, 2, _(NM_USB_FORM_MSG));
 
-    form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
@@ -119,7 +119,7 @@ void nm_usb_unplug(const nm_str_t *name)
 
     mvwaddstr(form_data.form_window, 1, 2, _(NM_USB_FORM_MSG));
 
-    form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 

@@ -61,7 +61,7 @@ void nm_form_free(nm_form_t *form, nm_field_t **fields)
 }
 
 nm_form_t *
-nm_post_form__(nm_window_t *w, nm_field_t **field, int begin_x, int color)
+nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x, int color)
 {
     nm_form_t *form;
     int rows, cols; 

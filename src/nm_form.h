@@ -72,7 +72,7 @@ typedef struct {
     const int *stop;
 } nm_spinner_data_t;
 
-nm_form_t *nm_post_form__(nm_window_t *w, nm_field_t **field,
+nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field,
                           int begin_x, int color);
 int nm_draw_form(nm_window_t *w, nm_form_t *form);
 void nm_form_free(nm_form_t *form, nm_field_t **fields);

@@ -505,7 +505,7 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
     mvwaddstr(side_window, 1, 2, _(NM_SEARCH_STR));
     wrefresh(side_window);
 
-    form = nm_post_form__(side_window, fields, form_data.w_start_x, NM_FALSE);
+    form = nm_post_form(side_window, fields, form_data.w_start_x, NM_FALSE);
     if (nm_draw_form(side_window, form) != NM_OK)
         goto out;
 

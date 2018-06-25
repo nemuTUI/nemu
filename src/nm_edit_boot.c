@@ -56,7 +56,7 @@ void nm_edit_boot(const nm_str_t *name)
     nm_edit_boot_field_setup(&cur_settings);
     nm_edit_boot_field_names(form_data.form_window);
 
-    form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 

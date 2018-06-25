@@ -72,7 +72,7 @@ void nm_edit_vm(const nm_str_t *name)
         y += 2;
     }
 
-    form = nm_post_form__(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
 
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
