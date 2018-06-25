@@ -330,7 +330,9 @@ void nm_start_main_loop(void)
                         }
                     }
                     werase(side_window);
+                    werase(action_window);
                     nm_init_side();
+                    nm_init_action(NULL);
                 }
                 break;
 
