@@ -43,9 +43,6 @@ extern nm_window_t *action_window;
 /* Used in SIGWINCH signal handler */
 extern sig_atomic_t redraw_window;
 
-#define NM_EDIT_TITLE "ESC - cancel, ENTER - OK"
-#define NM_SPACES "                         "
-
 #define NM_MSG_ANY_KEY    ", press any key"
 #define NM_MSG_SMALL_WIN  "Window size to small" NM_MSG_ANY_KEY
 #define NM_MSG_NO_IFACES  "No network configured" NM_MSG_ANY_KEY
