@@ -75,6 +75,19 @@ static void nm_add_vm_main(int import)
     if (nm_form_calc_size(msg_len, NM_ADD_VM_FIELDS_NUM, &form_data) != NM_OK)
         return;
 
+    werase(action_window);
+    werase(help_window);
+    if (import == NM_INSTALL_VM)
+    {
+        nm_init_action(_(NM_MSG_INSTALL));
+        nm_init_help_install();
+    }
+    else
+    {
+        nm_init_action(_(NM_MSG_IMPORT));
+        nm_init_help_import();
+    }
+
     for (size_t n = 0; n < NM_ADD_VM_FIELDS_NUM; ++n)
         fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
@@ -117,6 +130,9 @@ static void nm_add_vm_main(int import)
 
 out:
     wtimeout(action_window, -1);
+    werase(action_window);
+    werase(help_window);
+    nm_init_help_main();
     nm_vect_free(&msg_fields, NULL);
     nm_vm_free(&vm);
     nm_form_free(form, fields);

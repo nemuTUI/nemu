@@ -61,6 +61,11 @@ void nm_vm_snapshot_create(const nm_str_t *name)
     if (nm_form_calc_size(msg_len, NM_VMSNAP_FIELDS_NUM, &form_data) != NM_OK)
         return;
 
+    werase(action_window);
+    werase(help_window);
+    nm_init_action(_(NM_MSG_SNAP_CRT));
+    nm_init_help_edit();
+
     for (size_t n = 0; n < NM_VMSNAP_FIELDS_NUM; ++n)
         fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
@@ -97,6 +102,8 @@ void nm_vm_snapshot_create(const nm_str_t *name)
 out:
     wtimeout(action_window, -1);
     delwin(form_data.form_window);
+    werase(help_window);
+    nm_init_help_main();
     nm_form_free(form, fields);
     nm_str_free(&data.snap_name);
     nm_str_free(&data.load);
@@ -127,7 +134,12 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     }
 
     if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
-        return;
+        goto out;
+
+    werase(action_window);
+    werase(help_window);
+    nm_init_action(_(NM_MSG_SNAP_DEL));
+    nm_init_help_edit();
 
     nm_print_snapshots(&snaps);
 
@@ -155,7 +167,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     curs_set(0);
     if (nm_draw_form(action_window, form) != NM_OK)
-        goto out;
+        goto clean_and_out;
 
     nm_get_field_buf(fields[0], &buf);
     nm_form_check_data(_(NM_FORMSTR_SNAP), buf, err);
@@ -163,7 +175,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     if (nm_print_empty_fields(&err) == NM_ERR)
     {
         nm_vect_free(&err, NULL);
-        goto out;
+        goto clean_and_out;
     }
 
     sp_data.stop = &done;
@@ -176,6 +188,10 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     done = 1;
     if (pthread_join(spin_th, NULL) != 0)
         nm_bug(_("%s: cannot join thread"), __func__);
+
+clean_and_out:
+    werase(help_window);
+    nm_init_help_main();
 
 out:
     wtimeout(action_window, -1);
@@ -212,7 +228,12 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     }
 
     if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
-        return;
+        goto out;
+
+    werase(action_window);
+    werase(help_window);
+    nm_init_action(_(NM_MSG_SNAP_REV));
+    nm_init_help_edit();
 
     nm_print_snapshots(&snaps);
 
@@ -240,7 +261,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     snap_form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     curs_set(0);
     if (nm_draw_form(action_window, snap_form) != NM_OK)
-        goto out;
+        goto clean_and_out;
 
     nm_get_field_buf(fields[0], &buf);
     nm_form_check_data(_(NM_FORMSTR_SNAP), buf, err);
@@ -248,7 +269,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     if (nm_print_empty_fields(&err) == NM_ERR)
     {
         nm_vect_free(&err, NULL);
-        goto out;
+        goto clean_and_out;
     }
 
     sp_data.stop = &done;
@@ -261,6 +282,10 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     done = 1;
     if (pthread_join(spin_th, NULL) != 0)
         nm_bug(_("%s: cannot join thread"), __func__);
+
+clean_and_out:
+    werase(help_window);
+    nm_init_help_main();
 
 out:
     wtimeout(action_window, -1);

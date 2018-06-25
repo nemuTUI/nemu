@@ -33,6 +33,11 @@ void nm_clone_vm(const nm_str_t *name)
     if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
         return;
 
+    werase(action_window);
+    werase(help_window);
+    nm_init_action(_(NM_MSG_CLONE));
+    nm_init_help_clone();
+
     nm_vmctl_get_data(name, &vm);
 
     fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
@@ -78,6 +83,8 @@ void nm_clone_vm(const nm_str_t *name)
 out:
     wtimeout(action_window, -1);
     delwin(form_data.form_window);
+    werase(help_window);
+    nm_init_help_main();
     nm_vmctl_free_data(&vm);
     nm_form_free(form, fields);
     nm_str_free(&buf);

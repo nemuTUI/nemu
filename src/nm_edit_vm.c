@@ -58,6 +58,11 @@ void nm_edit_vm(const nm_str_t *name)
     if (nm_form_calc_size(msg_len, NM_EDIT_VM_FIELDS_NUM, &form_data) != NM_OK)
         return;
 
+    werase(action_window);
+    werase(help_window);
+    nm_init_action(_(NM_MSG_EDIT_VM));
+    nm_init_help_edit();
+
     nm_vmctl_get_data(name, &cur_settings);
 
     for (size_t n = 0; n < NM_EDIT_VM_FIELDS_NUM; ++n)
@@ -86,10 +91,12 @@ void nm_edit_vm(const nm_str_t *name)
 
 out:
     wtimeout(action_window, -1);
+    delwin(form_data.form_window);
+    werase(help_window);
+    nm_init_help_main();
     nm_vm_free(&vm);
     nm_vect_free(&msg_fields, NULL);
     nm_form_free(form, fields);
-    delwin(form_data.form_window);
     nm_vmctl_free_data(&cur_settings);
 }
 

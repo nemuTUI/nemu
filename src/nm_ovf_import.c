@@ -127,6 +127,11 @@ void nm_ovf_import(void)
     if (nm_form_calc_size(msg_len, NM_OVF_FIELDS_NUM, &form_data) != NM_OK)
         return;
 
+    werase(action_window);
+    werase(help_window);
+    nm_init_action(_(NM_MSG_OVA_HEADER));
+    nm_init_help_import();
+
     for (size_t n = 0; n < NM_OVF_FIELDS_NUM; ++n)
         fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
@@ -222,6 +227,9 @@ out:
 
 cancel:
     wtimeout(action_window, -1);
+    werase(action_window);
+    werase(help_window);
+    nm_init_help_main();
     nm_form_free(form, fields);
     nm_vm_free(&vm);
     delwin(form_data.form_window);

@@ -204,55 +204,24 @@ void nm_start_main_loop(void)
 
 #if defined (NM_OS_LINUX)
             case NM_KEY_PLUS:
-                werase(action_window);
-                werase(help_window);
-                nm_init_action(_(NM_MSG_USB_ATTACH));
-                nm_init_help_edit();
                 nm_usb_plug(name);
-                werase(help_window);
-                nm_init_help_main();
                 break;
 
             case NM_KEY_MINUS:
-                /* TODO do not draw if no devices */
-                werase(action_window);
-                werase(help_window);
-                nm_init_action(_(NM_MSG_USB_DETACH));
-                nm_init_help_edit();
                 nm_usb_unplug(name);
-                werase(help_window);
-                nm_init_help_main();
                 break;
 
             case NM_KEY_H:
-                werase(action_window);
-                werase(help_window);
-                nm_init_action(_(NM_MSG_9P_SHARE));
-                nm_init_help_edit();
                 nm_9p_share(name);
-                werase(help_window);
-                nm_init_help_main();
                 break;
 #endif /* NM_OS_LINUX */
 
             case NM_KEY_E:
-                werase(action_window);
-                werase(help_window);
-                nm_init_action(_(NM_MSG_EDIT_VM));
-                nm_init_help_edit();
                 nm_edit_vm(name);
-                werase(help_window);
-                nm_init_help_main();
                 break;
 
             case NM_KEY_B:
-                werase(action_window);
-                werase(help_window);
-                nm_init_action(_(NM_MSG_EDIT_BOOT));
-                nm_init_help_edit();
                 nm_edit_boot(name);
-                werase(help_window);
-                nm_init_help_main();
                 break;
 
 #ifdef NM_SAVEVM_SNAPSHOTS
@@ -262,33 +231,15 @@ void nm_start_main_loop(void)
                     nm_warn(NM_MSG_MUST_RUN);
                     break;
                 }
-                werase(action_window);
-                werase(help_window);
-                nm_init_action(_(NM_MSG_SNAP_CRT));
-                nm_init_help_edit();
                 nm_vm_snapshot_create(name);
-                werase(help_window);
-                nm_init_help_main();
                 break;
 
             case NM_KEY_X_UP:
-                werase(action_window);
-                werase(help_window);
-                nm_init_action(_(NM_MSG_SNAP_REV));
-                nm_init_help_edit();
                 nm_vm_snapshot_load(name, vm_status);
-                werase(help_window);
-                nm_init_help_main();
                 break;
 
             case NM_KEY_D_UP:
-                werase(action_window);
-                werase(help_window);
-                nm_init_action(_(NM_MSG_SNAP_DEL));
-                nm_init_help_edit();
                 nm_vm_snapshot_delete(name, vm_status);
-                werase(help_window);
-                nm_init_help_main();
                 break;
 #endif /* NM_SAVEVM_SNAPSHOTS */
 
@@ -299,13 +250,7 @@ void nm_start_main_loop(void)
                     break;
                 }
 
-                werase(action_window);
-                werase(help_window);
-                nm_init_action(_(NM_MSG_CLONE));
-                nm_init_help_clone();
                 nm_clone_vm(name);
-                werase(help_window);
-                nm_init_help_main();
                 regen_data = 1;
                 old_hl = vms.highlight;
                 break;
@@ -379,27 +324,13 @@ void nm_start_main_loop(void)
 
         if (ch == NM_KEY_I_UP)
         {
-            werase(action_window);
-            werase(help_window);
-            nm_init_action(_(NM_MSG_INSTALL));
-            nm_init_help_install();
             nm_add_vm();
-            werase(action_window);
-            werase(help_window);
-            nm_init_help_main();
             regen_data = 1;
         }
 
         if (ch == NM_KEY_A_UP)
         {
-            werase(action_window);
-            werase(help_window);
-            nm_init_action(_(NM_MSG_IMPORT));
-            nm_init_help_import();
             nm_import_vm();
-            werase(action_window);
-            werase(help_window);
-            nm_init_help_main();
             regen_data = 1;
         }
 
@@ -410,14 +341,7 @@ void nm_start_main_loop(void)
 #if defined (NM_WITH_OVF_SUPPORT)
         if (ch == NM_KEY_O_UP)
         {
-            werase(action_window);
-            werase(help_window);
-            nm_init_action(_(NM_MSG_OVA_HEADER));
-            nm_init_help_import();
             nm_ovf_import();
-            werase(action_window);
-            werase(help_window);
-            nm_init_help_main();
             regen_data = 1;
         }
 #endif

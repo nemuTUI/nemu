@@ -50,7 +50,12 @@ void nm_usb_plug(const nm_str_t *name)
         nm_warn(_(NM_MSG_USB_MISS));
         goto out;
     }
-    
+
+    werase(action_window);
+    werase(help_window);
+    nm_init_action(_(NM_MSG_USB_ATTACH));
+    nm_init_help_edit();
+
     fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
     fields[1] = NULL;
 
@@ -62,13 +67,17 @@ void nm_usb_plug(const nm_str_t *name)
 
     form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     if (nm_draw_form(action_window, form) != NM_OK)
-        goto out;
+        goto clean_and_out;
 
     if ((nm_usb_plug_get_data(name, &usb, &usb_devs)) != NM_OK)
-        goto out;
+        goto clean_and_out;
 
     if (nm_qmp_usb_attach(name, &usb) == NM_OK)
         nm_usb_plug_update_db(name, &usb);
+
+clean_and_out:
+    werase(help_window);
+    nm_init_help_main();
 
 out:
     wtimeout(action_window, -1);
@@ -108,6 +117,11 @@ void nm_usb_unplug(const nm_str_t *name)
         goto out;
     }
 
+    werase(action_window);
+    werase(help_window);
+    nm_init_action(_(NM_MSG_USB_DETACH));
+    nm_init_help_edit();
+
     nm_usb_unplug_list(&db_result, &usb_names);
 
     fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
@@ -121,11 +135,11 @@ void nm_usb_unplug(const nm_str_t *name)
 
     form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     if (nm_draw_form(action_window, form) != NM_OK)
-        goto out;
+        goto clean_and_out;
 
     if (nm_usb_unplug_get_data(&usb_data, &db_result) != NM_OK)
-        goto out;
-    
+        goto clean_and_out;
+
     nm_qmp_usb_detach(name, &usb_data);
 
     nm_str_trunc(&buf, 0);
@@ -136,6 +150,10 @@ void nm_usb_unplug(const nm_str_t *name)
             usb_dev.product_id.data,
             usb_data.serial.data);
     nm_db_edit(buf.data);
+
+clean_and_out:
+    werase(help_window);
+    nm_init_help_main();
 
 out:
     wtimeout(action_window, -1);

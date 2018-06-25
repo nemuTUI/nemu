@@ -50,6 +50,11 @@ void nm_9p_share(const nm_str_t *name)
     if (nm_form_calc_size(msg_len, NM_9P_FIELDS_NUM, &form_data) != NM_OK)
         return;
 
+    werase(action_window);
+    werase(help_window);
+    nm_init_action(_(NM_MSG_9P_SHARE));
+    nm_init_help_edit();
+
     nm_vmctl_get_data(name, &vm);
 
     for (size_t n = 0; n < NM_9P_FIELDS_NUM; ++n)
@@ -87,6 +92,8 @@ void nm_9p_share(const nm_str_t *name)
 out:
     wtimeout(action_window, -1);
     delwin(form_data.form_window);
+    werase(help_window);
+    nm_init_help_main();
     nm_str_free(&data.mode);
     nm_str_free(&data.name);
     nm_str_free(&data.path);
