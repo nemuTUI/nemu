@@ -226,34 +226,48 @@ void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
 }
 
 #if defined (NM_OS_LINUX)
-void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status)
+void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
 {
-    int x = 2, y = 2;
+    int x = 2, y = 3;
+    size_t screen_x;
     nm_str_t veth_name = NM_INIT_STR;
     nm_str_t veth_copy = NM_INIT_STR;
     nm_str_t veth_lname = NM_INIT_STR;
     nm_str_t veth_rname = NM_INIT_STR;
 
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+    screen_x = getmaxx(side_window);
+    if (screen_x < 20) /* window to small */
+    {
+        mvwaddstr(side_window, 3, 1, "...");
+        wrefresh(side_window);
+        return;
+    }
+
+    wattroff(side_window, COLOR_PAIR(3));
+    /*init_pair(1, COLOR_WHITE, COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
     wattroff(w, COLOR_PAIR(1));
     wattroff(w, COLOR_PAIR(2));
-    box(w, 0, 0);
+    box(w, 0, 0);*/
 
     for (size_t n = veth->item_first, i = 0; n < veth->item_last; n++, i++)
     {
+        int space_num;
+
         if (n >= veth->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
         nm_str_alloc_text(&veth_name, nm_vect_item_name(veth->v, n));
         nm_str_copy(&veth_copy, &veth_name);
-        if (veth_name.len > 25)
-        {
-            nm_str_trunc(&veth_name, 25);
-            nm_str_add_text(&veth_name, "...");
-        }
-
+        nm_align2line(&veth_name, screen_x);
         nm_lan_parse_name(&veth_copy, &veth_lname, &veth_rname);
+
+        space_num = (screen_x - veth_name.len - 4);
+        if (space_num > 0)
+        {
+            for (int n = 0; n < space_num; n++)
+                nm_str_add_char_opt(&veth_name, ' ');
+        }
 
         if (get_status)
         {
@@ -272,25 +286,23 @@ void nm_print_veth_menu(nm_window_t *w, nm_menu_data_t *veth, int get_status)
         }
 
         if (nm_vect_item_status(veth->v, n))
-            wattron(w, COLOR_PAIR(2));
+            wattron(side_window, COLOR_PAIR(3));
         else
-            wattron(w, COLOR_PAIR(1));
+            wattroff(side_window, COLOR_PAIR(3));
 
         if (veth->highlight == i + 1)
         {
-            wattron(w, A_REVERSE);
-            mvwprintw(w, y, x, "%-31s%s", veth_name.data,
-                nm_vect_item_status(veth->v, n) ? NM_VETH_UP : NM_VETH_DOWN);
-            wattroff(w, A_REVERSE);
+            wattron(side_window, A_REVERSE);
+            mvwprintw(side_window, y, x, "%s", veth_name.data);
+            wattroff(side_window, A_REVERSE);
         }
         else
         {
-            mvwprintw(w, y, x, "%-31s%s", veth_name.data,
-                nm_vect_item_status(veth->v, n) ? NM_VETH_UP : NM_VETH_DOWN);
+            mvwprintw(side_window, y, x, "%s", veth_name.data);
         }
 
         y++;
-        wrefresh(w);
+        wrefresh(side_window);
 
         nm_str_trunc(&veth_name, 0);
         nm_str_trunc(&veth_copy, 0);

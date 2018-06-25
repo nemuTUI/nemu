@@ -9,30 +9,10 @@
 #define NM_VM_MSG   "F1 - help, ESC - main menu "
 #define NM_MAIN_MSG "Enter - select a choice, ESC - exit"
 
-/*
-** Fit string in action window.
-** ch1 and ch2 need for snapshot tree.
-** I dont know how to print ACS_* chars in mvwprintw().
-*/
-#define NM_PR_VM_INFO()                                         \
-    do {                                                        \
-        if (y > (rows - 3)) {                                   \
-            mvwprintw(action_window, y, x, "...");              \
-            return;                                             \
-        }                                                       \
-        if (ch1 && ch2) {                                       \
-            mvwaddch(action_window, y, x, ch1 );                \
-            mvwaddch(action_window, y, x + 1, ch2 );            \
-        }                                                       \
-        nm_align2line(&buf, (ch1 && ch2) ? cols - 2 : cols);    \
-        mvwprintw(action_window, y++,                           \
-                (ch1 && ch2) ? x + 2 : x, "%s", buf.data);      \
-        nm_str_trunc(&buf, 0);                                  \
-        ch1 = ch2 = 0;                                          \
-    } while (0)
-
 static void nm_init_window__(nm_window_t *w, const char *msg);
 static void nm_print_help_lines(const char **msg, size_t objs, int err);
+static void nm_print_help__(const char **keys, const char **values,
+                            size_t hotkey_num, size_t maxlen);
 
 static const char *nm_help_main_msg[] = {
     "q:Quit", "I:Install VM",
@@ -566,10 +546,30 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)
     nm_str_free(&buf);
 }
 
-void nm_print_help(void)
+void nm_lan_help(void)
 {
     size_t cols, rows;
 
+    const char *keys[] = {
+        "a", "r", "u", "d"
+    };
+
+    const char *values[] = {
+        "add veth interface",
+        "remove veth interface",
+        "up veth interface",
+        "down veth interface",
+        NULL
+    };
+
+    size_t hotkey_num = nm_arr_len(keys);
+    size_t maxlen = nm_max_msg_len(values);
+
+    nm_print_help__(keys, values, hotkey_num, maxlen);
+}
+
+void nm_print_help(void)
+{
     const char *keys[] = {
         "r", "t",
 #if (NM_WITH_VNC_CLIENT)
@@ -623,6 +623,15 @@ void nm_print_help(void)
 
     size_t hotkey_num = nm_arr_len(keys);
     size_t maxlen = nm_max_msg_len(values);
+
+    nm_print_help__(keys, values, hotkey_num, maxlen);
+}
+
+static void
+nm_print_help__(const char **keys, const char **values,
+                size_t hotkey_num, size_t maxlen)
+{
+    size_t cols, rows;
     size_t n = 0, last;
     int perc;
     nm_str_t help_title = NM_INIT_STR;

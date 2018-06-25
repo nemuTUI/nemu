@@ -13,6 +13,7 @@ void nm_print_drive_info(const nm_vect_t *v, size_t idx);
 void nm_print_snapshots(const nm_vect_t *v);
 void nm_print_cmd(const nm_str_t *name);
 void nm_print_help(void);
+void nm_lan_help(void);
 void nm_print_nemu(void);
 void nm_print_title(const char *msg);
 void nm_create_windows(void);
@@ -74,6 +75,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_SNAP_DEL   "Delete VM snapshot"
 #define NM_MSG_VDRIVE_ADD "Add virtual drive"
 #define NM_MSG_VDRIVE_DEL "Delete virtual drive"
+#define NM_MSG_ADD_VETH   "Create VETH interface"
 #define NM_MSG_INST_CONF  "Already installed (y/n)"
 #define NM_MSG_SNAP_OVER  "Override snapshot? (y/n)"
 #define NM_MSG_RUNNING    "Already running" NM_MSG_ANY_KEY
@@ -147,6 +149,28 @@ enum nm_key_upper {
     NM_KEY_V_UP = 86,
     NM_KEY_X_UP = 88
 };
+
+/*
+** Fit string in action window.
+** ch1 and ch2 need for snapshot tree.
+** I dont know how to print ACS_* chars in mvwprintw().
+*/
+#define NM_PR_VM_INFO()                                         \
+    do {                                                        \
+        if (y > (rows - 3)) {                                   \
+            mvwprintw(action_window, y, x, "...");              \
+            return;                                             \
+        }                                                       \
+        if (ch1 && ch2) {                                       \
+            mvwaddch(action_window, y, x, ch1 );                \
+            mvwaddch(action_window, y, x + 1, ch2 );            \
+        }                                                       \
+        nm_align2line(&buf, (ch1 && ch2) ? cols - 2 : cols);    \
+        mvwprintw(action_window, y++,                           \
+                (ch1 && ch2) ? x + 2 : x, "%s", buf.data);      \
+        nm_str_trunc(&buf, 0);                                  \
+        ch1 = ch2 = 0;                                          \
+    } while (0)
 
 #endif /* NM_WINDOW_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */
