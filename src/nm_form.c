@@ -60,32 +60,6 @@ void nm_form_free(nm_form_t *form, nm_field_t **fields)
     curs_set(0);
 }
 
-nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x)
-{
-    nm_form_t *form;
-    int rows, cols; 
-
-    nm_window_t *form_win;
-
-    getmaxyx(action_window, rows, cols);
-    form_win = derwin(action_window, ((8*2)+1), cols - 2, 3, 1);
-    init_pair(4, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(form_win, COLOR_PAIR(4));
-    //box(form_win, 0, 0);
-
-    form = new_form(field);
-    if (form == NULL)
-         nm_bug("%s: %s", __func__, strerror(errno));
-
-    set_form_win(form, form_win);
-    scale_form(form, &rows, &cols);
-    set_form_sub(form, derwin(form_win, rows, cols, 1, begin_x));
-    post_form(form);
-    curs_set(1);
-
-    return form;
-}
-
 nm_form_t *
 nm_post_form__(nm_window_t *w, nm_field_t **field, int begin_x, int color)
 {
@@ -383,60 +357,6 @@ void *nm_spinner(void *data)
     }
 
     pthread_exit(NULL);
-}
-
-const char *nm_form_select_drive_TODO_DELETE(const nm_vect_t *drives)
-{
-    char *drive = NULL;
-    nm_form_t *form = NULL;
-    nm_window_t *window = NULL;
-    nm_field_t *fields[2];
-    nm_vect_t err = NM_INIT_VECT;
-    nm_str_t buf = NM_INIT_STR;
-
-    nm_print_title(_(NM_EDIT_TITLE));
-    //window = nm_init_window(7, 45, 3);
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    wbkgd(window, COLOR_PAIR(1));
-
-    fields[0] = new_field(1, 30, 2, 1, 0, 0);
-    set_field_back(fields[0], A_UNDERLINE);
-    fields[1] = NULL;
-
-    set_field_type(fields[0], TYPE_ENUM, drives->data, false, false);
-    set_field_buffer(fields[0], 0, *drives->data);
-
-    mvwaddstr(window, 1, 2, _("Select drive"));
-    mvwaddstr(window, 4, 2, _("Drive"));
-
-    form = nm_post_form(window, fields, 11);
-    if (nm_draw_form(window, form) != NM_OK)
-        goto out;
-
-    nm_get_field_buf(fields[0], &buf);
-    nm_form_check_data(_("Drive"), buf, err);
-
-    if (nm_print_empty_fields(&err) == NM_ERR)
-    {
-        nm_vect_free(&err, NULL);
-        goto out;
-    }
-
-    for (size_t n = 0; n < drives->n_memb; n++)
-    {
-        char *d = drives->data[n];
-        if (nm_str_cmp_st(&buf, d) == NM_OK)
-        {
-            drive = d;
-            break;
-        }
-    }
-
-out:
-    nm_form_free(form, fields);
-    nm_str_free(&buf);
-
-    return drive;
 }
 
 int nm_print_empty_fields(const nm_vect_t *v)
