@@ -204,11 +204,11 @@ void nm_start_main_loop(void)
 
 #if defined (NM_OS_LINUX)
             case NM_KEY_PLUS:
-                nm_usb_plug(name);
+                nm_usb_plug(name, vm_status);
                 break;
 
             case NM_KEY_MINUS:
-                nm_usb_unplug(name);
+                nm_usb_unplug(name, vm_status);
                 break;
 
             case NM_KEY_H:

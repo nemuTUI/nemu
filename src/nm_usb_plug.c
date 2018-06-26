@@ -19,7 +19,7 @@ static void nm_usb_plug_update_db(const nm_str_t *name, const nm_usb_data_t *usb
 
 static nm_field_t *fields[2];
 
-void nm_usb_plug(const nm_str_t *name)
+void nm_usb_plug(const nm_str_t *name, int vm_status)
 {
     nm_form_t *form = NULL;
     nm_str_t buf = NM_INIT_STR;
@@ -72,8 +72,10 @@ void nm_usb_plug(const nm_str_t *name)
     if ((nm_usb_plug_get_data(name, &usb, &usb_devs)) != NM_OK)
         goto clean_and_out;
 
-    if (nm_qmp_usb_attach(name, &usb) == NM_OK)
-        nm_usb_plug_update_db(name, &usb);
+    if (vm_status)
+        (void) nm_qmp_usb_attach(name, &usb);
+
+    nm_usb_plug_update_db(name, &usb);
 
 clean_and_out:
     werase(help_window);
@@ -91,7 +93,7 @@ out:
     nm_str_free(&usb.serial);
 }
 
-void nm_usb_unplug(const nm_str_t *name)
+void nm_usb_unplug(const nm_str_t *name, int vm_status)
 {
     nm_form_t *form = NULL;
     nm_str_t buf = NM_INIT_STR;
@@ -140,7 +142,8 @@ void nm_usb_unplug(const nm_str_t *name)
     if (nm_usb_unplug_get_data(&usb_data, &db_result) != NM_OK)
         goto clean_and_out;
 
-    nm_qmp_usb_detach(name, &usb_data);
+    if (vm_status)
+        (void) nm_qmp_usb_detach(name, &usb_data);
 
     nm_str_trunc(&buf, 0);
     nm_str_format(&buf, NM_USB_DELETE_SQL,
