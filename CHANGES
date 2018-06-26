@@ -1,3 +1,8 @@
+v2.0.0 - 26 Jun 2018
+------------------------
+    - Change: new user interface.
+    - Change: drive snapshots was removed.
+
 v1.4.1 - 04 May 2018
 ------------------------
     - Change: Path expand now supports glob patterns
