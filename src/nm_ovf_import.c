@@ -210,11 +210,11 @@ void nm_ovf_import(void)
     nm_ovf_convert_drives(&drives, &vm.name, templ_path);
     nm_ovf_to_db(&vm, &drives);
 
+out:
     done = 1;
     if (pthread_join(spin_th, NULL) != 0)
         nm_bug(_("%s: cannot join thread"), __func__);
 
-out:
     if (nm_clean_temp_dir(templ_path, &files) != NM_OK)
         nm_warn(_(NM_MSG_INC_DEL));
 
