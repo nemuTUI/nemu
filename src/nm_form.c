@@ -333,6 +333,7 @@ void *nm_progress_bar(void *data)
     pthread_exit(NULL);
 }
 
+#if 0
 void *nm_spinner(void *data)
 {
     const char spin_chars[] ="/-\\|";
@@ -358,6 +359,7 @@ void *nm_spinner(void *data)
 
     pthread_exit(NULL);
 }
+#endif
 
 int nm_print_empty_fields(const nm_vect_t *v)
 {

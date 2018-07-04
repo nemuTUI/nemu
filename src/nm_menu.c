@@ -7,36 +7,6 @@
 #include <nm_cfg_file.h>
 #include <nm_lan_settings.h>
 
-void nm_print_main_menu(nm_window_t *w, uint32_t highlight)
-{
-    const char *nm_main_chioces[] = {
-        _("Manage guests"),
-        _("Install guest"),
-        _("Import image"),
-#if defined (NM_WITH_OVF_SUPPORT)
-        _("Import OVA"),
-#endif
-#if defined (NM_OS_LINUX)
-        _("Local network"),
-#endif
-        _("Quit"),
-    };
-
-    box(w, 0, 0);
-
-    for (uint32_t x = 2, y = 2, n = 0; n < NM_MAIN_CHOICES; n++, y++)
-    {
-        if (highlight ==  n + 1)
-        {
-            wattron(w, A_REVERSE);
-            mvwprintw(w, y, x, "%s", nm_main_chioces[n]);
-            wattroff(w, A_REVERSE);
-        } 
-        else
-            mvwprintw(w, y, x, "%s", nm_main_chioces[n]);
-    }
-}
-
 void nm_print_base_menu(nm_menu_data_t *ifs)
 {
     int x = 2, y = 3;
@@ -244,11 +214,6 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
     }
 
     wattroff(side_window, COLOR_PAIR(3));
-    /*init_pair(1, COLOR_WHITE, COLOR_BLACK);
-    init_pair(2, COLOR_GREEN, COLOR_BLACK);
-    wattroff(w, COLOR_PAIR(1));
-    wattroff(w, COLOR_PAIR(2));
-    box(w, 0, 0);*/
 
     for (size_t n = veth->item_first, i = 0; n < veth->item_last; n++, i++)
     {

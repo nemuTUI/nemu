@@ -718,20 +718,6 @@ void nm_print_nemu(void)
     wgetch(action_window);
 }
 
-void nm_print_title(const char *msg)
-{
-    int col;
-    size_t msg_len;
-
-    col = getmaxx(stdscr);
-    msg_len = mbstowcs(NULL, msg, strlen(msg));
-
-    nm_clear_screen();
-    border(0,0,0,0,0,0,0,0);
-    mvprintw(1, (col - msg_len) / 2, msg);
-    refresh();
-}
-
 void nm_align2line(nm_str_t *str, size_t line_len)
 {
     assert(line_len > 4);
