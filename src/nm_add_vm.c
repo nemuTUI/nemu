@@ -169,32 +169,32 @@ static void nm_add_vm_field_names(nm_vect_t *msg, int import)
 {
     nm_str_t buf = NM_INIT_STR;
 
-    nm_vect_insert(msg, _(NM_VM_FORM_NAME), strlen(_(NM_VM_FORM_NAME)), NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_ARCH), strlen(_(NM_VM_FORM_ARCH)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_NAME), strlen(_(NM_VM_FORM_NAME)) + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_ARCH), strlen(_(NM_VM_FORM_ARCH)) + 1, NULL);
 
     nm_str_format(&buf, "%s%u%s",
         _(NM_VM_FORM_CPU_BEGIN), nm_hw_ncpus(), _(NM_VM_FORM_CPU_END));
-    nm_vect_insert(msg, buf.data, buf.len, NULL);
+    nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
     nm_str_trunc(&buf, 0);
 
     nm_str_format(&buf, "%s%u%s",
         _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
-    nm_vect_insert(msg, buf.data, buf.len, NULL);
+    nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
     nm_str_trunc(&buf, 0);
 
     nm_str_format(&buf, "%s%u%s",
         _(NM_VM_FORM_DRV_BEGIN), nm_hw_disk_free(), _(NM_VM_FORM_DRV_END));
-    nm_vect_insert(msg, buf.data, buf.len, NULL);
+    nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
     nm_str_trunc(&buf, 0);
 
-    nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)) + 1, NULL);
     if (import)
-        nm_vect_insert(msg, _(NM_VM_FORM_IMP_PATH), strlen(_(NM_VM_FORM_IMP_PATH)), NULL);
+        nm_vect_insert(msg, _(NM_VM_FORM_IMP_PATH), strlen(_(NM_VM_FORM_IMP_PATH)) + 1, NULL);
     else
-        nm_vect_insert(msg, _(NM_VM_FORM_INS_PATH), strlen(_(NM_VM_FORM_INS_PATH)), NULL);
+        nm_vect_insert(msg, _(NM_VM_FORM_INS_PATH), strlen(_(NM_VM_FORM_INS_PATH)) + 1, NULL);
 
-    nm_vect_insert(msg, _(NM_VM_FORM_NET_IFS), strlen(_(NM_VM_FORM_NET_IFS)), NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_NET_DRV), strlen(_(NM_VM_FORM_NET_DRV)), NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_NET_IFS), strlen(_(NM_VM_FORM_NET_IFS)) + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_NET_DRV), strlen(_(NM_VM_FORM_NET_DRV)) + 1, NULL);
     nm_vect_end_zero(msg);
 
     nm_str_free(&buf);
