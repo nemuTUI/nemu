@@ -204,8 +204,12 @@ int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form)
 
 void nm_get_field_buf(nm_field_t *f, nm_str_t *res)
 {
-    char *buf = field_buffer(f, 0);
-    char *s = strrchr(buf, 0x20);
+    char *buf, *s;
+
+    if ((buf = field_buffer(f, 0)) == NULL)
+        nm_bug("%s: %s", __func__, strerror(errno));
+
+    s = strrchr(buf, 0x20);
 
     if (s != NULL)
     {
