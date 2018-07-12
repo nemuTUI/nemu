@@ -116,9 +116,7 @@ void nm_vmctl_delete(const nm_str_t *name)
     nm_str_add_str(&vmdir, name);
     nm_str_add_char(&vmdir, '/');
 
-    nm_str_add_text(&query, "SELECT drive_name FROM drives WHERE vm_name='");
-    nm_str_add_str(&query, name);
-    nm_str_add_char(&query, '\'');
+    nm_str_format(&query, NM_SELECT_DRIVE_NAMES_SQL, name->data);
     nm_db_select(query.data, &drives);
     nm_str_trunc(&query, 0);
 
@@ -156,27 +154,23 @@ void nm_vmctl_delete(const nm_str_t *name)
             delete_ok = 0;
     }
 
-    nm_str_add_text(&query, "DELETE FROM drives WHERE vm_name='");
-    nm_str_add_str(&query, name);
-    nm_str_add_char(&query, '\'');
+    nm_str_format(&query, NM_DEL_DRIVES_SQL, name->data);
     nm_db_edit(query.data);
     nm_str_trunc(&query, 0);
 
-    nm_str_add_text(&query, "DELETE FROM vmsnapshots WHERE vm_name='");
-    nm_str_add_str(&query, name);
-    nm_str_add_char(&query, '\'');
+    nm_str_format(&query, NM_DEL_VMSNAP_SQL, name->data);
     nm_db_edit(query.data);
     nm_str_trunc(&query, 0);
 
-    nm_str_add_text(&query, "DELETE FROM ifaces WHERE vm_name='");
-    nm_str_add_str(&query, name);
-    nm_str_add_char(&query, '\'');
+    nm_str_format(&query, NM_DEL_IFS_SQL, name->data);
     nm_db_edit(query.data);
     nm_str_trunc(&query, 0);
 
-    nm_str_add_text(&query, "DELETE FROM vms WHERE name='");
-    nm_str_add_str(&query, name);
-    nm_str_add_char(&query, '\'');
+    nm_str_format(&query, NM_DEL_USB_SQL, name->data);
+    nm_db_edit(query.data);
+    nm_str_trunc(&query, 0);
+
+    nm_str_format(&query, NM_DEL_VM_SQL, name->data);
     nm_db_edit(query.data);
 
     if (!delete_ok)

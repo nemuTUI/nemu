@@ -20,6 +20,21 @@
 #define NM_USB_CHECK_SQL \
     "SELECT usbid FROM vms WHERE name='%s'"
 
+#define NM_DEL_DRIVES_SQL \
+    "DELETE FROM drives WHERE vm_name='%s'"
+
+#define NM_DEL_VMSNAP_SQL \
+    "DELETE FROM vmsnapshots WHERE vm_name='%s'"
+
+#define NM_DEL_IFS_SQL \
+    "DELETE FROM ifaces WHERE vm_name='%s'"
+
+#define NM_DEL_USB_SQL \
+    "DELETE FROM usb WHERE vm_name='%s'"
+
+#define NM_DEL_VM_SQL \
+    "DELETE FROM vms WHERE name='%s'"
+
 #define NM_USB_EXISTS_SQL \
     "SELECT id FROM usb WHERE vm_name='%s' AND dev_name='%s' " \
     "AND vendor_id='%s' AND product_id='%s' AND serial='%s'"
@@ -70,6 +85,9 @@
 #define NM_GET_BOOT_DRIVE_SQL \
     "SELECT drive_name FROM drives " \
     "WHERE vm_name='%s' AND boot='1'"
+
+#define NM_SELECT_DRIVE_NAMES_SQL \
+    "SELECT drive_name FROM drives WHERE vm_name='%s'"
 
 #define NM_GET_IFACES_SQL \
     "SELECT if_name FROM ifaces WHERE vm_name='%s'"
