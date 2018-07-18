@@ -5,6 +5,9 @@ vmdir = /home/user/qemu_vm
 # path to database file.
 db = /home/user/.nemu.db
 
+# override highlight color of running VM's. Example:
+# hl_color = 00afd7
+
 [vnc]
 # vnc binary path.
 binary = /usr/bin/vncviewer
