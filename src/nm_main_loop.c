@@ -36,10 +36,18 @@ void nm_start_main_loop(void)
     nm_vmctl_data_t vm_props = NM_VMCTL_INIT_DATA;
     nm_vect_t vms_v = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
+    const nm_cfg_t *cfg = nm_cfg_get();
 
-    /* TODO use 256 color schema if ncurses and terminal support it */
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     init_pair(4, COLOR_RED, COLOR_WHITE);
+    if (cfg->hl_is_set && can_change_color())
+    {
+        init_color(COLOR_WHITE + 1,
+                cfg->hl_color.r, cfg->hl_color.g, cfg->hl_color.b);
+        init_pair(3, COLOR_WHITE + 1, -1);
+    }
+    else
+        init_pair(3, COLOR_GREEN, -1);
 
     nm_create_windows();
     nm_init_help_main();
@@ -428,7 +436,6 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
     fields[1] = NULL;
     set_field_back(fields[0], A_UNDERLINE);
     field_opts_off(fields[0], O_STATIC);
-    wattroff(side_window, COLOR_PAIR(2));
     NM_ERASE_TITLE(side, cols);
     mvwaddstr(side_window, 1, 2, _(NM_SEARCH_STR));
     wrefresh(side_window);

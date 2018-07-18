@@ -4,13 +4,21 @@
 #include <nm_vector.h>
 
 typedef struct {
+    short r;
+    short g;
+    short b;
+} nm_rgb_t;
+
+typedef struct {
     nm_str_t vm_dir;
     nm_str_t db_path;
     nm_str_t vnc_bin;
     nm_str_t log_path;
     nm_vect_t qemu_targets;
+    nm_rgb_t hl_color;
     uint32_t vnc_listen_any:1;
     uint32_t log_enabled:1;
+    uint32_t hl_is_set:1;
 } nm_cfg_t;
 
 void nm_cfg_init(void);

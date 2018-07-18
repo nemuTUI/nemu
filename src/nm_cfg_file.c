@@ -17,6 +17,7 @@
 
 #define NM_INI_P_VM       "vmdir"
 #define NM_INI_P_DB       "db"
+#define NM_INI_P_HL       "hl_color"
 #define NM_INI_P_VBIN     "binary"
 #define NM_INI_P_VANY     "listen_any"
 #define NM_INI_P_QTRG     "targets"
@@ -29,6 +30,10 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path);
 static void nm_get_input(const char *msg, nm_str_t *res);
 static inline void nm_get_param(const void *ini, const char *section,
                                 const char *value, nm_str_t *res);
+static inline int nm_get_opt_param(const void *ini, const char *section,
+                                   const char *value, nm_str_t *res);
+static inline void nm_cfg_get_color(size_t pos, short *color,
+                                    const nm_str_t *buf);
 
 void nm_cfg_init(void)
 {
@@ -123,6 +128,21 @@ void nm_cfg_init(void)
         nm_str_dirname(&cfg.log_path, &tmp_buf);
         if (access(tmp_buf.data, W_OK) != 0)
             nm_bug(_("cfg: no write access to %s"), tmp_buf.data);
+    }
+
+    nm_str_trunc(&tmp_buf, 0);
+    if (nm_get_opt_param(ini, NM_INI_S_MAIN, NM_INI_P_HL, &tmp_buf) == NM_OK)
+    {
+        if (tmp_buf.len != 6)
+            nm_bug(_("cfg: incorrect color value %s, example:5fafff"), tmp_buf.data);
+
+        nm_cfg_get_color(0, &cfg.hl_color.r, &tmp_buf);
+        nm_cfg_get_color(2, &cfg.hl_color.g, &tmp_buf);
+        nm_cfg_get_color(4, &cfg.hl_color.b, &tmp_buf);
+
+        cfg.hl_is_set = 1;
+        nm_debug("HL color: r:%d g:%d b:%d\n",
+                cfg.hl_color.r, cfg.hl_color.g, cfg.hl_color.b);
     }
 
     nm_ini_parser_free(ini);
@@ -288,4 +308,32 @@ static inline void nm_get_param(const void *ini, const char *section,
         nm_bug(_("cfg error: %s->%s is empty"), section, value);
 }
 
+static inline int nm_get_opt_param(const void *ini, const char *section,
+                                   const char *value, nm_str_t *res)
+{
+    if (nm_ini_parser_find(ini, section, value, res) != NM_OK)
+        return NM_ERR;
+
+    if (res->len == 0)
+    {
+        nm_bug(_("cfg error: %s->%s is empty"), section, value);
+        return NM_ERR;
+    }
+
+    return NM_OK;
+}
+
+static inline void nm_cfg_get_color(size_t pos, short *color,
+                                    const nm_str_t *buf)
+{
+    nm_str_t hex = NM_INIT_STR;
+
+    assert(color != NULL);
+
+    nm_str_alloc_text(&hex, "0x");
+    nm_str_add_char(&hex, buf->data[pos]);
+    nm_str_add_char(&hex, buf->data[pos + 1]);
+    *color = (nm_str_stoui(&hex, 16)) * 1000 / 255;
+    nm_str_free(&hex);
+}
 /* vim:set ts=4 sw=4 fdm=marker: */
