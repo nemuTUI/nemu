@@ -35,7 +35,7 @@ inline void nm_curses_deinit(void)
 nm_window_t *nm_init_window(const nm_cord_t *pos)
 {
     nm_window_t *w;
-    
+
     w = newwin(pos->lines, pos->cols, pos->y, pos->x);
     if (w == NULL)
         nm_bug(_("%s: cannot create window"), __func__);
