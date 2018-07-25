@@ -22,10 +22,10 @@ int main(int argc, char **argv)
     bindtextdomain(NM_PROGNAME, NM_LOCALE_PATH);
     textdomain(NM_PROGNAME);
 
+    nm_process_args(argc, argv);
+
     nm_cfg_init();
     nm_db_init();
-
-    nm_process_args(argc, argv);
 
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -63,6 +63,8 @@ static void nm_process_args(int argc, char **argv)
     {
         switch (opt) {
         case 'c':
+            nm_cfg_init();
+            nm_db_init();
             nm_lan_create_veth(NM_TRUE);
             nm_db_close();
             nm_cfg_free();
