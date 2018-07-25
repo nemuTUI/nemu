@@ -441,12 +441,7 @@ void nm_lan_create_veth(int info)
             nm_net_link_up(l_name);
             nm_net_link_up(r_name);
 
-            if (info)
-            {
-                veth_created++;
-                printf("VETH iface \"%s <-> %s\" was created\n",
-                        l_name->data, r_name->data);
-            }
+            veth_created++;
         }
         else
         {
