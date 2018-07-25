@@ -3,6 +3,7 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_main_loop.h>
+#include <nm_lan_settings.h>
 
 static void signals_handler(int signal);
 static void nm_process_args(int argc, char **argv);
@@ -21,10 +22,10 @@ int main(int argc, char **argv)
     bindtextdomain(NM_PROGNAME, NM_LOCALE_PATH);
     textdomain(NM_PROGNAME);
 
-    nm_process_args(argc, argv);
-
     nm_cfg_init();
     nm_db_init();
+
+    nm_process_args(argc, argv);
 
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -52,21 +53,29 @@ static void nm_process_args(int argc, char **argv)
     int opt;
 
     static const struct option longopts[] = {
-        { "version", no_argument, NULL, 'v' },
-        { "help",    no_argument, NULL, 'h' },
-        { NULL,      0,           NULL,  0  }
+        { "create-veth", no_argument, NULL, 'c' },
+        { "version",     no_argument, NULL, 'v' },
+        { "help",        no_argument, NULL, 'h' },
+        { NULL,          0,           NULL,  0  }
     };
 
-    while ((opt = getopt_long(argc, argv, "vh", longopts, NULL)) != -1)
+    while ((opt = getopt_long(argc, argv, "cvh", longopts, NULL)) != -1)
     {
         switch (opt) {
+        case 'c':
+            nm_lan_create_veth(NM_TRUE);
+            nm_db_close();
+            nm_cfg_free();
+            exit(NM_OK);
+            break;
         case 'v':
             printf("nEMU %s\n", NM_VERSION);
             exit(NM_OK);
             break;
         case 'h':
-            printf("%s\n", _("-v, --version:   show version"));
-            printf("%s\n", _("-h, --help:      show help"));
+            printf("%s\n", _("-c, --create-veth: create veth interfaces"));
+            printf("%s\n", _("-v, --version:     show version"));
+            printf("%s\n", _("-h, --help:        show help"));
             exit(NM_OK);
             break;
         default:

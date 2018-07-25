@@ -234,14 +234,6 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
 
         if (get_status)
         {
-            /* If VETH interface does not exists, create it */
-            if (nm_net_iface_exists(&veth_lname) != NM_OK)
-            {
-                nm_net_add_veth(&veth_lname, &veth_rname);
-                nm_net_link_up(&veth_lname);
-                nm_net_link_up(&veth_rname);
-            }
-
             if (nm_net_link_status(&veth_lname) == NM_OK)
                 nm_vect_set_item_status(veth->v, n, 1);
             else

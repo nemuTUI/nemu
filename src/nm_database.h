@@ -92,6 +92,9 @@
 #define NM_GET_IFACES_SQL \
     "SELECT if_name FROM ifaces WHERE vm_name='%s'"
 
+#define NM_GET_VETH_SQL \
+    "SELECT l_name, r_name FROM veth"
+
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
 void nm_db_edit(const char *query);

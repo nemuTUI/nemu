@@ -56,6 +56,8 @@ void nm_lan_settings(void)
     nm_menu_data_t veths_data = NM_INIT_MENU_DATA;
     size_t veth_list_len, old_hl = 0;
 
+    nm_lan_create_veth(NM_FALSE);
+
     werase(side_window);
     werase(action_window);
     werase(help_window);
@@ -411,6 +413,54 @@ void nm_lan_parse_name(const nm_str_t *name, nm_str_t *ln, nm_str_t *rn)
     }
 
     nm_str_free(&name_copy);
+}
+
+void nm_lan_create_veth(int info)
+{
+    nm_vect_t veths = NM_INIT_VECT;
+    size_t veth_count, veth_created = 0;
+
+    nm_db_select(NM_GET_VETH_SQL, &veths);
+    veth_count = veths.n_memb / 2;
+
+    for (size_t n = 0; n < veth_count; n++)
+    {
+        size_t idx_shift = n * 2;
+        const nm_str_t *l_name = nm_vect_str(&veths, idx_shift);
+        const nm_str_t *r_name = nm_vect_str(&veths, idx_shift + 1);
+
+        if (info)
+            printf("Checking \"%s <-> %s\"...", l_name->data, r_name->data);
+
+        if (nm_net_iface_exists(l_name) != NM_OK)
+        {
+            if (info)
+                printf("\t[not found]\n");
+
+            nm_net_add_veth(l_name, r_name);
+            nm_net_link_up(l_name);
+            nm_net_link_up(r_name);
+
+            if (info)
+            {
+                veth_created++;
+                printf("VETH iface \"%s <-> %s\" was created\n",
+                        l_name->data, r_name->data);
+            }
+        }
+        else
+        {
+            if (info)
+                printf("\t[found]\n");
+        }
+    }
+
+    if (info && !veth_created)
+        printf("Nothing to do.\n");
+    else if (info && veth_created)
+        printf("%zu VETH interface[s] was created.\n", veth_created);
+
+    nm_vect_free(&veths, nm_str_vect_free_cb);
 }
 #endif /* NM_OS_LINUX */
 
