@@ -26,6 +26,7 @@ int main(int argc, char **argv)
 
     nm_cfg_init();
     nm_db_init();
+    nm_lan_create_veth(NM_FALSE);
 
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
