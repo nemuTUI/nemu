@@ -365,7 +365,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         nm_vect_t serial_cache = NM_INIT_VECT;
         nm_str_t serial = NM_INIT_STR;
 
-        nm_str_add_text(res, " -usb -device usb-ehci");
+        nm_str_add_text(res, " -usb -device qemu-xhci");
         if (usb_count > 0)
             nm_usb_get_devs(&usb_list);
 
