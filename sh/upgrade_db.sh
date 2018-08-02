@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=7
+DB_ACTUAL_VERSION=8
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 RC=0
 
@@ -67,6 +67,14 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'CREATE TABLE usb(id integer primary key autoincrement, '`
                 `'vm_name char, dev_name char, vendor_id char, product_id char, serial char)' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=7'
+            ) || RC=1
+            ;;
+
+        ( 7 )
+            (
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD usb_type char;' &&
+            sqlite3 "$DB_PATH" -line 'UPDATE vms SET usb_type="XHCI";' &&
+            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=8'
             ) || RC=1
             ;;
 

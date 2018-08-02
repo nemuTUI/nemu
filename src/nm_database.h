@@ -123,7 +123,8 @@ enum select_main_idx {
     NM_SQL_MACH,
     NM_SQL_9FLG,
     NM_SQL_9PTH,
-    NM_SQL_9ID
+    NM_SQL_9ID,
+    NM_SQL_USBT
 };
 
 enum select_ifs_idx {

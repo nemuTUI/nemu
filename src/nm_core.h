@@ -66,6 +66,7 @@
 
 #define NM_DEFAULT_NETDRV "virtio-net-pci"
 #define NM_DEFAULT_DRVINT "virtio"
+#define NM_DEFAULT_USBVER "XHCI"
 #define NM_VM_PID_FILE "qemu.pid"
 #define NM_VM_QMP_FILE "qmp.sock"
 

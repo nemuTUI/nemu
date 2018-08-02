@@ -11,7 +11,7 @@
 #include <nm_vm_control.h>
 #include <nm_qmp_control.h>
 
-#define NM_EDIT_VM_FIELDS_NUM 8
+#define NM_EDIT_VM_FIELDS_NUM 9
 
 #define NM_VM_FORM_CPU_BEGIN "CPU cores [1-"
 #define NM_VM_FORM_CPU_END   "]"
@@ -22,6 +22,7 @@
 #define NM_VM_FORM_NET_IFS   "Network interfaces"
 #define NM_VM_FORM_DRV_IF    "Disk interface"
 #define NM_VM_FORM_USB       "USB [yes/no]"
+#define NM_VM_FORM_USBT      "USB version"
 #define NM_VM_FORM_SYNC      "Sync mouse position"
 
 static nm_form_t *form = NULL;
@@ -40,6 +41,7 @@ enum {
     NM_FLD_IFSCNT,
     NM_FLD_DISKIN,
     NM_FLD_USBUSE,
+    NM_FLD_USBTYP,
     NM_FLD_MOUSES
 };
 
@@ -111,6 +113,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     set_field_type(fields[NM_FLD_IFSCNT], TYPE_INTEGER, 1, 0, 64);
     set_field_type(fields[NM_FLD_DISKIN], TYPE_ENUM, nm_form_drive_drv, false, false);
     set_field_type(fields[NM_FLD_USBUSE], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_USBTYP], TYPE_ENUM, nm_form_usbtype, false, false);
     set_field_type(fields[NM_FLD_MOUSES], TYPE_ENUM, nm_form_yes_no, false, false);
 
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, nm_vect_str_ctx(&cur->main, NM_SQL_SMP));
@@ -134,6 +137,11 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
         set_field_buffer(fields[NM_FLD_USBUSE], 0, nm_form_yes_no[0]);
     else
         set_field_buffer(fields[NM_FLD_USBUSE], 0, nm_form_yes_no[1]);
+
+    if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_USBT), NM_DEFAULT_USBVER) == NM_OK)
+        set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_form_usbtype[1]);
+    else
+        set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_form_usbtype[0]);
     
     if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_OVER), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_MOUSES], 0, nm_form_yes_no[0]);
@@ -169,6 +177,7 @@ static void nm_edit_vm_field_names(nm_vect_t *msg)
     nm_vect_insert(msg, _(NM_VM_FORM_NET_IFS), strlen(_(NM_VM_FORM_NET_IFS)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_USB), strlen(_(NM_VM_FORM_USB)) + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_USBT), strlen(_(NM_VM_FORM_USBT)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_SYNC), strlen(_(NM_VM_FORM_SYNC)) + 1, NULL);
     nm_vect_end_zero(msg);
 
@@ -182,6 +191,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
 
     nm_str_t ifs = NM_INIT_STR;
     nm_str_t usb = NM_INIT_STR;
+    nm_str_t usbv = NM_INIT_STR;
     nm_str_t kvm = NM_INIT_STR;
     nm_str_t hcpu = NM_INIT_STR;
     nm_str_t sync = NM_INIT_STR;
@@ -193,6 +203,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     nm_get_field_buf(fields[NM_FLD_IFSCNT], &ifs);
     nm_get_field_buf(fields[NM_FLD_DISKIN], &vm->drive.driver);
     nm_get_field_buf(fields[NM_FLD_USBUSE], &usb);
+    nm_get_field_buf(fields[NM_FLD_USBTYP], &usbv);
     nm_get_field_buf(fields[NM_FLD_MOUSES], &sync);
 
     if (field_status(fields[NM_FLD_CPUNUM]))
@@ -209,6 +220,8 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
         nm_form_check_data(_("Disk interface"), vm->drive.driver, err);
     if (field_status(fields[NM_FLD_USBUSE]))
         nm_form_check_data(_("USB"), usb, err);
+    if (field_status(fields[NM_FLD_USBTYP]))
+        nm_form_check_data(_("USB version"), usbv, err);
     if (field_status(fields[NM_FLD_MOUSES]))
         nm_form_check_data(_("Sync mouse position"), sync, err);
 
@@ -258,12 +271,19 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
             vm->usb_enable = 1;
     }
 
+    if (field_status(fields[NM_FLD_USBTYP]))
+    {
+        if (nm_str_cmp_st(&usbv, NM_DEFAULT_USBVER) == NM_OK)
+            vm->usb_xhci = 1;
+    }
+
     if (nm_str_cmp_st(&sync, "yes") == NM_OK)
         vm->mouse_sync = 1;
 
 out:
     nm_str_free(&ifs);
     nm_str_free(&usb);
+    nm_str_free(&usbv);
     nm_str_free(&kvm);
     nm_str_free(&hcpu);
     nm_str_free(&sync);
@@ -406,7 +426,20 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
         nm_str_add_char(&query, '\'');
 
         nm_db_edit(query.data);
-        
+
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_USBTYP]))
+    {
+        nm_str_add_text(&query, "UPDATE vms SET usb_type='");
+        nm_str_add_text(&query, vm->usb_xhci ? nm_form_usbtype[1] : nm_form_usbtype[0]);
+        nm_str_add_text(&query, "' WHERE name='");
+        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
+        nm_str_add_char(&query, '\'');
+
+        nm_db_edit(query.data);
+
         nm_str_trunc(&query, 0);
     }
 

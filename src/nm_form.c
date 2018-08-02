@@ -37,6 +37,12 @@ const char *nm_form_macvtap[] = {
     NULL
 };
 
+const char *nm_form_usbtype[] = {
+    "EHCI",
+    "XHCI",
+    NULL
+};
+
 static int nm_append_path(nm_str_t *path);
 
 void nm_form_free(nm_form_t *form, nm_field_t **fields)

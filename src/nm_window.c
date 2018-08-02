@@ -345,7 +345,9 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)
 
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBF), "1") == NM_OK)
     {
-        nm_str_format(&buf, "%-12s%s", "usb: ", "enabled");
+        nm_str_format(&buf, "%-12s%s [%s]", "usb: ", "enabled",
+                (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBT), NM_DEFAULT_USBVER) == NM_OK) ?
+                "XHCI" : "EHCI");
     }
     else
     {
