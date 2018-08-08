@@ -19,7 +19,7 @@ RDEPEND="
 	sys-libs/ncurses:0=[unicode]
 	dev-db/sqlite:3=
 	dev-libs/libusb:1=
-	|| ( sys-fs/eudev sys-fs/udev )
+	|| ( sys-fs/eudev sys-fs/udev sys-apps/systemd )
 	app-emulation/qemu[vnc,virtfs]
 	ovf? ( 
 		dev-libs/libxml2
