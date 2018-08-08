@@ -459,4 +459,58 @@ void nm_lan_create_veth(int info)
 }
 #endif /* NM_OS_LINUX */
 
+#if 0
+/* gcc demo.c -o dd -I /usr/include/graphviz -lgvc -lcgraph */
+#include <gvc.h>
+
+int main(int argc, char **argv)
+{
+    Agraph_t *g;
+    Agnode_t *n, *m, *o, *ns, *veth1;
+    Agedge_t *e;
+    GVC_t *gvc;
+
+    /* set up a graphviz context */
+    gvc = gvContext();
+
+    /* Create a simple digraph */
+    g = agopen("g", Agdirected, 0);
+    n = agnode(g, "VA0", 1);
+    veth1 = agnode(g, "VETH1", 1);
+    ns = agsubnode(g, n, 1);
+    m = agnode(g, "BRL<=>BRR", 1);
+    o = agnode(g, "VA1", 1);
+    e = agedge(g, n, m, 0, 1);
+    agsafeset(e, "label", "eth0", "" );
+    e = agedge(g, o, m, 0, 1);
+    agsafeset(e, "label", "eth0", "" );
+    e = agedge(g, o, veth1, 0, 1);
+    agsafeset(e, "label", "eth1", "" );
+
+    agsafeset(n, "style", "filled", "");
+    agsafeset(n, "fillcolor", "#4fbcdd", "");
+    agsafeset(o, "style", "filled", "");
+    agsafeset(o, "fillcolor", "#4fbcdd", "");
+    agsafeset(m, "style", "filled", "");
+    agsafeset(m, "fillcolor", "#59e088", "");
+    agsafeset(veth1, "style", "filled", "");
+    agsafeset(veth1, "fillcolor", "#59e088", "");
+    agsafeset(m, "shape", "rect", "");
+    agsafeset(veth1, "shape", "rect", "");
+
+    gvLayout(gvc, g, "dot");
+
+    gvRenderFilename(gvc, g, "svg", "/home/void/tmp/test.svg");
+
+    /* Free layout data */
+    gvFreeLayout(gvc, g);
+
+    /* Free graph structures */
+    agclose(g);
+
+    /* close output file, free context, and return number of errors */
+    return (gvFreeContext(gvc));
+}
+#endif
+
 /* vim:set ts=4 sw=4 fdm=marker: */
