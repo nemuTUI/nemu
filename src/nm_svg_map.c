@@ -2,6 +2,7 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_vector.h>
+#include <nm_network.h>
 #include <nm_database.h>
 #include <nm_lan_settings.h>
 
@@ -41,14 +42,18 @@ void nm_svg_map(const char *path, const nm_vect_t *veths)
         nm_str_t lname = NM_INIT_STR;
         nm_str_t rname = NM_INIT_STR;
         nm_str_t query = NM_INIT_STR;
-        nm_gvnode_t *vnode = agnode(graph, nm_vect_str_ctx(veths, n), NM_TRUE);
+        nm_gvnode_t *vnode;
         size_t vms_count;
 
+        nm_lan_parse_name(nm_vect_str(veths, n), &lname, &rname);
+        if (nm_net_link_status(&lname) != NM_OK)
+            goto next;
+
+        vnode = agnode(graph, nm_vect_str_ctx(veths, n), NM_TRUE);
         agsafeset(vnode, NM_GV_STYLE, NM_GV_FILL, NM_EMPTY_STR);
         agsafeset(vnode, NM_GV_FCOL, NM_VE_COLOR, NM_EMPTY_STR);
         agsafeset(vnode, NM_GV_SHAPE, NM_GV_RECT, NM_EMPTY_STR);
 
-        nm_lan_parse_name(nm_vect_str(veths, n), &lname, &rname);
         nm_str_format(&query, NM_GET_IFMAP_SQL, lname.data, rname.data);
         nm_db_select(query.data, &vms);
 
@@ -63,7 +68,7 @@ void nm_svg_map(const char *path, const nm_vect_t *veths)
             agsafeset(node, NM_GV_STYLE, NM_GV_FILL, NM_EMPTY_STR);
             agsafeset(node, NM_GV_FCOL, NM_VM_COLOR, NM_EMPTY_STR);
         }
-
+next:
         nm_vect_free(&vms, nm_str_vect_free_cb);
         nm_str_free(&lname);
         nm_str_free(&rname);
