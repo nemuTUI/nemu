@@ -47,8 +47,10 @@ static void nm_lan_del_veth(const nm_str_t *name);
 static void nm_lan_up_veth(const nm_str_t *name);
 static void nm_lan_down_veth(const nm_str_t *name);
 static void nm_lan_veth_info(const nm_str_t *name);
-static void nm_lan_export_svg(const nm_vect_t *veths);
 static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn);
+#if defined (NM_WITH_NETWORK_MAP)
+static void nm_lan_export_svg(const nm_vect_t *veths);
+#endif
 
 void nm_lan_settings(void)
 {
@@ -468,6 +470,7 @@ void nm_lan_create_veth(int info)
     nm_vect_free(&veths, nm_str_vect_free_cb);
 }
 
+#if defined (NM_WITH_NETWORK_MAP)
 static void nm_lan_export_svg(const nm_vect_t *veths)
 {
     nm_form_t *form = NULL;
@@ -515,5 +518,6 @@ out:
     nm_form_free(form, fields);
     delwin(form_data.form_window);
 }
+#endif /* NM_WITH_NETWORK_MAP */
 #endif /* NM_OS_LINUX */
 /* vim:set ts=4 sw=4 fdm=marker: */
