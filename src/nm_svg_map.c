@@ -68,11 +68,12 @@ void nm_svg_map(const char *path, const nm_vect_t *veths)
             agsafeset(node, NM_GV_STYLE, NM_GV_FILL, NM_EMPTY_STR);
             agsafeset(node, NM_GV_FCOL, NM_VM_COLOR, NM_EMPTY_STR);
         }
-next:
+
         nm_vect_free(&vms, nm_str_vect_free_cb);
+        nm_str_free(&query);
+next:
         nm_str_free(&lname);
         nm_str_free(&rname);
-        nm_str_free(&query);
     }
 
     gvLayout(gvc, graph, NM_GV_DOT);
