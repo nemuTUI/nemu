@@ -1,4 +1,4 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -13,7 +13,7 @@ SRC_URI=""
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="+vnc-client +ovf savevm debug"
+IUSE="+vnc-client +ovf savevm svg debug"
 
 RDEPEND="
 	sys-libs/ncurses:0=[unicode]
@@ -25,7 +25,8 @@ RDEPEND="
 		dev-libs/libxml2
 		app-arch/libarchive
 	)
-	vnc-client? ( net-misc/tigervnc )"
+	vnc-client? ( net-misc/tigervnc )
+	svg? ( media-gfx/graphviz[svg] )"
 DEPEND="${RDEPEND}
 	sys-devel/gettext"
 
@@ -35,6 +36,7 @@ src_configure() {
 		-DNM_DEBUG=$(usex debug)
 		-DNM_SAVEVM_SNAPSHOTS=$(usex savevm)
 		-DNM_WITH_OVF_SUPPORT=$(usex ovf)
+		-DNM_WITH_NETWORK_MAP=$(usex svg)
 	)
 	cmake-utils_src_configure
 }
