@@ -250,6 +250,7 @@ static void nm_lan_add_veth(void)
     nm_db_edit(query.data);
 
 out:
+    wtimeout(action_window, -1);
     nm_form_free(form, fields);
     nm_str_free(&l_name);
     nm_str_free(&r_name);
@@ -511,6 +512,7 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
     nm_svg_map(path.data, veths);
 
 out:
+    wtimeout(action_window, -1);
     werase(help_window);
     nm_init_help_lan();
     nm_init_action(_(NM_MSG_LAN));
