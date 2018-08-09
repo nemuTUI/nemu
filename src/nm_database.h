@@ -95,6 +95,10 @@
 #define NM_GET_VETH_SQL \
     "SELECT l_name, r_name FROM veth"
 
+#define NM_GET_IFMAP_SQL \
+    "SELECT vm_name, if_name FROM ifaces WHERE parent_eth='%s'" \
+    "OR parent_eth='%s'"
+
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
 void nm_db_edit(const char *query);

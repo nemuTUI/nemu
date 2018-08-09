@@ -6,6 +6,7 @@
 #include <nm_vector.h>
 #include <nm_window.h>
 #include <nm_network.h>
+#include <nm_svg_map.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_lan_settings.h>
@@ -13,6 +14,7 @@
 #if defined (NM_OS_LINUX)
 
 #define NM_LAN_FIELDS_NUM 2
+#define NM_SVG_EXPORT_MSG "Export path"
 
 #define NM_LAN_GET_VETH_SQL \
     "SELECT (l_name || '<->' || r_name) FROM veth ORDER by l_name ASC"
@@ -45,6 +47,7 @@ static void nm_lan_del_veth(const nm_str_t *name);
 static void nm_lan_up_veth(const nm_str_t *name);
 static void nm_lan_down_veth(const nm_str_t *name);
 static void nm_lan_veth_info(const nm_str_t *name);
+static void nm_lan_export_svg(const nm_vect_t *veths);
 static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn);
 
 void nm_lan_settings(void)
@@ -112,6 +115,13 @@ void nm_lan_settings(void)
                 renew_status = 1;
             }
         }
+#if defined (NM_WITH_NETWORK_MAP)
+        else if (ch == NM_KEY_E)
+        {
+            if (veths.n_memb > 0)
+                nm_lan_export_svg(&veths);
+        }
+#endif
 
         if (regen_data)
         {
@@ -457,60 +467,53 @@ void nm_lan_create_veth(int info)
 
     nm_vect_free(&veths, nm_str_vect_free_cb);
 }
-#endif /* NM_OS_LINUX */
 
-#if 0
-/* gcc demo.c -o dd -I /usr/include/graphviz -lgvc -lcgraph */
-#include <gvc.h>
-
-int main(int argc, char **argv)
+static void nm_lan_export_svg(const nm_vect_t *veths)
 {
-    Agraph_t *g;
-    Agnode_t *n, *m, *o, *ns, *veth1;
-    Agedge_t *e;
-    GVC_t *gvc;
+    nm_form_t *form = NULL;
+    nm_field_t *fields[2];
+    nm_form_data_t form_data = NM_INIT_FORM_DATA;
+    nm_vect_t err = NM_INIT_VECT;
+    nm_str_t path = NM_INIT_STR;
+    size_t msg_len;
 
-    /* set up a graphviz context */
-    gvc = gvContext();
+    msg_len = mbstowcs(NULL, NM_SVG_EXPORT_MSG, strlen(NM_SVG_EXPORT_MSG));
+    if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
+        return;
 
-    /* Create a simple digraph */
-    g = agopen("g", Agdirected, 0);
-    n = agnode(g, "VA0", 1);
-    veth1 = agnode(g, "VETH1", 1);
-    ns = agsubnode(g, n, 1);
-    m = agnode(g, "BRL<=>BRR", 1);
-    o = agnode(g, "VA1", 1);
-    e = agedge(g, n, m, 0, 1);
-    agsafeset(e, "label", "eth0", "" );
-    e = agedge(g, o, m, 0, 1);
-    agsafeset(e, "label", "eth0", "" );
-    e = agedge(g, o, veth1, 0, 1);
-    agsafeset(e, "label", "eth1", "" );
+    werase(action_window);
+    werase(help_window);
+    nm_init_action(_(NM_MSG_EXPORT_MAP));
+    nm_init_help_export();
 
-    agsafeset(n, "style", "filled", "");
-    agsafeset(n, "fillcolor", "#4fbcdd", "");
-    agsafeset(o, "style", "filled", "");
-    agsafeset(o, "fillcolor", "#4fbcdd", "");
-    agsafeset(m, "style", "filled", "");
-    agsafeset(m, "fillcolor", "#59e088", "");
-    agsafeset(veth1, "style", "filled", "");
-    agsafeset(veth1, "fillcolor", "#59e088", "");
-    agsafeset(m, "shape", "rect", "");
-    agsafeset(veth1, "shape", "rect", "");
+    fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
+    fields[1] = NULL;
 
-    gvLayout(gvc, g, "dot");
+    set_field_type(fields[0], TYPE_REGEXP, "^/.*");
+    mvwaddstr(form_data.form_window, 1, 2, _(NM_SVG_EXPORT_MSG));
 
-    gvRenderFilename(gvc, g, "svg", "/home/void/tmp/test.svg");
+    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    if (nm_draw_form(action_window, form) != NM_OK)
+        goto out;
 
-    /* Free layout data */
-    gvFreeLayout(gvc, g);
+    nm_get_field_buf(fields[0], &path);
+    nm_form_check_data(_(NM_SVG_EXPORT_MSG), path, err);
 
-    /* Free graph structures */
-    agclose(g);
+    if (nm_print_empty_fields(&err) == NM_ERR)
+    {
+        nm_vect_free(&err, NULL);
+        goto out;
+    }
 
-    /* close output file, free context, and return number of errors */
-    return (gvFreeContext(gvc));
+    nm_svg_map(path.data, veths);
+
+out:
+    werase(help_window);
+    nm_init_help_lan();
+    nm_init_action(_(NM_MSG_LAN));
+    nm_str_free(&path);
+    nm_form_free(form, fields);
+    delwin(form_data.form_window);
 }
-#endif
-
+#endif /* NM_OS_LINUX */
 /* vim:set ts=4 sw=4 fdm=marker: */

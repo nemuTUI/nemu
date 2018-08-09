@@ -23,6 +23,7 @@ void nm_init_help_iface(void);
 void nm_init_help_import(void);
 void nm_init_help_install(void);
 void nm_init_help_clone(void);
+void nm_init_help_export(void);
 void nm_init_help_delete(void);
 void nm_init_side(void);
 void nm_init_side_lan(void);
@@ -57,6 +58,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_INSTALL    "Install VM"
 #define NM_MSG_IMPORT     "Import drive image"
 #define NM_MSG_CLONE      "Clone VM"
+#define NM_MSG_EXPORT_MAP "Export network map to SVG"
 #define NM_MSG_LAN        "Connected VM's"
 #define NM_MSG_EDIT_VM    "Edit properties"
 #define NM_MSG_EDIT_BOOT  "Edit boot settings"

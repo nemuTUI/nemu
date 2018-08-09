@@ -20,7 +20,11 @@ static const char *nm_help_main_msg[] = {
 };
 
 static const char *nm_help_lan_msg[] = {
-    "q:Back", "?:Help"
+    "q:Back",
+#if defined (NM_WITH_NETWORK_MAP)
+    "e:Export SVG map",
+#endif
+    "?:Help"
 };
 
 static const char *nm_help_iface_msg[] = {
@@ -41,6 +45,10 @@ static const char *nm_help_install_msg[] = {
 
 static const char *nm_help_clone_msg[] = {
     "esc:Cancel", "enter:Clone"
+};
+
+static const char *nm_help_export_msg[] = {
+    "esc:Cancel", "enter:Export"
 };
 
 static const char *nm_help_del_msg[] = {
@@ -106,6 +114,12 @@ void nm_init_help_clone(void)
 {
     nm_print_help_lines(nm_help_clone_msg,
             nm_arr_len(nm_help_clone_msg), NM_FALSE);
+}
+
+void nm_init_help_export(void)
+{
+    nm_print_help_lines(nm_help_export_msg,
+            nm_arr_len(nm_help_export_msg), NM_FALSE);
 }
 
 void nm_init_help_delete(void)
