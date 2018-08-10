@@ -7,6 +7,7 @@
 
 static void signals_handler(int signal);
 static void nm_process_args(int argc, char **argv);
+static void nm_print_feset(void);
 
 volatile sig_atomic_t redraw_window = 0;
 
@@ -73,6 +74,7 @@ static void nm_process_args(int argc, char **argv)
             break;
         case 'v':
             printf("nEMU %s\n", NM_VERSION);
+            nm_print_feset();
             exit(NM_OK);
             break;
         case 'h':
@@ -85,5 +87,42 @@ static void nm_process_args(int argc, char **argv)
             exit(NM_ERR);
         }
     }
+}
+
+static void nm_print_feset(void)
+{
+    nm_vect_t feset = NM_INIT_VECT;
+    nm_str_t msg = NM_INIT_STR;
+
+#if defined (NM_WITH_VNC_CLIENT)
+    nm_vect_insert(&feset, "vnc-client", strlen("vnc-client") + 1, NULL);
+#endif
+#if defined (NM_SAVEVM_SNAPSHOTS)
+    nm_vect_insert(&feset, "savevm", strlen("savevm") + 1, NULL);
+#endif
+#if defined (NM_WITH_OVF_SUPPORT)
+    nm_vect_insert(&feset, "ovf", strlen("ovf") + 1, NULL);
+#endif
+#if defined (NM_WITH_NETWORK_MAP)
+    nm_vect_insert(&feset, "svg", strlen("svg") + 1, NULL);
+#endif
+#if defined (NM_DEBUG)
+    nm_vect_insert(&feset, "debug", strlen("debug") + 1, NULL);
+#endif
+
+    if (feset.n_memb)
+        nm_str_alloc_text(&msg, "Features: ");
+
+    for (size_t n = 0; n < feset.n_memb; n++)
+        nm_str_format(&msg, "%s, ", (char *) nm_vect_at(&feset, n));
+
+    if (msg.len)
+    {
+        nm_str_trunc(&msg, msg.len - 2);
+        printf("%s\n", msg.data);
+    }
+
+    nm_vect_free(&feset, NULL);
+    nm_str_free(&msg);
 }
 /* vim:set ts=4 sw=4 fdm=marker: */
