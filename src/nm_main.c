@@ -95,19 +95,19 @@ static void nm_print_feset(void)
     nm_str_t msg = NM_INIT_STR;
 
 #if defined (NM_WITH_VNC_CLIENT)
-    nm_vect_insert(&feset, "vnc-client", strlen("vnc-client") + 1, NULL);
+    nm_vect_insert_cstr(&feset, "vnc-client");
 #endif
 #if defined (NM_SAVEVM_SNAPSHOTS)
-    nm_vect_insert(&feset, "savevm", strlen("savevm") + 1, NULL);
+    nm_vect_insert_cstr(&feset, "savevm");
 #endif
 #if defined (NM_WITH_OVF_SUPPORT)
-    nm_vect_insert(&feset, "ovf", strlen("ovf") + 1, NULL);
+    nm_vect_insert_cstr(&feset, "ovf");
 #endif
 #if defined (NM_WITH_NETWORK_MAP)
-    nm_vect_insert(&feset, "svg", strlen("svg") + 1, NULL);
+    nm_vect_insert_cstr(&feset, "svg");
 #endif
 #if defined (NM_DEBUG)
-    nm_vect_insert(&feset, "debug", strlen("debug") + 1, NULL);
+    nm_vect_insert_cstr(&feset, "debug");
 #endif
 
     if (feset.n_memb)
