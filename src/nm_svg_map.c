@@ -3,6 +3,7 @@
 #include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_network.h>
+#include <nm_svg_map.h>
 #include <nm_database.h>
 #include <nm_lan_settings.h>
 
@@ -26,7 +27,7 @@ typedef Agnode_t nm_gvnode_t;
 typedef Agedge_t nm_gvedge_t;
 typedef GVC_t    nm_gvctx_t;
 
-void nm_svg_map(const char *path, const nm_vect_t *veths)
+void nm_svg_map(const char *path, const nm_vect_t *veths, int layer)
 {
     nm_gvctx_t *gvc;
     nm_gvgraph_t *graph;
@@ -46,8 +47,19 @@ void nm_svg_map(const char *path, const nm_vect_t *veths)
         size_t vms_count;
 
         nm_lan_parse_name(nm_vect_str(veths, n), &lname, &rname);
-        if (nm_net_link_status(&lname) != NM_OK)
-            goto next;
+
+        switch (layer) {
+        case NM_SVG_LAYER_UP:
+            if (nm_net_link_status(&lname) != NM_OK)
+                goto next;
+            break;
+        case NM_SVG_LAYER_DOWN:
+            if (nm_net_link_status(&lname) == NM_OK)
+                goto next;
+            break;
+        default:
+            break;
+        }
 
         vnode = agnode(graph, nm_vect_str_ctx(veths, n), NM_TRUE);
         agsafeset(vnode, NM_GV_STYLE, NM_GV_FILL, NM_EMPTY_STR);

@@ -14,7 +14,7 @@
 #if defined (NM_OS_LINUX)
 
 #define NM_LAN_FIELDS_NUM 2
-#define NM_SVG_EXPORT_MSG "Export path"
+#define NM_SVG_FIELDS_NUM 2
 
 #define NM_LAN_GET_VETH_SQL \
     "SELECT (l_name || '<->' || r_name) FROM veth ORDER by l_name ASC"
@@ -49,8 +49,17 @@ static void nm_lan_down_veth(const nm_str_t *name);
 static void nm_lan_veth_info(const nm_str_t *name);
 static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn);
 #if defined (NM_WITH_NETWORK_MAP)
+enum {
+    NM_SVG_FLD_PATH = 0,
+    NM_SVG_FLD_TYPE
+};
+
+static const char *nm_form_svg_msg[] = {
+    "Export path", "Layer", NULL
+};
+
 static void nm_lan_export_svg(const nm_vect_t *veths);
-#endif
+#endif /* NM_WITH_NETWORK_MAP */
 
 void nm_lan_settings(void)
 {
@@ -475,33 +484,46 @@ void nm_lan_create_veth(int info)
 static void nm_lan_export_svg(const nm_vect_t *veths)
 {
     nm_form_t *form = NULL;
-    nm_field_t *fields[2];
+    nm_field_t *fields[NM_LAN_FIELDS_NUM + 1] = {NULL};
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     nm_vect_t err = NM_INIT_VECT;
     nm_str_t path = NM_INIT_STR;
-    size_t msg_len;
+    nm_str_t type = NM_INIT_STR;
+    int layer = NM_SVG_LAYER_ALL;
+    size_t msg_len = nm_max_msg_len(nm_form_svg_msg);
+    char **layers = (char **) nm_form_svg_layer;
 
-    msg_len = mbstowcs(NULL, NM_SVG_EXPORT_MSG, strlen(NM_SVG_EXPORT_MSG));
-    if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
+    if (nm_form_calc_size(msg_len, NM_SVG_FIELDS_NUM, &form_data) != NM_OK)
         return;
+
+    for (size_t n = 0; n < NM_SVG_FIELDS_NUM; ++n)
+        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+
+    fields[NM_SVG_FIELDS_NUM] = NULL;
+
+    set_field_type(fields[NM_SVG_FLD_PATH], TYPE_REGEXP, "^/.*");
+    set_field_type(fields[NM_SVG_FLD_TYPE], TYPE_ENUM, nm_form_svg_layer, false, false);
+    set_field_buffer(fields[NM_SVG_FLD_TYPE], 0, nm_form_svg_layer[0]);
 
     werase(action_window);
     werase(help_window);
     nm_init_action(_(NM_MSG_EXPORT_MAP));
     nm_init_help_export();
 
-    fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
-    fields[1] = NULL;
-
-    set_field_type(fields[0], TYPE_REGEXP, "^/.*");
-    mvwaddstr(form_data.form_window, 1, 2, _(NM_SVG_EXPORT_MSG));
+    for (size_t n = 0, y = 1, x = 2; n < NM_LAN_FIELDS_NUM; n++)
+    {
+        mvwaddstr(form_data.form_window, y, x, nm_form_svg_msg[n]);
+        y += 2;
+    }
 
     form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
-    nm_get_field_buf(fields[0], &path);
-    nm_form_check_data(_(NM_SVG_EXPORT_MSG), path, err);
+    nm_get_field_buf(fields[NM_SVG_FLD_PATH], &path);
+    nm_get_field_buf(fields[NM_SVG_FLD_TYPE], &type);
+    nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_PATH]), path, err);
+    nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_TYPE]), type, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR)
     {
@@ -509,7 +531,16 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
         goto out;
     }
 
-    nm_svg_map(path.data, veths);
+    for (size_t n = 0; *layers; n++, layers++)
+    {
+        if (nm_str_cmp_st(&type, *layers) == NM_OK)
+        {
+            layer = n;
+            break;
+        }
+    }
+
+    nm_svg_map(path.data, veths, layer);
 
 out:
     wtimeout(action_window, -1);
@@ -517,6 +548,7 @@ out:
     nm_init_help_lan();
     nm_init_action(_(NM_MSG_LAN));
     nm_str_free(&path);
+    nm_str_free(&type);
     nm_form_free(form, fields);
     delwin(form_data.form_window);
 }

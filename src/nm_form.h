@@ -93,6 +93,7 @@ extern const char *nm_form_net_drv[];
 extern const char *nm_form_drive_drv[];
 extern const char *nm_form_macvtap[];
 extern const char *nm_form_usbtype[];
+extern const char *nm_form_svg_layer[];
 
 #define NM_FORM_RATIO  0.80
 
