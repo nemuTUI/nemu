@@ -1,7 +1,14 @@
+v2.1.0 - ???
+------------------------
+    - Feature: export network map to SVG
+    - Feature: EHCI/xHCI usb version switch
+    - Feature: new config option: hl_color
+    - Feature: new parameter: --create-veth
+
 v2.0.0 - 26 Jun 2018
 ------------------------
-    - Change: new user interface.
-    - Change: drive snapshots was removed.
+    - Change: new user interface
+    - Change: drive snapshots was removed
 
 v1.4.1 - 04 May 2018
 ------------------------
@@ -24,108 +31,108 @@ v1.4.0 - 14 Feb 2018
 v1.3.1 - 11 Oct 2017
 ------------------------
     - Change: changed the behavior of the menu
-      when deleting / cloning a guest.
-    - Bugfix: fixed flickering of the menu with guests.
+      when deleting / cloning a guest
+    - Bugfix: fixed flickering of the menu with guests
 
 v1.3.0 - 20 Jul 2017
 ------------------------
-    - Change: use bus and device number for usb.
-    - Feature: share host files via 9pfs.
-    - Feature: MacVTap support.
+    - Change: use bus and device number for usb
+    - Feature: share host files via 9pfs
+    - Feature: MacVTap support
 
 v1.2.0 - 14 Jun 2017
 ------------------------
-    - Change: now the escape key is used instead of F10.
-    - Feature: import disk image.
-    - Feature: snapshots (QMP).
-    - Feature: reset VM (QMP).
-    - Feature: shutdown VM (QMP).
-    - Feature: vmxnet3 network driver support.
-    - Feature: vhost setup for network interfaces.
-    - Feature: delete additional disk.
-    - Feature: legacy cdrom option support (-cdrom).
-    - Bugfix: clone VM was broken in 1.1.0.
+    - Change: now the escape key is used instead of F10
+    - Feature: import disk image
+    - Feature: snapshots (QMP)
+    - Feature: reset VM (QMP)
+    - Feature: shutdown VM (QMP)
+    - Feature: vmxnet3 network driver support
+    - Feature: vhost setup for network interfaces
+    - Feature: delete additional disk
+    - Feature: legacy cdrom option support (-cdrom)
+    - Bugfix: clone VM was broken in 1.1.0
 
 v1.1.0 - 30 Apr 2017
 ------------------------
-    - Feature: initrd support.
-    - Feature: set the emulated machine type.
-    - Feature: small terminal size support (e.g. 80x25).
+    - Feature: initrd support
+    - Feature: set the emulated machine type
+    - Feature: small terminal size support (e.g. 80x25)
 
 v1.0.0 - 16 Apr 2017
 ------------------------
-    - Change: the program is rewritten in C.
-    - Feature: FreeBSD host support.
+    - Change: the program is rewritten in C
+    - Feature: FreeBSD host support
 
 v0.4.0 - 15 Mar 2017
 ------------------------
-    - Change: switch to -drive, support for ide,scsi,virtio disk interfaces.
-    - Change: switch license to BSD-2-Clause.
-    - Feature: add serial redirect to TTY and socket.
-    - Feature: add -kernel and -append features.
-    - Feature: start VM in temporary mode (-snapshot).
-    - Feature: set host IPv4 for VM tap interfaces.
+    - Change: switch to -drive, support for ide,scsi,virtio disk interfaces
+    - Change: switch license to BSD-2-Clause
+    - Feature: add serial redirect to TTY and socket
+    - Feature: add -kernel and -append features
+    - Feature: start VM in temporary mode (-snapshot)
+    - Feature: set host IPv4 for VM tap interfaces
 
 v0.3.0 - 04 Mar 2017
 ------------------------
-    - Change: form navigation improvments.
-    - Change: more symbols accepted for VM names.
-    - Cnahge: zero tap interfaces can be configured now.
-    - Feature: show QEMU PID in guest info window.
-    - Feature: add mouse override feature.
+    - Change: form navigation improvments
+    - Change: more symbols accepted for VM names
+    - Cnahge: zero tap interfaces can be configured now
+    - Feature: show QEMU PID in guest info window
+    - Feature: add mouse override feature
     - Bugfix: fix crashes with gcc-4.9.*
 
 v0.2.1 - 25 Feb 2017
 ------------------------
-    - Feature: Generate user config file.
-    - Bugfix: fix integer overflow on x86_32.
+    - Feature: Generate user config file
+    - Bugfix: fix integer overflow on x86_32
 
 v0.2.0 - 24 Feb 2017
 ------------------------
-    - Change: no root required.
-    - Change: config file was restructured.
-    - Feature: tab completion for file system paths.
-    - Feature: BIOS file settings.
-    - Feature: install guest from disk image.
-    - Feature: handle window size change for main and guests windows.
-    - Bugfix: USB device selection fixed.
+    - Change: no root required
+    - Change: config file was restructured
+    - Feature: tab completion for file system paths
+    - Feature: BIOS file settings
+    - Feature: install guest from disk image
+    - Feature: handle window size change for main and guests windows
+    - Bugfix: USB device selection fixed
 
 v0.1.8 - 13 January 2015
 ------------------------
-    - Change: code refactoring.
+    - Change: code refactoring
 
 v0.1.7 - 29 December 2014
 -------------------------
-    - Feature: boot settings edit menu.
+    - Feature: boot settings edit menu
 
 v0.1.6 - 09 September 2014
 --------------------------
-    - Change: realtime VM window refresh.
-    - Feature: enable/disable host CPU.
+    - Change: realtime VM window refresh
+    - Feature: enable/disable host CPU
 
 v0.1.5 - 10 June 2014
 ----------------------
-    - Feature: set flag "-cpu host" if kvm is enabled.
+    - Feature: set flag "-cpu host" if kvm is enabled
 
 v0.1.4 - 21 April 2014
 ----------------------
-    - Feature: ability to edit interface mac address and driver.
+    - Feature: ability to edit interface mac address and driver
 
 v0.1.3 - 18 April 2014
 ----------------------
-    - Feature: variuos network drivers support.
+    - Feature: variuos network drivers support
 
 v0.1.2 - 15 April 2014
 ----------------------
-    - Feature: add virtual disk to guest.
-    - Feature: show real vnc port.
+    - Feature: add virtual disk to guest
+    - Feature: show real vnc port
 
 v0.1.1 - 11 April 2014
 ----------------------
-    - Change: centered view.
-    - Feature: ability to bind vnc to any interfaces or only to localhost.
-    - Bugfix: vnc connect bug.
+    - Change: centered view
+    - Feature: ability to bind vnc to any interfaces or only to localhost
+    - Bugfix: vnc connect bug
 
 v0.1.0 - 10 April 2014
 ----------------------
-    - The first public version.
+    - The first public version
