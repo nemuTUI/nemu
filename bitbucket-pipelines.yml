@@ -9,7 +9,9 @@ pipelines:
   default:
     - step:
         script:
-          - mkdir build
-          - cd build
+          - mkdir build && cd build
           - cmake ../
+          - make
+          - cd ../ && rm -rf build && mkdir build && cd build
+          - cmake ../ -DNM_DEBUG=ON -DNM_SAVEVM_SNAPSHOTS=ON -DNM_WITH_NETWORK_MAP=ON
           - make
