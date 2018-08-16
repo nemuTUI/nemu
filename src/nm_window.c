@@ -6,6 +6,12 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 
+#define NM_HELP_GEN(name)                                    \
+    void nm_init_help_ ## name(void) {                       \
+        nm_print_help_lines(nm_help_ ## name ## _msg,        \
+            nm_arr_len(nm_help_ ## name ## _msg), NM_FALSE); \
+    }
+
 static void nm_init_window__(nm_window_t *w, const char *msg);
 static void nm_print_help_lines(const char **msg, size_t objs, int err);
 static void nm_print_help__(const char **keys, const char **values,
@@ -51,9 +57,19 @@ static const char *nm_help_export_msg[] = {
     "esc:Cancel", "enter:Export"
 };
 
-static const char *nm_help_del_msg[] = {
+static const char *nm_help_delete_msg[] = {
     "q:Back", "enter:Delete"
 };
+
+NM_HELP_GEN(main)
+NM_HELP_GEN(lan)
+NM_HELP_GEN(edit)
+NM_HELP_GEN(import)
+NM_HELP_GEN(install)
+NM_HELP_GEN(iface)
+NM_HELP_GEN(clone)
+NM_HELP_GEN(export)
+NM_HELP_GEN(delete)
 
 void nm_create_windows(void)
 {
@@ -72,60 +88,6 @@ void nm_create_windows(void)
     help_window = nm_init_window(&help_size);
     side_window = nm_init_window(&side_size);
     action_window = nm_init_window(&action_size);
-}
-
-void nm_init_help_main(void)
-{
-    nm_print_help_lines(nm_help_main_msg,
-            nm_arr_len(nm_help_main_msg), NM_FALSE);
-}
-
-void nm_init_help_lan(void)
-{
-    nm_print_help_lines(nm_help_lan_msg,
-            nm_arr_len(nm_help_lan_msg), NM_FALSE);
-}
-
-void nm_init_help_edit(void)
-{
-    nm_print_help_lines(nm_help_edit_msg,
-            nm_arr_len(nm_help_edit_msg), NM_FALSE);
-}
-
-void nm_init_help_import(void)
-{
-    nm_print_help_lines(nm_help_import_msg,
-            nm_arr_len(nm_help_import_msg), NM_FALSE);
-}
-
-void nm_init_help_install(void)
-{
-    nm_print_help_lines(nm_help_install_msg,
-            nm_arr_len(nm_help_install_msg), NM_FALSE);
-}
-
-void nm_init_help_iface(void)
-{
-    nm_print_help_lines(nm_help_iface_msg,
-            nm_arr_len(nm_help_iface_msg), NM_FALSE);
-}
-
-void nm_init_help_clone(void)
-{
-    nm_print_help_lines(nm_help_clone_msg,
-            nm_arr_len(nm_help_clone_msg), NM_FALSE);
-}
-
-void nm_init_help_export(void)
-{
-    nm_print_help_lines(nm_help_export_msg,
-            nm_arr_len(nm_help_export_msg), NM_FALSE);
-}
-
-void nm_init_help_delete(void)
-{
-    nm_print_help_lines(nm_help_del_msg,
-            nm_arr_len(nm_help_del_msg), NM_FALSE);
 }
 
 void nm_init_help(const char *msg, int err)
