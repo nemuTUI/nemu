@@ -164,6 +164,28 @@ int nm_qmp_usb_detach(const nm_str_t *name, const nm_usb_data_t *usb)
     return rc;
 }
 
+int nm_qmp_test_socket(const nm_str_t *name)
+{
+    int rc = NM_OK;
+    nm_str_t sock_path = NM_INIT_STR;
+    nm_qmp_handle_t qmp = NM_INIT_QMP;
+
+    nm_qmp_sock_path(name, &sock_path);
+
+    qmp.sock.sun_family = AF_UNIX;
+    nm_strlcpy(qmp.sock.sun_path, sock_path.data, sizeof(qmp.sock.sun_path));
+
+    if ((qmp.sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
+        return NM_ERR;
+
+    if (connect(qmp.sd, (struct sockaddr *) &qmp.sock, sizeof(qmp.sock)) == -1)
+        rc = NM_ERR;
+
+    close(qmp.sd);
+
+    return rc;
+}
+
 static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
                          const char *cmd)
 {

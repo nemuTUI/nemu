@@ -471,7 +471,6 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)
         {
             if ((nread = read(fd, pid, sizeof(pid))) > 0)
             {
-                //y++;
                 pid[nread - 1] = '\0';
                 pid_num = atoi(pid);
                 nm_str_format(&buf, "%-12s%d", "pid: ", pid_num);

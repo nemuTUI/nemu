@@ -5,6 +5,7 @@
 #include <nm_window.h>
 #include <nm_network.h>
 #include <nm_cfg_file.h>
+#include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
 
 void nm_print_base_menu(nm_menu_data_t *ifs)
@@ -62,8 +63,6 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
 {
     int x = 2, y = 3;
     size_t screen_x;
-    struct stat file_info;
-    nm_str_t lock_path = NM_INIT_STR;
 
     screen_x = getmaxx(side_window);
     if (screen_x < 20) /* window to small */
@@ -72,8 +71,6 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         wrefresh(side_window);
         return;
     }
-
-    memset(&file_info, 0, sizeof(file_info));
 
     wattroff(side_window, COLOR_PAIR(3));
 
@@ -95,12 +92,7 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
                 nm_str_add_char_opt(&vm_name, ' ');
         }
 
-        nm_str_alloc_str(&lock_path, &nm_cfg_get()->vm_dir);
-        nm_str_add_char(&lock_path, '/');
-        nm_str_add_text(&lock_path, nm_vect_item_name(vm->v, n));
-        nm_str_add_text(&lock_path, "/" NM_VM_QMP_FILE);
-
-        if (stat(lock_path.data, &file_info) != -1)
+        if (nm_qmp_test_socket(nm_vect_item_name_str(vm->v, n)) == NM_OK)
         {
             nm_vect_set_item_status(vm->v, n, 1);
             wattron(side_window, COLOR_PAIR(3));
@@ -126,8 +118,6 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         wrefresh(side_window);
         nm_str_free(&vm_name);
     }
-
-    nm_str_free(&lock_path);
 }
 
 void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
