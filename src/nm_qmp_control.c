@@ -166,7 +166,7 @@ int nm_qmp_usb_detach(const nm_str_t *name, const nm_usb_data_t *usb)
 
 int nm_qmp_test_socket(const nm_str_t *name)
 {
-    int rc = NM_OK;
+    int rc = NM_ERR;
     nm_str_t sock_path = NM_INIT_STR;
     nm_qmp_handle_t qmp = NM_INIT_QMP;
 
@@ -176,12 +176,14 @@ int nm_qmp_test_socket(const nm_str_t *name)
     nm_strlcpy(qmp.sock.sun_path, sock_path.data, sizeof(qmp.sock.sun_path));
 
     if ((qmp.sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
-        return NM_ERR;
+        goto out;
 
-    if (connect(qmp.sd, (struct sockaddr *) &qmp.sock, sizeof(qmp.sock)) == -1)
-        rc = NM_ERR;
+    if (connect(qmp.sd, (struct sockaddr *) &qmp.sock, sizeof(qmp.sock)) == 0)
+        rc = NM_OK;
 
     close(qmp.sd);
+out:
+    nm_str_free(&sock_path);
 
     return rc;
 }
