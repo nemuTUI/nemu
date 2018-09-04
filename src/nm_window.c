@@ -1,4 +1,5 @@
 #include <nm_core.h>
+#include <nm_form.h>
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
@@ -256,7 +257,7 @@ void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
     nm_str_t buf = NM_INIT_STR;
     size_t y = 3, x = 2;
     size_t cols, rows;
-    size_t idx_shift;
+    size_t idx_shift, mvtap_idx = 0;
     chtype ch1, ch2;
     ch1 = ch2 = 0;
 
@@ -279,6 +280,19 @@ void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
         NM_PR_VM_INFO();
     }
+
+    nm_str_format(&buf, "%-12s%s", "vhost: ",
+            (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift),
+                           NM_ENABLE) == NM_OK) ? "yes" : "no");
+    NM_PR_VM_INFO();
+
+    mvtap_idx = nm_str_stoui(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift), 10);
+    if (!mvtap_idx)
+        nm_str_format(&buf, "%-12s%s", "MacVTap: ", nm_form_macvtap[mvtap_idx]);
+    else
+        nm_str_format(&buf, "%-12s%s [iface: %s]", "MacVTap: ", nm_form_macvtap[mvtap_idx],
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_PET + idx_shift));
+    NM_PR_VM_INFO();
 
     nm_str_free(&buf);
 }
