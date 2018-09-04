@@ -4,6 +4,7 @@ v2.1.0 - ???
     - Feature: EHCI/xHCI usb version switch
     - Feature: new config option: hl_color
     - Feature: new parameter: --create-veth
+    - Change: the state of the virtual machine is checked via the QMP socket
 
 v2.0.0 - 26 Jun 2018
 ------------------------
