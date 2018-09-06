@@ -288,7 +288,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         const nm_str_t *blk_drv = nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift);
 
         if (nm_str_cmp_st(blk_drv, "scsi-hd") == NM_OK)
-            nm_str_format(res, " -device virtio-scsi-pci,id=scsi%zu ", n);
+            nm_str_format(res, " -device virtio-scsi-pci,id=scsi%zu", n);
         nm_str_format(res, " --blockdev file,node-name=f%zu,filename=", n);
         nm_str_add_str(res, &vmdir);
         nm_str_add_str(res, drive_img);
