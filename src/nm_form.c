@@ -24,9 +24,9 @@ const char *nm_form_net_drv[] = {
 };
 
 const char *nm_form_drive_drv[] = {
-    "ide",
-    "scsi",
-    "virtio",
+    "ide-hd",
+    "scsi-hd",
+    "virtio-blk",
     NULL
 };
 

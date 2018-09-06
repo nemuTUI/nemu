@@ -257,6 +257,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     /* {{{ Setup install source */
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_INST), NM_ENABLE) == NM_OK)
     {
+        /* TODO use --blockdev */
         size_t srcp_len = nm_vect_str_len(&vm->main, NM_SQL_ISO);
 
         if ((srcp_len == 0) && (!(flags & NM_VMCTL_INFO)))
@@ -284,12 +285,16 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     {
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
         const nm_str_t *drive_img = nm_vect_str(&vm->drives, NM_SQL_DRV_NAME + idx_shift);
+        const nm_str_t *blk_drv = nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift);
 
-        nm_str_add_text(res, " -drive file=");
+        if (nm_str_cmp_st(blk_drv, "scsi-hd") == NM_OK)
+            nm_str_format(res, " -device virtio-scsi-pci,id=scsi%zu ", n);
+        nm_str_format(res, " --blockdev file,node-name=f%zu,filename=", n);
         nm_str_add_str(res, &vmdir);
         nm_str_add_str(res, drive_img);
-        nm_str_add_text(res, ",media=disk,if=");
-        nm_str_add_str(res, nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift));
+        nm_str_format(res, " --blockdev qcow2,node-name=q%zu,file=f%zu --device %s,drive=q%zu", n, n, blk_drv->data, n);
+        if (nm_str_cmp_st(blk_drv, "scsi-hd") == NM_OK)
+            nm_str_format(res, ",bus=scsi%zu.0", n);
     }
 
 #ifdef NM_SAVEVM_SNAPSHOTS
