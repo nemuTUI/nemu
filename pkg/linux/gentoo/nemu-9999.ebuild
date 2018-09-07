@@ -20,7 +20,7 @@ RDEPEND="
 	dev-db/sqlite:3=
 	dev-libs/libusb:1=
 	|| ( sys-fs/eudev sys-fs/udev sys-apps/systemd )
-	app-emulation/qemu[vnc,virtfs]
+	>=app-emulation/qemu-2.12.0[vnc,virtfs]
 	ovf? ( 
 		dev-libs/libxml2
 		app-arch/libarchive
