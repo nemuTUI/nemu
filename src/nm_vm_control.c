@@ -109,7 +109,7 @@ void nm_vmctl_delete(const nm_str_t *name)
     nm_str_t query = NM_INIT_STR;
     nm_vect_t drives = NM_INIT_VECT;
     nm_vect_t snaps = NM_INIT_VECT;
-    int delete_ok = 1;
+    int delete_ok = NM_TRUE;
 
     nm_str_alloc_str(&vmdir, &nm_cfg_get()->vm_dir);
     nm_str_add_char(&vmdir, '/');
@@ -127,31 +127,32 @@ void nm_vmctl_delete(const nm_str_t *name)
         nm_str_add_str(&img_path, nm_vect_str(&drives, n));
 
         if (unlink(img_path.data) == -1)
-            delete_ok = 0;
+            delete_ok = NM_FALSE;
 
         nm_str_free(&img_path);
     }
 
-    { /* delete pid file if exists */
-        nm_str_t qmp_path = NM_INIT_STR;
-        struct stat qmp_info;
+    { /* delete pid and QMP socket if exists */
+        nm_str_t path = NM_INIT_STR;
 
-        nm_str_copy(&qmp_path, &vmdir);
-        nm_str_add_text(&qmp_path, NM_VM_PID_FILE);
+        nm_str_copy(&path, &vmdir);
+        nm_str_add_text(&path, NM_VM_PID_FILE);
 
-        if (stat(qmp_path.data, &qmp_info) != -1)
-        {
-            if (unlink(qmp_path.data) == -1)
-                delete_ok = 0;
-        }
+        if (unlink(path.data) == -1 && errno != ENOENT)
+            delete_ok = NM_FALSE;
 
-        nm_str_free(&qmp_path);
+        nm_str_trunc(&path, vmdir.len);
+        nm_str_add_text(&path, NM_VM_QMP_FILE);
+        if (unlink(path.data) == -1 && errno != ENOENT)
+            delete_ok = NM_FALSE;
+
+        nm_str_free(&path);
     }
 
     if (delete_ok)
     {
         if (rmdir(vmdir.data) == -1)
-            delete_ok = 0;
+            delete_ok = NM_FALSE;
     }
 
     nm_str_format(&query, NM_DEL_DRIVES_SQL, name->data);
