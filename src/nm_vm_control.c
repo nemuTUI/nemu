@@ -290,10 +290,10 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 
         if (nm_str_cmp_st(blk_drv, "scsi-hd") == NM_OK)
             nm_str_format(res, " -device virtio-scsi-pci,id=scsi%zu", n);
-        nm_str_format(res, " --blockdev file,node-name=f%zu,filename=", n);
+        nm_str_format(res, " --blockdev driver=qcow2,node-name=f%zu,file.driver=file,file.filename=", n);
         nm_str_add_str(res, &vmdir);
         nm_str_add_str(res, drive_img);
-        nm_str_format(res, " --blockdev qcow2,node-name=q%zu,file=f%zu --device %s,drive=q%zu", n, n, blk_drv->data, n);
+        nm_str_format(res, " --device %s,drive=f%zu", blk_drv->data, n);
         if (nm_str_cmp_st(blk_drv, "scsi-hd") == NM_OK)
             nm_str_format(res, ",bus=scsi%zu.0", n);
     }
