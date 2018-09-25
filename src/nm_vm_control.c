@@ -244,7 +244,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     const nm_cfg_t *cfg = nm_cfg_get();
     size_t drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
     size_t ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
-    int need_scsi = NM_FALSE;
+    int scsi_added = NM_FALSE;
 
     nm_str_alloc_str(&vmdir, &cfg->vm_dir);
     nm_str_add_char(&vmdir, '/');
@@ -254,7 +254,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     nm_str_add_text(res, NM_STRING(NM_USR_PREFIX) "/bin/qemu-system-");
     nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_ARCH));
 
-    nm_str_add_text(res,  " -daemonize");
+    nm_str_add_text(res, " -daemonize");
 
     /* {{{ Setup install source */
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_INST), NM_ENABLE) == NM_OK)
@@ -282,23 +282,28 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         }
     } /* }}} install */
 
-    if (nm_str_cmp_st(nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE), "scsi") == NM_OK)
-    {
-        need_scsi = NM_TRUE;
-        nm_str_add_text(res, " -device virtio-scsi-pci,id=scsi");
-    }
-
     for (size_t n = 0; n < drives_count; n++)
     {
+        int scsi_drv = NM_FALSE;
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
         const nm_str_t *drive_img = nm_vect_str(&vm->drives, NM_SQL_DRV_NAME + idx_shift);
         const nm_str_t *blk_drv = nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift);
 
+        if (nm_str_cmp_st(blk_drv, "scsi") == NM_OK)
+        {
+            scsi_drv = NM_TRUE;
+            if (!scsi_added)
+            {
+                nm_str_add_text(res, " -device virtio-scsi-pci,id=scsi");
+                scsi_added = NM_TRUE;
+            }
+        }
+
         nm_str_format(res, " -drive id=hd%zu,media=disk,if=%s,file=",
-                n, (need_scsi) ? "none" : blk_drv->data);
+                n, (scsi_drv) ? "none" : blk_drv->data);
         nm_str_add_str(res, &vmdir);
         nm_str_add_str(res, drive_img);
-        if (need_scsi)
+        if (scsi_drv)
             nm_str_format(res, " -device scsi-hd,drive=hd%zu", n);
     }
 
