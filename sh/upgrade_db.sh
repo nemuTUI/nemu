@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=9
+DB_ACTUAL_VERSION=8
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 RC=0
 
@@ -75,15 +75,6 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD usb_type char;' &&
             sqlite3 "$DB_PATH" -line 'UPDATE vms SET usb_type="XHCI";' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=8'
-            ) || RC=1
-            ;;
-
-        ( 8 )
-            (
-            sqlite3 "$DB_PATH" -line 'UPDATE drives SET drive_drv="virtio-blk" WHERE drive_drv="virtio";' &&
-            sqlite3 "$DB_PATH" -line 'UPDATE drives SET drive_drv="scsi-hd" WHERE drive_drv="scsi";' &&
-            sqlite3 "$DB_PATH" -line 'UPDATE drives SET drive_drv="ide-hd" WHERE drive_drv="ide";' &&
-            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=9'
             ) || RC=1
             ;;
 

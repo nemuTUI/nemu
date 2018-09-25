@@ -22,7 +22,7 @@ void nm_db_init(void)
     int rc;
 
     const char *query[] = {
-        "PRAGMA user_version=9",
+        "PRAGMA user_version=8",
         "CREATE TABLE vms(id integer PRIMARY KEY AUTOINCREMENT, "
             "name char(31), mem integer, smp integer, kvm integer, "
             "hcpu integer, vnc integer, arch char(32), iso char, "

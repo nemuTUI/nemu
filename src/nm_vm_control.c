@@ -244,6 +244,7 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     const nm_cfg_t *cfg = nm_cfg_get();
     size_t drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
     size_t ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
+    int need_scsi = NM_FALSE;
 
     nm_str_alloc_str(&vmdir, &cfg->vm_dir);
     nm_str_add_char(&vmdir, '/');
@@ -258,7 +259,6 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     /* {{{ Setup install source */
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_INST), NM_ENABLE) == NM_OK)
     {
-        /* TODO use --blockdev */
         size_t srcp_len = nm_vect_str_len(&vm->main, NM_SQL_ISO);
 
         if ((srcp_len == 0) && (!(flags & NM_VMCTL_INFO)))
@@ -282,20 +282,24 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
         }
     } /* }}} install */
 
+    if (nm_str_cmp_st(nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE), "scsi") == NM_OK)
+    {
+        need_scsi = NM_TRUE;
+        nm_str_add_text(res, " -device virtio-scsi-pci,id=scsi");
+    }
+
     for (size_t n = 0; n < drives_count; n++)
     {
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
         const nm_str_t *drive_img = nm_vect_str(&vm->drives, NM_SQL_DRV_NAME + idx_shift);
         const nm_str_t *blk_drv = nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift);
 
-        if (nm_str_cmp_st(blk_drv, "scsi-hd") == NM_OK)
-            nm_str_format(res, " -device virtio-scsi-pci,id=scsi%zu", n);
-        nm_str_format(res, " --blockdev driver=qcow2,node-name=f%zu,file.driver=file,file.filename=", n);
+        nm_str_format(res, " -drive id=hd%zu,media=disk,if=%s,file=",
+                n, (need_scsi) ? "none" : blk_drv->data);
         nm_str_add_str(res, &vmdir);
         nm_str_add_str(res, drive_img);
-        nm_str_format(res, " --device %s,drive=f%zu", blk_drv->data, n);
-        if (nm_str_cmp_st(blk_drv, "scsi-hd") == NM_OK)
-            nm_str_format(res, ",bus=scsi%zu.0", n);
+        if (need_scsi)
+            nm_str_format(res, " -device scsi-hd,drive=hd%zu", n);
     }
 
 #ifdef NM_SAVEVM_SNAPSHOTS
