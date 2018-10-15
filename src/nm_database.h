@@ -48,7 +48,7 @@
 
 #define NM_VM_GET_DRIVES_SQL \
     "SELECT drive_name, drive_drv, capacity, boot " \
-    "FROM drives WHERE vm_name='%s' ORDER BY drive_name ASC"
+    "FROM drives WHERE vm_name='%s' ORDER BY id ASC"
 
 #define NM_VM_GET_ADDDRIVES_SQL \
     "SELECT drive_name, capacity FROM drives WHERE vm_name='%s' " \
