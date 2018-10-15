@@ -95,7 +95,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_MTAP_NSET  "MacVTap parent iface is not set" NM_MSG_ANY_KEY
 #define NM_MSG_TAP_EACC   "Access to tap iface is missing" NM_MSG_ANY_KEY
 #define NM_MSG_NO_SNAPS   "There are no snapshots" NM_MSG_ANY_KEY
-#define NM_NSG_DRV_LIM    "3 disks limit reached" NM_MSG_ANY_KEY
+#define NM_NSG_DRV_LIM    "30 disks limit reached" NM_MSG_ANY_KEY
 #define NM_MSG_DRV_NONE   "No additional disks" NM_MSG_ANY_KEY
 #define NM_MSG_DRV_EDEL   "Cannot delete drive from filesystem" NM_MSG_ANY_KEY
 #define NM_MSG_MAC_INVAL  "Invalid mac address" NM_MSG_ANY_KEY

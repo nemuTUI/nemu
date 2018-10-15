@@ -13,6 +13,7 @@
 #define NM_DRIVE_FORM_MSG "Drive interface"
 #define NM_DRIVE_SZ_START "Size [1-"
 #define NM_DRIVE_SZ_END   "]Gb"
+#define NM_DRIVE_LIMIT    30
 
 enum {
     NM_FLD_DRVSIZE = 0,
@@ -38,7 +39,7 @@ void nm_add_drive(const nm_str_t *name)
     size_t msg_len;
 
     nm_vmctl_get_data(name, &vm);
-    if ((vm.drives.n_memb / 4) == 3 )
+    if ((vm.drives.n_memb / 4) == NM_DRIVE_LIMIT)
     {
         nm_warn(_(NM_NSG_DRV_LIM));
         goto out;
