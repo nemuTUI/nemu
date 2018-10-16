@@ -7,13 +7,13 @@
 #include <nm_hw_info.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
+#include <nm_add_drive.h>
 #include <nm_vm_control.h>
 
 #define NM_DRIVE_FIELDS_NUM 2
 #define NM_DRIVE_FORM_MSG "Drive interface"
 #define NM_DRIVE_SZ_START "Size [1-"
 #define NM_DRIVE_SZ_END   "]Gb"
-#define NM_DRIVE_LIMIT    30
 
 enum {
     NM_FLD_DRVSIZE = 0,
