@@ -297,7 +297,7 @@ void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
     nm_str_free(&buf);
 }
 
-void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)
+void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status)
 {
     nm_str_t buf = NM_INIT_STR;
     size_t y = 3, x = 2;
@@ -469,7 +469,6 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)
         nm_str_t pid_path = NM_INIT_STR;
         nm_str_t qmp_path = NM_INIT_STR;
         ssize_t nread;
-        struct stat qmp_info;
         char pid[10];
         int pid_num = 0;
 
@@ -480,8 +479,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm)
         nm_str_add_text(&pid_path, "/" NM_VM_PID_FILE);
         nm_str_add_text(&qmp_path, "/" NM_VM_QMP_FILE);
 
-        if ((stat(qmp_path.data, &qmp_info) != -1) &&
-            (fd = open(pid_path.data, O_RDONLY)) != -1)
+        if ((status && (fd = open(pid_path.data, O_RDONLY)) != -1))
         {
             if ((nread = read(fd, pid, sizeof(pid))) > 0)
             {

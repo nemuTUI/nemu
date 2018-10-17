@@ -4,7 +4,7 @@
 #include <nm_ncurses.h>
 #include <nm_vm_control.h>
 
-void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm);
+void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status);
 void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx);
 void nm_print_drive_info(const nm_vect_t *v, size_t idx);
 void nm_print_snapshots(const nm_vect_t *v);

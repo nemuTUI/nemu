@@ -94,6 +94,7 @@ void nm_start_main_loop(void)
         if (vm_list.n_memb > 0)
         {
             const nm_str_t *name = nm_vect_item_name_cur(vms);
+            int status = nm_vect_item_status_cur(vms);
 
             if (clear_action)
             {
@@ -105,7 +106,7 @@ void nm_start_main_loop(void)
             }
 
             nm_print_vm_menu(&vms);
-            nm_print_vm_info(name, &vm_props);
+            nm_print_vm_info(name, &vm_props, status);
             wrefresh(side_window);
             wrefresh(action_window);
         }
