@@ -5,6 +5,7 @@
 #include <nm_window.h>
 #include <nm_network.h>
 #include <nm_cfg_file.h>
+#include <nm_stat_usage.h>
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
 
@@ -181,6 +182,9 @@ void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
         menu->item_first = menu->v->n_memb - list_len;
         menu->item_last = menu->v->n_memb;
     }
+
+    if (ch == KEY_UP || ch == KEY_DOWN || ch == KEY_HOME || ch == KEY_END)
+        NM_STAT_CLEAN();
 }
 
 #if defined (NM_OS_LINUX)

@@ -6,6 +6,7 @@
 #include <nm_ncurses.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
+#include <nm_stat_usage.h>
 
 #define NM_HELP_GEN(name)                                    \
     void nm_init_help_ ## name(void) {                       \
@@ -466,6 +467,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
     /* {{{ Print PID */
     {
         int fd;
+        float usage;
         nm_str_t pid_path = NM_INIT_STR;
         nm_str_t qmp_path = NM_INIT_STR;
         ssize_t nread;
@@ -489,10 +491,16 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
                 NM_PR_VM_INFO();
             }
             close(fd);
+
+            usage = nm_stat_get_usage(pid_num);
+            nm_str_format(&buf, "%-12s%0.1f%%", "cpu usage: ", usage);
+            mvwhline(action_window, y, 1, ' ', cols - 4);
+            NM_PR_VM_INFO();
         }
-        else /* clear PID file info */
+        else /* clear PID file info and cpu usage data */
         {
             mvwhline(action_window, y, 1, ' ', cols - 4);
+            NM_STAT_CLEAN();
         }
 
         nm_str_free(&pid_path);
