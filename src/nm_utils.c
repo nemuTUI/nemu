@@ -296,10 +296,4 @@ void nm_debug(const char *fmt, ...)
 #endif
 }
 
-uint64_t nm_get_total_cpu(void)
-{
-    uint64_t res;
-    return res;
-}
-
 /* vim:set ts=4 sw=4 fdm=marker: */
