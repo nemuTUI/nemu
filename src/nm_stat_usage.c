@@ -19,7 +19,7 @@ static void nm_stat_cpu_total_time(void)
     char buf_time[NM_STAT_RES_LEN] = {0};
     size_t nread = 0;
     char ch;
-    char *token_b, *token_e;
+    char *token_b = NULL, *token_e = NULL;
     uint64_t res = 0;
 
     if ((fd = open(NM_STAT_PATH, O_RDONLY)) == -1)
@@ -69,7 +69,7 @@ static void nm_stat_cpu_proc_time(int pid)
     ssize_t nread;
     char buf[NM_STAT_BUF_LEN] = {0};
     char buf_time[NM_STAT_RES_LEN] = {0};
-    char *token_b, *token_e;
+    char *token_b = NULL, *token_e = NULL;
     uint64_t utime = 0, stime = 0;
     nm_str_t path = NM_INIT_STR;
 
