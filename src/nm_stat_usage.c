@@ -76,10 +76,10 @@ static void nm_stat_cpu_proc_time(int pid)
     nm_str_format(&path, "/proc/%d/stat", pid);
 
     if ((fd = open(path.data, O_RDONLY)) == -1)
-        return;
+        goto out;
 
     if ((nread = read(fd, buf, sizeof(buf))) <= 0)
-        return;
+        goto out;
 
     buf[nread - 1] = '\0';
 
@@ -119,6 +119,9 @@ static void nm_stat_cpu_proc_time(int pid)
         nm_proc_cpu_after = utime + stime;
     else
         nm_proc_cpu_before = utime + stime;
+
+out:
+    nm_str_free(&path);
 }
 
 float nm_stat_get_usage(int pid)
