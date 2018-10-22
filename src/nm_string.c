@@ -123,7 +123,7 @@ uint32_t nm_str_stoui(const nm_str_t *str, int base)
         nm_bug(_("%s: integer overflow"), __func__);
 
     if ((endp == data) || (*endp != '\0'))
-        nm_bug(_("%s: bad integer value=%s"), __func__, data);
+        nm_bug(_("%s: bad integer value=\'%s\'"), __func__, data);
 
     return res;
 }
@@ -166,7 +166,7 @@ int64_t nm_str_stol(const nm_str_t *str, int base)
         nm_bug(_("%s: integer overflow"), __func__);
 
     if ((endp == data) || (*endp != '\0'))
-        nm_bug(_("%s: bad integer value=%s"), __func__, data);
+        nm_bug(_("%s: bad integer value=\'%s\'"), __func__, data);
 
     return res;
 }
