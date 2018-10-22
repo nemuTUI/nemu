@@ -6,6 +6,7 @@ static void nm_str_alloc_mem(nm_str_t *str, const char *src, size_t len);
 static void nm_str_append_mem(nm_str_t *str, const char *src, size_t len);
 static void nm_str_append_mem_opt(nm_str_t *str, const char *src, size_t len);
 static const char *nm_str_get(const nm_str_t *str);
+static uint64_t nm_str_stoul__(const char *str, int base);
 
 void nm_str_alloc_text(nm_str_t *str, const char *src)
 {
@@ -127,21 +128,30 @@ uint32_t nm_str_stoui(const nm_str_t *str, int base)
     return res;
 }
 
-uint64_t nm_str_stoul(const nm_str_t *str, int base)
+static uint64_t nm_str_stoul__(const char *str, int base)
 {
     uint64_t res;
     char *endp;
-    const char *data = nm_str_get(str);
 
-    res = strtoull(data, &endp, base);
+    res = strtoull(str, &endp, base);
 
     if (errno == ERANGE)
         nm_bug(_("%s: integer overflow"), __func__);
 
-    if ((endp == data) || (*endp != '\0'))
-        nm_bug(_("%s: bad integer value=%s"), __func__, data);
+    if ((endp == str) || (*endp != '\0'))
+        nm_bug(_("%s: bad integer value=\'%s\'"), __func__, str);
 
     return res;
+}
+
+uint64_t nm_str_stoul(const nm_str_t *str, int base)
+{
+    return nm_str_stoul__(nm_str_get(str), base);
+}
+
+uint64_t nm_str_ttoul(const char *str, int base)
+{
+    return nm_str_stoul__(str, base);
 }
 
 int64_t nm_str_stol(const nm_str_t *str, int base)

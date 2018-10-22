@@ -45,10 +45,11 @@ static void nm_stat_cpu_total_time(void)
 
         if (space_num > 2)
         {
-            token_e = buf + n + 1;
+            token_e = buf + n;
             memcpy(buf_time, token_b, token_e - token_b);
-            res += atoi(buf_time);
-            token_b = token_e;
+            res += nm_str_ttoul(buf_time, 10);
+            token_b = token_e + 1;
+            memset(buf_time, 0, sizeof(buf_time));
         }
 
         if (space_num == 6)
@@ -97,18 +98,18 @@ static void nm_stat_cpu_proc_time(int pid)
 
         if (space_num == 14)
         {
-            token_e = buf + n + 1;
+            token_e = buf + n;
             memcpy(buf_time, token_b, token_e - token_b);
-            utime = atoi(buf_time);
-            token_b = token_e;
+            utime = nm_str_ttoul(buf_time, 10);
+            token_b = token_e + 1;
+            memset(buf_time, 0, sizeof(buf_time));
         }
 
         if (space_num == 15)
         {
-            token_e = buf + n + 1;
+            token_e = buf + n;
             memcpy(buf_time, token_b, token_e - token_b);
-            buf_time[token_e - token_b] = '\0';
-            stime = atoi(buf_time);
+            stime = nm_str_ttoul(buf_time, 10);
             break;
         }
     }
