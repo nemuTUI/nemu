@@ -500,6 +500,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         else /* clear PID file info and cpu usage data */
         {
             mvwhline(action_window, y, 1, ' ', cols - 4);
+            mvwhline(action_window, y + 1, 1, ' ', cols - 4);
             NM_STAT_CLEAN();
         }
 
