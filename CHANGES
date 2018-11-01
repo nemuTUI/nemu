@@ -1,3 +1,10 @@
+v2.1.1 - 01 Nov 2018
+------------------------
+    - Feature: VM cpu usage
+    - Change: increase maximum drives up to 30
+    - Bugfix: incorrect drive order with OVA imported image
+    - Bugfix: pid was displayed for stopped VM
+
 v2.1.0 - 27 Sep 2018
 ------------------------
     - Feature: export network map to SVG
