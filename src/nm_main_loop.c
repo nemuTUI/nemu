@@ -360,6 +360,18 @@ void nm_start_main_loop(void)
             nm_print_help();
         }
 
+        if (ch == KEY_LEFT)
+        {
+            if (nm_window_scale_inc() == NM_OK)
+                redraw_window = 1;
+        }
+
+        if (ch == KEY_RIGHT)
+        {
+            if (nm_window_scale_dec() == NM_OK)
+                redraw_window = 1;
+        }
+
         if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)
         {
             if (ch == 0x6e && !nemu)

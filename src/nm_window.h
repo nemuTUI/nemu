@@ -33,6 +33,8 @@ void nm_align2line(nm_str_t *str, size_t line_len);
 int nm_warn(const char *msg);
 int nm_notify(const char *msg);
 size_t nm_max_msg_len(const char **msg);
+int nm_window_scale_inc(void);
+int nm_window_scale_dec(void);
 
 /* Help window*/
 extern nm_window_t *help_window;

@@ -14,6 +14,8 @@
             nm_arr_len(nm_help_ ## name ## _msg), NM_FALSE); \
     }
 
+static float nm_window_scale = 0.7;
+
 static void nm_init_window__(nm_window_t *w, const char *msg);
 static void nm_print_help_lines(const char **msg, size_t objs, int err);
 static void nm_print_help__(const char **keys, const char **values,
@@ -81,7 +83,7 @@ void nm_create_windows(void)
     nm_cord_t action_size = NM_INIT_POS;
 
     getmaxyx(stdscr, screen_y, screen_x); 
-    action_cols = screen_x * 0.7;
+    action_cols = screen_x * nm_window_scale;
 
     help_size = NM_SET_POS(1, screen_x, 0, 0);
     side_size = NM_SET_POS(screen_y - 1, screen_x - action_cols, 0, 1);
@@ -768,6 +770,26 @@ int nm_warn(const char *msg)
 int nm_notify(const char *msg)
 {
     return nm_warn__(msg, NM_FALSE);
+}
+
+int nm_window_scale_inc(void)
+{
+    if (nm_window_scale > 0.8)
+        return NM_ERR;
+
+    nm_window_scale += 0.02;
+
+    return NM_OK;
+}
+
+int nm_window_scale_dec(void)
+{
+    if (nm_window_scale < 0.2)
+        return NM_ERR;
+
+    nm_window_scale -= 0.02;
+
+    return NM_OK;
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
