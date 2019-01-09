@@ -13,19 +13,20 @@ SRC_URI=""
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="+vnc-client +ovf savevm svg debug"
+IUSE="+vnc-client +ovf +spice savevm svg debug"
 
 RDEPEND="
 	sys-libs/ncurses:0=[unicode]
 	dev-db/sqlite:3=
 	dev-libs/libusb:1=
 	|| ( sys-fs/eudev sys-fs/udev sys-apps/systemd )
-	>=app-emulation/qemu-2.12.0[vnc,virtfs]
+	>=app-emulation/qemu-2.12.0[vnc,virtfs,spice?]
 	ovf? (
 		dev-libs/libxml2
 		app-arch/libarchive
 	)
 	vnc-client? ( net-misc/tigervnc )
+	spice? ( net-misc/spice-gtk[gtk3] )
 	svg? ( media-gfx/graphviz[svg] )"
 DEPEND="${RDEPEND}
 	sys-devel/gettext"
@@ -37,6 +38,7 @@ src_configure() {
 		-DNM_SAVEVM_SNAPSHOTS=$(usex savevm)
 		-DNM_WITH_OVF_SUPPORT=$(usex ovf)
 		-DNM_WITH_NETWORK_MAP=$(usex svg)
+		-DNM_WITH_SPICE=$(usex spice)
 	)
 	cmake-utils_src_configure
 }
