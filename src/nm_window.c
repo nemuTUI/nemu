@@ -558,8 +558,8 @@ void nm_print_help(void)
     const char *values[] = {
         "start vm",
         "start vm in temporary mode",
-#if (NM_WITH_VNC_CLIENT)
-        "connect to vm via vnc",
+#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
+        "connect to vm",
 #endif
         "powerdown vm",
         "reset vm",
