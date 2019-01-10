@@ -17,6 +17,9 @@
 #define NM_USB_UPDATE_STATE_SQL \
     "UPDATE vms SET usbid='%s' WHERE name='%s'"
 
+#define NM_VMCTL_GET_VNC_PORT_SQL \
+    "SELECT vnc, spice FROM vms WHERE name='%s'"
+
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 {
     nm_str_t query = NM_INIT_STR;
@@ -212,7 +215,7 @@ void nm_vmctl_kill(const nm_str_t *name)
     nm_str_free(&pid_file);
 }
 
-#if (NM_WITH_VNC_CLIENT)
+#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
 void nm_vmctl_connect(const nm_str_t *name)
 {
     nm_str_t cmd = NM_INIT_STR;
@@ -220,15 +223,24 @@ void nm_vmctl_connect(const nm_str_t *name)
     nm_vect_t vm = NM_INIT_VECT;
     int unused __attribute__((unused));
 
-    nm_str_add_text(&query, "SELECT vnc FROM vms WHERE name='");
-    nm_str_add_str(&query, name);
-    nm_str_add_char(&query, '\'');
+    nm_str_format(&query, NM_VMCTL_GET_VNC_PORT_SQL, name->data);
     nm_db_select(query.data, &vm);
-
+#if defined(NM_WITH_SPICE)
+    if (nm_str_cmp_st(nm_vect_str(&vm, 1), NM_ENABLE) == NM_OK)
+    {
+        nm_str_format(&cmd, "%s --title \"%s\" 127.0.0.1 -p %u > /dev/null 2>&1 &",
+                      NM_STRING(NM_USR_PREFIX) "/bin/spicy", name->data,
+                      nm_str_stoui(nm_vect_str(&vm, 0), 10) + 5900);
+    }
+    else
+    {
+#endif
     nm_str_format(&cmd, "%s :%u > /dev/null 2>&1 &",
                   nm_cfg_get()->vnc_bin.data,
                   nm_str_stoui(nm_vect_str(&vm, 0), 10) + 5900);
-
+#if defined(NM_WITH_SPICE)
+    }
+#endif
     unused = system(cmd.data);
 
     nm_vect_free(&vm, nm_str_vect_free_cb);
@@ -720,12 +732,26 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
 
     nm_str_format(res, " -qmp unix:%s%s,server,nowait", vmdir.data, NM_VM_QMP_FILE);
 
+#if defined (NM_WITH_SPICE)
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_SPICE), NM_ENABLE) == NM_OK)
+    {
+        nm_str_format(res, " -vga qxl -spice port=%u,disable-ticketing",
+                nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + 5900);
+        if (!cfg->vnc_listen_any)
+            nm_str_format(res, ",addr=127.0.0.1");
+    }
+    else
+    {
+#endif
     if (cfg->vnc_listen_any)
         nm_str_add_text(res, " -vnc :");
     else
         nm_str_add_text(res, " -vnc 127.0.0.1:");
 
     nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_VNC));
+#if defined (NM_WITH_SPICE)
+    }
+#endif
 
     nm_debug("cmd=%s\n", res->data);
 out:

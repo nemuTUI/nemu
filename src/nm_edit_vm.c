@@ -11,7 +11,11 @@
 #include <nm_vm_control.h>
 #include <nm_qmp_control.h>
 
-#define NM_EDIT_VM_FIELDS_NUM 9
+#if defined(NM_WITH_SPICE)
+# define NM_EDIT_VM_FIELDS_NUM 10
+#else
+# define NM_EDIT_VM_FIELDS_NUM 9
+#endif
 
 #define NM_VM_FORM_CPU_BEGIN "CPU cores [1-"
 #define NM_VM_FORM_CPU_END   "]"
@@ -24,6 +28,7 @@
 #define NM_VM_FORM_USB       "USB [yes/no]"
 #define NM_VM_FORM_USBT      "USB version"
 #define NM_VM_FORM_SYNC      "Sync mouse position"
+#define NM_VM_FORM_SPICE     "Spice server"
 
 static nm_form_t *form = NULL;
 static nm_field_t *fields[NM_EDIT_VM_FIELDS_NUM + 1];
@@ -42,7 +47,10 @@ enum {
     NM_FLD_DISKIN,
     NM_FLD_USBUSE,
     NM_FLD_USBTYP,
-    NM_FLD_MOUSES
+    NM_FLD_MOUSES,
+#if defined(NM_WITH_SPICE)
+    NM_FLD_SPICE
+#endif
 };
 
 void nm_edit_vm(const nm_str_t *name)
@@ -115,6 +123,9 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     set_field_type(fields[NM_FLD_USBUSE], TYPE_ENUM, nm_form_yes_no, false, false);
     set_field_type(fields[NM_FLD_USBTYP], TYPE_ENUM, nm_form_usbtype, false, false);
     set_field_type(fields[NM_FLD_MOUSES], TYPE_ENUM, nm_form_yes_no, false, false);
+#if defined(NM_WITH_SPICE)
+    set_field_type(fields[NM_FLD_SPICE], TYPE_ENUM, nm_form_yes_no, false, false);
+#endif
 
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, nm_vect_str_ctx(&cur->main, NM_SQL_SMP));
     set_field_buffer(fields[NM_FLD_RAMTOT], 0, nm_vect_str_ctx(&cur->main, NM_SQL_MEM));
@@ -148,6 +159,13 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     else
         set_field_buffer(fields[NM_FLD_MOUSES], 0, nm_form_yes_no[1]);
 
+#if defined(NM_WITH_SPICE)
+    if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_SPICE), NM_ENABLE) == NM_OK)
+        set_field_buffer(fields[NM_FLD_SPICE], 0, nm_form_yes_no[0]);
+    else
+        set_field_buffer(fields[NM_FLD_SPICE], 0, nm_form_yes_no[1]);
+#endif
+
     for (size_t n = 0; n < NM_EDIT_VM_FIELDS_NUM; n++)
         set_field_status(fields[n], 0);
 
@@ -179,6 +197,9 @@ static void nm_edit_vm_field_names(nm_vect_t *msg)
     nm_vect_insert(msg, _(NM_VM_FORM_USB), strlen(_(NM_VM_FORM_USB)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_USBT), strlen(_(NM_VM_FORM_USBT)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_SYNC), strlen(_(NM_VM_FORM_SYNC)) + 1, NULL);
+#if defined(NM_WITH_SPICE)
+    nm_vect_insert(msg, _(NM_VM_FORM_SPICE), strlen(_(NM_VM_FORM_SPICE)) + 1, NULL);
+#endif
     nm_vect_end_zero(msg);
 
     nm_str_free(&buf);
@@ -195,6 +216,9 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     nm_str_t kvm = NM_INIT_STR;
     nm_str_t hcpu = NM_INIT_STR;
     nm_str_t sync = NM_INIT_STR;
+#if defined(NM_WITH_SPICE)
+    nm_str_t spice = NM_INIT_STR;
+#endif
 
     nm_get_field_buf(fields[NM_FLD_CPUNUM], &vm->cpus);
     nm_get_field_buf(fields[NM_FLD_RAMTOT], &vm->memo);
@@ -205,6 +229,9 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     nm_get_field_buf(fields[NM_FLD_USBUSE], &usb);
     nm_get_field_buf(fields[NM_FLD_USBTYP], &usbv);
     nm_get_field_buf(fields[NM_FLD_MOUSES], &sync);
+#if defined(NM_WITH_SPICE)
+    nm_get_field_buf(fields[NM_FLD_SPICE],  &spice);
+#endif
 
     if (field_status(fields[NM_FLD_CPUNUM]))
         nm_form_check_data(_("CPU cores"), vm->cpus, err);
@@ -224,7 +251,10 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
         nm_form_check_data(_("USB version"), usbv, err);
     if (field_status(fields[NM_FLD_MOUSES]))
         nm_form_check_data(_("Sync mouse position"), sync, err);
-
+#if defined(NM_WITH_SPICE)
+    if (field_status(fields[NM_FLD_SPICE]))
+        nm_form_check_data(_("Spice server"), spice, err);
+#endif
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
 
@@ -280,6 +310,11 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     if (nm_str_cmp_st(&sync, "yes") == NM_OK)
         vm->mouse_sync = 1;
 
+#if defined(NM_WITH_SPICE)
+    if (nm_str_cmp_st(&spice, "yes") == NM_OK)
+        vm->spice = 1;
+#endif
+
 out:
     nm_str_free(&ifs);
     nm_str_free(&usb);
@@ -287,6 +322,9 @@ out:
     nm_str_free(&kvm);
     nm_str_free(&hcpu);
     nm_str_free(&sync);
+#if defined(NM_WITH_SPICE)
+    nm_str_free(&spice);
+#endif
     nm_vect_free(&err, NULL);
 
     return rc;
@@ -452,7 +490,22 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
         nm_str_add_char(&query, '\'');
 
         nm_db_edit(query.data);
+
+        nm_str_trunc(&query, 0);
     }
+
+#if defined(NM_WITH_SPICE)
+    if (field_status(fields[NM_FLD_SPICE]))
+    {
+        nm_str_add_text(&query, "UPDATE vms SET spice='");
+        nm_str_add_text(&query, vm->spice ? NM_ENABLE : NM_DISABLE);
+        nm_str_add_text(&query, "' WHERE name='");
+        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
+        nm_str_add_char(&query, '\'');
+
+        nm_db_edit(query.data);
+    }
+#endif
 
     nm_str_free(&query);
 }

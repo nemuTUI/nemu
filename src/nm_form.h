@@ -65,6 +65,7 @@ typedef struct {
     uint32_t mouse_sync:1;
     uint32_t usb_enable:1;
     uint32_t usb_xhci:1;
+    uint32_t spice:1;
 } nm_vm_t;
 
 typedef struct {
@@ -129,7 +130,7 @@ extern const char *nm_form_svg_layer[];
 #define NM_INIT_VM { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                      NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                      NM_INIT_VM_DRIVE, NM_INIT_VM_IFS, \
-                     NM_INIT_VM_KVM, 0, 0, 0 }
+                     NM_INIT_VM_KVM, 0, 0, 0, 0 }
 
 #endif /* NM_FORM_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

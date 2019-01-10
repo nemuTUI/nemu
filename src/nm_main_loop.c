@@ -185,7 +185,7 @@ void nm_start_main_loop(void)
                     nm_vmctl_kill(name);
                 break;
 
-#if defined (NM_WITH_VNC_CLIENT)
+#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
             case NM_KEY_C:
                 if (vm_status)
                     nm_vmctl_connect(name);
