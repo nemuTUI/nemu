@@ -109,6 +109,9 @@ static void nm_print_feset(void)
     nm_vect_t feset = NM_INIT_VECT;
     nm_str_t msg = NM_INIT_STR;
 
+#if defined (NM_WITH_SPICE)
+    nm_vect_insert_cstr(&feset, "spice");
+#endif
 #if defined (NM_WITH_VNC_CLIENT)
     nm_vect_insert_cstr(&feset, "vnc-client");
 #endif
