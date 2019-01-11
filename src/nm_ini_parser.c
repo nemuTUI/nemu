@@ -27,6 +27,7 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
     int look_for_param_end = 0;
     int look_for_value_end = 0;
     int comment_block = 0;
+    int quotes_start = 0;
     nm_str_t sec_name = NM_INIT_STR;
     nm_str_t par_name = NM_INIT_STR;
     nm_str_t par_value = NM_INIT_STR;
@@ -41,8 +42,21 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
 
     for (off_t n = 0; n < file.size; n++, buf_ini++)
     {
+        /* collect all data double quotes */
+        if ((*buf_ini == '"') && !quotes_start)
+        {
+            quotes_start = 1;
+            continue;
+        }
+
+        if ((*buf_ini == '"') && quotes_start)
+        {
+            quotes_start = 0;
+            continue;
+        }
+
         /* skip spaces and tabs */
-        if ((*buf_ini == 0x20) || (*buf_ini == '\t'))
+        if (((*buf_ini == 0x20) || (*buf_ini == '\t')) && !quotes_start)
             continue;
 
         if (*buf_ini == '[')
