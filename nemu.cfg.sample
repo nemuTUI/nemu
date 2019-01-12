@@ -8,11 +8,23 @@ db = /home/user/.nemu.db
 # override highlight color of running VM's. Example:
 # hl_color = 00afd7
 
-[vnc]
-# vnc binary path.
-binary = /usr/bin/vncviewer
+[viewer]
+# default protocol (1 - spice, 0 - vnc)
+spice_default = 1
 
-# listen for vnc|spice connections (0 = only localhost, 1 = any address)
+# vnc client path.
+vnc_bin = /usr/bin/vncviewer
+
+# vnc client args (%t - title, %p - port)
+vnc_args = ":%p"
+
+# spice client path
+spice_bin = /usr/bin/remote-viewer
+
+# spice client args (%t - title, %p - port)
+spice_args = "--title %t spice://127.0.0.1:%p"
+
+# listen for vnc|spice connections (0 - only localhost, 1 - any address)
 listen_any = 0
 
 [qemu]
