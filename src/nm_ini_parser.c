@@ -27,7 +27,6 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
     int look_for_param_end = 0;
     int look_for_value_end = 0;
     int comment_block = 0;
-    int quotes_start = 0;
     nm_str_t sec_name = NM_INIT_STR;
     nm_str_t par_name = NM_INIT_STR;
     nm_str_t par_value = NM_INIT_STR;
@@ -42,21 +41,8 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
 
     for (off_t n = 0; n < file.size; n++, buf_ini++)
     {
-        /* collect all data double quotes */
-        if ((*buf_ini == '"') && !quotes_start)
-        {
-            quotes_start = 1;
-            continue;
-        }
-
-        if ((*buf_ini == '"') && quotes_start)
-        {
-            quotes_start = 0;
-            continue;
-        }
-
         /* skip spaces and tabs */
-        if (((*buf_ini == 0x20) || (*buf_ini == '\t')) && !quotes_start)
+        if (!look_for_value_end && ((*buf_ini == ' ') || (*buf_ini == '\t')))
             continue;
 
         if (*buf_ini == '[')
@@ -69,7 +55,7 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
         if (comment_block && (*buf_ini != '\n'))
             continue;
 
-        if (*buf_ini == 0x23)
+        if (*buf_ini == '#')
         {
             comment_block = 1;
             continue;
@@ -112,9 +98,20 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
         {
             if (*buf_ini == '\n')
             {
+                nm_str_t value = NM_INIT_STR;
+                char* begin = par_value.data - 1;
+                char* end = par_value.data + par_value.len;
+                while(--end != begin && (*end == ' ' || *end == '\t'));
+                ++end;
+                while(++begin != end && (*begin == ' ' || *begin == '\t'));
+                if (begin != end)
+                {
+                    value.data = begin;
+                    value.len = end - begin;
+                }
                 look_for_value_end = 0;
                 look_for_param_end = 1;
-                nm_ini_value_push(curr_node, &par_name, &par_value);
+                nm_ini_value_push(curr_node, &par_name, &value);
                 nm_str_free(&par_name);
                 nm_str_free(&par_value);
                 continue;
