@@ -16,13 +16,13 @@ spice_default = 1
 vnc_bin = /usr/bin/vncviewer
 
 # vnc client args (%t - title, %p - port)
-vnc_args = ":%p"
+vnc_args = :%p
 
 # spice client path
 spice_bin = /usr/bin/remote-viewer
 
 # spice client args (%t - title, %p - port)
-spice_args = "--title %t spice://127.0.0.1:%p"
+spice_args = --title %t spice://127.0.0.1:%p
 
 # listen for vnc|spice connections (0 - only localhost, 1 - any address)
 listen_any = 0
