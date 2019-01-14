@@ -737,13 +737,13 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     {
         nm_str_format(res, " -vga qxl -spice port=%u,disable-ticketing",
                 nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + 5900);
-        if (!cfg->vnc_listen_any)
+        if (!cfg->listen_any)
             nm_str_format(res, ",addr=127.0.0.1");
     }
     else
     {
 #endif
-    if (cfg->vnc_listen_any)
+    if (cfg->listen_any)
         nm_str_add_text(res, " -vnc :");
     else
         nm_str_add_text(res, " -vnc 127.0.0.1:");

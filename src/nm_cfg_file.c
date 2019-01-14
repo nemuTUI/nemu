@@ -12,13 +12,17 @@
 #define NM_DEFAULT_TARGET "x86_64,i386"
 
 #define NM_INI_S_MAIN     "main"
-#define NM_INI_S_VNC      "vnc"
+#define NM_INI_S_VIEW     "viewer"
 #define NM_INI_S_QEMU     "qemu"
 
 #define NM_INI_P_VM       "vmdir"
 #define NM_INI_P_DB       "db"
 #define NM_INI_P_HL       "hl_color"
-#define NM_INI_P_VBIN     "binary"
+#define NM_INI_P_PROT     "spice_default"
+#define NM_INI_P_VBIN     "vnc_bin"
+#define NM_INI_P_VARG     "vnc_args"
+#define NM_INI_P_SBIN     "spice_bin"
+#define NM_INI_P_SARG     "spice_args"
 #define NM_INI_P_VANY     "listen_any"
 #define NM_INI_P_QTRG     "targets"
 #define NM_INI_P_QENL     "enable_log"
@@ -34,6 +38,9 @@ static inline int nm_get_opt_param(const void *ini, const char *section,
                                    const char *value, nm_str_t *res);
 static inline void nm_cfg_get_color(size_t pos, short *color,
                                     const nm_str_t *buf);
+#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
+static void nm_cfg_get_view(nm_view_t *view, const nm_str_t *buf);
+#endif
 
 void nm_cfg_init(void)
 {
@@ -42,6 +49,9 @@ void nm_cfg_init(void)
     nm_str_t cfg_path = NM_INIT_STR;
     nm_str_t tmp_buf = NM_INIT_STR;
     nm_ini_node_t *ini;
+#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
+    cfg.view = NM_INIT_AD_VIEW;
+#endif
 
     if (!pw)
         nm_bug(_("Error get home directory: %s\n"), strerror(errno));
@@ -74,14 +84,18 @@ void nm_cfg_init(void)
 
 #ifdef NM_WITH_VNC_CLIENT
     /* Get the VNC client binary path */
-    nm_get_param(ini, NM_INI_S_VNC, NM_INI_P_VBIN, &cfg.vnc_bin);
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VBIN, &cfg.vnc_bin);
 
     if (stat(cfg.vnc_bin.data, &file_info) == -1)
         nm_bug("cfg: %s: %s", cfg.vnc_bin.data, strerror(errno));
+
+    nm_str_trunc(&tmp_buf, 0);
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VARG, &cfg.vnc_args);
+    nm_cfg_get_view(&cfg.view, &cfg.vnc_args);
 #endif
     /* Get the VNC listen value */
-    nm_get_param(ini, NM_INI_S_VNC, NM_INI_P_VANY, &tmp_buf);
-    cfg.vnc_listen_any = !!nm_str_stoui(&tmp_buf, 10);
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VANY, &tmp_buf);
+    cfg.listen_any = !!nm_str_stoui(&tmp_buf, 10);
     nm_str_trunc(&tmp_buf, 0);
 
     /* Get QEMU targets list */
@@ -160,6 +174,7 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.vm_dir);
     nm_str_free(&cfg.db_path);
     nm_str_free(&cfg.vnc_bin);
+    nm_str_free(&cfg.spice_bin);
     nm_str_free(&cfg.log_path);
     nm_vect_free(&cfg.qemu_targets, NULL);
 }
@@ -336,4 +351,35 @@ static inline void nm_cfg_get_color(size_t pos, short *color,
     *color = (nm_str_stoui(&hex, 16)) * 1000 / 255;
     nm_str_free(&hex);
 }
+
+#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
+static void nm_cfg_get_view(nm_view_t *view, const nm_str_t *buf)
+{
+    int label_found = 0;
+
+    for (size_t n = 0; n < buf->len; n++)
+    {
+        if (buf->data[n] == '%')
+        {
+            label_found = 1;
+            continue;
+        }
+
+        if (label_found && buf->data[n - 1] == '%')
+        {
+            switch (buf->data[n]) {
+            case 't':
+                nm_debug("got t at %zu pos\n", n - 1);
+                view->title = n - 1;
+                break;
+            case 'p':
+                nm_debug("got p at %zu pos\n", n - 1);
+                view->port = n - 1;
+                break;
+            }
+            label_found = 0;
+        }
+    }
+}
+#endif
 /* vim:set ts=4 sw=4 fdm=marker: */
