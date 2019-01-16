@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -26,7 +26,6 @@ RDEPEND="
 		app-arch/libarchive
 	)
 	vnc-client? ( net-misc/tigervnc )
-	spice? ( net-misc/spice-gtk[gtk3] )
 	svg? ( media-gfx/graphviz[svg] )"
 DEPEND="${RDEPEND}
 	sys-devel/gettext"
@@ -60,11 +59,6 @@ pkg_pretend() {
 }
 
 pkg_postinst() {
-	elog "Old database is not supported (nEMU versions < 1.0.0)."
-	elog "You will need to delete current database."
-	elog "If upgraded from 1.0.0, execute script:"
-	elog "/usr/share/nemu/scripts/upgrade_db.sh"
-	elog ""
 	elog "For non-root usage execute script:"
 	elog "/usr/share/nemu/scripts/setup_nemu_nonroot.sh linux <username>"
 	elog "and add udev rule:"
