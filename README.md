@@ -7,13 +7,13 @@
  * Clone VM
  * Show VM status
  * Start/stop/shutdown/reset VM
- * Connect to VM via vnc
+ * Connect to VM via VNC or SPICE protocol
  * Full VM snapshots (experimental)
  * Show/Edit VM settings
  * USB support
  * Network via tap/macvtap interfaces
- * VirtFS support (Plan 9 host files sharing).
- * Import OVA.
+ * VirtFS support (Plan 9 host files sharing)
+ * Import OVA
 
 ## Videos
 [![Alt New user interface](https://img.youtube.com/vi/y8RT6-AF1BA/3.jpg)](https://www.youtube.com/watch?v=y8RT6-AF1BA)
