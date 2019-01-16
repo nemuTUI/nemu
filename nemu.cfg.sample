@@ -18,7 +18,7 @@ vnc_bin = /usr/bin/vncviewer
 # vnc client args (%t - title, %p - port)
 vnc_args = :%p
 
-# spice client path
+# spice client path.
 spice_bin = /usr/bin/remote-viewer
 
 # spice client args (%t - title, %p - port)
