@@ -540,7 +540,7 @@ void nm_print_help(void)
 {
     const char *keys[] = {
         "r", "t",
-#if (NM_WITH_VNC_CLIENT)
+#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
         "c",
 #endif
         "p", "z", "f", "d", "e", "i",

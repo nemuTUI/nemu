@@ -8,13 +8,13 @@ typedef struct {
     ssize_t title;
     ssize_t port;
 } nm_view_args_t;
+#endif
 
 typedef struct {
     short r;
     short g;
     short b;
 } nm_rgb_t;
-#endif
 
 typedef struct {
     nm_str_t vm_dir;

@@ -195,8 +195,12 @@ void nm_cfg_free(void)
 {
     nm_str_free(&cfg.vm_dir);
     nm_str_free(&cfg.db_path);
+#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
     nm_str_free(&cfg.vnc_bin);
     nm_str_free(&cfg.spice_bin);
+    nm_str_free(&cfg.vnc_args);
+    nm_str_free(&cfg.spice_args);
+#endif
     nm_str_free(&cfg.log_path);
     nm_vect_free(&cfg.qemu_targets, NULL);
 }
