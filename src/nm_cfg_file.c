@@ -107,6 +107,10 @@ void nm_cfg_init(void)
 
     nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_SARG, &cfg.spice_args);
     nm_cfg_get_view(&cfg.spice_view, &cfg.spice_args);
+
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_PROT, &tmp_buf);
+    cfg.spice_default = !!nm_str_stoui(&tmp_buf, 10);
+    nm_str_trunc(&tmp_buf, 0);
 #endif /* NM_WITH_SPICE */
     /* Get the VNC listen value */
     nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VANY, &tmp_buf);
