@@ -7,7 +7,7 @@
 typedef struct {
     ssize_t title;
     ssize_t port;
-} nm_view_t;
+} nm_view_args_t;
 
 typedef struct {
     short r;
@@ -24,7 +24,8 @@ typedef struct {
     nm_str_t vnc_args;
     nm_str_t spice_bin;
     nm_str_t spice_args;
-    nm_view_t view;
+    nm_view_args_t spice_view;
+    nm_view_args_t vnc_view;
 #endif
     nm_str_t log_path;
     nm_vect_t qemu_targets;
@@ -41,7 +42,7 @@ const nm_cfg_t *nm_cfg_get(void);
 
 #define nm_cfg_get_arch() (char **) nm_cfg_get()->qemu_targets.data
 
-#define NM_INIT_AD_VIEW (nm_view_t) {-1, -1}
+#define NM_INIT_AD_VIEW (nm_view_args_t) {-1, -1}
 
 #endif /* NM_CFG_FILE_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

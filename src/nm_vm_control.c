@@ -20,6 +20,15 @@
 #define NM_VMCTL_GET_VNC_PORT_SQL \
     "SELECT vnc, spice FROM vms WHERE name='%s'"
 
+enum {
+    NM_VIEWER_SPICE,
+    NM_VIEWER_VNC
+};
+
+#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
+static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port, nm_str_t *cmd, int type);
+#endif
+
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 {
     nm_str_t query = NM_INIT_STR;
@@ -221,23 +230,21 @@ void nm_vmctl_connect(const nm_str_t *name)
     nm_str_t cmd = NM_INIT_STR;
     nm_str_t query = NM_INIT_STR;
     nm_vect_t vm = NM_INIT_VECT;
+    uint32_t port;
     int unused __attribute__((unused));
 
     nm_str_format(&query, NM_VMCTL_GET_VNC_PORT_SQL, name->data);
     nm_db_select(query.data, &vm);
+    port = nm_str_stoui(nm_vect_str(&vm, 0), 10) + 5900;
 #if defined(NM_WITH_SPICE)
     if (nm_str_cmp_st(nm_vect_str(&vm, 1), NM_ENABLE) == NM_OK)
     {
-        nm_str_format(&cmd, "%s --title \"%s\" 127.0.0.1 -p %u > /dev/null 2>&1 &",
-                      NM_STRING(NM_USR_PREFIX) "/bin/spicy", name->data,
-                      nm_str_stoui(nm_vect_str(&vm, 0), 10) + 5900);
+        nm_vmctl_gen_viewer(name, port, &cmd, NM_VIEWER_SPICE);
     }
     else
     {
 #endif
-    nm_str_format(&cmd, "%s :%u > /dev/null 2>&1 &",
-                  nm_cfg_get()->vnc_bin.data,
-                  nm_str_stoui(nm_vect_str(&vm, 0), 10) + 5900);
+        nm_vmctl_gen_viewer(name, port, &cmd, NM_VIEWER_VNC);
 #if defined(NM_WITH_SPICE)
     }
 #endif
@@ -840,5 +847,67 @@ void nm_vmctl_clear_tap(void)
     nm_str_free(&lock_path);
     nm_vect_free(&vms, nm_str_vect_free_cb);
 }
+
+#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
+static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port, nm_str_t *cmd, int type)
+{
+    const nm_cfg_t *cfg = nm_cfg_get();
+    const nm_str_t *bin = (type == NM_VIEWER_SPICE) ? &cfg->spice_bin : &cfg->vnc_bin;
+    const nm_str_t *args = (type == NM_VIEWER_SPICE) ? &cfg->spice_args : &cfg->vnc_args;
+    const nm_view_args_t *pos = (type == NM_VIEWER_SPICE) ? &cfg->spice_view : &cfg->vnc_view;
+    char *argsp = args->data;
+    size_t total = 0;
+    nm_str_t warn_msg = NM_INIT_STR;
+    nm_str_t buf = NM_INIT_STR;
+
+    nm_str_format(&warn_msg, _("%s viewer: port is not set"),
+            (type == NM_VIEWER_SPICE) ? "spice" : "vnc");
+
+    if (pos->port == -1)
+    {
+        nm_warn(warn_msg.data);
+        goto out;
+    }
+
+    nm_str_format(cmd, "%s ", bin->data);
+
+    if (pos->title != -1 && pos->title < pos->port)
+    {
+        nm_str_add_str_part(cmd, args, pos->title);
+        nm_str_add_text(cmd, name->data);
+        argsp += pos->title + 2;
+        nm_str_add_text_part(cmd, argsp, pos->port - pos->title - 2);
+        nm_str_format(cmd, "%u", port);
+        total = pos->port;
+    }
+    else if (pos->title != -1 && pos->title > pos->port)
+    {
+        nm_str_add_str_part(cmd, args, pos->port);
+        nm_str_format(cmd, "%u", port);
+        argsp += pos->port + 2;
+        nm_str_add_text_part(cmd, argsp, pos->title - pos->port - 2);
+        nm_str_add_text(cmd, name->data);
+        total = pos->title;
+    }
+    else
+    {
+        nm_str_add_str_part(cmd, args, pos->port);
+        nm_str_format(cmd, "%u", port);
+        total = pos->port;
+    }
+
+    if (total < (args->len - 2))
+    {
+        argsp += args->len - total;
+        nm_str_add_text_part(cmd, argsp, args->len - total - 2);
+    }
+
+    nm_str_format(cmd, " > /dev/null 2>&1 &");
+    nm_debug("viewer cmd:\"%s\"\n", cmd->data);
+out:
+    nm_str_free(&buf);
+    nm_str_free(&warn_msg);
+}
+#endif
 
 /* vim:set ts=4 sw=4 fdm=marker: */

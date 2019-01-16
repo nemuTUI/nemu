@@ -39,7 +39,7 @@ static inline int nm_get_opt_param(const void *ini, const char *section,
 static inline void nm_cfg_get_color(size_t pos, short *color,
                                     const nm_str_t *buf);
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
-static void nm_cfg_get_view(nm_view_t *view, const nm_str_t *buf);
+static void nm_cfg_get_view(nm_view_args_t *view, const nm_str_t *buf);
 #endif
 
 void nm_cfg_init(void)
@@ -49,8 +49,14 @@ void nm_cfg_init(void)
     nm_str_t cfg_path = NM_INIT_STR;
     nm_str_t tmp_buf = NM_INIT_STR;
     nm_ini_node_t *ini;
-#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
-    cfg.view = NM_INIT_AD_VIEW;
+#ifdef NM_WITH_VNC_CLIENT
+    cfg.vnc_view = NM_INIT_AD_VIEW;
+#endif
+#ifdef NM_WITH_SPICE
+    cfg.spice_view = NM_INIT_AD_VIEW;
+#endif
+#ifndef NM_WITH_SPICE
+    cfg.spice_default = 0;
 #endif
 
     if (!pw)
@@ -89,10 +95,19 @@ void nm_cfg_init(void)
     if (stat(cfg.vnc_bin.data, &file_info) == -1)
         nm_bug("cfg: %s: %s", cfg.vnc_bin.data, strerror(errno));
 
-    nm_str_trunc(&tmp_buf, 0);
     nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VARG, &cfg.vnc_args);
-    nm_cfg_get_view(&cfg.view, &cfg.vnc_args);
-#endif
+    nm_cfg_get_view(&cfg.vnc_view, &cfg.vnc_args);
+#endif /* NM_WITH_VNC_CLIENT */
+#ifdef NM_WITH_SPICE
+    /* Get the SPICE client binary path */
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_SBIN, &cfg.spice_bin);
+
+    if (stat(cfg.spice_bin.data, &file_info) == -1)
+        nm_bug("cfg: %s: %s", cfg.spice_bin.data, strerror(errno));
+
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_SARG, &cfg.spice_args);
+    nm_cfg_get_view(&cfg.spice_view, &cfg.spice_args);
+#endif /* NM_WITH_SPICE */
     /* Get the VNC listen value */
     nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VANY, &tmp_buf);
     cfg.listen_any = !!nm_str_stoui(&tmp_buf, 10);
@@ -353,7 +368,7 @@ static inline void nm_cfg_get_color(size_t pos, short *color,
 }
 
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
-static void nm_cfg_get_view(nm_view_t *view, const nm_str_t *buf)
+static void nm_cfg_get_view(nm_view_args_t *view, const nm_str_t *buf)
 {
     int label_found = 0;
 
@@ -369,11 +384,11 @@ static void nm_cfg_get_view(nm_view_t *view, const nm_str_t *buf)
         {
             switch (buf->data[n]) {
             case 't':
-                nm_debug("got t at %zu pos\n", n - 1);
+                nm_debug("args: got %%t at %zu pos\n", n - 1);
                 view->title = n - 1;
                 break;
             case 'p':
-                nm_debug("got p at %zu pos\n", n - 1);
+                nm_debug("args: got %%p at %zu pos\n", n - 1);
                 view->port = n - 1;
                 break;
             }

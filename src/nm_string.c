@@ -36,10 +36,22 @@ void nm_str_add_text(nm_str_t *str, const char *src)
     nm_str_append_mem(str, src, len);
 }
 
+void nm_str_add_text_part(nm_str_t *str, const char *src, size_t len)
+{
+    assert(src != NULL);
+    nm_str_append_mem(str, src, len);
+}
+
 void nm_str_add_str(nm_str_t *str, const nm_str_t *src)
 {
     assert(src != NULL);
     nm_str_append_mem(str, src->data, src->len);
+}
+
+void nm_str_add_str_part(nm_str_t *str, const nm_str_t *src, size_t len)
+{
+    assert(src != NULL);
+    nm_str_append_mem(str, src->data, len);
 }
 
 void nm_str_copy(nm_str_t *str, const nm_str_t *src)
