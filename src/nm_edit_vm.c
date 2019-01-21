@@ -11,12 +11,6 @@
 #include <nm_vm_control.h>
 #include <nm_qmp_control.h>
 
-#if defined(NM_WITH_SPICE)
-# define NM_EDIT_VM_FIELDS_NUM 10
-#else
-# define NM_EDIT_VM_FIELDS_NUM 9
-#endif
-
 #define NM_VM_FORM_CPU_BEGIN "CPU cores [1-"
 #define NM_VM_FORM_CPU_END   "]"
 #define NM_VM_FORM_MEM_BEGIN "Memory [4-"
@@ -29,9 +23,6 @@
 #define NM_VM_FORM_USBT      "USB version"
 #define NM_VM_FORM_SYNC      "Sync mouse position"
 #define NM_VM_FORM_SPICE     "Spice server"
-
-static nm_form_t *form = NULL;
-static nm_field_t *fields[NM_EDIT_VM_FIELDS_NUM + 1];
 
 static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur);
 static void nm_edit_vm_field_names(nm_vect_t *msg);
@@ -49,9 +40,13 @@ enum {
     NM_FLD_USBTYP,
     NM_FLD_MOUSES,
 #if defined(NM_WITH_SPICE)
-    NM_FLD_SPICE
+    NM_FLD_SPICE,
 #endif
+    NM_FLD_COUNT
 };
+
+static nm_form_t *form = NULL;
+static nm_field_t *fields[NM_FLD_COUNT + 1];
 
 void nm_edit_vm(const nm_str_t *name)
 {
@@ -65,7 +60,7 @@ void nm_edit_vm(const nm_str_t *name)
     nm_edit_vm_field_names(&msg_fields);
     msg_len = nm_max_msg_len((const char **) msg_fields.data);
 
-    if (nm_form_calc_size(msg_len, NM_EDIT_VM_FIELDS_NUM, &form_data) != NM_OK)
+    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
         return;
 
     werase(action_window);
@@ -75,13 +70,13 @@ void nm_edit_vm(const nm_str_t *name)
 
     nm_vmctl_get_data(name, &cur_settings);
 
-    for (size_t n = 0; n < NM_EDIT_VM_FIELDS_NUM; ++n)
+    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
         fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
-    fields[NM_EDIT_VM_FIELDS_NUM] = NULL;
+    fields[NM_FLD_COUNT] = NULL;
 
     nm_edit_vm_field_setup(&cur_settings);
-    for (size_t n = 0, y = 1, x = 2; n < NM_EDIT_VM_FIELDS_NUM; n++)
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
     {
         mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
         y += 2;
@@ -166,7 +161,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
         set_field_buffer(fields[NM_FLD_SPICE], 0, nm_form_yes_no[1]);
 #endif
 
-    for (size_t n = 0; n < NM_EDIT_VM_FIELDS_NUM; n++)
+    for (size_t n = 0; n < NM_FLD_COUNT; n++)
         set_field_status(fields[n], 0);
 
 #if defined (NM_OS_FREEBSD)

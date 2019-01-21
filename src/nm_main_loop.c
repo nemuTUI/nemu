@@ -233,6 +233,10 @@ void nm_start_main_loop(void)
                 nm_edit_boot(name);
                 break;
 
+            case NM_KEY_G:
+                //nm_edit_viewer(name);
+                break;
+
 #ifdef NM_SAVEVM_SNAPSHOTS
             case NM_KEY_S_UP:
                 if (!vm_status)
