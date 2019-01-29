@@ -95,10 +95,7 @@ void nm_edit_vm(const nm_str_t *name)
     nm_edit_vm_update_db(&vm, &cur_settings, last_mac);
 
 out:
-    wtimeout(action_window, -1);
-    delwin(form_data.form_window);
-    werase(help_window);
-    nm_init_help_main();
+    NM_FORM_EXIT();
     nm_vm_free(&vm);
     nm_vect_free(&msg_fields, NULL);
     nm_form_free(form, fields);

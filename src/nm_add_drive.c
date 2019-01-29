@@ -10,7 +10,6 @@
 #include <nm_add_drive.h>
 #include <nm_vm_control.h>
 
-#define NM_DRIVE_FIELDS_NUM 2
 #define NM_DRIVE_FORM_MSG "Drive interface"
 #define NM_DRIVE_SZ_START "Size [1-"
 #define NM_DRIVE_SZ_END   "]Gb"
@@ -18,6 +17,7 @@
 enum {
     NM_FLD_DRVSIZE = 0,
     NM_FLD_DRVTYPE,
+    NM_FLD_COUNT
 };
 
 static void nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
@@ -28,7 +28,7 @@ static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
 void nm_add_drive(const nm_str_t *name)
 {
     nm_form_t *form = NULL;
-    nm_field_t *fields[NM_DRIVE_FIELDS_NUM + 1] = {NULL};
+    nm_field_t *fields[NM_FLD_COUNT+ 1] = {NULL};
     nm_str_t buf = NM_INIT_STR;
     nm_str_t drv_size = NM_INIT_STR;
     nm_str_t drv_type = NM_INIT_STR;
@@ -53,16 +53,16 @@ void nm_add_drive(const nm_str_t *name)
     nm_str_format(&buf, "%s%u%s",
         _(NM_DRIVE_SZ_START), nm_hw_disk_free(), _(NM_DRIVE_SZ_END));
 
-    nm_vect_insert(&msg_fields, buf.data, buf.len, NULL);
+    nm_vect_insert(&msg_fields, buf.data, buf.len + 1, NULL);
     nm_vect_insert(&msg_fields, _(NM_DRIVE_FORM_MSG),
-            strlen(_(NM_DRIVE_FORM_MSG)), NULL);
+            strlen(_(NM_DRIVE_FORM_MSG)) + 1, NULL);
     nm_vect_end_zero(&msg_fields);
     msg_len = nm_max_msg_len((const char **) msg_fields.data);
 
-    if (nm_form_calc_size(msg_len, NM_DRIVE_FIELDS_NUM, &form_data) != NM_OK)
+    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
         return;
 
-    for (size_t n = 0; n < NM_DRIVE_FIELDS_NUM; ++n)
+    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
         fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
     set_field_type(fields[NM_FLD_DRVSIZE], TYPE_INTEGER, 0, 1, nm_hw_disk_free());
@@ -70,7 +70,7 @@ void nm_add_drive(const nm_str_t *name)
 
     set_field_buffer(fields[NM_FLD_DRVTYPE], 0, NM_DEFAULT_DRVINT);
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_DRIVE_FIELDS_NUM; n++)
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
     {
         mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
         y += 2;
@@ -92,12 +92,9 @@ void nm_add_drive(const nm_str_t *name)
 
     nm_add_drive_to_fs(name, &drv_size, &vm.drives);
     nm_add_drive_to_db(name, &drv_size, &drv_type, &vm.drives);
-    werase(help_window);
-    nm_init_help_main();
-    wtimeout(action_window, -1);
-    delwin(form_data.form_window);
 
 out:
+    NM_FORM_EXIT();
     nm_vect_free(&msg_fields, NULL);
     nm_vmctl_free_data(&vm);
     nm_form_free(form, fields);

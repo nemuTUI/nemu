@@ -221,12 +221,9 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
     nm_edit_net_update_db(name, &iface_data);
 
 out:
-    wtimeout(action_window, -1);
-    delwin(form_data.form_window);
+    NM_FORM_EXIT();
     nm_edit_net_iface_free(&iface_data);
     nm_form_free(form, fields);
-    werase(help_window);
-    nm_init_help_iface();
 
     return rc;
 }

@@ -24,7 +24,6 @@
 
 #define NM_OVA_DIR_TEMPL "/tmp/ova_extract_XXXXXX"
 #define NM_BLOCK_SIZE 10240
-#define NM_OVF_FIELDS_NUM 3
 
 #define NM_OVF_FORM_PATH "Path to OVA"
 #define NM_OVF_FORM_ARCH "Architecture"
@@ -58,7 +57,8 @@
 enum {
     NM_OVA_FLD_SRC = 0,
     NM_OVA_FLD_ARCH,
-    NM_OVA_FLD_NAME
+    NM_OVA_FLD_NAME,
+    NM_OVA_FLD_COUNT
 };
 
 static const char *nm_form_msg[] = {
@@ -104,7 +104,7 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
 static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives);
 static int nm_ova_get_data(nm_vm_t *vm);
 
-static nm_field_t *fields[NM_OVF_FIELDS_NUM + 1];
+static nm_field_t *fields[NM_OVA_FLD_COUNT + 1];
 
 void nm_ovf_import(void)
 {
@@ -124,7 +124,7 @@ void nm_ovf_import(void)
 
     msg_len = nm_max_msg_len(nm_form_msg);
 
-    if (nm_form_calc_size(msg_len, NM_OVF_FIELDS_NUM, &form_data) != NM_OK)
+    if (nm_form_calc_size(msg_len, NM_OVA_FLD_COUNT, &form_data) != NM_OK)
         return;
 
     werase(action_window);
@@ -132,10 +132,10 @@ void nm_ovf_import(void)
     nm_init_action(_(NM_MSG_OVA_HEADER));
     nm_init_help_import();
 
-    for (size_t n = 0; n < NM_OVF_FIELDS_NUM; ++n)
+    for (size_t n = 0; n < NM_OVA_FLD_COUNT; ++n)
         fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
-    fields[NM_OVF_FIELDS_NUM] = NULL;
+    fields[NM_OVA_FLD_COUNT] = NULL;
 
     set_field_type(fields[NM_OVA_FLD_SRC], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_OVA_FLD_ARCH], TYPE_ENUM,
@@ -146,7 +146,7 @@ void nm_ovf_import(void)
     field_opts_off(fields[NM_OVA_FLD_SRC], O_STATIC);
     field_opts_off(fields[NM_OVA_FLD_NAME], O_STATIC);
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_OVF_FIELDS_NUM; n++)
+    for (size_t n = 0, y = 1, x = 2; n < NM_OVA_FLD_COUNT; n++)
     {
         mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
         y += 2;
@@ -226,10 +226,7 @@ out:
     nm_vect_free(&drives, nm_drive_vect_free_cb);
 
 cancel:
-    wtimeout(action_window, -1);
-    werase(action_window);
-    werase(help_window);
-    nm_init_help_main();
+    NM_FORM_RESET();
     nm_form_free(form, fields);
     nm_vm_free(&vm);
     delwin(form_data.form_window);

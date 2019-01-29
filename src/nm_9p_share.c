@@ -7,8 +7,6 @@
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
 
-#define NM_9P_FIELDS_NUM 3
-
 #define NM_INIT_9P_DATA { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR }
 #define NM_9P_SET_MODE_SQL \
     "UPDATE vms SET fs9p_enable='%s' WHERE name='%s'"
@@ -26,7 +24,8 @@ typedef struct {
 enum {
     NM_FLD_9PMODE = 0,
     NM_FLD_9PPATH,
-    NM_FLD_9PNAME
+    NM_FLD_9PNAME,
+    NM_FLD_COUNT
 };
 
 static const char *nm_form_msg[] = {
@@ -34,7 +33,7 @@ static const char *nm_form_msg[] = {
     "Name of the share", NULL
 };
 
-static nm_field_t *fields[NM_9P_FIELDS_NUM + 1];
+static nm_field_t *fields[NM_FLD_COUNT + 1];
 
 static int nm_9p_get_data(nm_9p_data_t *data, const nm_vmctl_data_t *cur);
 static void nm_9p_update_db(const nm_str_t *name, const nm_9p_data_t *data);
@@ -47,7 +46,7 @@ void nm_9p_share(const nm_str_t *name)
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     size_t msg_len = nm_max_msg_len(nm_form_msg);
 
-    if (nm_form_calc_size(msg_len, NM_9P_FIELDS_NUM, &form_data) != NM_OK)
+    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
         return;
 
     werase(action_window);
@@ -57,10 +56,10 @@ void nm_9p_share(const nm_str_t *name)
 
     nm_vmctl_get_data(name, &vm);
 
-    for (size_t n = 0; n < NM_9P_FIELDS_NUM; ++n)
+    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
         fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
-    fields[NM_9P_FIELDS_NUM] = NULL;
+    fields[NM_FLD_COUNT] = NULL;
 
     set_field_type(fields[NM_FLD_9PMODE], TYPE_ENUM, nm_form_yes_no, false, false);
     set_field_type(fields[NM_FLD_9PPATH], TYPE_REGEXP, "^/.*");
@@ -74,7 +73,7 @@ void nm_9p_share(const nm_str_t *name)
     set_field_buffer(fields[NM_FLD_9PPATH], 0, nm_vect_str_ctx(&vm.main, NM_SQL_9PTH));
     set_field_buffer(fields[NM_FLD_9PNAME], 0, nm_vect_str_ctx(&vm.main, NM_SQL_9ID));
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_9P_FIELDS_NUM; n++)
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
     {
         mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
         y += 2;
@@ -90,10 +89,7 @@ void nm_9p_share(const nm_str_t *name)
     nm_9p_update_db(name, &data);
 
 out:
-    wtimeout(action_window, -1);
-    delwin(form_data.form_window);
-    werase(help_window);
-    nm_init_help_main();
+    NM_FORM_EXIT();
     nm_str_free(&data.mode);
     nm_str_free(&data.name);
     nm_str_free(&data.path);

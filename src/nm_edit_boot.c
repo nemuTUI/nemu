@@ -7,10 +7,6 @@
 #include <nm_database.h>
 #include <nm_vm_control.h>
 
-#define NM_BOOT_FIELDS_NUM 9
-
-static nm_field_t *fields[NM_BOOT_FIELDS_NUM + 1];
-
 enum {
     NM_FLD_INST = 0,
     NM_FLD_SRCP,
@@ -20,8 +16,11 @@ enum {
     NM_FLD_CMDL,
     NM_FLD_INIT,
     NM_FLD_TTYP,
-    NM_FLD_SOCK
+    NM_FLD_SOCK,
+    NM_FLD_COUNT
 };
+
+static nm_field_t *fields[NM_FLD_COUNT + 1];
 
 static const char *nm_form_msg[] = {
     "OS Installed", "Path to ISO/IMG", "Machine type",
@@ -43,7 +42,7 @@ void nm_edit_boot(const nm_str_t *name)
     nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
     size_t msg_len = nm_max_msg_len(nm_form_msg);
 
-    if (nm_form_calc_size(msg_len, NM_BOOT_FIELDS_NUM, &form_data) != NM_OK)
+    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
         return;
 
     werase(action_window);
@@ -53,10 +52,10 @@ void nm_edit_boot(const nm_str_t *name)
 
     nm_vmctl_get_data(name, &cur_settings);
 
-    for (size_t n = 0; n < NM_BOOT_FIELDS_NUM; ++n)
+    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
         fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
-    fields[NM_BOOT_FIELDS_NUM] = NULL;
+    fields[NM_FLD_COUNT] = NULL;
 
     nm_edit_boot_field_setup(&cur_settings);
     nm_edit_boot_field_names(form_data.form_window);
@@ -71,10 +70,7 @@ void nm_edit_boot(const nm_str_t *name)
     nm_edit_boot_update_db(name, &vm);
 
 out:
-    wtimeout(action_window, -1);
-    delwin(form_data.form_window);
-    werase(help_window);
-    nm_init_help_main();
+    NM_FORM_EXIT();
     nm_vmctl_free_data(&cur_settings);
     nm_vm_free_boot(&vm);
     nm_form_free(form, fields);
@@ -86,7 +82,7 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
 
     machs = nm_mach_get(nm_vect_str(&cur->main, NM_SQL_ARCH));
 
-    for (size_t n = 1; n < NM_BOOT_FIELDS_NUM; n++)
+    for (size_t n = 1; n < NM_FLD_COUNT; n++)
         field_opts_off(fields[n], O_STATIC);
 
     set_field_type(fields[NM_FLD_INST], TYPE_ENUM, nm_form_yes_no, false, false);
@@ -116,7 +112,7 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
     set_field_buffer(fields[NM_FLD_TTYP], 0, nm_vect_str_ctx(&cur->main, NM_SQL_TTY));
     set_field_buffer(fields[NM_FLD_SOCK], 0, nm_vect_str_ctx(&cur->main, NM_SQL_SOCK));
 
-    for (size_t n = 0; n < NM_BOOT_FIELDS_NUM; n++)
+    for (size_t n = 0; n < NM_FLD_COUNT; n++)
         set_field_status(fields[n], 0);
 }
 
@@ -124,7 +120,7 @@ static void nm_edit_boot_field_names(nm_window_t *w)
 {
     int y = 1, x = 2, mult = 2;
 
-    for (size_t n = 0; n < NM_BOOT_FIELDS_NUM; n++)
+    for (size_t n = 0; n < NM_FLD_COUNT; n++)
     {
         mvwaddstr(w, y, x, _(nm_form_msg[n]));
         y += mult;

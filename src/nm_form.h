@@ -99,11 +99,18 @@ extern const char *nm_form_svg_layer[];
 #define NM_FORM_RATIO  0.80
 
 #define NM_FORM_RESET()                                       \
-                do {                                          \
-                    curs_set(0);                              \
-                    wtimeout(action_window, -1);              \
-                }                                             \
-                while (0);
+    do {                                                      \
+        curs_set(0);                                          \
+        wtimeout(action_window, -1);                          \
+    } while (0)
+
+#define NM_FORM_EXIT()                                        \
+    do {                                                      \
+        wtimeout(action_window, -1);                          \
+        delwin(form_data.form_window);                        \
+        werase(help_window);                                  \
+        nm_init_help_main();                                  \
+    } while (0)
 
 #define nm_form_check_data(name, val, v)                      \
     {                                                         \

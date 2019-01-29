@@ -87,6 +87,8 @@ void nm_lan_settings(void)
         {
             werase(action_window);
             nm_init_action(_(NM_MSG_ADD_VETH));
+            werase(help_window);
+            nm_init_help_edit();
             nm_lan_add_veth();
             regen_data = 1;
             old_hl = veths_data.highlight;
@@ -260,6 +262,8 @@ static void nm_lan_add_veth(void)
 
 out:
     wtimeout(action_window, -1);
+    werase(help_window);
+    nm_init_help_lan();
     nm_form_free(form, fields);
     nm_str_free(&l_name);
     nm_str_free(&r_name);

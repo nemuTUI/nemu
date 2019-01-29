@@ -81,10 +81,7 @@ void nm_clone_vm(const nm_str_t *name)
         nm_bug(_("%s: cannot join thread"), __func__);
 
 out:
-    wtimeout(action_window, -1);
-    delwin(form_data.form_window);
-    werase(help_window);
-    nm_init_help_main();
+    NM_FORM_EXIT();
     nm_vmctl_free_data(&vm);
     nm_form_free(form, fields);
     nm_str_free(&buf);

@@ -9,7 +9,6 @@
 
 #define NM_DEL_SNAP_TITLE NM_EDIT_TITLE " [delete]"
 
-#define NM_VMSNAP_FIELDS_NUM 2
 #define NM_FORMSTR_NAME "Snapshot name"
 #define NM_FORMSTR_LOAD "Load at next boot"
 #define NM_FORMSTR_SNAP "Snapshot"
@@ -17,6 +16,7 @@
 enum {
     NM_FLD_VMSNAPNAME = 0,
     NM_FLD_VMLOAD,
+    NM_FLD_COUNT
 };
 
 static const char *nm_form_msg[] = {
@@ -46,7 +46,7 @@ static void __nm_vm_snapshot_load(const nm_str_t *name, const nm_str_t *snap,
 static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
                                     int vm_status);
 
-static nm_field_t *fields[NM_VMSNAP_FIELDS_NUM + 1];
+static nm_field_t *fields[NM_FLD_COUNT + 1];
 
 void nm_vm_snapshot_create(const nm_str_t *name)
 {
@@ -58,7 +58,7 @@ void nm_vm_snapshot_create(const nm_str_t *name)
     int done = 0;
     size_t msg_len = nm_max_msg_len(nm_form_msg);
 
-    if (nm_form_calc_size(msg_len, NM_VMSNAP_FIELDS_NUM, &form_data) != NM_OK)
+    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
         return;
 
     werase(action_window);
@@ -66,15 +66,15 @@ void nm_vm_snapshot_create(const nm_str_t *name)
     nm_init_action(_(NM_MSG_SNAP_CRT));
     nm_init_help_edit();
 
-    for (size_t n = 0; n < NM_VMSNAP_FIELDS_NUM; ++n)
+    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
         fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
-    fields[NM_VMSNAP_FIELDS_NUM] = NULL;
+    fields[NM_FLD_COUNT] = NULL;
     field_opts_off(fields[NM_FLD_VMSNAPNAME], O_STATIC);
     set_field_type(fields[NM_FLD_VMLOAD], TYPE_ENUM, nm_form_yes_no, false, false);
     set_field_buffer(fields[NM_FLD_VMLOAD], 0, nm_form_yes_no[1]);
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_VMSNAP_FIELDS_NUM; n++)
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
     {
         mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
         y += 2;
@@ -100,10 +100,7 @@ void nm_vm_snapshot_create(const nm_str_t *name)
         nm_bug(_("%s: cannot join thread"), __func__);
 
 out:
-    wtimeout(action_window, -1);
-    delwin(form_data.form_window);
-    werase(help_window);
-    nm_init_help_main();
+    NM_FORM_RESET();
     nm_form_free(form, fields);
     nm_str_free(&data.snap_name);
     nm_str_free(&data.load);

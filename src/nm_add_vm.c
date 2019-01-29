@@ -10,8 +10,6 @@
 #include <nm_cfg_file.h>
 #include <nm_ovf_import.h>
 
-#define NM_ADD_VM_FIELDS_NUM 9
-
 #define NM_VM_FORM_NAME      "Name"
 #define NM_VM_FORM_ARCH      "Architecture"
 #define NM_VM_FORM_CPU_BEGIN "CPU cores [1-"
@@ -25,9 +23,6 @@
 #define NM_VM_FORM_INS_PATH  "Path to ISO/IMG"
 #define NM_VM_FORM_NET_IFS   "Network interfaces"
 #define NM_VM_FORM_NET_DRV   "Net driver"
-
-static nm_form_t *form = NULL;
-static nm_field_t *fields[NM_ADD_VM_FIELDS_NUM + 1];
 
 static void nm_add_vm_field_setup(int import);
 static void nm_add_vm_field_names(nm_vect_t *msg, int import);
@@ -44,8 +39,12 @@ enum {
     NM_FLD_DISKIN,
     NM_FLD_SOURCE,
     NM_FLD_IFSCNT,
-    NM_FLD_IFSDRV
+    NM_FLD_IFSDRV,
+    NM_FLD_COUNT
 };
+
+static nm_form_t *form = NULL;
+static nm_field_t *fields[NM_FLD_COUNT + 1];
 
 void nm_import_vm(void)
 {
@@ -72,7 +71,7 @@ static void nm_add_vm_main(int import)
     nm_add_vm_field_names(&msg_fields, import);
     msg_len = nm_max_msg_len((const char **) msg_fields.data);
 
-    if (nm_form_calc_size(msg_len, NM_ADD_VM_FIELDS_NUM, &form_data) != NM_OK)
+    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
         return;
 
     werase(action_window);
@@ -88,13 +87,13 @@ static void nm_add_vm_main(int import)
         nm_init_help_import();
     }
 
-    for (size_t n = 0; n < NM_ADD_VM_FIELDS_NUM; ++n)
+    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
         fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
-    fields[NM_ADD_VM_FIELDS_NUM] = NULL;
+    fields[NM_FLD_COUNT] = NULL;
 
     nm_add_vm_field_setup(import);
-    for (size_t n = 0, y = 1, x = 2; n < NM_ADD_VM_FIELDS_NUM; n++)
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
     {
         mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
         y += 2;
@@ -129,10 +128,7 @@ static void nm_add_vm_main(int import)
     }
 
 out:
-    wtimeout(action_window, -1);
-    werase(action_window);
-    werase(help_window);
-    nm_init_help_main();
+    NM_FORM_EXIT();
     nm_vect_free(&msg_fields, NULL);
     nm_vm_free(&vm);
     nm_form_free(form, fields);
