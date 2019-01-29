@@ -14,8 +14,7 @@ void nm_print_base_menu(nm_menu_data_t *ifs)
     int x = 2, y = 3;
     size_t screen_x;
 
-    wattroff(side_window, COLOR_PAIR(2));
-    wattroff(side_window, COLOR_PAIR(3));
+    wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
     screen_x = getmaxx(side_window);
     if (screen_x < 20) /* window to small */
@@ -73,7 +72,7 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         return;
     }
 
-    wattroff(side_window, COLOR_PAIR(3));
+    wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
     for (size_t n = vm->item_first, i = 0; n < vm->item_last; n++, i++)
     {
@@ -96,12 +95,12 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         if (nm_qmp_test_socket(nm_vect_item_name_str(vm->v, n)) == NM_OK)
         {
             nm_vect_set_item_status(vm->v, n, 1);
-            wattron(side_window, COLOR_PAIR(3));
+            wattron(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         }
         else
         {
             nm_vect_set_item_status(vm->v, n, 0);
-            wattroff(side_window, COLOR_PAIR(3));
+            wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         }
 
         if (vm->highlight == i + 1)
@@ -205,7 +204,7 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
         return;
     }
 
-    wattroff(side_window, COLOR_PAIR(3));
+    wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
     for (size_t n = veth->item_first, i = 0; n < veth->item_last; n++, i++)
     {
@@ -235,9 +234,9 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
         }
 
         if (nm_vect_item_status(veth->v, n))
-            wattron(side_window, COLOR_PAIR(3));
+            wattron(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         else
-            wattroff(side_window, COLOR_PAIR(3));
+            wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
         if (veth->highlight == i + 1)
         {

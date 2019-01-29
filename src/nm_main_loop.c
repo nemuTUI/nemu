@@ -38,16 +38,16 @@ void nm_start_main_loop(void)
     nm_vect_t vm_list = NM_INIT_VECT;
     const nm_cfg_t *cfg = nm_cfg_get();
 
-    init_pair(1, COLOR_BLACK, COLOR_WHITE);
-    init_pair(4, COLOR_RED, COLOR_WHITE);
+    init_pair(NM_COLOR_BLACK, COLOR_BLACK, COLOR_WHITE);
+    init_pair(NM_COLOR_RED, COLOR_RED, COLOR_WHITE);
     if (cfg->hl_is_set && can_change_color())
     {
         init_color(COLOR_WHITE + 1,
                 cfg->hl_color.r, cfg->hl_color.g, cfg->hl_color.b);
-        init_pair(3, COLOR_WHITE + 1, -1);
+        init_pair(NM_COLOR_HIGHLIGHT, COLOR_WHITE + 1, -1);
     }
     else
-        init_pair(3, COLOR_GREEN, -1);
+        init_pair(NM_COLOR_HIGHLIGHT, COLOR_GREEN, -1);
 
     nm_create_windows();
     nm_init_help_main();
@@ -445,6 +445,8 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
         *err = NM_TRUE;
         return 0;
     }
+
+    wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
     form_data.form_len = cols - (5 + msg_len);
     form_data.w_start_x = msg_len + 2;

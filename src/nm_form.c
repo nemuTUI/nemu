@@ -80,7 +80,7 @@ nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x, int color)
     int rows, cols; 
 
     if (color)
-        wbkgd(w, COLOR_PAIR(1));
+        wbkgd(w, COLOR_PAIR(NM_COLOR_BLACK));
 
     form = new_form(field);
     if (form == NULL)

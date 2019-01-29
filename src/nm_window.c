@@ -104,7 +104,7 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err)
     int x = 1, y = 0;
 
     assert(msg);
-    wbkgd(help_window, COLOR_PAIR(err ? 4 : 1));
+    wbkgd(help_window, COLOR_PAIR(err ? NM_COLOR_RED : NM_COLOR_BLACK));
 
     for (size_t n = 0; n < objs; n++)
     {
@@ -124,28 +124,28 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err)
 
 void nm_init_side(void)
 {
-    wattroff(side_window, COLOR_PAIR(3));
+    wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
     nm_init_window__(side_window, _("VM list"));
     wtimeout(side_window, 500);
 }
 
 void nm_init_side_lan(void)
 {
-    wattroff(side_window, COLOR_PAIR(3));
+    wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
     nm_init_window__(side_window, _("veth list"));
     wtimeout(side_window, -1);
 }
 
 void nm_init_side_if_list(void)
 {
-    wattroff(side_window, COLOR_PAIR(3));
+    wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
     nm_init_window__(side_window, _("Iface list"));
     wtimeout(side_window, -1);
 }
 
 void nm_init_side_drives(void)
 {
-    wattroff(side_window, COLOR_PAIR(3));
+    wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
     nm_init_window__(side_window, _("Drive list"));
     wtimeout(side_window, -1);
 }

@@ -116,6 +116,12 @@ extern sig_atomic_t redraw_window;
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)
 
+enum nm_color {
+    NM_COLOR_BLACK       = 1,
+    NM_COLOR_HIGHLIGHT   = 3,
+    NM_COLOR_RED         = 4
+};
+
 enum nm_key {
     NM_KEY_ENTER    = 10,
     NM_KEY_QUESTION = 63,
