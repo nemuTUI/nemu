@@ -215,7 +215,7 @@ out:
     nm_str_free(&query);
     nm_str_free(&drive_path);
     nm_vect_free(&drv_list, NULL);
-    nm_vect_free(&drives, NULL);
+    nm_vect_free(&drives, nm_str_vect_free_cb);
 }
 
 static void nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
