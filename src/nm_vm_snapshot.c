@@ -100,7 +100,7 @@ void nm_vm_snapshot_create(const nm_str_t *name)
         nm_bug(_("%s: cannot join thread"), __func__);
 
 out:
-    NM_FORM_RESET();
+    NM_FORM_EXIT();
     nm_form_free(form, fields);
     nm_str_free(&data.snap_name);
     nm_str_free(&data.load);

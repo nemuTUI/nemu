@@ -226,7 +226,7 @@ out:
     nm_vect_free(&drives, nm_drive_vect_free_cb);
 
 cancel:
-    NM_FORM_RESET();
+    NM_FORM_EXIT();
     nm_form_free(form, fields);
     nm_vm_free(&vm);
     delwin(form_data.form_window);
