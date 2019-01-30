@@ -110,6 +110,15 @@ void nm_start_main_loop(void)
             wrefresh(side_window);
             wrefresh(action_window);
         }
+        else
+        {
+            if (clear_action)
+            {
+                werase(action_window);
+                nm_init_action(NULL);
+                clear_action = 0;
+            }
+        }
 
         ch = wgetch(side_window);
 
