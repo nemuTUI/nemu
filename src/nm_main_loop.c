@@ -398,9 +398,6 @@ void nm_start_main_loop(void)
                 werase(action_window);
                 nm_init_action("Nemu Kurotsuchi");
                 nm_print_nemu();
-                werase(action_window);
-                nm_init_action(NULL);
-                wrefresh(action_window);
                 nemu = 0;
             }
         }
