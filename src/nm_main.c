@@ -129,7 +129,7 @@ static void nm_print_feset(void)
 #endif
 
     for (size_t n = 0; n < feset.n_memb; n++)
-        nm_str_format(&msg, "%s\n", (char *) nm_vect_at(&feset, n));
+        nm_str_format(&msg, " %s\n", (char *) nm_vect_at(&feset, n));
 
     if (msg.len)
     {
