@@ -110,33 +110,30 @@ static void nm_print_feset(void)
     nm_str_t msg = NM_INIT_STR;
 
 #if defined (NM_WITH_SPICE)
-    nm_vect_insert_cstr(&feset, "spice");
+    nm_vect_insert_cstr(&feset, "+ spice");
 #endif
 #if defined (NM_WITH_VNC_CLIENT)
-    nm_vect_insert_cstr(&feset, "vnc-client");
+    nm_vect_insert_cstr(&feset, "+ vnc-client");
 #endif
 #if defined (NM_SAVEVM_SNAPSHOTS)
-    nm_vect_insert_cstr(&feset, "savevm");
+    nm_vect_insert_cstr(&feset, "+ savevm");
 #endif
 #if defined (NM_WITH_OVF_SUPPORT)
-    nm_vect_insert_cstr(&feset, "ovf");
+    nm_vect_insert_cstr(&feset, "+ ovf");
 #endif
 #if defined (NM_WITH_NETWORK_MAP)
-    nm_vect_insert_cstr(&feset, "svg");
+    nm_vect_insert_cstr(&feset, "+ svg");
 #endif
 #if defined (NM_DEBUG)
-    nm_vect_insert_cstr(&feset, "debug");
+    nm_vect_insert_cstr(&feset, "+ debug");
 #endif
 
-    if (feset.n_memb)
-        nm_str_alloc_text(&msg, "Features: ");
-
     for (size_t n = 0; n < feset.n_memb; n++)
-        nm_str_format(&msg, "%s, ", (char *) nm_vect_at(&feset, n));
+        nm_str_format(&msg, "%s\n", (char *) nm_vect_at(&feset, n));
 
     if (msg.len)
     {
-        nm_str_trunc(&msg, msg.len - 2);
+        nm_str_trunc(&msg, msg.len - 1);
         printf("%s\n", msg.data);
     }
 
