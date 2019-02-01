@@ -10,4 +10,4 @@ if ! git describe > /dev/null 2>&1; then
   exit 0
 fi
 
-echo -n "\"$(git describe --abbrev=4 --always --tags)\""
+echo -n "\"$(git describe --always --tags)\""
