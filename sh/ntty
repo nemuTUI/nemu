@@ -1,0 +1,19 @@
+#!/bin/sh
+tty_id="${1:-0}"
+ntty_dev="/tmp/ntty${tty_id}"
+ntty_pid="/tmp/ntty${tty_id}.pid"
+ntty_log="/tmp/ntty${tty_id}.log"
+stty_dev="/tmp/stty${tty_id}"
+stty_pty="pty,raw,link=${stty_dev},echo=0"
+set -x
+socat="/usr/bin/socat"
+socat_args="${ntty_dev} ${stty_pty}"
+
+picocom="/usr/bin/picocom"
+
+start-stop-daemon -Sb -mp "${ntty_pid}" -x "${socat}" -- ${socat_args}
+while [ ! -c "${stty_dev}" ]; do
+  sleep 0.1
+done
+"${picocom}" -b115200 --logfile "${ntty_log}" "${stty_dev}"
+start-stop-daemon -K -p "${ntty_pid}" -x "${socat}" -- ${socat_args}
