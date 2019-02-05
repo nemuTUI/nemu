@@ -185,6 +185,11 @@ void nm_lan_settings(void)
             if (renew_status)
                 renew_status = 0;
         }
+        else
+        {
+            werase(action_window);
+            nm_init_action(_(NM_MSG_LAN));
+        }
 
         if (redraw_window)
         {
