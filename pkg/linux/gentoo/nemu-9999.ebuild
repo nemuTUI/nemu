@@ -25,7 +25,6 @@ RDEPEND="
 		dev-libs/libxml2
 		app-arch/libarchive
 	)
-	vnc-client? ( net-misc/tigervnc )
 	svg? ( media-gfx/graphviz[svg] )"
 DEPEND="${RDEPEND}
 	sys-devel/gettext"
