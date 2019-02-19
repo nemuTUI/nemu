@@ -616,9 +616,9 @@ nm_print_help__(const char **keys, const char **values,
 
     perc = (hotkey_num > rows) ? ((rows * 100) / hotkey_num) : 100;
     if (perc == 100)
-        nm_str_format(&help_title, _("Help [all]"));
+        nm_str_format(&help_title, _("nEMU %s - help [all]"), NM_VERSION);
     else
-        nm_str_format(&help_title, _("Help [%d%%]") , perc);
+        nm_str_format(&help_title, _("nEMU %s - help [%d%%]") , NM_VERSION, perc);
 
     werase(action_window);
     nm_init_action(help_title.data);
@@ -652,10 +652,10 @@ nm_print_help__(const char **keys, const char **values,
                 if (last < hotkey_num)
                 {
                     perc = 100 * last / hotkey_num;
-                    nm_str_format(&help_title, _("Help [%d%%]") , perc);
+                    nm_str_format(&help_title, _("nEMU %s - help [%d%%]") , NM_VERSION, perc);
                 }
                 else
-                    nm_str_format(&help_title, _("Help [end]"));
+                    nm_str_format(&help_title, _("nEMU %s - help [end]"), NM_VERSION);
 
                 nm_init_action(help_title.data);
             }
