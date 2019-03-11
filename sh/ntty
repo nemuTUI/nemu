@@ -17,3 +17,5 @@ while [ ! -c "${stty_dev}" ]; do
 done
 "${picocom}" -b115200 --logfile "${ntty_log}" "${stty_dev}"
 start-stop-daemon -K -p "${ntty_pid}" -x "${socat}" -- ${socat_args}
+
+rm ${ntty_dev} ${ntty_pid}
