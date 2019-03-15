@@ -15,7 +15,5 @@ start-stop-daemon -Sb -mp "${ntty_pid}" -x "${socat}" -- ${socat_args}
 while [ ! -c "${stty_dev}" ]; do
   sleep 0.1
 done
-"${picocom}" -b115200 --logfile "${ntty_log}" "${stty_dev}"
+"${picocom}" -e x -b115200 --logfile "${ntty_log}" "${stty_dev}"
 start-stop-daemon -K -p "${ntty_pid}" -x "${socat}" -- ${socat_args}
-
-rm ${ntty_dev} ${ntty_pid}
