@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=9
+DB_ACTUAL_VERSION=10
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 RC=0
 
@@ -83,6 +83,16 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD spice integer;' &&
             sqlite3 "$DB_PATH" -line 'UPDATE vms SET spice="1";' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=9'
+            ) || RC=1
+            ;;
+
+        ( 9 )
+            (
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD debug_port integer;' &&
+            sqlite3 "$DB_PATH" -line 'UPDATE vms SET debug_port="";' &&
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD debug_freeze integer;' &&
+            sqlite3 "$DB_PATH" -line 'UPDATE vms SET debug_freeze="0";' &&
+            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=10'
             ) || RC=1
             ;;
 

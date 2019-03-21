@@ -152,7 +152,8 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     nm_str_format(&query, "%d", last_vnc);
     nm_str_add_text(&query, "', arch, iso, install, usb, "
         "usbid, bios, kernel, mouse_override, kernel_append, tty_path, socket_path,"
-        "initrd, machine, fs9p_enable, fs9p_path, fs9p_name, usb_type, spice "
+        "initrd, machine, fs9p_enable, fs9p_path, fs9p_name, usb_type, spice,"
+        "debug_port, debug_freeze "
         "FROM vms WHERE name='");
     nm_str_add_str(&query, src);
     nm_str_add_char(&query, '\'');

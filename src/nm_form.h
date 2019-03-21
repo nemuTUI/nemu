@@ -49,7 +49,9 @@ typedef struct {
     nm_str_t initrd;
     nm_str_t tty;
     nm_str_t socket;
+    nm_str_t debug_port;
     uint32_t installed:1;
+    uint32_t debug_freeze:1;
 } nm_vm_boot_t;
 
 typedef struct {
@@ -130,7 +132,8 @@ extern const char *nm_form_svg_layer[];
 #define NM_INIT_VM_KVM   { 0, 0 }
 #define NM_INIT_VM_BOOT  { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                            NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                           NM_INIT_STR, NM_INIT_STR, 0 }
+                           NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
+                           0, 0 }
 #define NM_INIT_SPINNER  { 0, 1, NULL }
 #define NM_INIT_FORM_DATA { 0, 0, 0, 0, NULL }
 

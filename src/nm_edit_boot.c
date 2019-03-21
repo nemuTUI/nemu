@@ -17,6 +17,8 @@ enum {
     NM_FLD_INIT,
     NM_FLD_TTYP,
     NM_FLD_SOCK,
+    NM_FLD_DEBP,
+    NM_FLD_DEBF,
     NM_FLD_COUNT
 };
 
@@ -26,6 +28,7 @@ static const char *nm_form_msg[] = {
     "OS Installed", "Path to ISO/IMG", "Machine type",
     "Path to BIOS", "Path to kernel", "Kernel cmdline",
     "Path to initrd", "Serial TTY", "Serial socket",
+    "GDB debug port [0-65535]", "Freeze after start [yes/no]",
     NULL
 };
 
@@ -94,6 +97,8 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
     set_field_type(fields[NM_FLD_INIT], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_TTYP], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_SOCK], TYPE_REGEXP, "^/.*");
+    set_field_type(fields[NM_FLD_DEBP], TYPE_INTEGER, 1, 0, 65535);
+    set_field_type(fields[NM_FLD_DEBF], TYPE_ENUM, nm_form_yes_no, false, false);
 
     if (machs == NULL)
         field_opts_off(fields[NM_FLD_MACH], O_ACTIVE);
@@ -111,6 +116,11 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
     set_field_buffer(fields[NM_FLD_INIT], 0, nm_vect_str_ctx(&cur->main, NM_SQL_INIT));
     set_field_buffer(fields[NM_FLD_TTYP], 0, nm_vect_str_ctx(&cur->main, NM_SQL_TTY));
     set_field_buffer(fields[NM_FLD_SOCK], 0, nm_vect_str_ctx(&cur->main, NM_SQL_SOCK));
+    set_field_buffer(fields[NM_FLD_DEBP], 0, nm_vect_str_ctx(&cur->main, NM_SQL_DEBP));
+    if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_DEBF), NM_ENABLE) == NM_OK)
+        set_field_buffer(fields[NM_FLD_DEBF], 0, nm_form_yes_no[0]);
+    else
+        set_field_buffer(fields[NM_FLD_DEBF], 0, nm_form_yes_no[1]);
 
     for (size_t n = 0; n < NM_FLD_COUNT; n++)
         set_field_status(fields[n], 0);
@@ -132,6 +142,7 @@ static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
     int rc = NM_OK;
     nm_vect_t err = NM_INIT_VECT;
     nm_str_t inst = NM_INIT_STR;
+    nm_str_t debug_freeze = NM_INIT_STR;
 
     nm_get_field_buf(fields[NM_FLD_INST], &inst);
     nm_get_field_buf(fields[NM_FLD_MACH], &vm->mach);
@@ -142,6 +153,8 @@ static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
     nm_get_field_buf(fields[NM_FLD_INIT], &vm->initrd);
     nm_get_field_buf(fields[NM_FLD_TTYP], &vm->tty);
     nm_get_field_buf(fields[NM_FLD_SOCK], &vm->socket);
+    nm_get_field_buf(fields[NM_FLD_DEBP], &vm->debug_port);
+    nm_get_field_buf(fields[NM_FLD_DEBF], &debug_freeze);
 
     if (field_status(fields[NM_FLD_INST]))
         nm_form_check_data(_("OS Installed"), inst, err);
@@ -161,8 +174,14 @@ static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
         }
     }
 
+    if (nm_str_cmp_st(&debug_freeze, "yes") == NM_OK)
+        vm->debug_freeze = 1;
+    else
+        vm->debug_freeze = 0;
+
 out:
     nm_str_free(&inst);
+    nm_str_free(&debug_freeze);
     nm_vect_free(&err, NULL);
 
     return rc;
@@ -251,6 +270,26 @@ static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
         nm_str_add_text(&query, "UPDATE vms SET socket_path='");
         nm_str_format(&query, "%s' WHERE name='%s'",
             vm->socket.data, name->data);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_DEBP]))
+    {
+        nm_str_add_text(&query, "UPDATE vms SET debug_port='");
+        nm_str_format(&query, "%s' WHERE name='%s'",
+            vm->debug_port.data, name->data);
+        nm_db_edit(query.data);
+        nm_str_trunc(&query, 0);
+    }
+
+    if (field_status(fields[NM_FLD_DEBF]))
+    {
+        nm_str_alloc_text(&query, "UPDATE vms SET debug_freeze='");
+        nm_str_add_text(&query, vm->debug_freeze ? NM_ENABLE : NM_DISABLE);
+        nm_str_add_text(&query, "' WHERE name='");
+        nm_str_add_str(&query, name);
+        nm_str_add_char(&query, '\'');
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }
