@@ -51,7 +51,7 @@ typedef struct {
     nm_str_t socket;
     nm_str_t debug_port;
     uint32_t installed:1;
-    uint32_t debug_stop:1;
+    uint32_t debug_freeze:1;
 } nm_vm_boot_t;
 
 typedef struct {
