@@ -28,7 +28,7 @@ static const char *nm_form_msg[] = {
     "OS Installed", "Path to ISO/IMG", "Machine type",
     "Path to BIOS", "Path to kernel", "Kernel cmdline",
     "Path to initrd", "Serial TTY", "Serial socket",
-    "GDB debug port [0-65535]", "Freeze after start [yes/no]",
+    "GDB debug port", "Freeze after start",
     NULL
 };
 
