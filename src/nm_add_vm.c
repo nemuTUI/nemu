@@ -274,7 +274,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     /* {{{ insert main VM data */
     nm_str_alloc_text(&query, "INSERT INTO vms("
         "name, mem, smp, kvm, hcpu, vnc, arch, iso, install, mouse_override, usb, usb_type");
-    nm_str_add_text(&query, ", fs9p_enable, spice) VALUES('");
+    nm_str_add_text(&query, ", fs9p_enable, spice, debug_port, debug_freeze) VALUES('");
     nm_str_add_str(&query, &vm->name);
     nm_str_add_text(&query, "', '");
     nm_str_add_str(&query, &vm->memo);
@@ -312,6 +312,8 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     }
     nm_str_add_text(&query, "', '" NM_DISABLE); /* disable 9pfs by default */
     nm_str_format(&query, "', '%s", (nm_cfg_get()->spice_default) ? NM_ENABLE : NM_DISABLE);
+    nm_str_add_text(&query, "', '"); /* disable GDB debug by default */
+    nm_str_add_text(&query, "', '" NM_DISABLE); /* disable freeze CPU at startup  by default*/
     nm_str_add_text(&query, "')");
 
     nm_db_edit(query.data);

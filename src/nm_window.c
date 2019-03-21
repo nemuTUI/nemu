@@ -448,6 +448,18 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
                 nm_vect_str_ctx(&vm->main, NM_SQL_SOCK));
         NM_PR_VM_INFO();
     }
+    if (nm_vect_str_len(&vm->main, NM_SQL_DEBP))
+    {
+        nm_str_format(&buf, "%-12s%s", "gdb port: ",
+                nm_vect_str_ctx(&vm->main, NM_SQL_DEBP));
+        NM_PR_VM_INFO();
+    }
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_DEBF), NM_ENABLE) == NM_OK)
+    {
+        nm_str_format(&buf, "%-12s", "freeze cpu: yes");
+        NM_PR_VM_INFO();
+    }
+    
     /* }}} boot settings */
 
     /* {{{ Print host IP addresses for TAP ints */
