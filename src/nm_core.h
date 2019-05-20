@@ -40,7 +40,7 @@
 
 #define NM_PROGNAME "nemu"
 #ifndef NM_VERSION
-# define NM_VERSION "v2.2.0"
+#define NM_VERSION "v2.2.1"
 #endif
 
 #define NM_OK   0

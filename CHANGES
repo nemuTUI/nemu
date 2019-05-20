@@ -1,3 +1,8 @@
+v2.2.1 - 16 May 2019
+------------------------
+    - Feature: GDB support
+    - Change: switch picocom keybinding to ctrl-x from ctrl-a (ntty.sh)
+
 v2.2.0 - 12 Feb 2019
 ------------------------
     - Feature: SPICE protocol support
