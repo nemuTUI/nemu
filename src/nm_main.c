@@ -3,12 +3,13 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_main_loop.h>
+#include <nm_vm_control.h>
 #include <nm_lan_settings.h>
 
 #if defined (NM_OS_LINUX)
-  #define NM_OPT_ARGS "cvh"
+  #define NM_OPT_ARGS "cs:vh"
 #else
-  #define NM_OPT_ARGS "vh"
+  #define NM_OPT_ARGS "s:vh"
 #endif
 
 static void signals_handler(int signal);
@@ -62,14 +63,16 @@ static void nm_process_args(int argc, char **argv)
 {
     int opt;
     const char *optstr = NM_OPT_ARGS;
+    nm_str_t vmname = NM_INIT_STR;
 
     static const struct option longopts[] = {
 #if defined (NM_OS_LINUX)
-        { "create-veth", no_argument, NULL, 'c' },
+        { "create-veth", no_argument,       NULL, 'c' },
 #endif
-        { "version",     no_argument, NULL, 'v' },
-        { "help",        no_argument, NULL, 'h' },
-        { NULL,          0,           NULL,  0  }
+        { "start",       required_argument, NULL, 's' },
+        { "version",     no_argument,       NULL, 'v' },
+        { "help",        no_argument,       NULL, 'h' },
+        { NULL,          0,                 NULL,  0  }
     };
 
     while ((opt = getopt_long(argc, argv, optstr, longopts, NULL)) != -1)
@@ -77,14 +80,18 @@ static void nm_process_args(int argc, char **argv)
         switch (opt) {
 #if defined (NM_OS_LINUX)
         case 'c':
-            nm_cfg_init();
-            nm_db_init();
+            NM_INIT_CORE();
             nm_lan_create_veth(NM_TRUE);
-            nm_db_close();
-            nm_cfg_free();
-            exit(NM_OK);
+            NM_EXIT_CORE();
             break;
 #endif
+        case 's':
+            NM_INIT_CORE();
+            nm_str_alloc_text(&vmname, optarg);
+            nm_vmctl_start(&vmname, 0);
+            nm_str_free(&vmname);
+            NM_EXIT_CORE();
+            break;
         case 'v':
             printf("nEMU %s\n", NM_VERSION);
             nm_print_feset();
@@ -92,10 +99,11 @@ static void nm_process_args(int argc, char **argv)
             break;
         case 'h':
 #if defined (NM_OS_LINUX)
-            printf("%s\n", _("-c, --create-veth: create veth interfaces"));
+            printf("%s\n", _("-c, --create-veth   create veth interfaces"));
 #endif
-            printf("%s\n", _("-v, --version:     show version"));
-            printf("%s\n", _("-h, --help:        show help"));
+            printf("%s\n", _("-s, --start <name>  start vm"));
+            printf("%s\n", _("-v, --version       show version"));
+            printf("%s\n", _("-h, --help          show help"));
             exit(NM_OK);
             break;
         default:

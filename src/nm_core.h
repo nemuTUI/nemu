@@ -77,6 +77,11 @@
 #define NM_KEY_ESC 0x1b
 
 #define NM_UNUSED __attribute__((__unused__))
+#define NM_INIT_CORE() nm_cfg_init(); \
+                       nm_db_init();
+#define NM_EXIT_CORE() nm_db_close(); \
+                       nm_cfg_free(); \
+                       exit(NM_OK);
 
 #endif /* NM_CORE_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */
