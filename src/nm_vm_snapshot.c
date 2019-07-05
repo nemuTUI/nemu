@@ -413,7 +413,7 @@ static void nm_vm_snapshot_to_db(const nm_str_t *name, const nm_vmsnap_t *data)
 {
     nm_str_t query = NM_INIT_STR;
     int load = 0;
-    
+
     if (nm_str_cmp_st(&data->load, "yes") == NM_OK)
         load = 1;
 

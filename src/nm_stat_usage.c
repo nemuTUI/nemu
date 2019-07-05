@@ -136,7 +136,7 @@ float nm_stat_get_usage(int pid)
     pb = nm_proc_cpu_before;
     ta = nm_total_cpu_after;
     tb = nm_total_cpu_before;
-    
+
     if (nm_cpu_iter)
         nm_cpu_usage = ((pa - pb) / (ta - tb)) * 100 * sysconf(_SC_NPROCESSORS_ONLN);
 

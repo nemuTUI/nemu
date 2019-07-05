@@ -121,7 +121,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
 
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, nm_vect_str_ctx(&cur->main, NM_SQL_SMP));
     set_field_buffer(fields[NM_FLD_RAMTOT], 0, nm_vect_str_ctx(&cur->main, NM_SQL_MEM));
-    
+
     if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_KVM), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_KVMFLG], 0, nm_form_yes_no[0]);
     else
@@ -145,7 +145,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
         set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_form_usbtype[1]);
     else
         set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_form_usbtype[0]);
-    
+
     if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_OVER), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_MOUSES], 0, nm_form_yes_no[0]);
     else
@@ -424,7 +424,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
 #endif
 
                 nm_db_edit(query.data);
-                
+
                 nm_str_free(&if_name);
                 nm_str_free(&maddr);
                 nm_str_trunc(&query, 0);

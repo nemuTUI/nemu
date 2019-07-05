@@ -254,7 +254,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 
             if ((cfg = fopen(cfg_path->data, "w+")) == NULL)
                 nm_bug("Cannot create file: %s\n", cfg_path->data);
-           
+
             /* clear stdin */
             while ((ch = getchar()) != '\n' && ch != EOF) {}
 

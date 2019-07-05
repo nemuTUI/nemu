@@ -177,7 +177,7 @@ static void nm_usb_unplug_list(const nm_vect_t *db_list, nm_vect_t *names)
     {
         size_t idx_shift = NM_USB_IDX_COUNT * n;
 
-        nm_str_format(&buf, "%zu:%s [serial:%s]", n + 1, 
+        nm_str_format(&buf, "%zu:%s [serial:%s]", n + 1,
                 nm_vect_str_ctx(db_list, NM_SQL_USB_NAME + idx_shift),
                 nm_vect_str_ctx(db_list, NM_SQL_USB_SERIAL + idx_shift));
         nm_vect_insert(names, buf.data, buf.len + 1, NULL);
@@ -298,7 +298,7 @@ static int nm_usb_unplug_get_data(nm_usb_data_t *usb, const nm_vect_t *db_list)
     idx = nm_str_stoui(&buf, 10);
     idx_shift = --idx * NM_USB_IDX_COUNT;
     nm_debug("s:%s, idx=%u\n", buf.data, idx);
-            
+
     nm_str_copy(&usb->dev->name,
             nm_vect_str(db_list, NM_SQL_USB_NAME + idx_shift));
     nm_str_copy(&usb->dev->vendor_id,

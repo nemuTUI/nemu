@@ -77,7 +77,7 @@ nm_form_t *
 nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x, int color)
 {
     nm_form_t *form;
-    int rows, cols; 
+    int rows, cols;
 
     if (color)
         wbkgd(w, COLOR_PAIR(NM_COLOR_BLACK));

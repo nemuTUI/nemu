@@ -13,7 +13,7 @@ inline void nm_ncurses_init(void)
     raw();
     noecho();
     curs_set(0);
-#if NCURSES_REENTRANT 
+#if NCURSES_REENTRANT
     set_escdelay(1);
 #else
     ESCDELAY = 1;
