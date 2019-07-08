@@ -34,13 +34,11 @@ enum {
 struct iplink_req {
     struct nlmsghdr n;
     struct ifinfomsg i;
-    char buf[1024];
 };
 
 struct ipaddr_req {
     struct nlmsghdr n;
     struct ifaddrmsg i;
-    char buf[256];
 };
 
 struct rtnl_handle {
