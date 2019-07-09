@@ -77,12 +77,12 @@ NM_HELP_GEN(delete)
 
 void nm_create_windows(void)
 {
-    int action_cols, screen_x, screen_y; 
+    int action_cols, screen_x, screen_y;
     nm_cord_t help_size = NM_INIT_POS;
     nm_cord_t side_size = NM_INIT_POS;
     nm_cord_t action_size = NM_INIT_POS;
 
-    getmaxyx(stdscr, screen_y, screen_x); 
+    getmaxyx(stdscr, screen_y, screen_x);
     action_cols = screen_x * nm_window_scale;
 
     help_size = NM_SET_POS(1, screen_x, 0, 0);
@@ -170,8 +170,8 @@ static void nm_init_window__(nm_window_t *w, const char *msg)
 
 void nm_destroy_windows(void)
 {
-    delwin(help_window); 
-    delwin(side_window); 
+    delwin(help_window);
+    delwin(side_window);
     delwin(action_window);
 
     help_window = NULL;
@@ -459,7 +459,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         nm_str_format(&buf, "%-12s", "freeze cpu: yes");
         NM_PR_VM_INFO();
     }
-    
+
     /* }}} boot settings */
 
     /* {{{ Print host IP addresses for TAP ints */
@@ -556,7 +556,7 @@ void nm_print_help(void)
         "c",
 #endif
         "p", "z", "f", "d", "e", "i",
-        "a", "l", "b", "h", "m", "v", 
+        "a", "l", "b", "h", "m", "v",
         "u", "P", "R",
 #if (NM_SAVEVM_SNAPSHOTS)
         "S", "X", "D",

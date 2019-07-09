@@ -39,7 +39,7 @@ void *nm_vect_at(const nm_vect_t *v, size_t index)
 
     if (index >= v->n_memb)
         nm_bug(_("%s: invalid index"), __func__);
-    
+
     return v->data[index];
 }
 

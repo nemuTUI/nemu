@@ -56,7 +56,7 @@
 #define NM_STRING_NX(S) # S
 #define NM_STRING(S) NM_STRING_NX(S)
 
-#define NM_LOCALE "/share/locale" 
+#define NM_LOCALE "/share/locale"
 
 #ifndef NM_USR_PREFIX
 #define NM_USR_PREFIX /usr

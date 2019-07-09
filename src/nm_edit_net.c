@@ -103,7 +103,7 @@ void nm_edit_net(const nm_str_t *name)
     nm_init_side_if_list();
 
     iface_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
-    
+
     ifs.highlight = 1;
     if (vm_list_len < iface_count)
         ifs.item_last = vm_list_len;
