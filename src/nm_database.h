@@ -3,6 +3,9 @@
 
 #include <nm_vector.h>
 
+#define NM_GET_VMS_SQL \
+    "SELECT name FROM vms ORDER BY name ASC"
+
 #define NM_RESET_LOAD_SQL \
     "UPDATE vmsnapshots SET load='0' WHERE vm_name='%s'"
 

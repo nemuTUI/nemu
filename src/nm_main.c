@@ -7,9 +7,9 @@
 #include <nm_lan_settings.h>
 
 #if defined (NM_OS_LINUX)
-  #define NM_OPT_ARGS "cs:vh"
+  #define NM_OPT_ARGS "cs:vhl"
 #else
-  #define NM_OPT_ARGS "s:vh"
+  #define NM_OPT_ARGS "s:vhl"
 #endif
 
 static void signals_handler(int signal);
@@ -64,12 +64,14 @@ static void nm_process_args(int argc, char **argv)
     int opt;
     const char *optstr = NM_OPT_ARGS;
     nm_str_t vmname = NM_INIT_STR;
+    nm_vect_t vm_list = NM_INIT_VECT;
 
     static const struct option longopts[] = {
 #if defined (NM_OS_LINUX)
         { "create-veth", no_argument,       NULL, 'c' },
 #endif
         { "start",       required_argument, NULL, 's' },
+        { "list",        no_argument,       NULL, 'l' },
         { "version",     no_argument,       NULL, 'v' },
         { "help",        no_argument,       NULL, 'h' },
         { NULL,          0,                 NULL,  0  }
@@ -92,6 +94,14 @@ static void nm_process_args(int argc, char **argv)
             nm_str_free(&vmname);
             NM_EXIT_CORE();
             break;
+        case 'l':
+            NM_INIT_CORE();
+            nm_db_select(NM_GET_VMS_SQL, &vm_list);
+            for (size_t i = 0; i < vm_list.n_memb; ++i)
+                printf("%s\n", ((nm_str_t*)vm_list.data[i])->data);
+            nm_vect_free(&vm_list, nm_str_vect_free_cb);
+            NM_EXIT_CORE();
+            break;
         case 'v':
             printf("nEMU %s\n", NM_VERSION);
             nm_print_feset();
@@ -102,6 +112,7 @@ static void nm_process_args(int argc, char **argv)
             printf("%s\n", _("-c, --create-veth   create veth interfaces"));
 #endif
             printf("%s\n", _("-s, --start <name>  start vm"));
+            printf("%s\n", _("-l, --list          list vms"));
             printf("%s\n", _("-v, --version       show version"));
             printf("%s\n", _("-h, --help          show help"));
             exit(NM_OK);
