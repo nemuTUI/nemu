@@ -21,7 +21,6 @@
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
 
-#define NM_SQL_GET_VM "SELECT name FROM vms ORDER BY name ASC"
 #define NM_SEARCH_STR "Search:"
 
 static size_t nm_search_vm(const nm_vect_t *list, int *err);
@@ -60,7 +59,7 @@ void nm_start_main_loop(void)
         {
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
             nm_vect_free(&vms_v, NULL);
-            nm_db_select(NM_SQL_GET_VM, &vm_list);
+            nm_db_select(NM_GET_VMS_SQL, &vm_list);
             vm_list_len = (getmaxy(side_window) - 4);
 
             vms.highlight = 1;
