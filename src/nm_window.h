@@ -80,6 +80,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_IFCLR_DONE "Unused ifaces deleted" NM_MSG_ANY_KEY
 #define NM_MSG_IFCLR_NONE "No unused ifaces" NM_MSG_ANY_KEY
 #define NM_MSG_ISO_MISS   "ISO/IMG path not set" NM_MSG_ANY_KEY
+#define NM_MSG_ISO_NF     "ISO path does not exist" NM_MSG_ANY_KEY
 #define NM_MSG_USB_DIS    "USB must be enabled at boot time" NM_MSG_ANY_KEY
 #define NM_MSG_USB_MISS   "There are no usb devices" NM_MSG_ANY_KEY
 #define NM_MSG_USB_NONE   "There are no devices attached" NM_MSG_ANY_KEY

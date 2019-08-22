@@ -300,6 +300,28 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
             nm_str_add_text(res, ",media=disk,if=ide");
         }
     } /* }}} install */
+    else /* just mount cdrom */
+    {
+        const char *iso = nm_vect_str_ctx(&vm->main, NM_SQL_ISO);
+        size_t srcp_len = strlen(iso);
+        struct stat info;
+        int rc = -1;
+
+        if (srcp_len > 0)
+        {
+            memset(&info, 0x0, sizeof(info));
+            rc = stat(iso, &info);
+        }
+
+        if ((rc == -1) && (!(flags & NM_VMCTL_INFO)))
+        {
+            nm_warn(_(NM_MSG_ISO_NF));
+            nm_str_trunc(res, 0);
+            goto out;
+        }
+        if (rc != -1)
+            nm_str_format(res, " -cdrom %s", iso);
+    }
 
     for (size_t n = 0; n < drives_count; n++)
     {
