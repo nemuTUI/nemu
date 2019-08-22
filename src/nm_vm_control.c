@@ -278,7 +278,8 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
     /* {{{ Setup install source */
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_INST), NM_ENABLE) == NM_OK)
     {
-        size_t srcp_len = nm_vect_str_len(&vm->main, NM_SQL_ISO);
+        const char *iso = nm_vect_str_ctx(&vm->main, NM_SQL_ISO);
+        size_t srcp_len = strlen(iso);
 
         if ((srcp_len == 0) && (!(flags & NM_VMCTL_INFO)))
         {
@@ -287,18 +288,12 @@ void nm_vmctl_gen_cmd(nm_str_t *res, const nm_vmctl_data_t *vm,
             goto out;
         }
         if ((srcp_len > 4) &&
-            (nm_str_cmp_tt(nm_vect_str_ctx(&vm->main, NM_SQL_ISO) + (srcp_len - 4),
-                ".iso") == NM_OK))
+            (nm_str_cmp_tt(iso + (srcp_len - 4), ".iso") == NM_OK))
         {
-            nm_str_add_text(res, " -boot d -cdrom ");
-            nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_ISO));
+            nm_str_format(res, " -boot d -cdrom %s", iso);
         }
         else
-        {
-            nm_str_add_text(res, " -drive file=");
-            nm_str_add_str(res, nm_vect_str(&vm->main, NM_SQL_ISO));
-            nm_str_add_text(res, ",media=disk,if=ide");
-        }
+            nm_str_format(res, " -drive file=%s,media=disk,if=ide", iso);
     } /* }}} install */
     else /* just mount cdrom */
     {
