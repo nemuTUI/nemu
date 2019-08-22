@@ -9,7 +9,6 @@ option(NM_SAVEVM_SNAPSHOTS "Build with QEMU savevm snapshots" OFF)
 option(NM_WITH_VNC_CLIENT "Build with usage of external VNC client" ON)
 option(NM_WITH_SPICE "Build with Spice protocol support" ON)
 option(NM_WITH_NETWORK_MAP "Build with exporting network map to SVG" OFF)
-option(NM_BASH_AUTOCOMPLETE "Install bash autocomplete script" OFF)
 
 if (NM_DEBUG)
   add_definitions(-DNM_DEBUG -ggdb)
@@ -134,10 +133,11 @@ install(FILES ${NEMU_DB_UPGRADE_SCRIPT} ${NEMU_NON_ROOT_SCRIPT} PERMISSIONS
 install(FILES ${NEMU_NTTY_SCRIPT} PERMISSIONS
     OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE
     WORLD_READ DESTINATION "${USR_PREFIX}/bin")
-if(NM_BASH_AUTOCOMPLETE)
+if(EXISTS "${USR_PREFIX}/share/bash-completion/completions")
   install(FILES ${NEMU_BASH_AUTOCOMPLETE} PERMISSIONS
-      OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE
-      WORLD_READ DESTINATION "${USR_PREFIX}/share/bash-completion/completions/")
+      OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+      DESTINATION "${USR_PREFIX}/share/bash-completion/completions"
+      RENAME "nemu")
 endif()
 
 # uninstall target
