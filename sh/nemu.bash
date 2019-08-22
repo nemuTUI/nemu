@@ -15,9 +15,6 @@ _nemu_completions()
         case "$prev" in
             "-s"|"--start")
                 COMPREPLY=( $(compgen -W "$(nemu -l)" -- "$curr") )
-                for i in "${!var[@]}"; do
-                    var[$i]="$(printf '%s\n' "${var[$i]}")"
-                done
             ;;
             *)
             ;;
