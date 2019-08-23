@@ -2,6 +2,7 @@
 #define NM_UTILS_H_
 
 #include <nm_string.h>
+#include <nm_vector.h>
 
 typedef struct {
     const nm_str_t *name;
@@ -17,13 +18,15 @@ void nm_map_file(nm_file_map_t *file);
 void nm_copy_file(const nm_str_t *src, const nm_str_t *dst);
 void nm_unmap_file(const nm_file_map_t *file);
 /* Execute process. Read stdout if answer is not NULL */
-int nm_spawn_process(const nm_str_t *cmd, nm_str_t *answer);
+int nm_spawn_process(const nm_vect_t *argv, nm_str_t *answer);
 
 void nm_bug(const char *fmt, ...)
     __attribute__ ((format(printf, 1, 2)));
 
 void nm_debug(const char *fmt, ...)
     __attribute__ ((format(printf, 1, 2)));
+
+void nm_cmd_str(nm_str_t *str, const nm_vect_t *argv);
 
 #define NM_INIT_FILE { NULL, -1, 0, NULL }
 

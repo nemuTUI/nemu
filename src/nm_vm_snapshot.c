@@ -328,7 +328,8 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
     {
         /* vm is not running, use
          * qemu-img snapshot -d snapshot_name path_to_drive system command */
-        nm_str_t cmd = NM_INIT_STR;
+        nm_str_t buf = NM_INIT_STR;
+        nm_vect_t argv = NM_INIT_VECT;
         nm_str_t query = NM_INIT_STR;
         nm_vect_t drives = NM_INIT_VECT;
 
@@ -337,18 +338,27 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
         nm_db_select(query.data, &drives);
         assert(drives.n_memb != 0);
 
-        nm_str_alloc_text(&cmd, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img snapshot -d ");
-        nm_str_add_str(&cmd, snap);
-        nm_str_add_char(&cmd, ' ');
-        nm_str_add_str(&cmd, &nm_cfg_get()->vm_dir);
-        nm_str_format(&cmd, "/%s/%s", name->data, nm_vect_str_ctx(&drives, 0));
+        nm_str_format(&buf, "%s/bin/qemu-img", NM_STRING(NM_USR_PREFIX));
+        nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
-        if (nm_spawn_process(&cmd, NULL) != NM_OK)
+        nm_vect_insert_cstr(&argv, "snapshot");
+        nm_vect_insert_cstr(&argv, "-d");
+
+        nm_vect_insert(&argv, snap->data, snap->len + 1, NULL);
+        nm_vect_insert(&argv, nm_cfg_get()->vm_dir.data, nm_cfg_get()->vm_dir.len + 1, NULL);
+
+        nm_str_trunc(&buf, 0);
+        nm_str_format(&buf, "/%s/%s", name->data, nm_vect_str_ctx(&drives, 0));
+        nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
+
+        nm_vect_end_zero(&argv);
+        if (nm_spawn_process(&argv, NULL) != NM_OK)
             nm_bug(_("%s: cannot delete snapshot"), __func__);
 
         rc = NM_OK;
+        nm_str_free(&buf);
+        nm_vect_free(&argv, NULL);
         nm_vect_free(&drives, nm_str_vect_free_cb);
-        nm_str_free(&cmd);
         nm_str_free(&query);
     }
     else

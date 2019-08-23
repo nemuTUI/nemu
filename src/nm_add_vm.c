@@ -3,6 +3,7 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_add_drive.h>
 #include <nm_add_vm.h>
 #include <nm_hw_info.h>
 #include <nm_network.h>
@@ -425,19 +426,8 @@ static void nm_add_vm_to_fs(nm_vm_t *vm, int import)
 
     if (!import)
     {
-        nm_str_alloc_text(&buf, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img create -f qcow2 ");
-        nm_str_add_str(&buf, &vm_dir);
-        nm_str_add_char(&buf, '/');
-        nm_str_add_str(&buf, &vm->name);
-        nm_str_add_text(&buf, "_a.img ");
-        nm_str_add_str(&buf, &vm->drive.size);
-        nm_str_add_text(&buf, "G");
-
-        if (nm_spawn_process(&buf, NULL) != NM_OK)
-        {
-            rmdir(vm_dir.data);
+        if (nm_add_drive_to_fs(&vm->name, &vm->drive.size, NULL) != NM_OK)
             nm_bug(_("%s: cannot create image file"), __func__);
-        }
     }
     else
     {

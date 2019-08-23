@@ -181,19 +181,25 @@ void nm_destroy_windows(void)
 
 void nm_print_cmd(const nm_str_t *name)
 {
+    nm_str_t buf = NM_INIT_STR;
+    nm_vect_t argv = NM_INIT_VECT;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
-    nm_str_t cmd = NM_INIT_STR;
+
     int col = getmaxx(stdscr);
 
     nm_vmctl_get_data(name, &vm);
-    nm_vmctl_gen_cmd(&cmd, &vm, name, NM_VMCTL_INFO, NULL);
+
+    nm_vmctl_gen_cmd(&argv, &vm, name, NM_VMCTL_INFO, NULL);
+
+    nm_cmd_str(&buf, &argv);
 
     nm_clear_screen();
     mvprintw(1, (col - name->len) / 2, "%s", name->data);
-    mvprintw(3, 0, "%s", cmd.data);
+    mvprintw(3, 0, "%s", buf.data);
 
+    nm_str_free(&buf);
+    nm_vect_free(&argv, NULL);
     nm_vmctl_free_data(&vm);
-    nm_str_free(&cmd);
 
     refresh();
     getch();

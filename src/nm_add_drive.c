@@ -20,8 +20,6 @@ enum {
     NM_FLD_COUNT
 };
 
-static void nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
-                               const nm_vect_t *drives);
 static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
                                const nm_str_t *type, const nm_vect_t *drives);
 
@@ -90,7 +88,8 @@ void nm_add_drive(const nm_str_t *name)
         goto out;
     }
 
-    nm_add_drive_to_fs(name, &drv_size, &vm.drives);
+    if (nm_add_drive_to_fs(name, &drv_size, &vm.drives) != NM_OK)
+        nm_bug(_("%s: cannot create image file"), __func__);
     nm_add_drive_to_db(name, &drv_size, &drv_type, &vm.drives);
 
 out:
@@ -218,32 +217,50 @@ out:
     nm_vect_free(&drives, nm_str_vect_free_cb);
 }
 
-static void nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
-                               const nm_vect_t *drives)
+int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
+    const nm_vect_t *drives)
 {
-    nm_str_t vm_dir = NM_INIT_STR;
-    nm_str_t cmd = NM_INIT_STR;
-    size_t drive_count = drives->n_memb / 4;
+    nm_str_t buf = NM_INIT_STR;
+    nm_vect_t argv = NM_INIT_VECT;
+
+    nm_str_alloc_text(&buf, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img");
+
+    nm_vect_insert_cstr(&argv, "create");
+    nm_vect_insert_cstr(&argv, "-f");
+    nm_vect_insert_cstr(&argv, "qcow2");
+
+//@TODO Fix conversion from size_t to char (might be a problem if there is too many drives)
+    size_t drive_count = 0;
+    if (drives != NULL)
+    {
+        drive_count = drives->n_memb / 4;
+    }
     char drv_ch = 'a' + drive_count;
 
-    nm_str_copy(&vm_dir, &nm_cfg_get()->vm_dir);
-    nm_str_add_char(&vm_dir, '/');
-    nm_str_add_str(&vm_dir, name);
+//@TODO Why add VM name twice (in directory name and in filename)?
+    nm_str_trunc(&buf, 0);
+    nm_str_format(&buf, "%s/%s/%s_%c.img",
+        nm_cfg_get()->vm_dir.data, name->data, name->data, drv_ch);
+    nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
-    nm_str_alloc_text(&cmd, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img create -f qcow2 ");
-    nm_str_format(&cmd, "%s/%s_%c.img %sG",
-        vm_dir.data, name->data, drv_ch, size->data);
+    nm_str_trunc(&buf, 0);
+    nm_str_format(&buf, "%sG", size->data);
+    nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
-    if (nm_spawn_process(&cmd, NULL) != NM_OK)
-        nm_bug(_("%s: cannot create image file"), __func__);
+    nm_vect_end_zero(&argv);
+    if (nm_spawn_process(&argv, NULL) != NM_OK)
+        return NM_ERR;
 
-    nm_str_free(&vm_dir);
-    nm_str_free(&cmd);
+    nm_str_free(&buf);
+    nm_vect_free(&argv, NULL);
+
+    return NM_OK;
 }
 
 static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
                                const nm_str_t *type, const nm_vect_t *drives)
 {
+//@TODO Fix conversion from size_t to char (might be a problem if there is too many drives)
     size_t drive_count = drives->n_memb / 4;
     char drv_ch = 'a' + drive_count;
     nm_str_t query = NM_INIT_STR;

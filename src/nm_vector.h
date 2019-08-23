@@ -28,7 +28,7 @@ void nm_vect_free(nm_vect_t *v, nm_vect_free_cb_pt cb);
 #define nm_vect_item_status_cur(p) nm_vect_item_status(p.v, (p.item_first + p.highlight) - 1)
 #define nm_vect_set_item_status(p, idx, s) ((nm_menu_item_t *) nm_vect_at(p, idx))->status = s
 
-#define nm_vect_insert_cstr(p, data) nm_vect_insert(p, data, strlen(data) + 1, NULL);
+#define nm_vect_insert_cstr(p, data) nm_vect_insert(p, data, strlen(data) + 1, NULL)
 
 #endif /* NM_VECTOR_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */
