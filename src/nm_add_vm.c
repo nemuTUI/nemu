@@ -310,6 +310,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     else
     {
         nm_str_add_text(&query, "', '" NM_DISABLE);
+        nm_str_add_text(&query, "', '" NM_DEFAULT_USBVER); /* set USB 3.0 by default */
     }
     nm_str_add_text(&query, "', '" NM_DISABLE); /* disable 9pfs by default */
     nm_str_format(&query, "', '%s", (nm_cfg_get()->spice_default) ? NM_ENABLE : NM_DISABLE);
