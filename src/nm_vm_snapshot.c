@@ -338,7 +338,7 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
         nm_db_select(query.data, &drives);
         assert(drives.n_memb != 0);
 
-        nm_str_format(&buf, "%s/bin/qemu-img", NM_STRING(NM_USR_PREFIX));
+        nm_str_alloc_text(&buf, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img");
         nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
         nm_vect_insert_cstr(&argv, "snapshot");

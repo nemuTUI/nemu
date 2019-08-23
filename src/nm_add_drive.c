@@ -224,6 +224,7 @@ int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
     nm_vect_t argv = NM_INIT_VECT;
 
     nm_str_alloc_text(&buf, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img");
+    nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
     nm_vect_insert_cstr(&argv, "create");
     nm_vect_insert_cstr(&argv, "-f");
