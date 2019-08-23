@@ -14,8 +14,6 @@
 #include <sys/sendfile.h>
 #endif
 
-static void
-nm_parse_args(const nm_str_t *cmd, nm_str_t *path, nm_vect_t *argv);
 #if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
 static void nm_copy_file_sendfile(int in_fd, int out_fd);
 #else
@@ -187,40 +185,14 @@ static void nm_copy_file_default(int in_fd, int out_fd)
 }
 #endif
 
-static void
-nm_parse_args(const nm_str_t *cmd, nm_str_t *path, nm_vect_t *argv)
-{
-    nm_str_t tmp_cmd = NM_INIT_STR;
-    char *token, *saveptr;
-
-    nm_str_copy(&tmp_cmd, cmd);
-    saveptr = tmp_cmd.data;
-
-    while ((token = strtok_r(saveptr, " ", &saveptr)))
-    {
-        if (argv->n_memb == 0)
-            nm_str_alloc_text(path, token);
-
-        nm_vect_insert(argv, token, strlen(token) + 1, NULL);
-    }
-
-    nm_vect_end_zero(argv);
-
-    nm_str_free(&tmp_cmd);
-}
-
-int nm_spawn_process(const nm_str_t *cmd, nm_str_t *answer)
+int nm_spawn_process(const nm_vect_t *argv, nm_str_t *answer)
 {
     int rc = NM_OK;
     int fd[2];
     pid_t child_pid = 0;
-    nm_vect_t argv = NM_INIT_VECT;
-    nm_str_t path = NM_INIT_STR;
 
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd) == -1)
         nm_bug("%s: error create socketpair: %s", __func__, strerror(errno));
-
-    nm_parse_args(cmd, &path, &argv);
 
     switch (child_pid = fork()) {
     case (-1):  /* error*/
@@ -232,7 +204,7 @@ int nm_spawn_process(const nm_str_t *cmd, nm_str_t *answer)
         dup2(fd[1], STDOUT_FILENO);
         dup2(fd[1], STDERR_FILENO);
 
-        execvp(path.data, (char *const *) argv.data);
+        execvp(((char *const *) argv->data)[0], (char *const *) argv->data);
         nm_bug("%s: unreachable reached", __func__);
         break;
 
@@ -271,9 +243,6 @@ int nm_spawn_process(const nm_str_t *cmd, nm_str_t *answer)
         }
     }
 
-    nm_vect_free(&argv, NULL);
-    nm_str_free(&path);
-
     return rc;
 }
 
@@ -294,6 +263,14 @@ void nm_debug(const char *fmt, ...)
 #else
     (void) fmt;
 #endif
+}
+
+void nm_cmd_str(nm_str_t *str, const nm_vect_t *argv)
+{
+    for (size_t m = 0; m < argv->n_memb; m++)
+    {
+        nm_str_format(str, "%s ", (char *)nm_vect_at(argv, m));
+    }
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

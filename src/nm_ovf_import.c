@@ -52,8 +52,6 @@
 #define NM_XPATH_USB_EHCI "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
     "ovf:Item[rasd:ResourceType/text()=23]"
 
-#define NM_QEMU_CONVERT "/bin/qemu-img convert -O qcow2"
-
 enum {
     NM_OVA_FLD_SRC = 0,
     NM_OVA_FLD_ARCH,
@@ -587,11 +585,10 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
                                   const char *templ_path)
 {
     nm_str_t vm_dir = NM_INIT_STR;
-    nm_str_t cmd = NM_INIT_STR;
+    nm_str_t buf = NM_INIT_STR;
+    nm_vect_t argv = NM_INIT_VECT;
 
-    nm_str_copy(&vm_dir, &nm_cfg_get()->vm_dir);
-    nm_str_add_char(&vm_dir, '/');
-    nm_str_add_str(&vm_dir, name);
+    nm_str_format(&vm_dir, "%s/%s", nm_cfg_get()->vm_dir.data, name->data);
 
     if (mkdir(vm_dir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
     {
@@ -599,26 +596,41 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
                __func__, vm_dir.data, strerror(errno));
     }
 
+    nm_str_alloc_text(&buf, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img");
+    nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
+
     for (size_t n = 0; n < drives->n_memb; n++)
     {
-        nm_str_format(&cmd, "%s %s/%s %s/%s",
-                NM_STRING(NM_USR_PREFIX) NM_QEMU_CONVERT,
-                templ_path, (nm_drive_file(drives->data[n])).data,
-                vm_dir.data, (nm_drive_file(drives->data[n])).data);
+        nm_vect_insert_cstr(&argv, "convert");
+        nm_vect_insert_cstr(&argv, "-O");
+        nm_vect_insert_cstr(&argv, "qcow2");
 
-        nm_debug("ova: exec: %s\n", cmd.data);
+        nm_str_trunc(&buf, 0);
+        nm_str_format(&buf, "%s/%s",
+            templ_path, (nm_drive_file(drives->data[n])).data);
+        nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
-        if (nm_spawn_process(&cmd, NULL) != NM_OK)
+        nm_str_trunc(&buf, 0);
+        nm_str_format(&buf, "%s/%s",
+            vm_dir.data, (nm_drive_file(drives->data[n])).data);
+        nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
+
+        nm_str_trunc(&buf, 0);
+        nm_cmd_str(&buf, &argv);
+        nm_debug("ova: exec: %s\n", buf.data);
+
+        nm_vect_end_zero(&argv);
+        if (nm_spawn_process(&argv, NULL) != NM_OK)
         {
             rmdir(vm_dir.data);
             nm_bug(_("%s: cannot create image file"), __func__);
         }
 
-        nm_str_trunc(&cmd, 0);
+        nm_vect_free(&argv, NULL);
     }
 
     nm_str_free(&vm_dir);
-    nm_str_free(&cmd);
+    nm_str_free(&buf);
 }
 
 static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives)

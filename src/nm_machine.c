@@ -71,16 +71,22 @@ void nm_mach_free(void)
 
 static void nm_mach_get_data(const char *arch)
 {
-    nm_str_t cmd = NM_INIT_STR;
+    nm_str_t buf = NM_INIT_STR;
+    nm_vect_t argv = NM_INIT_VECT;
     nm_str_t answer = NM_INIT_STR;
     nm_mach_t mach_list = NM_INIT_MLIST;
 
     nm_str_alloc_text(&mach_list.arch, arch);
 
-    nm_str_format(&cmd, "%s/bin/qemu-system-%s -M help",
+    nm_str_format(&buf, "%s/bin/qemu-system-%s",
         NM_STRING(NM_USR_PREFIX), arch);
+    nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
-    if (nm_spawn_process(&cmd, &answer) != NM_OK)
+    nm_vect_insert_cstr(&argv, "-M");
+    nm_vect_insert_cstr(&argv, "help");
+
+    nm_vect_end_zero(&argv);
+    if (nm_spawn_process(&argv, &answer) != NM_OK)
     {
         nm_str_t warn_msg = NM_INIT_STR;
         nm_str_format(&warn_msg,
@@ -95,7 +101,8 @@ static void nm_mach_get_data(const char *arch)
     nm_vect_insert(&nm_machs, &mach_list,
         sizeof(mach_list), nm_mach_vect_ins_mlist_cb);
 out:
-    nm_str_free(&cmd);
+    nm_str_free(&buf);
+    nm_vect_free(&argv, NULL);
     nm_str_free(&answer);
     nm_str_free(&mach_list.arch);
 }
