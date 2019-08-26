@@ -489,17 +489,12 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         int fd;
         float usage;
         nm_str_t pid_path = NM_INIT_STR;
-        nm_str_t qmp_path = NM_INIT_STR;
         ssize_t nread;
         char pid[10];
         int pid_num = 0;
 
-        nm_str_copy(&pid_path, &nm_cfg_get()->vm_dir);
-        nm_str_add_char(&pid_path, '/');
-        nm_str_add_str(&pid_path, name);
-        nm_str_copy(&qmp_path, &pid_path);
-        nm_str_add_text(&pid_path, "/" NM_VM_PID_FILE);
-        nm_str_add_text(&qmp_path, "/" NM_VM_QMP_FILE);
+        nm_str_format(&pid_path, "%s/%s/%s",
+            nm_cfg_get()->vm_dir.data, name->data, NM_VM_PID_FILE);
 
         if ((status && (fd = open(pid_path.data, O_RDONLY)) != -1))
         {
@@ -528,7 +523,6 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         }
 
         nm_str_free(&pid_path);
-        nm_str_free(&qmp_path);
     } /* }}} PID */
 
     nm_str_free(&buf);

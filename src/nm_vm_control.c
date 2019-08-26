@@ -143,8 +143,7 @@ void nm_vmctl_delete(const nm_str_t *name)
     { /* delete pid and QMP socket if exists */
         nm_str_t path = NM_INIT_STR;
 
-        nm_str_copy(&path, &vmdir);
-        nm_str_add_text(&path, NM_VM_PID_FILE);
+        nm_str_format(&path, "%s%s", vmdir.data, NM_VM_PID_FILE);
 
         if (unlink(path.data) == -1 && errno != ENOENT)
             delete_ok = NM_FALSE;

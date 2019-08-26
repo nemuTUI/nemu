@@ -263,8 +263,7 @@ static int nm_append_path(nm_str_t *path)
     {
         nm_str_t tmp = NM_INIT_STR;
 
-        nm_str_copy(&tmp, path);
-        nm_str_add_char(&tmp, '*');
+        nm_str_format(&tmp, "%s*", path->data);
         if (glob(tmp.data, 0, NULL, &res) == 0)
         {
             nm_str_trunc(path, 0);
