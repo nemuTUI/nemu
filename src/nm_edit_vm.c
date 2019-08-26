@@ -175,12 +175,10 @@ static void nm_edit_vm_field_names(nm_vect_t *msg)
     nm_str_format(&buf, "%s%u%s",
         _(NM_VM_FORM_CPU_BEGIN), nm_hw_ncpus(), _(NM_VM_FORM_CPU_END));
     nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
-    nm_str_trunc(&buf, 0);
 
     nm_str_format(&buf, "%s%u%s",
         _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
     nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
-    nm_str_trunc(&buf, 0);
 
     nm_vect_insert(msg, _(NM_VM_FORM_KVM), strlen(_(NM_VM_FORM_KVM)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_HCPU), strlen(_(NM_VM_FORM_HCPU)) + 1, NULL);
@@ -407,7 +405,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
                 if (if_name.len > 15) /* Linux tap iface max name len */
                 {
                     nm_str_trunc(&if_name, 14);
-                    nm_str_format(&if_name, "%zu", n);
+                    nm_str_append_format(&if_name, "%zu", n);
                 }
 
                 nm_str_add_text(&query, "INSERT INTO ifaces("

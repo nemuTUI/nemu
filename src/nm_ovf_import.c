@@ -330,7 +330,6 @@ static int nm_clean_temp_dir(const char *tmp_dir, const nm_vect_t *files)
             rc = NM_ERR;
 
         nm_debug("ova: clean file: %s\n", path.data);
-        nm_str_trunc(&path, 0);
     }
 
     if (rc == NM_OK)
@@ -446,6 +445,9 @@ static void nm_ovf_get_ncpu(nm_str_t *ncpu, nm_xml_xpath_ctx_pt ctx)
 static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx)
 {
     nm_xml_xpath_obj_pt obj_id;
+    nm_str_t xpath = NM_INIT_STR;
+    nm_str_t buf = NM_INIT_STR;
+    nm_drive_t drive = NM_INIT_DRIVE;
     size_t ndrives;
 
     if ((obj_id = nm_exec_xpath(NM_XPATH_DRIVE_ID, ctx)) == NULL)
@@ -461,9 +463,6 @@ static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx)
         if ((node_id->type == XML_TEXT_NODE) || (node_id->type == XML_ATTRIBUTE_NODE))
         {
             nm_xml_char_t *xml_id = xmlNodeGetContent(node_id);
-            nm_str_t xpath = NM_INIT_STR;
-            nm_str_t buf = NM_INIT_STR;
-            nm_drive_t drive = NM_INIT_DRIVE;
 
             char *id = strrchr((char *) xml_id, '/');
 
@@ -477,16 +476,9 @@ static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx)
             nm_ovf_get_text(&buf, ctx, xpath.data, "capacity");
             nm_str_copy(&drive.capacity, &buf);
 
-            nm_str_trunc(&xpath, 0);
-            nm_str_trunc(&buf, 0);
-
             nm_str_format(&xpath, NM_XPATH_DRIVE_REF, id);
             nm_ovf_get_text(&buf, ctx, xpath.data, "file ref");
-
-            nm_str_trunc(&xpath, 0);
-
             nm_str_format(&xpath, NM_XPATH_DRIVE_HREF, buf.data);
-            nm_str_trunc(&buf, 0);
             nm_ovf_get_text(&buf, ctx, xpath.data, "file href");
             nm_str_copy(&drive.file_name, &buf);
 
@@ -494,11 +486,12 @@ static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx)
                            nm_drive_vect_ins_cb);
 
             xmlFree(xml_id);
-            nm_str_free(&xpath);
-            nm_str_free(&buf);
-            nm_drive_free(&drive);
         }
     }
+
+    nm_str_free(&xpath);
+    nm_str_free(&buf);
+    nm_drive_free(&drive);
 
     xmlXPathFreeObject(obj_id);
 }
@@ -605,17 +598,14 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
         nm_vect_insert_cstr(&argv, "-O");
         nm_vect_insert_cstr(&argv, "qcow2");
 
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "%s/%s",
             templ_path, (nm_drive_file(drives->data[n])).data);
         nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "%s/%s",
             vm_dir.data, (nm_drive_file(drives->data[n])).data);
         nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
-        nm_str_trunc(&buf, 0);
         nm_cmd_str(&buf, &argv);
         nm_debug("ova: exec: %s\n", buf.data);
 
@@ -641,6 +631,7 @@ static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives)
     nm_str_alloc_text(&vm->ifs.driver, NM_DEFAULT_NETDRV);
 
     nm_form_get_last(&last_mac, &last_vnc);
+    //@TODO This needs to be tested, it was appending before.
     nm_str_format(&vm->vncp, "%u", last_vnc);
 
     nm_add_vm_to_db(vm, last_mac, NM_IMPORT_VM, drives);

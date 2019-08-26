@@ -15,6 +15,10 @@
 #define NM_QMP_CMD_VM_RESET "{\"execute\":\"system_reset\"}"
 #define NM_QMP_CMD_VM_STOP  "{\"execute\":\"stop\"}"
 #define NM_QMP_CMD_VM_CONT  "{\"execute\":\"cont\"}"
+#define NM_QMP_CMD_EXECUTE  "{\"execute\":\"%s\",\"arguments\":{\"name\":\"%s\"}}"
+#define NM_QMP_CMD_SNAP_SYNC \
+    "{\"execute\":\"blockdev-snapshot-sync\",\"arguments\":{\"device\":\"%s\"," \
+    "\"snapshot-file\":\"%s\",\"format\":\"qcow2\"}}"
 #define NM_QMP_CMD_USB_ADD \
     "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"usb-host\"," \
     "\"hostbus\":\"%u\",\"hostaddr\":\"%u\",\"id\":\"usb-%s-%s-%s\"}}"
@@ -96,9 +100,7 @@ int nm_qmp_drive_snapshot(const nm_str_t *name, const nm_str_t *drive,
     tv.tv_sec = 10;
     tv.tv_usec = 0; /* 10 s */
 
-    nm_str_format(&qmp_query,
-        "{\"execute\":\"blockdev-snapshot-sync\",\"arguments\":{\"device\":\"%s\","
-        "\"snapshot-file\":\"%s\",\"format\":\"qcow2\"}}",
+    nm_str_format(&qmp_query, NM_QMP_CMD_SNAP_SYNC,
         drive->data, path->data);
 
     nm_debug("exec qmp: %s\n", qmp_query.data);
@@ -199,9 +201,7 @@ static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
     tv.tv_sec = 300;
     tv.tv_usec = 0; /* 5 m */
 
-    nm_str_format(&qmp_query,
-        "{\"execute\":\"%s\",\"arguments\":{\"name\":\"%s\"}}",
-        cmd, snap->data);
+    nm_str_format(&qmp_query, NM_QMP_CMD_EXECUTE, cmd, snap->data);
 
     nm_debug("exec qmp: %s\n", qmp_query.data);
     rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);

@@ -666,7 +666,6 @@ nm_print_help__(const char **keys, const char **values,
                     mvwprintw(action_window, y, 2, "%-10s%s", keys[n], values[n]);
 
                 last = n;
-                nm_str_trunc(&help_title, 0);
                 if (last < hotkey_num)
                 {
                     perc = 100 * last / hotkey_num;

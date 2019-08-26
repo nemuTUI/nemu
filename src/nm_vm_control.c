@@ -36,15 +36,12 @@ void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
     nm_str_format(&query, NM_VM_GET_LIST_SQL, name->data);
     nm_db_select(query.data, &vm->main);
 
-    nm_str_trunc(&query, 0);
     nm_str_format(&query, NM_VM_GET_IFACES_SQL, name->data);
     nm_db_select(query.data, &vm->ifs);
 
-    nm_str_trunc(&query, 0);
     nm_str_format(&query, NM_VM_GET_DRIVES_SQL, name->data);
     nm_db_select(query.data, &vm->drives);
 
-    nm_str_trunc(&query, 0);
     nm_str_format(&query, NM_USB_GET_SQL, name->data);
     nm_db_select(query.data, &vm->usb);
 
@@ -131,7 +128,6 @@ void nm_vmctl_delete(const nm_str_t *name)
 
     nm_str_format(&query, NM_SELECT_DRIVE_NAMES_SQL, name->data);
     nm_db_select(query.data, &drives);
-    nm_str_trunc(&query, 0);
 
     for (size_t n = 0; n < drives.n_memb; n++)
     {
@@ -169,19 +165,15 @@ void nm_vmctl_delete(const nm_str_t *name)
 
     nm_str_format(&query, NM_DEL_DRIVES_SQL, name->data);
     nm_db_edit(query.data);
-    nm_str_trunc(&query, 0);
 
     nm_str_format(&query, NM_DEL_VMSNAP_SQL, name->data);
     nm_db_edit(query.data);
-    nm_str_trunc(&query, 0);
 
     nm_str_format(&query, NM_DEL_IFS_SQL, name->data);
     nm_db_edit(query.data);
-    nm_str_trunc(&query, 0);
 
     nm_str_format(&query, NM_DEL_USB_SQL, name->data);
     nm_db_edit(query.data);
-    nm_str_trunc(&query, 0);
 
     nm_str_format(&query, NM_DEL_VM_SQL, name->data);
     nm_db_edit(query.data);
@@ -297,7 +289,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         {
             nm_vect_insert_cstr(argv, "-drive");
 
-            nm_str_trunc(&buf, 0);
             nm_str_format(&buf, "file=%s,media=disk,if=ide", iso);
             nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
         }
@@ -347,7 +338,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         }
         nm_vect_insert_cstr(argv, "-drive");
 
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "id=hd%zu,media=disk,if=%s,file=%s%s",
             n, (scsi_drv) ? "none" : blk_drv->data, vmdir.data, drive_img->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
@@ -355,7 +345,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         if (scsi_drv)
         {
             nm_vect_insert_cstr(argv, "-device");
-            nm_str_trunc(&buf, 0);
             nm_str_format(&buf, "scsi-hd,drive=hd%zu", n);
             nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
         }
@@ -376,7 +365,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             nm_vect_insert_cstr(argv, nm_vect_str_ctx(&snap_res, 0));
 
             /* reset load flag */
-            nm_str_trunc(&query, 0);
             nm_str_format(&query, NM_RESET_LOAD_SQL, name->data);
             nm_db_edit(query.data);
         }
@@ -407,13 +395,11 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_9FLG), NM_ENABLE) == NM_OK)
     {
         nm_vect_insert_cstr(argv, "-fsdev");
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "local,security_model=none,id=fsdev0,path=%s",
             nm_vect_str(&vm->main, NM_SQL_9PTH)->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
         nm_vect_insert_cstr(argv, "-device");
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "virtio-9p-pci,fsdev=fsdev0,mount_tag=%s",
             nm_vect_str(&vm->main, NM_SQL_9ID)->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
@@ -490,7 +476,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             {
                 assert(usb != NULL);
                 nm_vect_insert_cstr(argv, "-device");
-                nm_str_trunc(&buf, 0);
                 nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s",
                     nm_usb_bus_num(usb), nm_usb_dev_addr(usb),
                     nm_usb_vendor_id(usb).data, nm_usb_product_id(usb).data, ser);
@@ -531,7 +516,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             {
                 assert(usb != NULL);
                 nm_vect_insert_cstr(argv, "-device");
-                nm_str_trunc(&buf, 0);
                 nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s",
                     nm_usb_bus_num(usb), nm_usb_dev_addr(usb),
                     nm_usb_vendor_id(usb).data, nm_usb_product_id(usb).data, ser);
@@ -609,13 +593,11 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         }
 
         nm_vect_insert_cstr(argv, "-chardev");
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "socket,path=%s,server,nowait,id=socket_%s",
             nm_vect_str(&vm->main, NM_SQL_SOCK)->data, name->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
         nm_vect_insert_cstr(argv, "-device");
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "isa-serial,chardev=socket_%s", name->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
     } /* }}} socket */
@@ -624,7 +606,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     if (nm_vect_str_len(&vm->main, NM_SQL_DEBP))
     {
         nm_vect_insert_cstr(argv, "-gdb");
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "tcp::%s",
             nm_vect_str(&vm->main, NM_SQL_DEBP)->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
@@ -657,14 +638,12 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         }
 
         nm_vect_insert_cstr(argv, "-chardev");
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "tty,path=%s,id=tty_%s",
             nm_vect_str(&vm->main, NM_SQL_TTY)->data,
             name->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
         nm_vect_insert_cstr(argv, "-device");
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "isa-serial,chardev=tty_%s",
             name->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
@@ -676,7 +655,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
 
         nm_vect_insert_cstr(argv, "-device");
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "%s,mac=%s,netdev=netdev%zu",
             nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift)->data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_MAC + idx_shift)->data,
@@ -687,7 +665,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             NM_DISABLE) == NM_OK)
         {
             nm_vect_insert_cstr(argv, "-netdev");
-            nm_str_trunc(&buf, 0);
             nm_str_format(&buf, "tap,ifname=%s,script=no,downscript=no,id=netdev%zu",
                 nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)->data, n);
 
@@ -741,7 +718,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                                                    NM_SQL_IF_NAME + idx_shift));
                     }
 
-                    nm_str_trunc(&tap_path, 0);
                     tap_idx = 0;
                 }
 
@@ -808,7 +784,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             }
 
             nm_vect_insert_cstr(argv, "-netdev");
-            nm_str_trunc(&buf, 0);
             nm_str_format(&buf, "tap,id=netdev%zu,fd=%d",
                 n, (flags & NM_VMCTL_INFO) ? -1 : tap_fd);
 #endif /* NM_OS_LINUX */
@@ -840,13 +815,11 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_vect_insert_cstr(argv, "-snapshot");
 
     nm_vect_insert_cstr(argv, "-pidfile");
-    nm_str_trunc(&buf, 0);
     nm_str_format(&buf, "%s%s",
         vmdir.data, NM_VM_PID_FILE);
     nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
     nm_vect_insert_cstr(argv, "-qmp");
-    nm_str_trunc(&buf, 0);
     nm_str_format(&buf, "unix:%s%s,server,nowait",
         vmdir.data, NM_VM_QMP_FILE);
     nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
@@ -857,18 +830,16 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_vect_insert_cstr(argv, "-vga");
         nm_vect_insert_cstr(argv, "qxl");
         nm_vect_insert_cstr(argv, "-spice");
-        nm_str_trunc(&buf, 0);
         nm_str_format(&buf, "port=%u,disable-ticketing",
             nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + 5900);
         if (!cfg->listen_any)
-            nm_str_format(&buf, ",addr=127.0.0.1");
+            nm_str_append_format(&buf, ",addr=127.0.0.1");
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
     }
     else
     {
 #endif
     nm_vect_insert_cstr(argv, "-vnc");
-    nm_str_trunc(&buf, 0);
     if (cfg->listen_any)
         nm_str_add_text(&buf, ":");
     else
@@ -880,7 +851,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 #endif
     nm_vect_end_zero(argv);
 
-    nm_str_trunc(&buf, 0);
     nm_cmd_str(&buf, argv);
     nm_debug("cmd=%s\n", buf.data);
 
@@ -991,7 +961,7 @@ static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port, nm_str_t *c
         goto out;
     }
 
-    nm_str_format(cmd, "%s ", bin->data);
+    nm_str_append_format(cmd, "%s ", bin->data);
 
     if (pos->title != -1 && pos->title < pos->port)
     {
@@ -999,13 +969,13 @@ static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port, nm_str_t *c
         nm_str_add_text(cmd, name->data);
         argsp += pos->title + 2;
         nm_str_add_text_part(cmd, argsp, pos->port - pos->title - 2);
-        nm_str_format(cmd, "%u", port);
+        nm_str_append_format(cmd, "%u", port);
         total = pos->port;
     }
     else if (pos->title != -1 && pos->title > pos->port)
     {
         nm_str_add_str_part(cmd, args, pos->port);
-        nm_str_format(cmd, "%u", port);
+        nm_str_append_format(cmd, "%u", port);
         argsp += pos->port + 2;
         nm_str_add_text_part(cmd, argsp, pos->title - pos->port - 2);
         nm_str_add_text(cmd, name->data);
@@ -1014,7 +984,7 @@ static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port, nm_str_t *c
     else
     {
         nm_str_add_str_part(cmd, args, pos->port);
-        nm_str_format(cmd, "%u", port);
+        nm_str_append_format(cmd, "%u", port);
         total = pos->port;
     }
 
@@ -1024,7 +994,7 @@ static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port, nm_str_t *c
         nm_str_add_text_part(cmd, argsp, args->len - total - 2);
     }
 
-    nm_str_format(cmd, " > /dev/null 2>&1 &");
+    nm_str_append_format(cmd, " > /dev/null 2>&1 &");
     nm_debug("viewer cmd:\"%s\"\n", cmd->data);
 out:
     nm_str_free(&buf);

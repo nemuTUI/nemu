@@ -415,52 +415,47 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
 
     if (field_status(fields[NM_FLD_NDRV]))
     {
-        nm_str_alloc_text(&query, "UPDATE ifaces SET if_drv='");
-        nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
+        nm_str_format(&query,
+            "UPDATE ifaces SET if_drv='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->drv.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
 
 #if defined (NM_OS_LINUX)
         /* disable vhost if driver is not virtio-net */
         if (nm_str_cmp_st(&ifp->drv, NM_DEFAULT_NETDRV) != NM_OK)
         {
-            nm_str_alloc_text(&query, "UPDATE ifaces SET vhost='0' ");
-            nm_str_format(&query, "WHERE vm_name='%s' AND if_name='%s'",
+            nm_str_format(&query,
+                "UPDATE ifaces SET vhost='0' WHERE vm_name='%s' AND if_name='%s'",
                 name->data, ifp->name.data);
             nm_db_edit(query.data);
-            nm_str_trunc(&query, 0);
         }
 #endif
     }
 
     if (field_status(fields[NM_FLD_MADR]))
     {
-        nm_str_add_text(&query, "UPDATE ifaces SET mac_addr='");
-        nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
+        nm_str_format(&query,
+            "UPDATE ifaces SET mac_addr='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->maddr.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_IPV4]))
     {
-        nm_str_add_text(&query, "UPDATE ifaces SET ipv4_addr='");
-        nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
+        nm_str_format(&query,
+            "UPDATE ifaces SET ipv4_addr='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->ipv4.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
 #if defined (NM_OS_LINUX)
     if (field_status(fields[NM_FLD_VHST]))
     {
-        nm_str_alloc_text(&query, "UPDATE ifaces SET vhost='");
-        nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
+        nm_str_format(&query,
+            "UPDATE ifaces SET vhost='%s' WHERE vm_name='%s' AND if_name='%s'",
             (nm_str_cmp_st(&ifp->vhost, "yes") == NM_OK) ? NM_ENABLE : NM_DISABLE,
             name->data, ifp->name.data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_MTAP]))
@@ -480,17 +475,16 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
         if (macvtap_idx == -1)
             nm_bug("%s: macvtap_idx is not found", __func__);
 
-        nm_str_alloc_text(&query, "UPDATE ifaces SET macvtap='");
-        nm_str_format(&query, "%zd' WHERE vm_name='%s' AND if_name='%s'",
+        nm_str_format(&query,
+            "UPDATE ifaces SET macvtap='%zd' WHERE vm_name='%s' AND if_name='%s'",
             macvtap_idx, name->data, ifp->name.data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_PETH]))
     {
-        nm_str_alloc_text(&query, "UPDATE ifaces SET parent_eth='");
-        nm_str_format(&query, "%s' WHERE vm_name='%s' AND if_name='%s'",
+        nm_str_format(&query,
+            "UPDATE ifaces SET parent_eth='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->parent_eth.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }

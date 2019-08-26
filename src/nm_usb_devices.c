@@ -44,6 +44,7 @@ void nm_usb_get_devs(nm_vect_t *v)
     if ((dev_count = libusb_get_device_list(ctx, &list)) < 1)
         nm_bug(_("%s: libusb_get_device_list failed"), __func__);
 
+    //@TODO Some of variables may be moved outside, and freed only once
     for (n = 0; n < dev_count; n++)
     {
         nm_usb_dev_t dev = NM_INIT_USB;

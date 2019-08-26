@@ -267,9 +267,12 @@ void nm_debug(const char *fmt, ...)
 
 void nm_cmd_str(nm_str_t *str, const nm_vect_t *argv)
 {
+    if (str->len > 0)
+        nm_str_trunc(str, 0);
+
     for (size_t m = 0; m < argv->n_memb; m++)
     {
-        nm_str_format(str, "%s ", (char *)nm_vect_at(argv, m));
+        nm_str_append_format(str, "%s ", (char *)nm_vect_at(argv, m));
     }
 }
 

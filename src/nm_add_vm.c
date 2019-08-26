@@ -172,17 +172,14 @@ static void nm_add_vm_field_names(nm_vect_t *msg, int import)
     nm_str_format(&buf, "%s%u%s",
         _(NM_VM_FORM_CPU_BEGIN), nm_hw_ncpus(), _(NM_VM_FORM_CPU_END));
     nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
-    nm_str_trunc(&buf, 0);
 
     nm_str_format(&buf, "%s%u%s",
         _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
     nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
-    nm_str_trunc(&buf, 0);
 
     nm_str_format(&buf, "%s%u%s",
         _(NM_VM_FORM_DRV_BEGIN), nm_hw_disk_free(), _(NM_VM_FORM_DRV_END));
     nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
-    nm_str_trunc(&buf, 0);
 
     nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)) + 1, NULL);
     if (import)
@@ -238,6 +235,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm, int import)
         if (stat(vm->srcp.data, &img_info) == 0)
         {
             size_gb = img_info.st_size / 1024 / 1024 / 1024;
+            //@TODO This needs to be tested, it was appending before.
             nm_str_format(&vm->drive.size, "%ld", size_gb);
         }
         else
@@ -273,91 +271,53 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     nm_str_t query = NM_INIT_STR;
 
     /* {{{ insert main VM data */
-    nm_str_alloc_text(&query, "INSERT INTO vms("
-        "name, mem, smp, kvm, hcpu, vnc, arch, iso, install, mouse_override, usb, usb_type");
-    nm_str_add_text(&query, ", fs9p_enable, spice, debug_port, debug_freeze) VALUES('");
-    nm_str_add_str(&query, &vm->name);
-    nm_str_add_text(&query, "', '");
-    nm_str_add_str(&query, &vm->memo);
-    nm_str_add_text(&query, "', '");
-    nm_str_add_str(&query, &vm->cpus);
-#if (NM_OS_LINUX) /* enable KVM and host CPU by default */
-    nm_str_add_text(&query, "', '" NM_ENABLE);
-    nm_str_add_text(&query, "', '" NM_ENABLE "', '");
-#else /* disable KVM on non Linux platform */
-    nm_str_add_text(&query, "', '" NM_DISABLE);
-    nm_str_add_text(&query, "', '" NM_DISABLE "', '");
+    nm_str_format(&query,
+        "INSERT INTO vms(name, mem, smp, kvm, hcpu, vnc, arch, iso, install, "
+        "mouse_override, usb, usb_type, fs9p_enable, spice, debug_port, debug_freeze) "
+        "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+        vm->name.data, vm->memo.data, vm->cpus.data,
+#if (NM_OS_LINUX)
+        NM_ENABLE, NM_ENABLE, /* enable KVM and host CPU by default */
+#else
+        NM_DISABLE, NM_DISABLE, /* disable KVM on non Linux platform */
 #endif
-    nm_str_add_str(&query, &vm->vncp);
-    nm_str_add_text(&query, "', '");
-    nm_str_add_str(&query, &vm->arch);
-    nm_str_add_text(&query, "', '");
-    if (!import)
-    {
-        nm_str_add_str(&query, &vm->srcp);
-        nm_str_add_text(&query, "', '" NM_ENABLE); /* not installed */
-    }
-    else
-    {
-        nm_str_add_text(&query, "', '" NM_DISABLE); /* no need to install */
-    }
-    nm_str_add_text(&query, "', '" NM_DISABLE); /* mouse override */
-    if (vm->usb_enable)
-    {
-        nm_str_add_text(&query, "', '" NM_ENABLE);
-        nm_str_add_text(&query, "', '" NM_DEFAULT_USBVER); /* set USB 3.0 by default */
-    }
-    else
-    {
-        nm_str_add_text(&query, "', '" NM_DISABLE);
-        nm_str_add_text(&query, "', '" NM_DEFAULT_USBVER); /* set USB 3.0 by default */
-    }
-    nm_str_add_text(&query, "', '" NM_DISABLE); /* disable 9pfs by default */
-    nm_str_format(&query, "', '%s", (nm_cfg_get()->spice_default) ? NM_ENABLE : NM_DISABLE);
-    nm_str_add_text(&query, "', '"); /* disable GDB debug by default */
-    nm_str_add_text(&query, "', '" NM_DISABLE); /* disable freeze CPU at startup  by default*/
-    nm_str_add_text(&query, "')");
+        vm->vncp.data, vm->arch.data,
+        import ? "" : vm->srcp.data,
+        import ? NM_DISABLE : NM_ENABLE, /* if imported, then no need to install */
+        NM_DISABLE, /* mouse override */
+        vm->usb_enable ? NM_ENABLE : NM_DISABLE, /* USB enabled */
+        NM_DEFAULT_USBVER, /* set USB 3.0 by default */
+        NM_DISABLE, /* disable 9pfs by default */
+        (nm_cfg_get()->spice_default) ? NM_ENABLE : NM_DISABLE, /* SPICE enabled */
+        "", /* disable GDB debug by default */
+        NM_DISABLE);
 
     nm_db_edit(query.data);
     /* }}} main VM data */
 
-
     /* {{{ insert drive info */
     if (drives == NULL)
     {
-        nm_str_trunc(&query, 0);
-
-        nm_str_add_text(&query, "INSERT INTO drives("
-            "vm_name, drive_name, drive_drv, capacity, boot) VALUES('");
-        nm_str_add_str(&query, &vm->name);
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, &vm->name);
-        nm_str_add_text(&query, "_a.img', '");
-        nm_str_add_str(&query, &vm->drive.driver);
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, &vm->drive.size);
-        nm_str_add_text(&query, "', '" NM_ENABLE "')"); /* boot flag */
-
+        nm_str_format(&query,
+            "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot) "
+            "VALUES('%s', '%s_a.img', '%s', '%s', '%s')",
+            vm->name.data, vm->name.data, vm->drive.driver.data, vm->drive.size.data,
+            NM_ENABLE /* boot flag */
+            );
         nm_db_edit(query.data);
     }
     else /* imported from OVF */
     {
         for (size_t n = 0; n < drives->n_memb; n++)
         {
-            nm_str_trunc(&query, 0);
-
-            nm_str_add_text(&query, "INSERT INTO drives("
-                "vm_name, drive_name, drive_drv, capacity, boot) VALUES('");
-            nm_str_add_str(&query, &vm->name);
-            nm_str_add_text(&query, "', '");
-            nm_str_add_str(&query, &nm_drive_file(drives->data[n]));
-            nm_str_add_text(&query, "', '" NM_DEFAULT_DRVINT "', '");
-            nm_str_add_str(&query, &nm_drive_size(drives->data[n]));
-            if (n == 0)
-                nm_str_add_text(&query, "', '" NM_ENABLE "')"); /* boot flag */
-            else
-                nm_str_add_text(&query, "', '" NM_DISABLE "')");
-
+            nm_str_format(&query,
+                "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot) "
+                "VALUES('%s', '%s', '%s', '%s', '%s')",
+                vm->name.data,
+                nm_drive_file(drives->data[n]).data, NM_DEFAULT_DRVINT,
+                nm_drive_size(drives->data[n]).data,
+                n == 0 ? NM_ENABLE : NM_DISABLE /* boot flag */
+                );
             nm_db_edit(query.data);
         }
     }
@@ -368,7 +328,6 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     {
         nm_str_t if_name = NM_INIT_STR;
         nm_str_t maddr = NM_INIT_STR;
-        nm_str_trunc(&query, 0);
         mac++;
 
         nm_net_mac_n2a(mac, &maddr);
@@ -376,27 +335,18 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         nm_str_format(&if_name, "%s_eth%zu", vm->name.data, n);
         nm_net_fix_tap_name(&if_name, &maddr);
 
-        nm_str_add_text(&query, "INSERT INTO ifaces("
-            "vm_name, if_name, mac_addr, if_drv, vhost, macvtap) VALUES('");
-        nm_str_add_str(&query, &vm->name);
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, &if_name);
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, &maddr);
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, &vm->ifs.driver);
-        /* Enable vhost by default for virtio-net-pci device on Linux */
+        nm_str_format(&query,
+            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap) "
+            "VALUES('%s', '%s', '%s', '%s', '%s', '%s')",
+            vm->name.data, if_name.data, maddr.data, vm->ifs.driver.data,
 #if defined (NM_OS_LINUX)
-        if (nm_str_cmp_st(&vm->ifs.driver, NM_DEFAULT_NETDRV) == NM_OK)
-            nm_str_add_text(&query, "', '1");
-        else
-            nm_str_add_text(&query, "', '0");
+            nm_str_cmp_st(&vm->ifs.driver, NM_DEFAULT_NETDRV) == NM_OK ?
+            "1" : "0", /* Enable vhost by default for virtio-net-pci device on Linux */
 #else
-        nm_str_add_text(&query, "', '0");
+            "0",
 #endif
-        nm_str_add_text(&query, "', '0"); /* disable macvtap by default */
-        nm_str_add_text(&query, "')");
-
+            "0" /* disable macvtap by default */
+        );
         nm_db_edit(query.data);
 
         nm_str_free(&if_name);
@@ -415,9 +365,7 @@ static void nm_add_vm_to_fs(nm_vm_t *vm, int import)
     nm_str_t vm_dir = NM_INIT_STR;
     nm_str_t buf = NM_INIT_STR;
 
-    nm_str_copy(&vm_dir, &nm_cfg_get()->vm_dir);
-    nm_str_add_char(&vm_dir, '/');
-    nm_str_add_str(&vm_dir, &vm->name);
+    nm_str_format(&vm_dir, "%s/%s", nm_cfg_get()->vm_dir.data, vm->name.data);
 
     if (mkdir(vm_dir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
     {
@@ -432,11 +380,7 @@ static void nm_add_vm_to_fs(nm_vm_t *vm, int import)
     }
     else
     {
-        nm_str_copy(&buf, &vm_dir);
-        nm_str_add_char(&buf, '/');
-        nm_str_add_str(&buf, &vm->name);
-        nm_str_add_text(&buf, "_a.img");
-
+        nm_str_format(&buf, "%s/%s_a.img", vm_dir.data, vm->name.data);
         nm_copy_file(&vm->srcp, &buf);
     }
 

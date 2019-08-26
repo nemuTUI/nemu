@@ -114,9 +114,7 @@ void nm_del_drive(const nm_str_t *name)
     size_t drv_count;
 
     nm_str_format(&query, NM_VM_GET_ADDDRIVES_SQL, name->data);
-
     nm_db_select(query.data, &drives);
-    nm_str_trunc(&query, 0);
 
     if (drives.n_memb == 0)
     {
@@ -239,12 +237,10 @@ int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
     char drv_ch = 'a' + drive_count;
 
 //@TODO Why add VM name twice (in directory name and in filename)?
-    nm_str_trunc(&buf, 0);
     nm_str_format(&buf, "%s/%s/%s_%c.img",
         nm_cfg_get()->vm_dir.data, name->data, name->data, drv_ch);
     nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
-    nm_str_trunc(&buf, 0);
     nm_str_format(&buf, "%sG", size->data);
     nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
@@ -266,9 +262,9 @@ static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
     char drv_ch = 'a' + drive_count;
     nm_str_t query = NM_INIT_STR;
 
-    nm_str_add_text(&query, "INSERT INTO drives("
-        "vm_name, drive_name, drive_drv, capacity, boot) VALUES('");
-    nm_str_format(&query, "%s', '%s_%c.img', '%s', '%s', '0')",
+    nm_str_format(&query, "INSERT INTO drives("
+        "vm_name, drive_name, drive_drv, capacity, boot) \
+        VALUES('%s', '%s_%c.img', '%s', '%s', '0'",
         name->data, name->data, drv_ch, type->data, size->data);
     nm_db_edit(query.data);
 

@@ -305,7 +305,6 @@ static void __nm_vm_snapshot_load(const nm_str_t *name, const nm_str_t *snap,
         /* reset load flag for all snapshots for current vm */
         nm_str_format(&query, NM_RESET_LOAD_SQL, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
 
         /* set load flag for current shapshot */
         nm_str_format(&query, NM_SNAP_UPDATE_LOAD_SQL, name->data, snap->data);
@@ -429,9 +428,7 @@ static void nm_vm_snapshot_to_db(const nm_str_t *name, const nm_vmsnap_t *data)
 
     if (!data->update)
     {
-        nm_str_alloc_text(&query, "INSERT INTO vmsnapshots("
-            "vm_name, snap_name, load, timestamp) VALUES('");
-        nm_str_format(&query, "%s', '%s', '%d', DATETIME('now','localtime'))",
+        nm_str_format(&query, NM_INSERT_SNAP_SQL,
             name->data, data->snap_name.data, load);
     }
     else

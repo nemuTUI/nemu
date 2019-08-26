@@ -34,6 +34,8 @@ size_t nm_strlcpy(char *dst, const char *src, size_t buflen);
 void nm_str_remove_char(nm_str_t *str, char ch);
 void nm_str_format(nm_str_t *str, const char *fmt, ...)
     __attribute__ ((format(printf, 2, 3)));
+void nm_str_append_format(nm_str_t *str, const char *fmt, ...)
+    __attribute__ ((format(printf, 2, 3)));
 
 void nm_str_vect_ins_cb(const void *unit_p, const void *ctx);
 void nm_str_vect_free_cb(const void *unit_p);

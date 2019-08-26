@@ -193,105 +193,79 @@ static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
 
     if (field_status(fields[NM_FLD_INST]))
     {
-        nm_str_alloc_text(&query, "UPDATE vms SET install='");
-        nm_str_add_text(&query, vm->installed ? NM_ENABLE : NM_DISABLE);
-        nm_str_add_text(&query, "' WHERE name='");
-        nm_str_add_str(&query, name);
-        nm_str_add_char(&query, '\'');
+        nm_str_format(&query, "UPDATE vms SET install='%s' WHERE name='%s'",
+            vm->installed ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_MACH]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET machine='");
-        nm_str_format(&query, "%s' WHERE name='%s'",
+        nm_str_format(&query, "UPDATE vms SET machine='%s', WHERE name='%s'",
             vm->mach.data, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_SRCP]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET iso='");
-        nm_str_format(&query, "%s' WHERE name='%s'",
+        nm_str_format(&query, "UPDATE vms SET iso='%s' WHERE name='%s'",
             vm->inst_path.data, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_BIOS]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET bios='");
-        nm_str_format(&query, "%s' WHERE name='%s'",
+        nm_str_format(&query, "UPDATE vms SET bios='%s' WHERE name='%s'",
             vm->bios.data, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_KERN]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET kernel='");
-        nm_str_format(&query, "%s' WHERE name='%s'",
+        nm_str_format(&query, "UPDATE vms SET kernel='%s' WHERE name='%s'",
             vm->kernel.data, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_CMDL]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET kernel_append='");
-        nm_str_format(&query, "%s' WHERE name='%s'",
+        nm_str_format(&query, "UPDATE vms SET kernel_append='%s' WHERE name='%s'",
             vm->cmdline.data, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_INIT]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET initrd='");
-        nm_str_format(&query, "%s' WHERE name='%s'",
+        nm_str_format(&query, "UPDATE vms SET initrd='%s' WHERE name='%s'",
             vm->initrd.data, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_TTYP]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET tty_path='");
-        nm_str_format(&query, "%s' WHERE name='%s'",
+        nm_str_format(&query, "UPDATE vms SET tty_path='%s' WHERE name='%s'",
             vm->tty.data, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_SOCK]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET socket_path='");
-        nm_str_format(&query, "%s' WHERE name='%s'",
+        nm_str_format(&query, "UPDATE vms SET socket_path='%s' WHERE name='%s'",
             vm->socket.data, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_DEBP]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET debug_port='");
-        nm_str_format(&query, "%s' WHERE name='%s'",
+        nm_str_format(&query, "UPDATE vms SET debug_port='%s' WHERE name='%s'",
             vm->debug_port.data, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_DEBF]))
     {
-        nm_str_alloc_text(&query, "UPDATE vms SET debug_freeze='");
-        nm_str_add_text(&query, vm->debug_freeze ? NM_ENABLE : NM_DISABLE);
-        nm_str_add_text(&query, "' WHERE name='");
-        nm_str_add_str(&query, name);
-        nm_str_add_char(&query, '\'');
+        nm_str_format(&query, "UPDATE vms SET debug_freeze='%s' WHERE name='%s'",
+            vm->debug_freeze ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     nm_str_free(&query);

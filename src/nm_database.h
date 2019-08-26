@@ -77,6 +77,10 @@
     "DELETE FROM vmsnapshots WHERE vm_name='%s' " \
     "AND snap_name='%s'"
 
+#define NM_INSERT_SNAP_SQL \
+    "INSERT INTO vmsnapshots(vm_name, snap_name, load, timestamp) " \
+    "VALUES('%s', '%s', '%d', DATETIME('now','localtime'))"
+
 #define NM_UPDATE_SNAP_SQL \
     "UPDATE vmsnapshots SET load='%d', " \
     "timestamp=DATETIME('now','localtime') " \

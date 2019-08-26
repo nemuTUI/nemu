@@ -111,7 +111,6 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
 
     nm_str_format(&buf, NM_USB_GET_SQL, name->data);
     nm_db_select(buf.data, &db_result);
-    nm_str_trunc(&buf, 0);
 
     if (!db_result.n_memb)
     {
@@ -145,7 +144,6 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
     if (vm_status)
         (void) nm_qmp_usb_detach(name, &usb_data);
 
-    nm_str_trunc(&buf, 0);
     nm_str_format(&buf, NM_USB_DELETE_SQL,
             name->data,
             usb_dev.name.data,
@@ -181,8 +179,6 @@ static void nm_usb_unplug_list(const nm_vect_t *db_list, nm_vect_t *names)
                 nm_vect_str_ctx(db_list, NM_SQL_USB_NAME + idx_shift),
                 nm_vect_str_ctx(db_list, NM_SQL_USB_SERIAL + idx_shift));
         nm_vect_insert(names, buf.data, buf.len + 1, NULL);
-
-        nm_str_trunc(&buf, 0);
     }
 
     nm_str_free(&buf);
@@ -197,8 +193,6 @@ static void nm_usb_plug_list(nm_vect_t *devs, nm_vect_t *names)
     {
         nm_str_format(&dev_name, "%zu:%s", n + 1, nm_usb_name(devs->data[n]).data);
         nm_vect_insert(names, dev_name.data, dev_name.len + 1, NULL);
-
-        nm_str_trunc(&dev_name, 0);
 
         nm_debug("usb >> %03u:%03u %s:%s %s\n",
                 nm_usb_bus_num(devs->data[n]),
@@ -246,7 +240,6 @@ static int nm_usb_plug_get_data(const nm_str_t *name, nm_usb_data_t *usb,
 
     nm_usb_get_serial(usb->dev, &usb->serial);
 
-    nm_str_trunc(&buf, 0);
     nm_str_format(&buf, NM_USB_EXISTS_SQL,
             name->data,
             usb->dev->name.data,

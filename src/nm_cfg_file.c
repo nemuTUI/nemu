@@ -136,7 +136,6 @@ void nm_cfg_init(void)
                 nm_bug(_("cfg: %s: %s"), qemu_bin.data, strerror(errno));
 
             nm_vect_insert(&cfg.qemu_targets, token, strlen(token) + 1, NULL);
-            nm_str_trunc(&qemu_bin, 0);
         }
 
         nm_vect_end_zero(&cfg.qemu_targets); /* need for ncurses form */

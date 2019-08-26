@@ -47,7 +47,6 @@ void nm_clone_vm(const nm_str_t *name)
 
     nm_str_format(&buf, "%s-clone", name->data);
     set_field_buffer(fields[0], 0, buf.data);
-    nm_str_trunc(&buf, 0);
 
     mvwaddstr(form_data.form_window, 1, 2, _(NM_CLONE_NAME_MSG));
 
@@ -96,9 +95,7 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
     size_t drives_count;
     char drv_ch = 'a';
 
-    nm_str_copy(&new_vm_dir, &nm_cfg_get()->vm_dir);
-    nm_str_add_char(&new_vm_dir, '/');
-    nm_str_add_str(&new_vm_dir, dst);
+    nm_str_format(&new_vm_dir, "%s/%s", nm_cfg_get()->vm_dir.data, dst->data);
 
     if (mkdir(new_vm_dir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
     {
@@ -106,10 +103,10 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
                __func__, new_vm_dir.data, strerror(errno));
     }
 
-    nm_str_copy(&new_vm_path, &nm_cfg_get()->vm_dir);
-    nm_str_copy(&old_vm_path, &nm_cfg_get()->vm_dir);
-    nm_str_format(&new_vm_path, "/%s/%s", dst->data, dst->data);
-    nm_str_format(&old_vm_path, "/%s/", src->data);
+    nm_str_format(&new_vm_path, "%s/%s",
+        new_vm_dir.data, dst->data);
+    nm_str_format(&old_vm_path, "%s/%s/",
+        nm_cfg_get()->vm_dir.data, src->data);
 
     drives_count = drives->n_memb / NM_DRV_IDX_COUNT;
 
@@ -119,7 +116,7 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
         nm_str_t *drive_name = nm_vect_str(drives, NM_SQL_DRV_NAME + idx_shift);
 
         nm_str_add_str(&old_vm_path, drive_name);
-        nm_str_format(&new_vm_path, "_%c.img", drv_ch);
+        nm_str_append_format(&new_vm_path, "_%c.img", drv_ch);
 
         nm_copy_file(&old_vm_path, &new_vm_path);
 
@@ -133,6 +130,7 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
     nm_str_free(&new_vm_dir);
 }
 
+//@TODO This mess should be refactored (too manu add_str/add_text, it can be done with nm_str_append_format)
 static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
                               const nm_vmctl_data_t *vm)
 {
@@ -145,18 +143,12 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
 
     nm_form_get_last(&last_mac, &last_vnc);
 
-    nm_str_alloc_text(&query, "INSERT INTO vms SELECT NULL, '");
-    nm_str_add_str(&query, dst);
-    nm_str_add_text(&query, "', mem, smp, kvm, hcpu, '");
-    nm_str_format(&query, "%d", last_vnc);
-    nm_str_add_text(&query, "', arch, iso, install, usb, "
-        "usbid, bios, kernel, mouse_override, kernel_append, tty_path, socket_path,"
-        "initrd, machine, fs9p_enable, fs9p_path, fs9p_name, usb_type, spice,"
-        "debug_port, debug_freeze "
-        "FROM vms WHERE name='");
-    nm_str_add_str(&query, src);
-    nm_str_add_char(&query, '\'');
-
+    nm_str_format(&query,
+        "INSERT INTO vms SELECT NULL, '%s', mem, smp, kvm, hcpu, '%d', arch, iso, install, usb, "
+        "usbid, bios, kernel, mouse_override, kernel_append, tty_path, socket_path, "
+        "initrd, machine, fs9p_enable, fs9p_path, fs9p_name, usb_type, spice, "
+        "debug_port, debug_freeze FROM vms WHERE name='%s'",
+        dst->data, last_vnc, src->data);
     nm_db_edit(query.data);
 
     /* {{{ insert network interface info */
@@ -167,7 +159,6 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
         nm_str_t if_name = NM_INIT_STR;
         nm_str_t maddr = NM_INIT_STR;
-        nm_str_trunc(&query, 0);
         last_mac++;
 
         nm_net_mac_n2a(last_mac, &maddr);
@@ -175,23 +166,14 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         nm_str_format(&if_name, "%s_eth%zu", dst->data, n);
         nm_net_fix_tap_name(&if_name, &maddr);
 
-        nm_str_add_text(&query, "INSERT INTO ifaces("
-            "vm_name, if_name, mac_addr, if_drv, vhost, macvtap, parent_eth) VALUES('");
-        nm_str_add_str(&query, dst);
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, &if_name);
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, &maddr);
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift));
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift));
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift));
-        nm_str_add_text(&query, "')");
-
+        nm_str_format(&query,
+            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap, parent_eth) "
+            "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+            dst->data, if_name.data, maddr.data,
+            nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift)->data,
+            nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift)->data,
+            nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift)->data,
+            nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift)->data);
         nm_db_edit(query.data);
 
         nm_str_free(&if_name);
@@ -205,21 +187,13 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     {
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
 
-        nm_str_trunc(&query, 0);
-        nm_str_add_text(&query, "INSERT INTO drives("
-            "vm_name, drive_name, drive_drv, capacity, boot) VALUES('");
-        nm_str_add_str(&query, dst);
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, dst);
-        nm_str_format(&query, "_%c.img", drv_ch);
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift));
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, nm_vect_str(&vm->drives, NM_SQL_DRV_SIZE + idx_shift));
-        nm_str_add_text(&query, "', '");
-        nm_str_add_str(&query, nm_vect_str(&vm->drives, NM_SQL_DRV_BOOT + idx_shift));
-        nm_str_add_text(&query, "')");
-
+        nm_str_format(&query,
+            "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot) "
+            "VALUES('%s', '%s_%c.img', '%s', '%s', '%s')",
+            dst->data, dst->data, drv_ch,
+            nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift)->data,
+            nm_vect_str(&vm->drives, NM_SQL_DRV_SIZE + idx_shift)->data,
+            nm_vect_str(&vm->drives, NM_SQL_DRV_BOOT + idx_shift)->data);
         nm_db_edit(query.data);
 
         drv_ch++;

@@ -37,6 +37,7 @@ void nm_svg_map(const char *path, const nm_vect_t *veths, int layer)
 
     graph = agopen("network_map", Agdirected, NULL);
 
+    //@TODO Some of variables may be moved outside, and freed only once
     for (size_t n = 0; n < veths->n_memb; n++)
     {
         nm_vect_t vms = NM_INIT_VECT;

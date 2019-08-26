@@ -185,7 +185,6 @@ enum nm_key_upper {
         nm_align2line(&buf, (ch1 && ch2) ? cols - 2 : cols);    \
         mvwprintw(action_window, y++,                           \
                 (ch1 && ch2) ? x + 2 : x, "%s", buf.data);      \
-        nm_str_trunc(&buf, 0);                                  \
         ch1 = ch2 = 0;                                          \
     } while (0)
 

@@ -303,7 +303,6 @@ static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn)
         goto out;
     }
 
-    nm_str_trunc(&query, 0);
     nm_str_format(&query, NM_LAN_CHECK_NAME_SQL, rn->data, rn->data);
     nm_db_select(query.data, &names);
     if (names.n_memb > 0)
@@ -336,7 +335,7 @@ static void nm_lan_del_veth(const nm_str_t *name)
 
     nm_str_format(&query, NM_LAN_DEL_VETH_SQL, lname.data);
     nm_db_edit(query.data);
-    nm_str_trunc(&query, 0);
+
     nm_str_format(&query, NM_LAN_VETH_DEP_SQL, lname.data, rname.data);
     nm_db_edit(query.data);
 
@@ -389,11 +388,11 @@ static void nm_lan_veth_info(const nm_str_t *name)
 
     nm_str_format(&query, NM_LAN_VETH_INF_SQL, buf.data);
     nm_db_select(query.data, &ifs);
-    nm_str_add_char(&buf, ':');
 
+    nm_str_add_char(&buf, ':');
     if (ifs.n_memb > 0)
         for (size_t n = 0; n < ifs.n_memb; n++)
-            nm_str_format(&buf, " %s", nm_vect_str_ctx(&ifs, n));
+            nm_str_append_format(&buf, " %s", nm_vect_str_ctx(&ifs, n));
     else
         nm_str_add_text(&buf, _(" [none]"));
 
@@ -401,16 +400,15 @@ static void nm_lan_veth_info(const nm_str_t *name)
     nm_str_trunc(&buf, 0);
 
     nm_vect_free(&ifs, nm_str_vect_free_cb);
-    nm_str_trunc(&query, 0);
     nm_str_copy(&buf, &rname);
 
     nm_str_format(&query, NM_LAN_VETH_INF_SQL, buf.data);
     nm_db_select(query.data, &ifs);
-    nm_str_add_char(&buf, ':');
 
+    nm_str_add_char(&buf, ':');
     if (ifs.n_memb > 0)
         for (size_t n = 0; n < ifs.n_memb; n++)
-            nm_str_format(&buf, " %s", nm_vect_str_ctx(&ifs, n));
+            nm_str_append_format(&buf, " %s", nm_vect_str_ctx(&ifs, n));
     else
         nm_str_add_text(&buf, _(" [none]"));
     NM_PR_VM_INFO();

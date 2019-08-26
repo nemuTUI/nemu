@@ -148,13 +148,10 @@ static void nm_print_feset(void)
 #endif
 
     for (size_t n = 0; n < feset.n_memb; n++)
-        nm_str_format(&msg, " %s\n", (char *) nm_vect_at(&feset, n));
+        nm_str_append_format(&msg, " %s\n", (char *) nm_vect_at(&feset, n));
 
     if (msg.len)
-    {
-        nm_str_trunc(&msg, msg.len - 1);
-        printf("%s\n", msg.data);
-    }
+        printf("%s", msg.data);
 
     nm_vect_free(&feset, NULL);
     nm_str_free(&msg);

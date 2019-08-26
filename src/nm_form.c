@@ -390,7 +390,7 @@ int nm_print_empty_fields(const nm_vect_t *v)
     nm_str_alloc_text(&msg, _(NM_MSG_NULL_FLD));
 
     for (size_t n = 0; n < v->n_memb; n++)
-        nm_str_format(&msg, " '%s'", (char *) v->data[n]);
+        nm_str_append_format(&msg, " '%s'", (char *) v->data[n]);
 
     nm_warn(msg.data);
     nm_str_free(&msg);
@@ -446,9 +446,7 @@ void nm_form_update_last_mac(uint64_t mac)
 {
     nm_str_t query = NM_INIT_STR;
 
-    nm_str_alloc_text(&query, "UPDATE lastval SET mac='");
-    nm_str_format(&query, "%" PRIu64 "'", mac);
-
+    nm_str_format(&query, "UPDATE lastval SET mac='%" PRIu64 "'", mac);
     nm_db_edit(query.data);
 
     nm_str_free(&query);
