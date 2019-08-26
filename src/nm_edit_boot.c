@@ -200,7 +200,7 @@ static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
 
     if (field_status(fields[NM_FLD_MACH]))
     {
-        nm_str_format(&query, "UPDATE vms SET machine='%s', WHERE name='%s'",
+        nm_str_format(&query, "UPDATE vms SET machine='%s' WHERE name='%s'",
             vm->mach.data, name->data);
         nm_db_edit(query.data);
     }
