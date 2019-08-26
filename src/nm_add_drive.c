@@ -191,9 +191,9 @@ void nm_del_drive(const nm_str_t *name)
     if (!delete_drive)
         goto quit;
 
-    nm_str_alloc_str(&drive_path, &nm_cfg_get()->vm_dir);
-    nm_str_format(&drive_path, "/%s/%s", name->data,
-            nm_vect_str_ctx(&drives, 2 * (m_drvs.highlight - 1)));
+    nm_str_format(&drive_path, "%s/%s/%s",
+        nm_cfg_get()->vm_dir.data, name->data,
+        nm_vect_str_ctx(&drives, 2 * (m_drvs.highlight - 1)));
 
     if (unlink(drive_path.data) == -1)
         nm_warn(_(NM_MSG_DRV_EDEL));

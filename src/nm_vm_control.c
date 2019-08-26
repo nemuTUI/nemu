@@ -127,10 +127,7 @@ void nm_vmctl_delete(const nm_str_t *name)
     nm_vect_t snaps = NM_INIT_VECT;
     int delete_ok = NM_TRUE;
 
-    nm_str_alloc_str(&vmdir, &nm_cfg_get()->vm_dir);
-    nm_str_add_char(&vmdir, '/');
-    nm_str_add_str(&vmdir, name);
-    nm_str_add_char(&vmdir, '/');
+    nm_str_format(&vmdir, "%s/%s/", nm_cfg_get()->vm_dir.data, name->data);
 
     nm_str_format(&query, NM_SELECT_DRIVE_NAMES_SQL, name->data);
     nm_db_select(query.data, &drives);
@@ -139,8 +136,7 @@ void nm_vmctl_delete(const nm_str_t *name)
     for (size_t n = 0; n < drives.n_memb; n++)
     {
         nm_str_t img_path = NM_INIT_STR;
-        nm_str_alloc_str(&img_path, &vmdir);
-        nm_str_add_str(&img_path, nm_vect_str(&drives, n));
+        nm_str_format(&img_path, "%s%s", vmdir.data, nm_vect_str(&drives, n)->data);
 
         if (unlink(img_path.data) == -1)
             delete_ok = NM_FALSE;
@@ -206,10 +202,8 @@ void nm_vmctl_kill(const nm_str_t *name)
     char buf[10];
     nm_str_t pid_file = NM_INIT_STR;
 
-    nm_str_alloc_str(&pid_file, &nm_cfg_get()->vm_dir);
-    nm_str_add_char(&pid_file, '/');
-    nm_str_add_str(&pid_file, name);
-    nm_str_add_text(&pid_file, "/" NM_VM_PID_FILE);
+    nm_str_format(&pid_file, "%s/%s/%s",
+        nm_cfg_get()->vm_dir.data, name->data, NM_VM_PID_FILE);
 
     if ((fd = open(pid_file.data, O_RDONLY)) == -1)
         return;
@@ -936,10 +930,8 @@ void nm_vmctl_clear_tap(void)
         size_t ifs_count;
         nm_vect_t ifaces = NM_INIT_VECT;
 
-        nm_str_alloc_str(&lock_path, &nm_cfg_get()->vm_dir);
-        nm_str_add_char(&lock_path, '/');
-        nm_str_add_str(&lock_path, nm_vect_str(&vms, n));
-        nm_str_add_text(&lock_path, "/" NM_VM_QMP_FILE);
+        nm_str_format(&lock_path, "%s/%s/%s",
+            nm_cfg_get()->vm_dir.data, nm_vect_str(&vms, n)->data, NM_VM_QMP_FILE);
 
         if (stat(lock_path.data, &file_info) == 0)
             continue;

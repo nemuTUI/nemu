@@ -188,8 +188,8 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
     idx_shift = NM_IFS_IDX_COUNT * (--if_idx);
     if_idx++; /* restore idx */
 
-    nm_str_alloc_str(&iface_data.name,
-            nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+    nm_str_format(&iface_data.name, "%s",
+        nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)->data);
 
     assert(iface_data.name.len > 0);
 

@@ -352,10 +352,8 @@ err:
 
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path)
 {
-    nm_str_alloc_str(path, &nm_cfg_get()->vm_dir);
-    nm_str_add_char(path, '/');
-    nm_str_add_str(path, name);
-    nm_str_add_text(path, "/qmp.sock");
+    nm_str_format(path, "%s/%s/qmp.sock",
+        nm_cfg_get()->vm_dir.data, name->data);
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */
