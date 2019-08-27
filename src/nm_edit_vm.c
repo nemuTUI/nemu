@@ -10,6 +10,7 @@
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
 #include <nm_qmp_control.h>
+#include <nm_edit_vm.h>
 
 #define NM_VM_FORM_CPU_BEGIN "CPU cores [1-"
 #define NM_VM_FORM_CPU_END   "]"
@@ -326,46 +327,32 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
 
     if (field_status(fields[NM_FLD_CPUNUM]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET smp='");
-        nm_str_add_str(&query, &vm->cpus);
-        nm_str_add_text(&query, "' WHERE name='");
-        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-        nm_str_add_char(&query, '\'');
+        nm_str_format(&query, "UPDATE vms SET smp='%s' WHERE name='%s'",
+            vm->cpus.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_RAMTOT]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET mem='");
-        nm_str_add_str(&query, &vm->memo);
-        nm_str_add_text(&query, "' WHERE name='");
-        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-        nm_str_add_char(&query, '\'');
+        nm_str_format(&query, "UPDATE vms SET mem='%s' WHERE name='%s'",
+            vm->memo.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_KVMFLG]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET kvm='");
-        nm_str_add_text(&query, vm->kvm.enable ? NM_ENABLE : NM_DISABLE);
-        nm_str_add_text(&query, "' WHERE name='");
-        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-        nm_str_add_char(&query, '\'');
+        nm_str_format(&query, "UPDATE vms SET kvm='%s' WHERE name='%s'",
+            vm->kvm.enable ? NM_ENABLE : NM_DISABLE,
+            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_HOSCPU]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET hcpu='");
-        nm_str_add_text(&query, vm->kvm.hostcpu_enable ? NM_ENABLE : NM_DISABLE);
-        nm_str_add_text(&query, "' WHERE name='");
-        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-        nm_str_add_char(&query, '\'');
+        nm_str_format(&query, "UPDATE vms SET hcpu='%s' WHERE name='%s'",
+            vm->kvm.hostcpu_enable ? NM_ENABLE : NM_DISABLE,
+            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_IFSCNT]))
@@ -379,14 +366,11 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
             {
                 size_t idx_shift = NM_IFS_IDX_COUNT * (cur_count - 1);
 
-                nm_str_add_text(&query, "DELETE FROM ifaces WHERE vm_name='");
-                nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-                nm_str_add_text(&query, "' AND if_name='");
-                nm_str_add_str(&query, nm_vect_str(&cur->ifs, NM_SQL_IF_NAME + idx_shift));
-                nm_str_add_char(&query, '\'');
+                nm_str_format(&query,
+                    "DELETE FROM ifaces WHERE vm_name='%s' AND if_name='%s'",
+                    nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
+                    nm_vect_str_ctx(&cur->ifs, NM_SQL_IF_NAME + idx_shift));
                 nm_db_edit(query.data);
-
-                nm_str_trunc(&query, 0);
             }
         }
 
@@ -408,24 +392,23 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
                     nm_str_append_format(&if_name, "%zu", n);
                 }
 
-                nm_str_add_text(&query, "INSERT INTO ifaces("
-                    "vm_name, if_name, mac_addr, if_drv, vhost, macvtap) VALUES('");
-                nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-                nm_str_add_text(&query, "', '");
-                nm_str_add_str(&query, &if_name);
-                nm_str_add_text(&query, "', '");
-                nm_str_add_str(&query, &maddr);
+                nm_str_format(&query,
+                    "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap) "
+                    "VALUES('%s', '%s', '%s', '%s', '%s', '%s')",
+                    nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
+                    if_name.data,
+                    maddr.data,
+                    NM_DEFAULT_NETDRV,
 #if defined (NM_OS_LINUX)
-                nm_str_add_text(&query, "', '" NM_DEFAULT_NETDRV "', '1', '0')");
+                    NM_ENABLE,
 #else
-                nm_str_add_text(&query, "', '" NM_DEFAULT_NETDRV "', '0', '0')");
+                    NM_DISABLE,
 #endif
-
+                    NM_DISABLE);
                 nm_db_edit(query.data);
 
                 nm_str_free(&if_name);
                 nm_str_free(&maddr);
-                nm_str_trunc(&query, 0);
             }
 
             nm_form_update_last_mac(mac);
@@ -434,65 +417,41 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
 
     if (field_status(fields[NM_FLD_DISKIN]))
     {
-        nm_str_add_text(&query, "UPDATE drives SET drive_drv='");
-        nm_str_add_str(&query, &vm->drive.driver);
-        nm_str_add_text(&query, "' WHERE vm_name='");
-        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-        nm_str_add_char(&query, '\'');
-
+        nm_str_format(&query, "UPDATE drives SET drive_drv='%s' WHERE vm_name='%s'",
+            vm->drive.driver.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
-
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_USBUSE]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET usb='");
-        nm_str_add_text(&query, vm->usb_enable ? NM_ENABLE : NM_DISABLE);
-        nm_str_add_text(&query, "' WHERE name='");
-        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-        nm_str_add_char(&query, '\'');
-
+        nm_str_format(&query, "UPDATE vms SET usb='%s' WHERE name='%s'",
+            vm->usb_enable ? NM_ENABLE : NM_DISABLE,
+            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
-
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_USBTYP]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET usb_type='");
-        nm_str_add_text(&query, vm->usb_xhci ? nm_form_usbtype[1] : nm_form_usbtype[0]);
-        nm_str_add_text(&query, "' WHERE name='");
-        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-        nm_str_add_char(&query, '\'');
-
+        nm_str_format(&query, "UPDATE vms SET usb_type='%s' WHERE name='%s'",
+            vm->usb_xhci ? nm_form_usbtype[1] : nm_form_usbtype[0],
+            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
-
-        nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_MOUSES]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET mouse_override='");
-        nm_str_add_text(&query, vm->mouse_sync ? NM_ENABLE : NM_DISABLE);
-        nm_str_add_text(&query, "' WHERE name='");
-        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-        nm_str_add_char(&query, '\'');
-
+        nm_str_format(&query, "UPDATE vms SET mouse_override='%s' WHERE name='%s'",
+            vm->mouse_sync ? NM_ENABLE : NM_DISABLE,
+            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
-
-        nm_str_trunc(&query, 0);
     }
 
 #if defined(NM_WITH_SPICE)
     if (field_status(fields[NM_FLD_SPICE]))
     {
-        nm_str_add_text(&query, "UPDATE vms SET spice='");
-        nm_str_add_text(&query, vm->spice ? NM_ENABLE : NM_DISABLE);
-        nm_str_add_text(&query, "' WHERE name='");
-        nm_str_add_str(&query, nm_vect_str(&cur->main, NM_SQL_NAME));
-        nm_str_add_char(&query, '\'');
-
+        nm_str_format(&query, "UPDATE vms SET spice='%s' WHERE name='%s'",
+            vm->spice ? NM_ENABLE : NM_DISABLE,
+            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 #endif
