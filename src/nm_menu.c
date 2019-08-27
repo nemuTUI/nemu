@@ -82,7 +82,7 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         if (n >= vm->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
-        nm_str_alloc_text(&vm_name, nm_vect_item_name(vm->v, n));
+        nm_str_alloc_text(&vm_name, nm_vect_item_name_ctx(vm->v, n));
         nm_align2line(&vm_name, screen_x);
 
         space_num = (screen_x - vm_name.len - 4);
@@ -92,7 +92,7 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
                 nm_str_add_char_opt(&vm_name, ' ');
         }
 
-        if (nm_qmp_test_socket(nm_vect_item_name_str(vm->v, n)) == NM_OK)
+        if (nm_qmp_test_socket(nm_vect_item_name(vm->v, n)) == NM_OK)
         {
             nm_vect_set_item_status(vm->v, n, 1);
             wattron(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
@@ -213,7 +213,7 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
         if (n >= veth->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
-        nm_str_alloc_text(&veth_name, nm_vect_item_name(veth->v, n));
+        nm_str_alloc_text(&veth_name, nm_vect_item_name_ctx(veth->v, n));
         nm_str_copy(&veth_copy, &veth_name);
         nm_align2line(&veth_name, screen_x);
         nm_lan_parse_name(&veth_copy, &veth_lname, &veth_rname);

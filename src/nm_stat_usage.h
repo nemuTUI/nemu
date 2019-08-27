@@ -1,6 +1,8 @@
 #ifndef NM_STAT_USAGE_H_
 #define NM_STAT_USAGE_H_
 
+#include <stdint.h>
+
 extern uint64_t nm_total_cpu_before;
 extern uint64_t nm_total_cpu_after;
 extern uint64_t nm_proc_cpu_before;

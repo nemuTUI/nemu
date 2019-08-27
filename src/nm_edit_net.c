@@ -6,6 +6,7 @@
 #include <nm_network.h>
 #include <nm_database.h>
 #include <nm_vm_control.h>
+#include <nm_edit_net.h>
 
 #if defined (NM_OS_LINUX)
 #define NM_NET_FIELDS_NUM 6

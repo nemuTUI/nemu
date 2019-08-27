@@ -1,6 +1,8 @@
 #ifndef NM_SVG_MAP_H_
 #define NM_SVG_MAP_H_
 
+#include <nm_vector.h>
+
 enum {
     NM_SVG_LAYER_UP,
     NM_SVG_LAYER_DOWN,

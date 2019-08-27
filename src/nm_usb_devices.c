@@ -151,31 +151,31 @@ int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
     return rc;
 }
 
-void nm_usb_vect_ins_cb(const void *unit_p, const void *ctx)
+void nm_usb_vect_ins_cb(void *unit_p, const void *ctx)
 {
-    nm_str_copy(&nm_usb_name(unit_p), &nm_usb_name(ctx));
-    nm_str_copy(&nm_usb_vendor_id(unit_p), &nm_usb_vendor_id(ctx));
-    nm_str_copy(&nm_usb_product_id(unit_p), &nm_usb_product_id(ctx));
-    nm_usb_bus_num(unit_p) = nm_usb_bus_num(ctx);
-    nm_usb_dev_addr(unit_p) = nm_usb_dev_addr(ctx);
+    nm_str_copy(nm_usb_name(unit_p), nm_usb_name(ctx));
+    nm_str_copy(nm_usb_vendor_id(unit_p), nm_usb_vendor_id(ctx));
+    nm_str_copy(nm_usb_product_id(unit_p), nm_usb_product_id(ctx));
+    *nm_usb_bus_num(unit_p) = *nm_usb_bus_num(ctx);
+    *nm_usb_dev_addr(unit_p) = *nm_usb_dev_addr(ctx);
 }
 
-void nm_usb_vect_free_cb(const void *unit_p)
+void nm_usb_vect_free_cb(void *unit_p)
 {
-    nm_str_free(&nm_usb_name(unit_p));
-    nm_str_free(&nm_usb_vendor_id(unit_p));
-    nm_str_free(&nm_usb_product_id(unit_p));
+    nm_str_free(nm_usb_name(unit_p));
+    nm_str_free(nm_usb_vendor_id(unit_p));
+    nm_str_free(nm_usb_product_id(unit_p));
 }
 
-void nm_usb_data_vect_ins_cb(const void *unit_p, const void *ctx)
+void nm_usb_data_vect_ins_cb(void *unit_p, const void *ctx)
 {
-    nm_str_copy(&nm_usb_data_serial(unit_p), &nm_usb_data_serial(ctx));
-    nm_usb_data_dev(unit_p) = nm_usb_data_dev(ctx);
+    nm_str_copy(nm_usb_data_serial(unit_p), nm_usb_data_serial(ctx));
+    *nm_usb_data_dev(unit_p) = *nm_usb_data_dev(ctx);
 }
 
-void nm_usb_data_vect_free_cb(const void *unit_p)
+void nm_usb_data_vect_free_cb(void *unit_p)
 {
-    nm_str_free(&nm_usb_data_serial(unit_p));
+    nm_str_free(nm_usb_data_serial(unit_p));
 }
 
 void nm_usb_data_free(nm_usb_data_t *usb)

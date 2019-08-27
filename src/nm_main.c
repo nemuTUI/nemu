@@ -82,31 +82,27 @@ static void nm_process_args(int argc, char **argv)
         switch (opt) {
 #if defined (NM_OS_LINUX)
         case 'c':
-            NM_INIT_CORE();
+            nm_init_core();
             nm_lan_create_veth(NM_TRUE);
-            NM_EXIT_CORE();
-            break;
+            nm_exit_core();
 #endif
         case 's':
-            NM_INIT_CORE();
+            nm_init_core();
             nm_str_alloc_text(&vmname, optarg);
             nm_vmctl_start(&vmname, 0);
             nm_str_free(&vmname);
-            NM_EXIT_CORE();
-            break;
+            nm_exit_core();
         case 'l':
-            NM_INIT_CORE();
+            nm_init_core();
             nm_db_select(NM_GET_VMS_SQL, &vm_list);
             for (size_t i = 0; i < vm_list.n_memb; ++i)
                 printf("%s\n", ((nm_str_t*)vm_list.data[i])->data);
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
-            NM_EXIT_CORE();
-            break;
+            nm_exit_core();
         case 'v':
             printf("nEMU %s\n", NM_VERSION);
             nm_print_feset();
             exit(NM_OK);
-            break;
         case 'h':
 #if defined (NM_OS_LINUX)
             printf("%s\n", _("-c, --create-veth   create veth interfaces"));
@@ -116,7 +112,6 @@ static void nm_process_args(int argc, char **argv)
             printf("%s\n", _("-v, --version       show version"));
             printf("%s\n", _("-h, --help          show help"));
             exit(NM_OK);
-            break;
         default:
             exit(NM_ERR);
         }

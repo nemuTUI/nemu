@@ -11,19 +11,19 @@
 #include <nm_cfg_file.h>
 #include <nm_ovf_import.h>
 
-#define NM_VM_FORM_NAME      "Name"
-#define NM_VM_FORM_ARCH      "Architecture"
-#define NM_VM_FORM_CPU_BEGIN "CPU cores [1-"
-#define NM_VM_FORM_CPU_END   "]"
-#define NM_VM_FORM_MEM_BEGIN "Memory [4-"
-#define NM_VM_FORM_MEM_END   "]Mb"
-#define NM_VM_FORM_DRV_BEGIN "Disk [1-"
-#define NM_VM_FORM_DRV_END   "]Gb"
-#define NM_VM_FORM_DRV_IF    "Disk interface"
-#define NM_VM_FORM_IMP_PATH  "Path to disk image"
-#define NM_VM_FORM_INS_PATH  "Path to ISO/IMG"
-#define NM_VM_FORM_NET_IFS   "Network interfaces"
-#define NM_VM_FORM_NET_DRV   "Net driver"
+static const char NM_VM_FORM_NAME[]      = "Name";
+static const char NM_VM_FORM_ARCH[]      = "Architecture";
+static const char NM_VM_FORM_CPU_BEGIN[] = "CPU cores [1-";
+static const char NM_VM_FORM_CPU_END[]   = "]";
+static const char NM_VM_FORM_MEM_BEGIN[] = "Memory [4-";
+static const char NM_VM_FORM_MEM_END[]   = "]Mb";
+static const char NM_VM_FORM_DRV_BEGIN[] = "Disk [1-";
+static const char NM_VM_FORM_DRV_END[]   = "]Gb";
+static const char NM_VM_FORM_DRV_IF[]    = "Disk interface";
+static const char NM_VM_FORM_IMP_PATH[]  = "Path to disk image";
+static const char NM_VM_FORM_INS_PATH[]  = "Path to ISO/IMG";
+static const char NM_VM_FORM_NET_IFS[]   = "Network interfaces";
+static const char NM_VM_FORM_NET_DRV[]   = "Net driver";
 
 static void nm_add_vm_field_setup(int import);
 static void nm_add_vm_field_names(nm_vect_t *msg, int import);
@@ -66,7 +66,7 @@ static void nm_add_vm_main(int import)
     uint64_t last_mac;
     uint32_t last_vnc;
     size_t msg_len;
-    pthread_t spin_th;
+    pthread_t spin_th = pthread_self();
     int done = 0;
 
     nm_add_vm_field_names(&msg_fields, import);
@@ -235,7 +235,6 @@ static int nm_add_vm_get_data(nm_vm_t *vm, int import)
         if (stat(vm->srcp.data, &img_info) == 0)
         {
             size_gb = img_info.st_size / 1024 / 1024 / 1024;
-            //@TODO This needs to be tested, it was appending before.
             nm_str_format(&vm->drive.size, "%ld", size_gb);
         }
         else
@@ -314,8 +313,8 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
                 "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot) "
                 "VALUES('%s', '%s', '%s', '%s', '%s')",
                 vm->name.data,
-                nm_drive_file(drives->data[n]).data, NM_DEFAULT_DRVINT,
-                nm_drive_size(drives->data[n]).data,
+                nm_drive_file(drives->data[n])->data, NM_DEFAULT_DRVINT,
+                nm_drive_size(drives->data[n])->data,
                 n == 0 ? NM_ENABLE : NM_DISABLE /* boot flag */
                 );
             nm_db_edit(query.data);

@@ -6,6 +6,7 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_qmp_control.h>
+#include <nm_vm_snapshot.h>
 
 #define NM_DEL_SNAP_TITLE NM_EDIT_TITLE " [delete]"
 

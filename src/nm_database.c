@@ -3,6 +3,7 @@
 #include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_cfg_file.h>
+#include <nm_database.h>
 
 #include <sqlite3.h>
 

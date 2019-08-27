@@ -74,8 +74,8 @@ typedef xmlNodeSetPtr nm_xml_node_set_pt;
 typedef xmlXPathObjectPtr nm_xml_xpath_obj_pt;
 typedef xmlXPathContextPtr nm_xml_xpath_ctx_pt;
 
-void nm_drive_vect_ins_cb(const void *unit_p, const void *ctx);
-void nm_drive_vect_free_cb(const void *unit_p);
+void nm_drive_vect_ins_cb(void *unit_p, const void *ctx);
+void nm_drive_vect_free_cb(void *unit_p);
 
 static int nm_clean_temp_dir(const char *tmp_dir, const nm_vect_t *files);
 static void nm_archive_copy_data(nm_archive_t *in, nm_archive_t *out);
@@ -556,16 +556,16 @@ static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
     xmlXPathFreeObject(obj);
 }
 
-void nm_drive_vect_ins_cb(const void *unit_p, const void *ctx)
+void nm_drive_vect_ins_cb(void *unit_p, const void *ctx)
 {
-    nm_str_copy(&nm_drive_file(unit_p), &nm_drive_file(ctx));
-    nm_str_copy(&nm_drive_size(unit_p), &nm_drive_size(ctx));
+    nm_str_copy(nm_drive_file(unit_p), nm_drive_file(ctx));
+    nm_str_copy(nm_drive_size(unit_p), nm_drive_size(ctx));
 }
 
-void nm_drive_vect_free_cb(const void *unit_p)
+void nm_drive_vect_free_cb(void *unit_p)
 {
-    nm_str_free(&nm_drive_file(unit_p));
-    nm_str_free(&nm_drive_size(unit_p));
+    nm_str_free(nm_drive_file(unit_p));
+    nm_str_free(nm_drive_size(unit_p));
 }
 
 static inline void nm_drive_free(nm_drive_t *d)
@@ -599,11 +599,11 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
         nm_vect_insert_cstr(&argv, "qcow2");
 
         nm_str_format(&buf, "%s/%s",
-            templ_path, (nm_drive_file(drives->data[n])).data);
+            templ_path, (nm_drive_file(drives->data[n]))->data);
         nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
         nm_str_format(&buf, "%s/%s",
-            vm_dir.data, (nm_drive_file(drives->data[n])).data);
+            vm_dir.data, (nm_drive_file(drives->data[n]))->data);
         nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
         nm_cmd_str(&buf, &argv);
@@ -631,7 +631,6 @@ static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives)
     nm_str_alloc_text(&vm->ifs.driver, NM_DEFAULT_NETDRV);
 
     nm_form_get_last(&last_mac, &last_vnc);
-    //@TODO This needs to be tested, it was appending before.
     nm_str_format(&vm->vncp, "%u", last_vnc);
 
     nm_add_vm_to_db(vm, last_mac, NM_IMPORT_VM, drives);

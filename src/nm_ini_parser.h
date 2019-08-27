@@ -1,6 +1,8 @@
 #ifndef NM_INI_PARSER_H_
 #define NM_INI_PARSER_H_
 
+#include <nm_string.h>
+
 typedef struct nm_ini_node_s nm_ini_node_t;
 
 nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path);

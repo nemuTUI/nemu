@@ -1,6 +1,7 @@
 #ifndef NM_QMP_CONTROL_H_
 #define NM_QMP_CONTROL_H_
 
+#include <nm_string.h>
 #include <nm_usb_devices.h>
 
 void nm_qmp_vm_shut(const nm_str_t *name);

@@ -1,6 +1,10 @@
 #ifndef NM_STRING_H_
 #define NM_STRING_H_
 
+#include <nm_vector.h>
+#include <stdlib.h>
+#include <stdint.h>
+
 typedef struct {
     char *data;
     size_t len;
@@ -37,8 +41,21 @@ void nm_str_format(nm_str_t *str, const char *fmt, ...)
 void nm_str_append_format(nm_str_t *str, const char *fmt, ...)
     __attribute__ ((format(printf, 2, 3)));
 
-void nm_str_vect_ins_cb(const void *unit_p, const void *ctx);
-void nm_str_vect_free_cb(const void *unit_p);
+void nm_str_vect_ins_cb(void *unit_p, const void *ctx);
+void nm_str_vect_free_cb(void *unit_p);
+
+static inline nm_str_t *nm_vect_str(const nm_vect_t *v, const size_t index)
+{
+    return (nm_str_t *)nm_vect_at(v, index);
+}
+static inline char *nm_vect_str_ctx(const nm_vect_t *v, const size_t index)
+{
+    return nm_vect_str(v, index)->data;
+}
+static inline size_t nm_vect_str_len(const nm_vect_t *v, const size_t index)
+{
+    return nm_vect_str(v, index)->len;
+}
 
 #endif /* NM_STRING_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

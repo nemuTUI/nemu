@@ -459,11 +459,11 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             /* look for cached data first, libusb_open() is very expensive */
             for (size_t m = 0; m < serial_cache.n_memb; m++)
             {
-                usb = nm_usb_data_dev(serial_cache.data[m]);
-                nm_str_t *ser_str = &nm_usb_data_serial(serial_cache.data[m]);
+                usb = *nm_usb_data_dev(serial_cache.data[m]);
+                nm_str_t *ser_str = nm_usb_data_serial(serial_cache.data[m]);
 
-                if ((nm_str_cmp_st(&nm_usb_vendor_id(usb), vid) == NM_OK) &&
-                    (nm_str_cmp_st(&nm_usb_product_id(usb), pid) == NM_OK) &&
+                if ((nm_str_cmp_st(nm_usb_vendor_id(usb), vid) == NM_OK) &&
+                    (nm_str_cmp_st(nm_usb_product_id(usb), pid) == NM_OK) &&
                     (nm_str_cmp_st(ser_str, ser) == NM_OK))
                 {
                     found_in_cache = 1;
@@ -476,8 +476,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                 assert(usb != NULL);
                 nm_vect_insert_cstr(argv, "-device");
                 nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s",
-                    nm_usb_bus_num(usb), nm_usb_dev_addr(usb),
-                    nm_usb_vendor_id(usb).data, nm_usb_product_id(usb).data, ser);
+                    *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),
+                    nm_usb_vendor_id(usb)->data, nm_usb_product_id(usb)->data, ser);
                 nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
                 continue;
@@ -486,8 +486,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             for (size_t m = 0; m < usb_list.n_memb; m++)
             {
                 usb = (nm_usb_dev_t *) usb_list.data[m];
-                if ((nm_str_cmp_st(&nm_usb_vendor_id(usb), vid) == NM_OK) &&
-                    (nm_str_cmp_st(&nm_usb_product_id(usb), pid) == NM_OK))
+                if ((nm_str_cmp_st(nm_usb_vendor_id(usb), vid) == NM_OK) &&
+                    (nm_str_cmp_st(nm_usb_product_id(usb), pid) == NM_OK))
                 {
                     if (serial.len)
                         nm_str_trunc(&serial, 0);
@@ -516,8 +516,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                 assert(usb != NULL);
                 nm_vect_insert_cstr(argv, "-device");
                 nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s",
-                    nm_usb_bus_num(usb), nm_usb_dev_addr(usb),
-                    nm_usb_vendor_id(usb).data, nm_usb_product_id(usb).data, ser);
+                    *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),
+                    nm_usb_vendor_id(usb)->data, nm_usb_product_id(usb)->data, ser);
                 nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
                 continue;
@@ -554,7 +554,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
         if (nm_vect_str_len(&vm->main, NM_SQL_KAPP))
         {
-            //@TODO This needs to be checked, was quoted before
             nm_vect_insert_cstr(argv, "-append");
             nm_vect_insert(argv,
                 nm_vect_str(&vm->main, NM_SQL_KAPP)->data,

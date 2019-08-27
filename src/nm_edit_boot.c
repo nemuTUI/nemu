@@ -6,6 +6,7 @@
 #include <nm_machine.h>
 #include <nm_database.h>
 #include <nm_vm_control.h>
+#include <nm_edit_boot.h>
 
 enum {
     NM_FLD_INST = 0,

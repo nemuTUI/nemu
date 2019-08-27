@@ -98,7 +98,7 @@ void nm_lan_settings(void)
         {
             if (veths.n_memb > 0)
             {
-                nm_lan_del_veth(nm_vect_item_name_cur(veths_data));
+                nm_lan_del_veth(nm_vect_item_name_cur(&veths_data));
                 regen_data = 1;
                 old_hl = veths_data.highlight;
                 if (veths_data.item_first != 0)
@@ -115,7 +115,7 @@ void nm_lan_settings(void)
         {
             if (veths.n_memb > 0)
             {
-                nm_lan_down_veth(nm_vect_item_name_cur(veths_data));
+                nm_lan_down_veth(nm_vect_item_name_cur(&veths_data));
                 renew_status = 1;
             }
         }
@@ -124,7 +124,7 @@ void nm_lan_settings(void)
         {
             if (veths.n_memb > 0)
             {
-                nm_lan_up_veth(nm_vect_item_name_cur(veths_data));
+                nm_lan_up_veth(nm_vect_item_name_cur(&veths_data));
                 renew_status = 1;
             }
         }
@@ -180,7 +180,7 @@ void nm_lan_settings(void)
             werase(action_window);
             nm_init_action(_(NM_MSG_LAN));
             nm_print_veth_menu(&veths_data, renew_status);
-            nm_lan_veth_info(nm_vect_item_name_cur(veths_data));
+            nm_lan_veth_info(nm_vect_item_name_cur(&veths_data));
 
             if (renew_status)
                 renew_status = 0;

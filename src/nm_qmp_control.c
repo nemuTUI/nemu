@@ -4,6 +4,7 @@
 #include <nm_window.h>
 #include <nm_cfg_file.h>
 #include <nm_usb_devices.h>
+#include <nm_qmp_control.h>
 
 #include <sys/time.h>
 #include <sys/un.h>

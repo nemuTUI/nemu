@@ -2,6 +2,7 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_cfg_file.h>
+#include <nm_hw_info.h>
 
 #include <sys/statvfs.h>
 

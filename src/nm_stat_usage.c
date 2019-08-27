@@ -1,5 +1,6 @@
 #include <nm_core.h>
 #include <nm_string.h>
+#include <nm_stat_usage.h>
 
 #define NM_STAT_BUF_LEN 512
 #define NM_STAT_RES_LEN 12

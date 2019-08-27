@@ -10,8 +10,14 @@
 
 #define NM_INIT_MLIST { NM_INIT_STR, NULL }
 
-#define nm_mach_arch(p) ((nm_mach_t *) p)->arch
-#define nm_mach_list(p) ((nm_mach_t *) p)->list
+static inline nm_str_t *nm_mach_arch(const nm_mach_t *p)
+{
+    return (nm_str_t *)&p->arch;
+}
+static inline nm_vect_t **nm_mach_list(const nm_mach_t *p)
+{
+    return (nm_vect_t **)&p->list;
+}
 
 static nm_vect_t nm_machs = NM_INIT_VECT;
 
@@ -30,9 +36,9 @@ static void nm_mach_init(void)
     nm_debug("\n");
     for (size_t n = 0; n < nm_machs.n_memb; n++)
     {
-        nm_vect_t *v = nm_mach_list(nm_machs.data[n]);
+        nm_vect_t *v = *nm_mach_list(nm_machs.data[n]);
         nm_debug("Get machine list for %s:\n",
-            nm_mach_arch(nm_machs.data[n]).data);
+            nm_mach_arch(nm_machs.data[n])->data);
 
         for (size_t n = 0; n < v->n_memb; n++)
         {
@@ -53,7 +59,7 @@ const char **nm_mach_get(const nm_str_t *arch)
     {
         if (nm_str_cmp_ss(nm_machs.data[n], arch) == NM_OK)
         {
-            v = (const char **) nm_mach_list(nm_machs.data[n])->data;
+            v = (const char **) (*nm_mach_list(nm_machs.data[n]))->data;
             break;
         }
     }
@@ -64,7 +70,7 @@ const char **nm_mach_get(const nm_str_t *arch)
 void nm_mach_free(void)
 {
     for (size_t n = 0; n < nm_machs.n_memb; n++)
-        nm_vect_free(nm_mach_list(nm_machs.data[n]), NULL);
+        nm_vect_free(*nm_mach_list(nm_machs.data[n]), NULL);
 
     nm_vect_free(&nm_machs, nm_mach_vect_free_mlist_cb);
 }
@@ -157,16 +163,16 @@ static nm_vect_t *nm_mach_parse(const nm_str_t *buf)
     return v;
 }
 
-void nm_mach_vect_ins_mlist_cb(const void *unit_p, const void *ctx)
+void nm_mach_vect_ins_mlist_cb(void *unit_p, const void *ctx)
 {
-    nm_str_copy(&nm_mach_arch(unit_p), &nm_mach_arch(ctx));
-    memcpy(&nm_mach_list(unit_p), &nm_mach_list(ctx), sizeof(nm_vect_t *));
+    nm_str_copy(nm_mach_arch(unit_p), nm_mach_arch(ctx));
+    memcpy(nm_mach_list(unit_p), nm_mach_list(ctx), sizeof(nm_vect_t *));
 }
 
-void nm_mach_vect_free_mlist_cb(const void *unit_p)
+void nm_mach_vect_free_mlist_cb(void *unit_p)
 {
-    nm_str_free(&nm_mach_arch(unit_p));
-    free(nm_mach_list(unit_p));
+    nm_str_free(nm_mach_arch(unit_p));
+    free(*nm_mach_list(unit_p));
 }
 
 /* vim:set ts=4 sw=4 fdm=marker: */

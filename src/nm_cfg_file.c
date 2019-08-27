@@ -5,31 +5,31 @@
 #include <nm_cfg_file.h>
 #include <nm_ini_parser.h>
 
-#define NM_CFG_NAME         "nemu.cfg"
-#define NM_DEFAULT_VMDIR    "nemu_vm"
-#define NM_DEFAULT_DBFILE   "nemu.db"
-#define NM_DEFAULT_VNC      "/usr/bin/vncviewer"
-#define NM_DEFAULT_VNCARG   ":%p"
-#define NM_DEFAULT_SPICE    "/usr/bin/remote-viewer"
-#define NM_DEFAULT_SPICEARG "--title %t spice://127.0.0.1:%p"
-#define NM_DEFAULT_TARGET   "x86_64,i386"
+static const char NM_CFG_NAME[]         = "nemu.cfg";
+static const char NM_DEFAULT_VMDIR[]    = "nemu_vm";
+static const char NM_DEFAULT_DBFILE[]   = "nemu.db";
+static const char NM_DEFAULT_VNC[]      = "/usr/bin/vncviewer";
+static const char NM_DEFAULT_VNCARG[]   = ":%p";
+static const char NM_DEFAULT_SPICE[]    = "/usr/bin/remote-viewer";
+static const char NM_DEFAULT_SPICEARG[] = "--title %t spice://127.0.0.1:%p";
+static const char NM_DEFAULT_TARGET[]   = "x86_64,i386";
 
-#define NM_INI_S_MAIN     "main"
-#define NM_INI_S_VIEW     "viewer"
-#define NM_INI_S_QEMU     "qemu"
+static const char NM_INI_S_MAIN[]       = "main";
+static const char NM_INI_S_VIEW[]       = "viewer";
+static const char NM_INI_S_QEMU[]       = "qemu";
 
-#define NM_INI_P_VM       "vmdir"
-#define NM_INI_P_DB       "db"
-#define NM_INI_P_HL       "hl_color"
-#define NM_INI_P_PROT     "spice_default"
-#define NM_INI_P_VBIN     "vnc_bin"
-#define NM_INI_P_VARG     "vnc_args"
-#define NM_INI_P_SBIN     "spice_bin"
-#define NM_INI_P_SARG     "spice_args"
-#define NM_INI_P_VANY     "listen_any"
-#define NM_INI_P_QTRG     "targets"
-#define NM_INI_P_QENL     "enable_log"
-#define NM_INI_P_QLOG     "log_cmd"
+static const char NM_INI_P_VM[]         = "vmdir";
+static const char NM_INI_P_DB[]         = "db";
+static const char NM_INI_P_HL[]         = "hl_color";
+static const char NM_INI_P_PROT[]       = "spice_default";
+static const char NM_INI_P_VBIN[]       = "vnc_bin";
+static const char NM_INI_P_VARG[]       = "vnc_args";
+static const char NM_INI_P_SBIN[]       = "spice_bin";
+static const char NM_INI_P_SARG[]       = "spice_args";
+static const char NM_INI_P_VANY[]       = "listen_any";
+static const char NM_INI_P_QTRG[]       = "targets";
+static const char NM_INI_P_QENL[]       = "enable_log";
+static const char NM_INI_P_QLOG[]       = "log_cmd";
 
 static nm_cfg_t cfg;
 
@@ -65,8 +65,7 @@ void nm_cfg_init(void)
     if (!pw)
         nm_bug(_("Error get home directory: %s\n"), strerror(errno));
 
-    nm_str_alloc_text(&cfg_path, pw->pw_dir);
-    nm_str_add_text(&cfg_path, "/." NM_CFG_NAME);
+    nm_str_format(&cfg_path, "%s/.%s", pw->pw_dir, NM_CFG_NAME);
 
     nm_generate_cfg(pw->pw_dir, &cfg_path);
     ini = nm_ini_parser_init(&cfg_path);
@@ -78,7 +77,7 @@ void nm_cfg_init(void)
 
     if (stat(cfg.vm_dir.data, &file_info) == -1)
         nm_bug("cfg: %s: %s", cfg.vm_dir.data, strerror(errno));
-    if ((file_info.st_mode & S_IFMT) != S_IFDIR)
+    if (!S_ISDIR(file_info.st_mode))
         nm_bug(_("cfg: %s is not a directory"), cfg.vm_dir.data);
     if (access(cfg.vm_dir.data, W_OK) != 0)
         nm_bug(_("cfg: no write access to %s"), cfg.vm_dir.data);
@@ -221,7 +220,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
     case 'y':
     case 'Y':
         {
-            FILE *cfg;
+            FILE *cfg_file;
             char ch;
             nm_str_t db = NM_INIT_STR;
 #ifdef NM_WITH_VNC_CLIENT
@@ -248,10 +247,10 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             nm_str_alloc_text(&vmdir, home);
             nm_str_alloc_text(&targets, NM_DEFAULT_TARGET);
 
-            nm_str_add_text(&db, "/." NM_DEFAULT_DBFILE);
-            nm_str_add_text(&vmdir, "/" NM_DEFAULT_VMDIR);
+            nm_str_append_format(&db, "/.%s", NM_DEFAULT_DBFILE);
+            nm_str_append_format(&vmdir, "/%s", NM_DEFAULT_VMDIR);
 
-            if ((cfg = fopen(cfg_path->data, "w+")) == NULL)
+            if ((cfg_file = fopen(cfg_path->data, "w+")) == NULL)
                 nm_bug("Cannot create file: %s\n", cfg_path->data);
 
             /* clear stdin */
@@ -299,32 +298,32 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 #endif
             nm_get_input(_("QEMU system targets list, separated by comma"), &targets);
 
-            fprintf(cfg, "[main]\n# virtual machine dir.\nvmdir = %s\n\n", vmdir.data);
-            fprintf(cfg, "# path to database file.\ndb = %s\n\n", db.data);
-            fprintf(cfg, "# override highlight color of running VM's. Example:\n# hl_color = 00afd7\n\n");
-            fprintf(cfg, "[viewer]\n");
+            fprintf(cfg_file, "[main]\n# virtual machine dir.\nvmdir = %s\n\n", vmdir.data);
+            fprintf(cfg_file, "# path to database file.\ndb = %s\n\n", db.data);
+            fprintf(cfg_file, "# override highlight color of running VM's. Example:\n# hl_color = 00afd7\n\n");
+            fprintf(cfg_file, "[viewer]\n");
 #ifdef NM_WITH_SPICE
-            fprintf(cfg, "# default protocol (1 - spice, 0 - vnc)\nspice_default = 1\n\n");
+            fprintf(cfg_file, "# default protocol (1 - spice, 0 - vnc)\nspice_default = 1\n\n");
 #else
-            fprintf(cfg, "# default protocol (1 - spice, 0 - vnc)\nspice_default = 0\n\n");
+            fprintf(cfg_file, "# default protocol (1 - spice, 0 - vnc)\nspice_default = 0\n\n");
 #endif
 #ifdef NM_WITH_VNC_CLIENT
-            fprintf(cfg, "# vnc client path.\nvnc_bin = %s\n\n", vnc_bin.data);
-            fprintf(cfg, "# vnc client args (%%t - title, %%p - port)\nvnc_args = %s\n\n", vnc_args.data);
+            fprintf(cfg_file, "# vnc client path.\nvnc_bin = %s\n\n", vnc_bin.data);
+            fprintf(cfg_file, "# vnc client args (%%t - title, %%p - port)\nvnc_args = %s\n\n", vnc_args.data);
 #endif
 #ifdef NM_WITH_SPICE
-            fprintf(cfg, "# spice client path.\nspice_bin = %s\n\n", spice_bin.data);
-            fprintf(cfg, "# spice client args (%%t - title, %%p - port)\nspice_args = %s\n\n", spice_args.data);
+            fprintf(cfg_file, "# spice client path.\nspice_bin = %s\n\n", spice_bin.data);
+            fprintf(cfg_file, "# spice client args (%%t - title, %%p - port)\nspice_args = %s\n\n", spice_args.data);
 #endif
-            fprintf(cfg, "# listen for vnc|spice connections"
+            fprintf(cfg_file, "# listen for vnc|spice connections"
                 " (0 - only localhost, 1 - any address)\nlisten_any = 0\n\n");
-            fprintf(cfg, "[qemu]\n# comma separated QEMU system targets installed.\n"
+            fprintf(cfg_file, "[qemu]\n# comma separated QEMU system targets installed.\n"
                 "targets = %s\n\n", targets.data);
-            fprintf(cfg, "# Log last QEMU command.\n"
+            fprintf(cfg_file, "# Log last QEMU command.\n"
                 "enable_log = 1\n\n");
-            fprintf(cfg, "# Log path.\n"
+            fprintf(cfg_file, "# Log path.\n"
                 "log_cmd = /tmp/qemu_last_cmd.log\n");
-            fclose(cfg);
+            fclose(cfg_file);
 
             nm_str_free(&db);
 #ifdef NM_WITH_VNC_CLIENT
@@ -404,6 +403,7 @@ static inline void nm_cfg_get_color(size_t pos, short *color,
     nm_str_alloc_text(&hex, "0x");
     nm_str_add_char(&hex, buf->data[pos]);
     nm_str_add_char(&hex, buf->data[pos + 1]);
+    //@TODO This uint32_t to short int conversion kinda scares me
     *color = (nm_str_stoui(&hex, 16)) * 1000 / 255;
     nm_str_free(&hex);
 }

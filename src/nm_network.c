@@ -577,7 +577,7 @@ static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n,
                 __func__, strerror(-nlerr->error));
         }
         if (res)
-            memcpy(res, nh, NM_MIN(res_len, nh->nlmsg_len));
+            memcpy(res, nh, nm_min(res_len, nh->nlmsg_len));
     }
 }
 

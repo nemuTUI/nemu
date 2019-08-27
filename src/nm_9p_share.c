@@ -6,14 +6,15 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
+#include <nm_9p_share.h>
 
 #define NM_INIT_9P_DATA { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR }
-#define NM_9P_SET_MODE_SQL \
-    "UPDATE vms SET fs9p_enable='%s' WHERE name='%s'"
-#define NM_9P_SET_PATH_SQL \
-    "UPDATE vms SET fs9p_path='%s' WHERE name='%s'"
-#define NM_9P_SET_NAME_SQL \
-    "UPDATE vms SET fs9p_name='%s' WHERE name='%s'"
+static const char NM_9P_SET_MODE_SQL[] =
+    "UPDATE vms SET fs9p_enable='%s' WHERE name='%s'";
+static const char NM_9P_SET_PATH_SQL[] =
+    "UPDATE vms SET fs9p_path='%s' WHERE name='%s'";
+static const char NM_9P_SET_NAME_SQL[] =
+    "UPDATE vms SET fs9p_name='%s' WHERE name='%s'";
 
 typedef struct {
     nm_str_t mode;

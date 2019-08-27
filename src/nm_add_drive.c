@@ -10,9 +10,9 @@
 #include <nm_add_drive.h>
 #include <nm_vm_control.h>
 
-#define NM_DRIVE_FORM_MSG "Drive interface"
-#define NM_DRIVE_SZ_START "Size [1-"
-#define NM_DRIVE_SZ_END   "]Gb"
+static const char NM_DRIVE_FORM_MSG[] = "Drive interface";
+static const char NM_DRIVE_SZ_START[] = "Size [1-";
+static const char NM_DRIVE_SZ_END[] = "]Gb";
 
 enum {
     NM_FLD_DRVSIZE = 0,

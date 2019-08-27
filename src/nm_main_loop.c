@@ -1,4 +1,5 @@
 #include <nm_core.h>
+#include <nm_main_loop.h>
 #include <nm_menu.h>
 #include <nm_form.h>
 #include <nm_utils.h>
@@ -92,8 +93,8 @@ void nm_start_main_loop(void)
 
         if (vm_list.n_memb > 0)
         {
-            const nm_str_t *name = nm_vect_item_name_cur(vms);
-            int status = nm_vect_item_status_cur(vms);
+            const nm_str_t *name = nm_vect_item_name_cur(&vms);
+            int status = nm_vect_item_status_cur(&vms);
 
             if (clear_action)
             {
@@ -141,8 +142,8 @@ void nm_start_main_loop(void)
 
         if (vm_list.n_memb > 0)
         {
-            const nm_str_t *name = nm_vect_item_name_cur(vms);
-            int vm_status = nm_vect_item_status_cur(vms);
+            const nm_str_t *name = nm_vect_item_name_cur(&vms);
+            int vm_status = nm_vect_item_status_cur(&vms);
 
             switch (ch) {
             case NM_KEY_R:

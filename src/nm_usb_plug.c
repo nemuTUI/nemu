@@ -7,6 +7,7 @@
 #include <nm_database.h>
 #include <nm_usb_devices.h>
 #include <nm_qmp_control.h>
+#include <nm_usb_plug.h>
 
 #define NM_USB_FORM_MSG "Device"
 
@@ -191,15 +192,15 @@ static void nm_usb_plug_list(nm_vect_t *devs, nm_vect_t *names)
 
     for (size_t n = 0; n < devs->n_memb; n++)
     {
-        nm_str_format(&dev_name, "%zu:%s", n + 1, nm_usb_name(devs->data[n]).data);
+        nm_str_format(&dev_name, "%zu:%s", n + 1, nm_usb_name(devs->data[n])->data);
         nm_vect_insert(names, dev_name.data, dev_name.len + 1, NULL);
 
         nm_debug("usb >> %03u:%03u %s:%s %s\n",
-                nm_usb_bus_num(devs->data[n]),
-                nm_usb_dev_addr(devs->data[n]),
-                nm_usb_vendor_id(devs->data[n]).data,
-                nm_usb_product_id(devs->data[n]).data,
-                nm_usb_name(devs->data[n]).data);
+                *nm_usb_bus_num(devs->data[n]),
+                *nm_usb_dev_addr(devs->data[n]),
+                nm_usb_vendor_id(devs->data[n])->data,
+                nm_usb_product_id(devs->data[n])->data,
+                nm_usb_name(devs->data[n])->data);
     }
 
     nm_vect_end_zero(names);

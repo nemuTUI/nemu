@@ -7,8 +7,9 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
+#include <nm_clone_vm.h>
 
-#define NM_CLONE_NAME_MSG "Name"
+static const char NM_CLONE_NAME_MSG[] ="Name";
 
 static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
                               const nm_vect_t *drives);
@@ -130,7 +131,6 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
     nm_str_free(&new_vm_dir);
 }
 
-//@TODO This mess should be refactored (too manu add_str/add_text, it can be done with nm_str_append_format)
 static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
                               const nm_vmctl_data_t *vm)
 {

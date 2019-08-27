@@ -1,6 +1,7 @@
 #ifndef NM_CFG_FILE_H_
 #define NM_CFG_FILE_H_
 
+#include <nm_string.h>
 #include <nm_vector.h>
 
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
@@ -40,7 +41,9 @@ void nm_cfg_init(void);
 void nm_cfg_free(void);
 const nm_cfg_t *nm_cfg_get(void);
 
-#define nm_cfg_get_arch() (char **) nm_cfg_get()->qemu_targets.data
+static inline char** nm_cfg_get_arch() {
+    return (char **)nm_cfg_get()->qemu_targets.data;
+}
 
 #define NM_INIT_AD_VIEW (nm_view_args_t) {-1, -1}
 

@@ -18,6 +18,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <libintl.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -38,50 +39,73 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
+#include <nm_cfg_file.h>
+#include <nm_database.h>
+
 #define NM_PROGNAME "nemu"
+
 #ifndef NM_VERSION
 #define NM_VERSION "v2.2.1"
 #endif
-
-#define NM_OK   0
-#define NM_ERR -1
-
-#define NM_TRUE 1
-#define NM_FALSE 0
-
-#define NM_ENABLE  "1"
-#define NM_DISABLE "0"
-
-#define _(S) gettext(S)
-#define NM_STRING_NX(S) # S
-#define NM_STRING(S) NM_STRING_NX(S)
-
-#define NM_LOCALE "/share/locale"
 
 #ifndef NM_USR_PREFIX
 #define NM_USR_PREFIX /usr
 #endif
 
+#define NM_LOCALE "/share/locale"
 #define NM_LOCALE_PATH NM_STRING(NM_USR_PREFIX) NM_LOCALE
 
-#define NM_DEFAULT_NETDRV "virtio-net-pci"
-#define NM_DEFAULT_DRVINT "virtio"
-#define NM_DEFAULT_USBVER "XHCI"
-#define NM_VM_PID_FILE "qemu.pid"
-#define NM_VM_QMP_FILE "qmp.sock"
+#define NM_STRING_NX(S) # S
+#define NM_STRING(S) NM_STRING_NX(S)
 
-#define NM_MIN(a, b) ((a) < (b) ? (a) : (b))
-#define NM_MAX(a, b) ((a) > (b) ? (a) : (b))
+#define nm_min(a, b) \
+    __extension__({ \
+        __typeof__ (a) _a = (a); \
+        __typeof__ (b) _b = (b); \
+        _a < _b ? _a : _b; \
+    })
+#define nm_max(a, b) \
+    __extension__({ \
+        __typeof__ (a) _a = (a); \
+        __typeof__ (b) _b = (b); \
+        _a > _b ? _a : _b; \
+    })
 #define nm_arr_len(p) (sizeof(p) / sizeof((p)[0]))
 
 #define NM_KEY_ESC 0x1b
 
 #define NM_UNUSED __attribute__((__unused__))
-#define NM_INIT_CORE() nm_cfg_init(); \
-                       nm_db_init();
-#define NM_EXIT_CORE() nm_db_close(); \
-                       nm_cfg_free(); \
-                       exit(NM_OK);
+
+static const int NM_OK  = 0;
+static const int NM_ERR = -1;
+
+static const bool NM_TRUE  = true;
+static const bool NM_FALSE = false;
+
+static const char NM_ENABLE[]  = "1";
+static const char NM_DISABLE[] = "0";
+
+static const char NM_DEFAULT_NETDRV[] = "virtio-net-pci";
+static const char NM_DEFAULT_DRVINT[] = "virtio";
+static const char NM_DEFAULT_USBVER[] = "XHCI";
+static const char NM_VM_PID_FILE[]    = "qemu.pid";
+static const char NM_VM_QMP_FILE[]    = "qmp.sock";
+
+static inline char * __attribute__((format_arg (1))) _(const char *str)
+{
+    return gettext(str);
+}
+static inline void nm_init_core()
+{
+    nm_cfg_init();
+    nm_db_init();
+}
+static inline void nm_exit_core()
+{
+    nm_db_close();
+    nm_cfg_free();
+    exit(NM_OK);
+}
 
 #endif /* NM_CORE_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */
