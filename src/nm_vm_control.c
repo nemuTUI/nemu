@@ -10,16 +10,6 @@
 
 #include <time.h>
 
-#define NM_GET_VMSNAP_LOAD_SQL \
-    "SELECT snap_name FROM vmsnapshots WHERE vm_name='%s' " \
-    "AND load='1'"
-
-#define NM_USB_UPDATE_STATE_SQL \
-    "UPDATE vms SET usbid='%s' WHERE name='%s'"
-
-#define NM_VMCTL_GET_VNC_PORT_SQL \
-    "SELECT vnc, spice FROM vms WHERE name='%s'"
-
 enum {
     NM_VIEWER_SPICE,
     NM_VIEWER_VNC

@@ -2,7 +2,7 @@
 #include <nm_utils.h>
 #include <nm_vector.h>
 
-#define NM_VECT_INIT_NMEMB 10
+enum {NM_VECT_INIT_NMEMB = 10};
 
 void nm_vect_insert(nm_vect_t *v, const void *data, size_t len, nm_vect_ins_cb_pt cb)
 {

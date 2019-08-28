@@ -8,8 +8,6 @@
 
 #include <sys/wait.h>
 
-#define NM_INIT_MLIST { NM_INIT_STR, NULL }
-
 static inline nm_str_t *nm_mach_arch(const nm_mach_t *p)
 {
     return (nm_str_t *)&p->arch;

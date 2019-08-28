@@ -13,13 +13,10 @@
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 
-#define NM_TUNDEV "/dev/net/tun"
-#define NM_NET_MACVTAP "macvtap"
-#define NM_NET_VETH    "veth"
-#define NM_NET_VETH_INFO_PEER 1
-
-#define NLMSG_TAIL(n) \
-    ((struct rtattr *) (((char *) (n)) + NLMSG_ALIGN((n)->nlmsg_len)))
+static const char NM_TUNDEV[]      = "/dev/net/tun";
+static const char NM_NET_MACVTAP[] = "macvtap";
+static const char NM_NET_VETH[]    = "veth";
+static const int NM_NET_VETH_INFO_PEER = 1;
 
 enum {
     NM_MACVTAP_BRIDGE = 1,
@@ -58,6 +55,11 @@ static int nm_net_add_attr(struct nlmsghdr *n, size_t mlen,
 static struct rtattr *nm_net_add_attr_nest(struct nlmsghdr *n, size_t mlen,
                                            int type);
 static int nm_net_add_attr_nest_end(struct nlmsghdr *n, struct rtattr *nest);
+
+static struct rtattr *NLMSG_TAIL(struct nlmsghdr* n)
+{
+    return (struct rtattr *)((int *)n + NLMSG_ALIGN(n->nlmsg_len));
+}
 #endif /* NM_OS_LINUX */
 
 enum tap_on_off {
@@ -108,7 +110,7 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
     struct iplink_req req;
     struct rtnl_handle rth;
     struct rtattr *linkinfo, *data;
-    uint32_t dev_index, mode;
+    uint32_t dev_index, mode = 0;
     size_t mac_len;
     char macn[32] = {0};
 

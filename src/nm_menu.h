@@ -12,18 +12,19 @@ typedef struct {
     uint32_t highlight;
 } nm_menu_data_t;
 
+#define NM_INIT_MENU_DATA (nm_menu_data_t) { NULL, 0, 0, 0 }
+
 typedef struct {
     const nm_str_t *name;
     uint32_t status:1;
 } nm_menu_item_t;
 
+#define NM_INIT_MENU_ITEM (nm_menu_item_t) { NULL, 0 }
+
 void nm_print_base_menu(nm_menu_data_t *ifs);
 void nm_print_vm_menu(nm_menu_data_t *vm);
 void nm_print_veth_menu(nm_menu_data_t *veth, int get_status);
 void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch);
-
-#define NM_INIT_MENU_DATA { NULL, 0, 0, 0 }
-#define NM_INIT_MENU_ITEM { NULL, 0 }
 
 static inline nm_menu_item_t *nm_vect_item(const nm_vect_t *v, const size_t index)
 {

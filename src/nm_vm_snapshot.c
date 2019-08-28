@@ -8,11 +8,9 @@
 #include <nm_qmp_control.h>
 #include <nm_vm_snapshot.h>
 
-#define NM_DEL_SNAP_TITLE NM_EDIT_TITLE " [delete]"
-
-#define NM_FORMSTR_NAME "Snapshot name"
-#define NM_FORMSTR_LOAD "Load at next boot"
-#define NM_FORMSTR_SNAP "Snapshot"
+static const char NM_FORMSTR_NAME[] = "Snapshot name";
+static const char NM_FORMSTR_LOAD[] = "Load at next boot";
+static const char NM_FORMSTR_SNAP[] = "Snapshot";
 
 enum {
     NM_FLD_VMSNAPNAME = 0,
@@ -38,7 +36,7 @@ typedef struct {
     int update;
 } nm_vmsnap_t;
 
-#define NM_INIT_VMSNAP { NM_INIT_STR, NM_INIT_STR, 0 }
+#define NM_INIT_VMSNAP (nm_vmsnap_t) { NM_INIT_STR, NM_INIT_STR, 0 }
 
 static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data);
 static void nm_vm_snapshot_to_db(const nm_str_t *name, const nm_vmsnap_t *data);

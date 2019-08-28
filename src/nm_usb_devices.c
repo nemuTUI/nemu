@@ -5,7 +5,7 @@
 /* Disable USB on FreeBSD while libudev-devd
  * will not supports calls udev_hwdb_* */
 
-#define NM_USB_SERIAL_LEN 127
+enum {NM_USB_SERIAL_LEN = 127};
 
 static inline void nm_usb_dev_free(nm_usb_dev_t *dev);
 

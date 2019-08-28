@@ -366,8 +366,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
             {
                 size_t idx_shift = NM_IFS_IDX_COUNT * (cur_count - 1);
 
-                nm_str_format(&query,
-                    "DELETE FROM ifaces WHERE vm_name='%s' AND if_name='%s'",
+                nm_str_format(&query, NM_DEL_IFACE_SQL,
                     nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
                     nm_vect_str_ctx(&cur->ifs, NM_SQL_IF_NAME + idx_shift));
                 nm_db_edit(query.data);

@@ -7,8 +7,10 @@
 #include <sys/wait.h>
 #include <sys/socket.h>
 
-#define NM_BLKSIZE 131072 /* 128KiB */
-#define NM_SOCK_READLEN 1024
+enum {
+    NM_BLKSIZE      = 131072, /* 128KiB */
+    NM_SOCK_READLEN = 1024,
+};
 
 #if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
 #include <sys/sendfile.h>

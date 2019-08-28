@@ -8,7 +8,6 @@
 #include <nm_vm_control.h>
 #include <nm_9p_share.h>
 
-#define NM_INIT_9P_DATA { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR }
 static const char NM_9P_SET_MODE_SQL[] =
     "UPDATE vms SET fs9p_enable='%s' WHERE name='%s'";
 static const char NM_9P_SET_PATH_SQL[] =
@@ -21,6 +20,8 @@ typedef struct {
     nm_str_t path;
     nm_str_t name;
 } nm_9p_data_t;
+
+#define NM_INIT_9P_DATA (nm_9p_data_t) { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR }
 
 enum {
     NM_FLD_9PMODE = 0,

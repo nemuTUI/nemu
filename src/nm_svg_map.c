@@ -10,17 +10,17 @@
 #if defined (NM_WITH_NETWORK_MAP)
 #include <gvc.h>
 
-#define NM_EMPTY_STR ""
-#define NM_GV_LABEL "label"
-#define NM_GV_STYLE "style"
-#define NM_GV_SHAPE "shape"
-#define NM_GV_FILL  "filled"
-#define NM_GV_FCOL  "fillcolor"
-#define NM_GV_RECT  "rect"
-#define NM_GV_DOT   "dot"
-#define NM_GV_SVG   "svg"
-#define NM_VM_COLOR "#4fbcdd"
-#define NM_VE_COLOR "#59e088"
+static char NM_EMPTY_STR[] = "";
+static char NM_GV_LABEL[]  = "label";
+static char NM_GV_STYLE[]  = "style";
+static char NM_GV_SHAPE[]  = "shape";
+static char NM_GV_FILL[]   = "filled";
+static char NM_GV_FCOL[]   = "fillcolor";
+static char NM_GV_RECT[]   = "rect";
+static char NM_GV_DOT[]    = "dot";
+static char NM_GV_SVG[]    = "svg";
+static char NM_VM_COLOR[]  = "#4fbcdd";
+static char NM_VE_COLOR[]  = "#59e088";
 
 typedef Agraph_t nm_gvgraph_t;
 typedef Agnode_t nm_gvnode_t;

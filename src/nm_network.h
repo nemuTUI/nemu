@@ -11,6 +11,8 @@ typedef struct {
     uint32_t cidr;
 } nm_net_addr_t;
 
+#define NM_INIT_NETADDR (nm_net_addr_t) { {0}, 0 }
+
 int nm_net_iface_exists(const nm_str_t *name);
 uint32_t nm_net_iface_idx(const nm_str_t *name);
 #if defined (NM_OS_LINUX)
@@ -30,8 +32,6 @@ void nm_net_mac_n2a(uint64_t maddr, nm_str_t *res);
 int nm_net_verify_mac(const nm_str_t *mac);
 int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
                           nm_str_t *err);
-
-#define NM_INIT_NETADDR { {0}, 0 }
 
 #endif /*NM_NETWORK_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

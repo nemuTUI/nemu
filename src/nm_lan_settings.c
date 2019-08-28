@@ -13,8 +13,10 @@
 
 #if defined (NM_OS_LINUX)
 
-#define NM_LAN_FIELDS_NUM 2
-#define NM_SVG_FIELDS_NUM 2
+enum {
+    NM_LAN_FIELDS_NUM = 2,
+    NM_SVG_FIELDS_NUM = 2,
+};
 
 extern sig_atomic_t redraw_window;
 

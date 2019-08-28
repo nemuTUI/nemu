@@ -12,7 +12,8 @@ typedef struct {
     nm_str_t capacity;
 } nm_drive_t;
 
-#define NM_INIT_DRIVE { NM_INIT_STR, NM_INIT_STR }
+#define NM_INIT_DRIVE (nm_drive_t) { NM_INIT_STR, NM_INIT_STR }
+
 static inline nm_str_t *nm_drive_file(const nm_drive_t *drive)
 {
     return (nm_str_t *)&drive->file_name;

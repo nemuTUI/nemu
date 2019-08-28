@@ -9,7 +9,7 @@
 #include <nm_qmp_control.h>
 #include <nm_usb_plug.h>
 
-#define NM_USB_FORM_MSG "Device"
+static const char NM_USB_FORM_MSG[] = "Device";
 
 static void nm_usb_plug_list(nm_vect_t *devs, nm_vect_t *names);
 static void nm_usb_unplug_list(const nm_vect_t *db_list, nm_vect_t *names);

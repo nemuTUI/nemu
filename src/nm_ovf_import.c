@@ -22,35 +22,52 @@
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 
-#define NM_OVA_DIR_TEMPL "/tmp/ova_extract_XXXXXX"
-#define NM_BLOCK_SIZE 10240
+enum {NM_BLOCK_SIZE = 10240};
+static const char NM_OVA_DIR_TEMPL[] = "/tmp/ova_extract_XXXXXX";
+static const char NM_OVF_FORM_PATH[] = "Path to OVA";
+static const char NM_OVF_FORM_ARCH[] = "Architecture";
+static const char NM_OVF_FORM_NAME[] = "Name (optional)";
+static const char NM_XML_OVF_NS[]    = "ovf";
+static const char NM_XML_RASD_NS[]   = "rasd";
+static const char NM_XML_OVF_HREF[]  = "http://schemas.dmtf.org/ovf/envelope/1";
 
-#define NM_OVF_FORM_PATH "Path to OVA"
-#define NM_OVF_FORM_ARCH "Architecture"
-#define NM_OVF_FORM_NAME "Name (optional)"
+static const char NM_XML_RASD_HREF[] = \
+    "http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData";
 
-#define NM_XML_OVF_NS "ovf"
-#define NM_XML_RASD_NS "rasd"
-#define NM_XML_OVF_HREF "http://schemas.dmtf.org/ovf/envelope/1"
-#define NM_XML_RASD_HREF "http://schemas.dmtf.org/wbem/wscim/1" \
-    "/cim-schema/2/CIM_ResourceAllocationSettingData"
-#define NM_XPATH_NAME "/ovf:Envelope/ovf:VirtualSystem/ovf:Name/text()"
-#define NM_XPATH_MEM  "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
-    "ovf:Item[rasd:ResourceType/text()=4]/rasd:VirtualQuantity/text()"
-#define NM_XPATH_NCPU "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
-    "ovf:Item[rasd:ResourceType/text()=3]/rasd:VirtualQuantity/text()"
-#define NM_XPATH_DRIVE_ID "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
-    "ovf:Item[rasd:ResourceType/text()=17]/rasd:HostResource/text()"
-#define NM_XPATH_DRIVE_REF "/ovf:Envelope/ovf:DiskSection/" \
-    "ovf:Disk[@ovf:diskId=\"%s\"]/@ovf:fileRef"
-#define NM_XPATH_DRIVE_CAP "/ovf:Envelope/ovf:DiskSection/" \
-    "ovf:Disk[@ovf:diskId=\"%s\"]/@ovf:capacity"
-#define NM_XPATH_DRIVE_HREF "/ovf:Envelope/ovf:References/" \
-    "ovf:File[@ovf:id=\"%s\"]/@ovf:href"
-#define NM_XPATH_NETH "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
-    "ovf:Item[rasd:ResourceType/text()=10]"
-#define NM_XPATH_USB_EHCI "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
-    "ovf:Item[rasd:ResourceType/text()=23]"
+static const char NM_XPATH_NAME[] = \
+    "/ovf:Envelope/ovf:VirtualSystem/ovf:Name/text()";
+
+static const char NM_XPATH_MEM[] = \
+    "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
+    "ovf:Item[rasd:ResourceType/text()=4]/rasd:VirtualQuantity/text()";
+
+static const char NM_XPATH_NCPU[] = \
+    "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
+    "ovf:Item[rasd:ResourceType/text()=3]/rasd:VirtualQuantity/text()";
+
+static const char NM_XPATH_DRIVE_ID[] = \
+    "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
+    "ovf:Item[rasd:ResourceType/text()=17]/rasd:HostResource/text()";
+
+static const char NM_XPATH_DRIVE_REF[] = \
+    "/ovf:Envelope/ovf:DiskSection/" \
+    "ovf:Disk[@ovf:diskId=\"%s\"]/@ovf:fileRef";
+
+static const char NM_XPATH_DRIVE_CAP[] = \
+    "/ovf:Envelope/ovf:DiskSection/" \
+    "ovf:Disk[@ovf:diskId=\"%s\"]/@ovf:capacity";
+
+static const char NM_XPATH_DRIVE_HREF[] = \
+    "/ovf:Envelope/ovf:References/" \
+    "ovf:File[@ovf:id=\"%s\"]/@ovf:href";
+
+static const char NM_XPATH_NETH[] = \
+    "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
+    "ovf:Item[rasd:ResourceType/text()=10]";
+
+static const char NM_XPATH_USB_EHCI[] = \
+    "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
+    "ovf:Item[rasd:ResourceType/text()=23]";
 
 enum {
     NM_OVA_FLD_SRC = 0,
@@ -106,7 +123,7 @@ static nm_field_t *fields[NM_OVA_FLD_COUNT + 1];
 
 void nm_ovf_import(void)
 {
-    char templ_path[] = NM_OVA_DIR_TEMPL;
+    char *templ_path = (char *)NM_OVA_DIR_TEMPL;
     const char *ovf_file;
     nm_vect_t files = NM_INIT_VECT;
     nm_vect_t drives = NM_INIT_VECT;

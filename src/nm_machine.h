@@ -9,6 +9,8 @@ typedef struct {
      nm_vect_t *list;
 } nm_mach_t;
 
+#define NM_INIT_MLIST { NM_INIT_STR, NULL }
+
 void nm_mach_free(void);
 void nm_mach_vect_ins_mlist_cb(void *unit_p, const void *ctx);
 void nm_mach_vect_free_mlist_cb(void *unit_p);

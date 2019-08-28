@@ -11,6 +11,8 @@ typedef struct {
 } nm_view_args_t;
 #endif
 
+#define NM_INIT_AD_VIEW (nm_view_args_t) {-1, -1}
+
 typedef struct {
     short r;
     short g;
@@ -44,8 +46,6 @@ const nm_cfg_t *nm_cfg_get(void);
 static inline char** nm_cfg_get_arch() {
     return (char **)nm_cfg_get()->qemu_targets.data;
 }
-
-#define NM_INIT_AD_VIEW (nm_view_args_t) {-1, -1}
 
 #endif /* NM_CFG_FILE_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

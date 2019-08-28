@@ -10,24 +10,29 @@
 #include <sys/un.h>
 #include <sys/socket.h>
 
-#define NM_QMP_CMD_INIT     "{\"execute\":\"qmp_capabilities\"}"
-#define NM_QMP_CMD_VM_SHUT  "{\"execute\":\"system_powerdown\"}"
-#define NM_QMP_CMD_VM_QUIT  "{\"execute\":\"quit\"}"
-#define NM_QMP_CMD_VM_RESET "{\"execute\":\"system_reset\"}"
-#define NM_QMP_CMD_VM_STOP  "{\"execute\":\"stop\"}"
-#define NM_QMP_CMD_VM_CONT  "{\"execute\":\"cont\"}"
-#define NM_QMP_CMD_EXECUTE  "{\"execute\":\"%s\",\"arguments\":{\"name\":\"%s\"}}"
-#define NM_QMP_CMD_SNAP_SYNC \
-    "{\"execute\":\"blockdev-snapshot-sync\",\"arguments\":{\"device\":\"%s\"," \
-    "\"snapshot-file\":\"%s\",\"format\":\"qcow2\"}}"
-#define NM_QMP_CMD_USB_ADD \
-    "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"usb-host\"," \
-    "\"hostbus\":\"%u\",\"hostaddr\":\"%u\",\"id\":\"usb-%s-%s-%s\"}}"
-#define NM_QMP_CMD_USB_DEL \
-    "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"usb-%s-%s-%s\"}}"
+static const char NM_QMP_CMD_INIT[]     = "{\"execute\":\"qmp_capabilities\"}";
+static const char NM_QMP_CMD_VM_SHUT[]  = "{\"execute\":\"system_powerdown\"}";
+static const char NM_QMP_CMD_VM_QUIT[]  = "{\"execute\":\"quit\"}";
+static const char NM_QMP_CMD_VM_RESET[] = "{\"execute\":\"system_reset\"}";
+static const char NM_QMP_CMD_VM_STOP[]  = "{\"execute\":\"stop\"}";
+static const char NM_QMP_CMD_VM_CONT[]  = "{\"execute\":\"cont\"}";
 
-#if 0
-    /* Get peripheral qmp command example */
+static const char NM_QMP_CMD_EXECUTE[]  = \
+    "{\"execute\":\"%s\",\"arguments\":{\"name\":\"%s\"}}";
+
+static const char NM_QMP_CMD_SNAP_SYNC[] = \
+    "{\"execute\":\"blockdev-snapshot-sync\",\"arguments\":{\"device\":\"%s\"," \
+    "\"snapshot-file\":\"%s\",\"format\":\"qcow2\"}}";
+
+static const char NM_QMP_CMD_USB_ADD[] = \
+    "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"usb-host\"," \
+    "\"hostbus\":\"%u\",\"hostaddr\":\"%u\",\"id\":\"usb-%s-%s-%s\"}}";
+
+static const char NM_QMP_CMD_USB_DEL[] = \
+    "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"usb-%s-%s-%s\"}}";
+
+/* Get peripheral qmp command example
+
     input:
 
     {"execute": "qom-list", "arguments": { "path": "/machine/peripheral" }}
@@ -36,15 +41,16 @@
 
     {"return": [{"name": "type", "type": "string"}, {"name": "dev1", "type": "child<usb-host>"},
         {"name": "dev2", "type": "child<usb-host>"}]}
-#endif
+*/
 
-#define NM_INIT_QMP { .sd = -1 }
-#define NM_QMP_READLEN 1024
+enum {NM_QMP_READLEN = 1024};
 
 typedef struct {
     int sd;
     struct sockaddr_un sock;
 } nm_qmp_handle_t;
+
+#define NM_INIT_QMP (nm_qmp_handle_t) { .sd = -1 }
 
 static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
                           struct timeval *tv);
@@ -293,7 +299,7 @@ static int nm_qmp_talk(int sd, const char *cmd,
                        size_t len, struct timeval *tv)
 {
     nm_str_t answer = NM_INIT_STR;
-    char buf[NM_QMP_READLEN] = {0};
+    char buf[NM_QMP_READLEN];
     ssize_t nread;
     fd_set readset;
     int ret, read_done = 0;

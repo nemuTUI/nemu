@@ -11,7 +11,7 @@ typedef struct {
     size_t alloc_bytes;
 } nm_str_t;
 
-#define NM_INIT_STR { NULL, 0, 0 }
+#define NM_INIT_STR (nm_str_t) { NULL, 0, 0 }
 
 void nm_str_alloc_text(nm_str_t *str, const char *src);
 void nm_str_alloc_str(nm_str_t *str, const nm_str_t *src);

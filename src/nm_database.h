@@ -3,6 +3,7 @@
 
 #include <nm_vector.h>
 
+//@TODO Those queries should have constant naming convention and some kind of sorting
 static const char NM_GET_VMS_SQL[] = \
     "SELECT name FROM vms ORDER BY name ASC";
 
@@ -126,6 +127,12 @@ static const char NM_GET_IFACES_SQL[] = \
 static const char NM_GET_IFACE_SQL[] = \
     "SELECT id FROM ifaces WHERE vm_name='%s' AND if_name='%s' AND if_drv='%s'";
 
+static const char NM_DEL_IFACE_SQL[] = \
+    "DELETE FROM ifaces WHERE vm_name='%s' AND if_name='%s'";
+
+static const char NM_GET_IFACES_MACS[] = \
+    "SELECT mac_addr FROM ifaces";
+
 static const char NM_GET_IFMAP_SQL[] = \
     "SELECT vm_name, if_name FROM ifaces WHERE parent_eth='%s'" \
     "OR parent_eth='%s'";
@@ -136,6 +143,16 @@ static const char NM_LAN_VETH_INF_SQL[] = \
 static const char NM_LAN_VETH_DEP_SQL[] = \
     "UPDATE ifaces SET macvtap='0', parent_eth='' " \
     "WHERE parent_eth='%s' OR parent_eth='%s'";
+
+static const char NM_GET_VMSNAP_LOAD_SQL[] = \
+    "SELECT snap_name FROM vmsnapshots WHERE vm_name='%s' " \
+    "AND load='1'";
+
+static const char NM_USB_UPDATE_STATE_SQL[] = \
+    "UPDATE vms SET usbid='%s' WHERE name='%s'";
+
+static const char NM_VMCTL_GET_VNC_PORT_SQL[] = \
+    "SELECT vnc, spice FROM vms WHERE name='%s'";
 
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);

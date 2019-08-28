@@ -2,9 +2,13 @@
 #include <nm_string.h>
 #include <nm_stat_usage.h>
 
-#define NM_STAT_BUF_LEN 512
-#define NM_STAT_RES_LEN 12
-#define NM_STAT_PATH "/proc/stat"
+
+enum {
+    NM_STAT_BUF_LEN = 512,
+    NM_STAT_RES_LEN = 12,
+};
+
+static const char NM_STAT_PATH[] = "/proc/stat";
 
 uint64_t nm_total_cpu_before;
 uint64_t nm_total_cpu_after;

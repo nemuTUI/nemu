@@ -16,6 +16,10 @@ typedef struct {
     nm_vect_t usb;
 } nm_vmctl_data_t;
 
+#define NM_VMCTL_INIT_DATA (nm_vmctl_data_t) { \
+                            NM_INIT_VECT, NM_INIT_VECT, \
+                            NM_INIT_VECT, NM_INIT_VECT }
+
 void nm_vmctl_start(const nm_str_t *name, int flags);
 void nm_vmctl_delete(const nm_str_t *name);
 void nm_vmctl_kill(const nm_str_t *name);
@@ -28,9 +32,6 @@ void nm_vmctl_log_last(const nm_str_t *msg);
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
 void nm_vmctl_connect(const nm_str_t *name);
 #endif
-
-#define NM_VMCTL_INIT_DATA { NM_INIT_VECT, NM_INIT_VECT, \
-                             NM_INIT_VECT, NM_INIT_VECT }
 
 #endif /*NM_VM_CONTROL_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

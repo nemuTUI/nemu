@@ -17,6 +17,8 @@ typedef struct {
     nm_str_t size;
 } nm_vm_drive_t;
 
+#define NM_INIT_VM_DRIVE (nm_vm_drive_t) { NM_INIT_STR, NM_INIT_STR }
+
 typedef struct {
     size_t form_len;
     size_t w_start_x;
@@ -25,20 +27,28 @@ typedef struct {
     nm_window_t *form_window;
 } nm_form_data_t;
 
+#define NM_INIT_FORM_DATA (nm_form_data_t) { 0, 0, 0, 0, NULL }
+
 typedef struct {
     nm_str_t driver;
     uint32_t count;
 } nm_vm_ifs_t;
+
+#define NM_INIT_VM_IFS (nm_vm_ifs_t) { NM_INIT_STR, 0 }
 
 typedef struct {
     nm_str_t name;
     nm_usb_dev_t *device;
 } nm_vm_usb_t;
 
+#define NM_INIT_VM_USB (nm_vm_usb_t) { NM_INIT_STR, NULL, 0 }
+
 typedef struct {
     uint32_t enable:1;
     uint32_t hostcpu_enable:1;
 } nm_vm_kvm_t;
+
+#define NM_INIT_VM_KVM (nm_vm_kvm_t) { 0, 0 }
 
 typedef struct {
     nm_str_t inst_path;
@@ -53,6 +63,12 @@ typedef struct {
     uint32_t installed:1;
     uint32_t debug_freeze:1;
 } nm_vm_boot_t;
+
+#define NM_INIT_VM_BOOT (nm_vm_boot_t) { \
+                         NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
+                         NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
+                         NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
+                         0, 0 }
 
 typedef struct {
     nm_str_t name;
@@ -70,11 +86,19 @@ typedef struct {
     uint32_t spice:1;
 } nm_vm_t;
 
+#define NM_INIT_VM (nm_vm_t) { \
+                    NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
+                    NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
+                    NM_INIT_VM_DRIVE, NM_INIT_VM_IFS, \
+                    NM_INIT_VM_KVM, 0, 0, 0, 0 }
+
 typedef struct {
     int x;
     int y;
     const int *stop;
 } nm_spinner_data_t;
+
+#define NM_INIT_SPINNER (nm_spinner_data_t) { 0, 1, NULL }
 
 nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field,
                           int begin_x, int color);
@@ -125,22 +149,6 @@ extern const char *nm_form_svg_layer[];
         if (val->len == 0)                                    \
             nm_vect_insert(&v, name, strlen(name) + 1, NULL); \
     }
-
-#define NM_INIT_VM_DRIVE { NM_INIT_STR, NM_INIT_STR }
-#define NM_INIT_VM_IFS   { NM_INIT_STR, 0 }
-#define NM_INIT_VM_USB   { NM_INIT_STR, NULL, 0 }
-#define NM_INIT_VM_KVM   { 0, 0 }
-#define NM_INIT_VM_BOOT  { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                           NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                           NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                           0, 0 }
-#define NM_INIT_SPINNER  { 0, 1, NULL }
-#define NM_INIT_FORM_DATA { 0, 0, 0, 0, NULL }
-
-#define NM_INIT_VM { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                     NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                     NM_INIT_VM_DRIVE, NM_INIT_VM_IFS, \
-                     NM_INIT_VM_KVM, 0, 0, 0, 0 }
 
 #endif /* NM_FORM_H_ */
 /* vim:set ts=4 sw=4 fdm=marker: */

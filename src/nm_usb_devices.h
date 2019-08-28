@@ -12,10 +12,14 @@ typedef struct {
     uint8_t dev_addr;
 } nm_usb_dev_t;
 
+#define NM_INIT_USB (nm_usb_dev_t) { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, 0, 0 }
+
 typedef struct {
     nm_str_t serial;
     nm_usb_dev_t *dev;
 } nm_usb_data_t;
+
+#define NM_INIT_USB_DATA (nm_usb_data_t) { NM_INIT_STR, NULL }
 
 void nm_usb_get_devs(nm_vect_t *v);
 void nm_usb_vect_ins_cb(void *unit_p, const void *ctx);
@@ -24,9 +28,6 @@ void nm_usb_data_vect_ins_cb(void *unit_p, const void *ctx);
 void nm_usb_data_vect_free_cb(void *unit_p);
 int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial);
 void nm_usb_data_free(nm_usb_data_t *dev);
-
-#define NM_INIT_USB { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, 0, 0 }
-#define NM_INIT_USB_DATA { NM_INIT_STR, NULL }
 
 static inline nm_str_t *nm_usb_name(const nm_usb_dev_t *p)
 {

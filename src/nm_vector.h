@@ -10,6 +10,8 @@ typedef struct {
     void **data;    /* ctx */
 } nm_vect_t;
 
+#define NM_INIT_VECT { 0, 0, NULL }
+
 typedef void (*nm_vect_ins_cb_pt)(void *unit_p, const void *ctx);
 typedef void (*nm_vect_free_cb_pt)(void *unit_p);
 
@@ -18,8 +20,6 @@ void nm_vect_insert(nm_vect_t *v, const void *data, size_t len, nm_vect_ins_cb_p
 void *nm_vect_at(const nm_vect_t *v, size_t index);
 void nm_vect_end_zero(nm_vect_t *v);
 void nm_vect_free(nm_vect_t *v, nm_vect_free_cb_pt cb);
-
-#define NM_INIT_VECT { 0, 0, NULL }
 
 static inline void nm_vect_insert_cstr(nm_vect_t *v, const char *data)
 {

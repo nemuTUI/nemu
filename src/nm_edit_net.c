@@ -9,22 +9,12 @@
 #include <nm_edit_net.h>
 
 #if defined (NM_OS_LINUX)
-#define NM_NET_FIELDS_NUM 6
+    enum {NM_NET_FIELDS_NUM = 6};
 #else
-#define NM_NET_FIELDS_NUM 3
+    enum {NM_NET_FIELDS_NUM = 3};
 #endif
 
-#if defined (NM_OS_LINUX)
-#define NM_INIT_NET_IF { NM_INIT_STR, NM_INIT_STR, \
-                         NM_INIT_STR, NM_INIT_STR, \
-                         NM_INIT_STR, NM_INIT_STR, \
-                         NM_INIT_STR }
-#else
-#define NM_INIT_NET_IF { NM_INIT_STR, NM_INIT_STR, \
-                         NM_INIT_STR, NM_INIT_STR }
-#endif
 
-#define NM_INIT_SEL_IF { NULL, 0 }
 static const size_t NM_NET_MACVTAP_NUM = 2;
 
 typedef struct {
@@ -39,10 +29,24 @@ typedef struct {
 #endif
 } nm_iface_t;
 
+#if defined (NM_OS_LINUX)
+#define NM_INIT_NET_IF (nm_iface_t) { \
+                        NM_INIT_STR, NM_INIT_STR, \
+                        NM_INIT_STR, NM_INIT_STR, \
+                        NM_INIT_STR, NM_INIT_STR, \
+                        NM_INIT_STR }
+#else
+#define NM_INIT_NET_IF (nm_iface_t) { \
+                        NM_INIT_STR, NM_INIT_STR, \
+                        NM_INIT_STR, NM_INIT_STR }
+#endif
+
 typedef struct {
     char *name;
     size_t if_idx;
 } nm_sel_iface_t;
+
+#define NM_INIT_SEL_IF (nm_sel_iface_t) { NULL, 0 }
 
 static nm_field_t *fields[NM_NET_FIELDS_NUM + 1];
 
@@ -512,7 +516,7 @@ static int nm_edit_net_maddr_busy(const nm_str_t *mac)
     int rc = NM_OK;
     nm_vect_t maddrs = NM_INIT_VECT;
 
-    nm_db_select("SELECT mac_addr FROM ifaces", &maddrs);
+    nm_db_select(NM_GET_IFACES_MACS, &maddrs);
 
     for (size_t n = 0; n < maddrs.n_memb; n++)
     {
