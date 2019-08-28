@@ -85,7 +85,6 @@ static void nm_process_args(int argc, char **argv)
             nm_init_core();
             nm_lan_create_veth(NM_TRUE);
             nm_exit_core();
-            break;
 #endif
         case 's':
             nm_init_core();
@@ -93,7 +92,6 @@ static void nm_process_args(int argc, char **argv)
             nm_vmctl_start(&vmname, 0);
             nm_str_free(&vmname);
             nm_exit_core();
-            break;
         case 'l':
             nm_init_core();
             nm_db_select(NM_GET_VMS_SQL, &vm_list);
@@ -101,7 +99,6 @@ static void nm_process_args(int argc, char **argv)
                 printf("%s\n", ((nm_str_t*)vm_list.data[i])->data);
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
             nm_exit_core();
-            break;
         case 'v':
             printf("nEMU %s\n", NM_VERSION);
             nm_print_feset();
