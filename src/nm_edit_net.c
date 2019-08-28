@@ -25,7 +25,7 @@
 #endif
 
 #define NM_INIT_SEL_IF { NULL, 0 }
-#define NM_NET_MACVTAP_NUM 2
+static const size_t NM_NET_MACVTAP_NUM = 2;
 
 typedef struct {
     nm_str_t name;
@@ -371,8 +371,7 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
             nm_str_t query = NM_INIT_STR;
             nm_vect_t netv = NM_INIT_VECT;
 
-            nm_str_format(&query,
-                "SELECT id FROM ifaces WHERE vm_name='%s' AND if_name='%s' AND if_drv='%s'",
+            nm_str_format(&query, NM_GET_IFACE_SQL,
                 name->data, ifp->name.data, NM_DEFAULT_NETDRV);
             nm_db_select(query.data, &netv);
 

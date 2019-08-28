@@ -125,6 +125,7 @@ enum nm_color {
 
 enum nm_key {
     NM_KEY_ENTER    = 10,
+    NM_KEY_ESC      = 27,
     NM_KEY_QUESTION = 63,
     NM_KEY_PLUS     = 43,
     NM_KEY_MINUS    = 45,

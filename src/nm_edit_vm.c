@@ -12,18 +12,18 @@
 #include <nm_qmp_control.h>
 #include <nm_edit_vm.h>
 
-#define NM_VM_FORM_CPU_BEGIN "CPU cores [1-"
-#define NM_VM_FORM_CPU_END   "]"
-#define NM_VM_FORM_MEM_BEGIN "Memory [4-"
-#define NM_VM_FORM_MEM_END   "]Mb"
-#define NM_VM_FORM_KVM       "KVM [yes/no]"
-#define NM_VM_FORM_HCPU      "Host CPU [yes/no]"
-#define NM_VM_FORM_NET_IFS   "Network interfaces"
-#define NM_VM_FORM_DRV_IF    "Disk interface"
-#define NM_VM_FORM_USB       "USB [yes/no]"
-#define NM_VM_FORM_USBT      "USB version"
-#define NM_VM_FORM_SYNC      "Sync mouse position"
-#define NM_VM_FORM_SPICE     "Spice server"
+static const char NM_VM_FORM_CPU_BEGIN[] = "CPU cores [1-";
+static const char NM_VM_FORM_CPU_END[]   = "]";
+static const char NM_VM_FORM_MEM_BEGIN[] = "Memory [4-";
+static const char NM_VM_FORM_MEM_END[]   = "]Mb";
+static const char NM_VM_FORM_KVM[]       = "KVM [yes/no]";
+static const char NM_VM_FORM_HCPU[]      = "Host CPU [yes/no]";
+static const char NM_VM_FORM_NET_IFS[]   = "Network interfaces";
+static const char NM_VM_FORM_DRV_IF[]    = "Disk interface";
+static const char NM_VM_FORM_USB[]       = "USB [yes/no]";
+static const char NM_VM_FORM_USBT[]      = "USB version";
+static const char NM_VM_FORM_SYNC[]      = "Sync mouse position";
+static const char NM_VM_FORM_SPICE[]     = "Spice server";
 
 static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur);
 static void nm_edit_vm_field_names(nm_vect_t *msg);

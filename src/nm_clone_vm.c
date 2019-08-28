@@ -143,12 +143,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
 
     nm_form_get_last(&last_mac, &last_vnc);
 
-    nm_str_format(&query,
-        "INSERT INTO vms SELECT NULL, '%s', mem, smp, kvm, hcpu, '%d', arch, iso, install, usb, "
-        "usbid, bios, kernel, mouse_override, kernel_append, tty_path, socket_path, "
-        "initrd, machine, fs9p_enable, fs9p_path, fs9p_name, usb_type, spice, "
-        "debug_port, debug_freeze FROM vms WHERE name='%s'",
-        dst->data, last_vnc, src->data);
+    nm_str_format(&query,NM_CLONE_VMS_SQL, dst->data, last_vnc, src->data);
     nm_db_edit(query.data);
 
     /* {{{ insert network interface info */

@@ -22,7 +22,7 @@
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
 
-#define NM_SEARCH_STR "Search:"
+static const char NM_SEARCH_STR[] = "Search:";
 
 static size_t nm_search_vm(const nm_vect_t *list, int *err);
 static int nm_search_cmp_cb(const void *s1, const void *s2);

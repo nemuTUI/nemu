@@ -72,8 +72,6 @@
     })
 #define nm_arr_len(p) (sizeof(p) / sizeof((p)[0]))
 
-#define NM_KEY_ESC 0x1b
-
 #define NM_UNUSED __attribute__((__unused__))
 
 static const int NM_OK  = 0;

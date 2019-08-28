@@ -196,9 +196,7 @@ void nm_del_drive(const nm_str_t *name)
     if (unlink(drive_path.data) == -1)
         nm_warn(_(NM_MSG_DRV_EDEL));
 
-    nm_str_format(&query,
-        "DELETE FROM drives WHERE vm_name='%s' "
-        "AND drive_name='%s'",
+    nm_str_format(&query, NM_DEL_DRIVE_SQL,
         name->data, nm_vect_str_ctx(&drives, 2 * (m_drvs.highlight - 1)));
 
 quit:

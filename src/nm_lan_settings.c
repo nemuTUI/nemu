@@ -16,19 +16,6 @@
 #define NM_LAN_FIELDS_NUM 2
 #define NM_SVG_FIELDS_NUM 2
 
-#define NM_LAN_GET_VETH_SQL \
-    "SELECT (l_name || '<->' || r_name) FROM veth ORDER by l_name ASC"
-#define NM_LAN_ADD_VETH_SQL \
-    "INSERT INTO veth(l_name, r_name) VALUES ('%s', '%s')"
-#define NM_LAN_CHECK_NAME_SQL \
-    "SELECT id FROM veth WHERE l_name='%s' OR r_name='%s'"
-#define NM_LAN_DEL_VETH_SQL \
-    "DELETE FROM veth WHERE l_name='%s'"
-#define NM_LAN_VETH_INF_SQL \
-    "SELECT if_name FROM ifaces WHERE parent_eth='%s'"
-#define NM_LAN_VETH_DEP_SQL \
-    "UPDATE ifaces SET macvtap='0', parent_eth='' WHERE parent_eth='%s' OR parent_eth='%s'"
-
 extern sig_atomic_t redraw_window;
 
 static nm_field_t *fields[NM_LAN_FIELDS_NUM + 1];

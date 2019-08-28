@@ -7,9 +7,9 @@
 #include <nm_lan_settings.h>
 
 #if defined (NM_OS_LINUX)
-  #define NM_OPT_ARGS "cs:vhl"
+    static const char NM_OPT_ARGS[] = "cs:vhl";
 #else
-  #define NM_OPT_ARGS "s:vhl"
+    static const char NM_OPT_ARGS[] = "s:vhl";
 #endif
 
 static void signals_handler(int signal);
