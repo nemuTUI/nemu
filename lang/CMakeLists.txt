@@ -10,4 +10,4 @@ add_custom_command(
 
 add_custom_target(lang SOURCES ${LANG_FILE} DEPENDS ${TARGET_LANG_FILE})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_LANG_FILE} DESTINATION
-  ${USR_PREFIX}/share/locale/ru/LC_MESSAGES)
+  share/locale/ru/LC_MESSAGES)
