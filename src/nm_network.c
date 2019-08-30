@@ -58,7 +58,7 @@ static int nm_net_add_attr_nest_end(struct nlmsghdr *n, struct rtattr *nest);
 
 static struct rtattr *NLMSG_TAIL(struct nlmsghdr* n)
 {
-    return (struct rtattr *)((int *)n + NLMSG_ALIGN(n->nlmsg_len));
+    return (struct rtattr *)((char *)n + NLMSG_ALIGN(n->nlmsg_len));
 }
 #endif /* NM_OS_LINUX */
 
