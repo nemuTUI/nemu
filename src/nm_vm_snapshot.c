@@ -343,10 +343,8 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
         nm_vect_insert_cstr(&argv, "-d");
 
         nm_vect_insert(&argv, snap->data, snap->len + 1, NULL);
-        nm_vect_insert(&argv, nm_cfg_get()->vm_dir.data, nm_cfg_get()->vm_dir.len + 1, NULL);
 
-        nm_str_trunc(&buf, 0);
-        nm_str_format(&buf, "/%s/%s", name->data, nm_vect_str_ctx(&drives, 0));
+        nm_str_format(&buf, "%s/%s/%s", nm_cfg_get()->vm_dir.data, name->data, nm_vect_str_ctx(&drives, 0));
         nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
         nm_vect_end_zero(&argv);
