@@ -23,7 +23,8 @@
 #include <libxml/xpathInternals.h>
 
 enum {NM_BLOCK_SIZE = 10240};
-static const char NM_OVA_DIR_TEMPL[] = "/tmp/ova_extract_XXXXXX";
+static char NM_OVA_DIR_TEMPL[] = "/tmp/ova_extract_XXXXXX";
+
 static const char NM_OVF_FORM_PATH[] = "Path to OVA";
 static const char NM_OVF_FORM_ARCH[] = "Architecture";
 static const char NM_OVF_FORM_NAME[] = "Name (optional)";
@@ -606,11 +607,11 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
                __func__, vm_dir.data, strerror(errno));
     }
 
-    nm_str_alloc_text(&buf, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img");
-    nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
-
     for (size_t n = 0; n < drives->n_memb; n++)
     {
+        nm_str_alloc_text(&buf, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img");
+        nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
+
         nm_vect_insert_cstr(&argv, "convert");
         nm_vect_insert_cstr(&argv, "-O");
         nm_vect_insert_cstr(&argv, "qcow2");
