@@ -487,7 +487,11 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
     /* {{{ Print PID */
     {
         int fd;
+
+#if defined (NM_OS_LINUX)
         float usage;
+#endif
+
         nm_str_t pid_path = NM_INIT_STR;
         ssize_t nread;
         char pid[10];
