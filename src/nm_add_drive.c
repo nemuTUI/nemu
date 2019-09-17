@@ -262,7 +262,7 @@ static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
 
     nm_str_format(&query, "INSERT INTO drives("
         "vm_name, drive_name, drive_drv, capacity, boot) \
-        VALUES('%s', '%s_%c.img', '%s', '%s', '0'",
+        VALUES('%s', '%s_%c.img', '%s', '%s', '0')",
         name->data, name->data, drv_ch, type->data, size->data);
     nm_db_edit(query.data);
 
