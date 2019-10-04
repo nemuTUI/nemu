@@ -107,7 +107,7 @@ execute_process(COMMAND ${CMAKE_SOURCE_DIR}/sh/git_get_version.sh ${CMAKE_SOURCE
   OUTPUT_VARIABLE GIT_TAG_VERSION)
 if (NOT GIT_TAG_VERSION STREQUAL "")
     message(STATUS "Build from git, version:${GIT_TAG_VERSION}")
-    add_definitions(-DNM_VERSION=${GIT_TAG_VERSION})
+    add_definitions(-DNM_VERSION="${GIT_TAG_VERSION}")
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
@@ -170,3 +170,5 @@ if(COMPILER_SUPPORTS_C99)
 else()
     message(FATAL_ERROR "The compiler ${CMAKE_C_COMPILER} has no C99 support. Please use a different C compiler.")
 endif()
+
+add_subdirectory(pkg/linux/rpm)

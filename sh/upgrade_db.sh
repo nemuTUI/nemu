@@ -32,7 +32,7 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=4'
             ) || RC=1
             ;;
-        
+
         ( 4 )
             (
             sqlite3 "$DB_PATH" -line 'CREATE TABLE snapshots(id integer primary key autoincrement, '`
@@ -100,7 +100,7 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             echo "Unsupported database user_version" >&2
             exit 1
     esac
-    
+
     DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 done
 

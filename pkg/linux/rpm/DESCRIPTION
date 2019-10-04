@@ -1,0 +1,2 @@
+nEMU is text-based user interface application for hypervisor QEMU,
+based on ncurses5 library.
