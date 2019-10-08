@@ -522,4 +522,4 @@ static int nm_search_cmp_cb(const void *s1, const void *s2)
 
     return rc;
 }
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

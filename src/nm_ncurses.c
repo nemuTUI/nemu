@@ -55,4 +55,4 @@ void nm_clear_screen(void)
         mvhline(i, 0, ' ', x);
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

@@ -4,4 +4,4 @@
 void nm_start_main_loop(void);
 
 #endif /* NM_MAIN_LOOP_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

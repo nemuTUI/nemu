@@ -190,4 +190,4 @@ enum nm_key_upper {
     } while (0)
 
 #endif /* NM_WINDOW_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

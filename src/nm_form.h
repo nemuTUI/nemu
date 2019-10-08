@@ -151,4 +151,4 @@ extern const char *nm_form_svg_layer[];
     }
 
 #endif /* NM_FORM_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

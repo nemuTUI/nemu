@@ -16,4 +16,4 @@ extern float    nm_cpu_usage;
 float nm_stat_get_usage(int pid);
 
 #endif /* NM_STAT_USAGE_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

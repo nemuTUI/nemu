@@ -6,4 +6,4 @@
 void nm_edit_boot(const nm_str_t *name);
 
 #endif /* NM_EDIT_BOOT_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

@@ -722,4 +722,4 @@ static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *src,
 #endif /* NM_OS_LINUX */
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

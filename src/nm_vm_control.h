@@ -34,4 +34,4 @@ void nm_vmctl_connect(const nm_str_t *name);
 #endif
 
 #endif /*NM_VM_CONTROL_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

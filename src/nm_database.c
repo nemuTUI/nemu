@@ -109,4 +109,4 @@ static int nm_db_select_cb(void *v, int argc, char **argv,
     return 0;
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

@@ -550,4 +550,4 @@ out:
 }
 #endif /* NM_WITH_NETWORK_MAP */
 #endif /* NM_OS_LINUX */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

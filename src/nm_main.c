@@ -151,4 +151,4 @@ static void nm_print_feset(void)
     nm_vect_free(&feset, NULL);
     nm_str_free(&msg);
 }
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

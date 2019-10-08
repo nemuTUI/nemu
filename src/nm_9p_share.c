@@ -158,4 +158,4 @@ static void nm_9p_update_db(const nm_str_t *name, const nm_9p_data_t *data)
     nm_str_free(&query);
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

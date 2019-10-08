@@ -363,4 +363,4 @@ static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path)
         nm_cfg_get()->vm_dir.data, name->data);
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

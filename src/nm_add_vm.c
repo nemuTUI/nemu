@@ -269,7 +269,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
 {
     nm_str_t query = NM_INIT_STR;
 
-    /* {{{ insert main VM data */
+    /* insert main VM data */
     nm_str_format(&query,
         "INSERT INTO vms(name, mem, smp, kvm, hcpu, vnc, arch, iso, install, "
         "mouse_override, usb, usb_type, fs9p_enable, spice, debug_port, debug_freeze) "
@@ -292,9 +292,8 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         NM_DISABLE);
 
     nm_db_edit(query.data);
-    /* }}} main VM data */
 
-    /* {{{ insert drive info */
+    /* insert drive info */
     if (drives == NULL)
     {
         nm_str_format(&query,
@@ -320,9 +319,8 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
             nm_db_edit(query.data);
         }
     }
-    /* }}} drive */
 
-    /* {{{ insert network interface info */
+    /* insert network interface info */
     for (size_t n = 0; n < vm->ifs.count; n++)
     {
         nm_str_t if_name = NM_INIT_STR;
@@ -351,7 +349,6 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         nm_str_free(&if_name);
         nm_str_free(&maddr);
     }
-    /* }}} network */
 
     nm_form_update_last_mac(mac);
     nm_form_update_last_vnc(nm_str_stoui(&vm->vncp, 10));
@@ -387,4 +384,4 @@ static void nm_add_vm_to_fs(nm_vm_t *vm, int import)
     nm_str_free(&buf);
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

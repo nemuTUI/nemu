@@ -442,4 +442,4 @@ static const char *nm_str_get(const nm_str_t *str)
     return str->data;
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

@@ -325,4 +325,4 @@ static void nm_usb_plug_update_db(const nm_str_t *name, const nm_usb_data_t *usb
 
     nm_str_free(&query);
 }
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

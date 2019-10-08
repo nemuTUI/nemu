@@ -34,4 +34,4 @@ int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
                           nm_str_t *err);
 
 #endif /*NM_NETWORK_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

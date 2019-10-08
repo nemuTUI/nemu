@@ -532,4 +532,4 @@ static int nm_edit_net_maddr_busy(const nm_str_t *mac)
     return rc;
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

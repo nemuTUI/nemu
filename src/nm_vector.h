@@ -27,4 +27,4 @@ static inline void nm_vect_insert_cstr(nm_vect_t *v, const char *data)
 }
 
 #endif /* NM_VECTOR_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

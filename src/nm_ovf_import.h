@@ -24,4 +24,4 @@ static inline nm_str_t *nm_drive_size(const nm_drive_t *drive)
 }
 
 #endif /* NM_OVF_IMPORT_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

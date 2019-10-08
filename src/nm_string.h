@@ -58,4 +58,4 @@ static inline size_t nm_vect_str_len(const nm_vect_t *v, const size_t index)
 }
 
 #endif /* NM_STRING_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

@@ -278,4 +278,4 @@ void nm_cmd_str(nm_str_t *str, const nm_vect_t *argv)
     }
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

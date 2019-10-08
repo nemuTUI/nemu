@@ -73,4 +73,4 @@ uint32_t nm_hw_disk_free(void)
     return df;
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */
