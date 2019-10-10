@@ -1,4 +1,7 @@
 language: c
+branches:
+  only:
+    - master
 script:
     - mkdir build && cd build
     - cmake ../ -DNM_DEBUG=ON -DNM_SAVEVM_SNAPSHOTS=ON -DNM_WITH_NETWORK_MAP=ON
