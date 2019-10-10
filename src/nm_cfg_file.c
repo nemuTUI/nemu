@@ -438,4 +438,4 @@ static void nm_cfg_get_view(nm_view_args_t *view, const nm_str_t *buf)
     }
 }
 #endif
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

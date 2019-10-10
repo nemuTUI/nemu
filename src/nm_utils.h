@@ -31,4 +31,4 @@ void nm_debug(const char *fmt, ...)
 void nm_cmd_str(nm_str_t *str, const nm_vect_t *argv);
 
 #endif /* NM_UTILS_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

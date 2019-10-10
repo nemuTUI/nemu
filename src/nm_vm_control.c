@@ -47,7 +47,7 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
 
     nm_vmctl_get_data(name, &vm);
 
-    /* {{{ Check if VM is already installed */
+    /* check if VM is already installed */
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_INST), NM_ENABLE) == NM_OK)
     {
         int ch = nm_notify(_(NM_MSG_INST_CONF));
@@ -67,7 +67,6 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
             nm_str_free(&query);
         }
     }
-    /* }}} VM is already installed */
 
     nm_vmctl_gen_cmd(&argv, &vm, name, flags, &tfds);
     if (argv.n_memb > 0)
@@ -254,7 +253,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
     nm_vect_insert_cstr(argv, "-daemonize");
 
-    /* {{{ Setup install source */
+    /* setup install source */
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_INST), NM_ENABLE) == NM_OK)
     {
         const char *iso = nm_vect_str_ctx(&vm->main, NM_SQL_ISO);
@@ -281,7 +280,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             nm_str_format(&buf, "file=%s,media=disk,if=ide", iso);
             nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
         }
-    } /* }}} install */
+    }
     else /* just mount cdrom */
     {
         const char *iso = nm_vect_str_ctx(&vm->main, NM_SQL_ISO);
@@ -565,7 +564,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_vect_insert_cstr(argv, "tablet");
     }
 
-    /* {{{ Setup serial socket */
+    /* setup serial socket */
     if (nm_vect_str_len(&vm->main, NM_SQL_SOCK))
     {
         if (!(flags & NM_VMCTL_INFO))
@@ -588,9 +587,9 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_vect_insert_cstr(argv, "-device");
         nm_str_format(&buf, "isa-serial,chardev=socket_%s", name->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
-    } /* }}} socket */
+    }
 
-    /* {{{ Setup debug port for GDB */
+    /* setup debug port for GDB */
     if (nm_vect_str_len(&vm->main, NM_SQL_DEBP))
     {
         nm_vect_insert_cstr(argv, "-gdb");
@@ -600,9 +599,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     }
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_DEBF), NM_ENABLE) == NM_OK)
         nm_vect_insert_cstr(argv, "-S");
-    /* }}} debug */
 
-    /* {{{ Setup serial TTY */
+    /* setup serial TTY */
     if (nm_vect_str_len(&vm->main, NM_SQL_TTY))
     {
         if (!(flags & NM_VMCTL_INFO))
@@ -635,9 +633,9 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_str_format(&buf, "isa-serial,chardev=tty_%s",
             name->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
-    } /* }}} TTY */
+    }
 
-    /* {{{ setup network interfaces */
+    /* setup network interfaces */
     for (size_t n = 0; n < ifs_count; n++)
     {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
@@ -797,7 +795,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         }
         (void) tfds;
 #endif /* NM_OS_LINUX */
-    } /* }}} ifaces */
+    }
 
     if (flags & NM_VMCTL_TEMP)
         nm_vect_insert_cstr(argv, "-snapshot");
@@ -990,4 +988,4 @@ out:
 }
 #endif
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

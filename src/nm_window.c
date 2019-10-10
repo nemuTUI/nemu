@@ -359,7 +359,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
              nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + 5900);
     NM_PR_VM_INFO();
 
-    /* {{{ print network interfaces info */
+    /* print network interfaces info */
     ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
 
     for (size_t n = 0; n < ifs_count; n++)
@@ -376,9 +376,8 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
 
         NM_PR_VM_INFO();
     }
-    /* }}} network */
 
-    /* {{{ print drives info */
+    /* print drives info */
     drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
 
     for (size_t n = 0; n < drives_count; n++)
@@ -399,9 +398,8 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
                  boot ? "*" : "");
         NM_PR_VM_INFO();
     }
-    /* }}} drives */
 
-    /* {{{ print 9pfs info */
+    /* print 9pfs info */
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_9FLG), "1") == NM_OK)
     {
         nm_str_format(&buf, "%-12s%s [%s]", "9pfs: ",
@@ -409,9 +407,8 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
                  nm_vect_str_ctx(&vm->main, NM_SQL_9ID));
         NM_PR_VM_INFO();
     }
-    /* }}} 9pfs */
 
-    /* {{{ Generate guest boot settings info */
+    /* generate guest boot settings info */
     if (nm_vect_str_len(&vm->main, NM_SQL_MACH))
     {
         nm_str_format(&buf, "%-12s%s", "machine: ",
@@ -466,10 +463,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         NM_PR_VM_INFO();
     }
 
-    /* }}} boot settings */
-
-    /* {{{ Print host IP addresses for TAP ints */
-    //y++;
+    /* print host IP addresses for TAP ints */
     for (size_t n = 0; n < ifs_count; n++)
     {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
@@ -482,9 +476,9 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
             nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
         NM_PR_VM_INFO();
 
-    } /* }}} host IP addr */
+    }
 
-    /* {{{ Print PID */
+    /* print PID */
     {
         int fd;
 
@@ -529,7 +523,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         }
 
         nm_str_free(&pid_path);
-    } /* }}} PID */
+    }
 
     nm_str_free(&buf);
 }
@@ -809,4 +803,4 @@ int nm_window_scale_dec(void)
     return NM_OK;
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

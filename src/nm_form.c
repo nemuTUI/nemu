@@ -485,4 +485,4 @@ void nm_vm_free_boot(nm_vm_boot_t *vm)
     nm_str_free(&vm->inst_path);
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

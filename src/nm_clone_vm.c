@@ -146,7 +146,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     nm_str_format(&query,NM_CLONE_VMS_SQL, dst->data, last_vnc, src->data);
     nm_db_edit(query.data);
 
-    /* {{{ insert network interface info */
+    /* insert network interface info */
     ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
 
     for (size_t n = 0; n < ifs_count; n++)
@@ -173,9 +173,9 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
 
         nm_str_free(&if_name);
         nm_str_free(&maddr);
-    } /* }}} network */
+    }
 
-    /* {{{ insert drive info */
+    /* insert drive info */
     drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
 
     for (size_t n = 0; n < drives_count; n++)
@@ -192,7 +192,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         nm_db_edit(query.data);
 
         drv_ch++;
-    } /* }}} drives */
+    }
 
     nm_form_update_last_mac(last_mac);
     nm_form_update_last_vnc(last_vnc);
@@ -200,4 +200,4 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     nm_str_free(&query);
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

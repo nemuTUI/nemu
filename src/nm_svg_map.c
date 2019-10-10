@@ -97,4 +97,4 @@ next:
     gvFreeContext(gvc);
 }
 #endif /* NM_WITH_NETWORK_MAP */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

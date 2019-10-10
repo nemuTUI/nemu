@@ -269,4 +269,4 @@ static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
     nm_str_free(&query);
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

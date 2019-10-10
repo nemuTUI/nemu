@@ -12,4 +12,4 @@ int nm_ini_parser_find(const nm_ini_node_t *head, const char *section,
                        const char *param, nm_str_t *res);
 
 #endif /* NM_INI_PARSER_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

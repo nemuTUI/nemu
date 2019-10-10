@@ -72,4 +72,4 @@ void nm_vect_free(nm_vect_t *v, nm_vect_free_cb_pt cb)
     v->n_alloc = 0;
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

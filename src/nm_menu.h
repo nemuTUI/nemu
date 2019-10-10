@@ -56,4 +56,4 @@ static inline void nm_vect_set_item_status(nm_vect_t *v, const size_t index, con
 }
 
 #endif /* NM_MENU_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

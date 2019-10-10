@@ -17,4 +17,4 @@ void nm_mach_vect_free_mlist_cb(void *unit_p);
 const char **nm_mach_get(const nm_str_t *arch);
 
 #endif /* NM_MACHINE_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

@@ -106,4 +106,4 @@ static inline void __attribute__((noreturn)) nm_exit_core()
 }
 
 #endif /* NM_CORE_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

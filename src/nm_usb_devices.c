@@ -252,4 +252,4 @@ static int nm_usb_get_product_str(char *buf, size_t size, uint16_t vid, uint16_t
 }
 #endif /* NM_OS_LINUX */
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

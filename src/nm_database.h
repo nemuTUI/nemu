@@ -220,4 +220,4 @@ static const size_t NM_DRV_IDX_COUNT = 4;
 static const size_t NM_USB_IDX_COUNT = 6;
 
 #endif /* NM_DATABASE_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

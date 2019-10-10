@@ -150,4 +150,4 @@ float nm_stat_get_usage(int pid)
     return nm_cpu_usage;
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

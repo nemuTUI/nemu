@@ -51,7 +51,7 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
             continue;
         }
 
-        /* {{{ skip comments '#...' */
+        /* skip comments '#...' */
         if (comment_block && (*buf_ini != '\n'))
             continue;
 
@@ -64,9 +64,9 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
         {
             comment_block = 0;
             continue;
-        } /* }}} comments */
+        }
 
-        /* {{{ collect section names */
+        /* collect section names */
         if (look_for_sec_end)
         {
             if (*buf_ini == ']')
@@ -78,9 +78,9 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
                 continue;
             }
             nm_str_add_char_opt(&sec_name, *buf_ini);
-        } /* }}} section names */
+        }
 
-        /* {{{ collect param names */
+        /* collect param names */
         if (look_for_param_end && !look_for_sec_end)
         {
             if (*buf_ini == '=')
@@ -91,9 +91,9 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
             }
             if (*buf_ini != '\n')
                 nm_str_add_char_opt(&par_name, *buf_ini);
-        } /* }}} param */
+        }
 
-        /* {{{ collect values */
+        /* collect values */
         if (look_for_value_end)
         {
             if (*buf_ini == '\n')
@@ -117,7 +117,7 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
                 continue;
             }
             nm_str_add_char_opt(&par_value, *buf_ini);
-        } /* }}} */
+        }
     }
 
     nm_unmap_file(&file);
@@ -271,4 +271,4 @@ int nm_ini_parser_find(const nm_ini_node_t *head, const char *section,
     return ret;
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

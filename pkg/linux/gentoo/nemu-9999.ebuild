@@ -7,7 +7,7 @@ EAPI=6
 inherit cmake-utils linux-info git-r3
 
 DESCRIPTION="ncurses interface for QEMU"
-HOMEPAGE="https://lib.void.so/nemu"
+HOMEPAGE="https://bitbucket.org/PascalRD/nemu"
 EGIT_REPO_URI="https://bitbucket.org/PascalRD/nemu.git"
 SRC_URI=""
 

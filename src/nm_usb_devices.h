@@ -60,4 +60,4 @@ static inline nm_usb_dev_t **nm_usb_data_dev(const nm_usb_data_t *p)
 }
 
 #endif /* NM_USB_DEVICES_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

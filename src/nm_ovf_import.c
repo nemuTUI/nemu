@@ -678,4 +678,4 @@ static int nm_ova_get_data(nm_vm_t *vm)
 }
 
 #endif /* NM_WITH_OVF_SUPPORT */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

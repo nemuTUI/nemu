@@ -14,4 +14,4 @@ enum {
 };
 
 #endif /* NM_ADD_VM_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

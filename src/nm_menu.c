@@ -265,4 +265,4 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
 }
 #endif /* NM_OS_LINUX */
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

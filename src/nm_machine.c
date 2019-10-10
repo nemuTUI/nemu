@@ -173,4 +173,4 @@ void nm_mach_vect_free_mlist_cb(void *unit_p)
     free(*nm_mach_list(unit_p));
 }
 
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

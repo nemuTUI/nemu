@@ -13,4 +13,4 @@ int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
 static const size_t NM_DRIVE_LIMIT = 30;
 
 #endif /* NM_ADD_DRIVE_H_ */
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */

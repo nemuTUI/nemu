@@ -22,4 +22,4 @@ nm_window_t *nm_init_window(const nm_cord_t *pos);
 void nm_clear_screen(void);
 
 #endif /* NM_NCURSES_H_*/
-/* vim:set ts=4 sw=4 fdm=marker: */
+/* vim:set ts=4 sw=4: */
