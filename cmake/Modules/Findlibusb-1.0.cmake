@@ -87,9 +87,11 @@ else (LIBUSB_1_LIBRARIES AND LIBUSB_1_INCLUDE_DIRS)
 	  message(STATUS " - Libraries: ${LIBUSB_1_LIBRARIES}")
     endif (NOT libusb_1_FIND_QUIETLY)
   else (LIBUSB_1_FOUND)
-    if (libusb_1_FIND_REQUIRED)
+    if (libusb-1.0_FIND_REQUIRED)
       message(FATAL_ERROR "Could not find libusb")
-    endif (libusb_1_FIND_REQUIRED)
+    else (libusb-1.0_FIND_REQUIRED)
+      message(STATUS "Could not find libusb")
+    endif (libusb-1.0_FIND_REQUIRED)
   endif (LIBUSB_1_FOUND)
 
   # show the LIBUSB_1_INCLUDE_DIRS and LIBUSB_1_LIBRARIES variables only in the advanced view
