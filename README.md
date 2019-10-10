@@ -1,4 +1,5 @@
 **nEMU** [**n**curses interface for Q**EMU**]
+[![Build Status](https://travis-ci.org/0x501D/nemu.svg?branch=master)](https://travis-ci.org/0x501D/nemu)
 ===========
 
 ## Features
