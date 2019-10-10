@@ -1,0 +1,13 @@
+language: c
+script:
+    - mkdir build && cd build
+    - cmake ../ -DNM_DEBUG=ON -DNM_SAVEVM_SNAPSHOTS=ON -DNM_WITH_NETWORK_MAP=ON
+    - make
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      env: SSL=ubuntu EVENT=ubuntu
+      before_install:
+        - "sudo apt-get install -qq libgvc6 libncursesw5-dev libsqlite3-dev
+          libusb-1.0-0-dev libarchive-dev libcgraph6 libudev-dev check"
