@@ -113,8 +113,9 @@ static void nm_add_vm_main(int import)
     if (import)
     {
         sp_data.stop = &done;
+        sp_data.ctx = &vm;
 
-        if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
+        if (pthread_create(&spin_th, NULL, nm_file_progress, (void *) &sp_data) != 0)
             nm_bug(_("%s: cannot create thread"), __func__);
     }
 

@@ -93,12 +93,11 @@ typedef struct {
                     NM_INIT_VM_KVM, 0, 0, 0, 0 }
 
 typedef struct {
-    int x;
-    int y;
     const int *stop;
+    const void *ctx;
 } nm_spinner_data_t;
 
-#define NM_INIT_SPINNER (nm_spinner_data_t) { 0, 1, NULL }
+#define NM_INIT_SPINNER (nm_spinner_data_t) { NULL, NULL }
 
 nm_form_t *nm_post_form(nm_window_t *w, nm_field_t **field,
                           int begin_x, int color);
@@ -113,6 +112,7 @@ int nm_print_empty_fields(const nm_vect_t *v);
 void nm_vm_free(nm_vm_t *vm);
 void nm_vm_free_boot(nm_vm_boot_t *vm);
 void *nm_progress_bar(void *data);
+void *nm_file_progress(void *data);
 int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form);
 
 extern const char *nm_form_yes_no[];
