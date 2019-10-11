@@ -347,6 +347,47 @@ void *nm_progress_bar(void *data)
     pthread_exit(NULL);
 }
 
+void *nm_file_progress(void *data)
+{
+    struct timespec ts;
+    int cols = getmaxx(action_window);
+    nm_spinner_data_t *dp = data;
+    const nm_vm_t *vm = dp->ctx;
+    nm_str_t dst = NM_INIT_STR;
+    struct stat img_info;
+    int64_t perc = 0;
+
+    memset(&ts, 0, sizeof(ts));
+    ts.tv_nsec = 1e+8;
+
+    stat(vm->srcp.data, &img_info);
+
+    nm_str_format(&dst, "%s/%s/%s_a.img",
+            nm_cfg_get()->vm_dir.data, vm->name.data, vm->name.data);
+
+    curs_set(0);
+
+    for (;;)
+    {
+        struct stat dst_info;
+
+        if (*dp->stop)
+            break;
+
+        stat(dst.data, &dst_info);
+        perc = (dst_info.st_size * 100) / img_info.st_size;
+        NM_ERASE_TITLE(action, cols);
+        mvwprintw(action_window, 1, 2, "%d%% %ldmb/%ldmb",
+                perc, dst_info.st_size / 1024, img_info.st_size /1024);
+        wrefresh(action_window);
+
+        nanosleep(&ts, NULL);
+    }
+
+    nm_str_free(&dst);
+    pthread_exit(NULL);
+}
+
 #if 0
 void *nm_spinner(void *data)
 {
