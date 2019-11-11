@@ -354,10 +354,10 @@ void *nm_file_progress(void *data)
     nm_spinner_data_t *dp = data;
     const nm_vm_t *vm = dp->ctx;
     nm_str_t dst = NM_INIT_STR;
-    struct stat img_info;
+    struct stat img_info, dst_info;
     int64_t perc = 0;
 
-    memset(&ts, 0, sizeof(ts));
+    memset(&ts, 0x0, sizeof(ts));
     ts.tv_nsec = 1e+8;
 
     stat(vm->srcp.data, &img_info);
@@ -369,7 +369,7 @@ void *nm_file_progress(void *data)
 
     for (;;)
     {
-        struct stat dst_info;
+        memset(&dst_info, 0x0, sizeof(dst_info));
 
         if (*dp->stop)
             break;
@@ -378,7 +378,7 @@ void *nm_file_progress(void *data)
         perc = (dst_info.st_size * 100) / img_info.st_size;
         NM_ERASE_TITLE(action, cols);
         mvwprintw(action_window, 1, 2, "%d%% %ldmb/%ldmb",
-                perc, dst_info.st_size / 1024, img_info.st_size /1024);
+                perc, dst_info.st_size / 1024, img_info.st_size / 1024);
         wrefresh(action_window);
 
         nanosleep(&ts, NULL);
