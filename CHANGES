@@ -1,3 +1,13 @@
+v2.2.2 - 11 Nov 2019
+------------------------
+    - Feature: start vm from command line
+    - Feature: bash-autocomplete script
+    - Feature: mount iso if exists
+    - Change: new progress info for importing drive image dialog
+    - Change: use CMAKE_INSTALL_PREFIX instead of USR_PREFIX in install,
+              set default CMAKE_BUILD_TYPE to Release
+    - Change: refactoring of nm_strings usage and defines
+
 v2.2.1 - 16 May 2019
 ------------------------
     - Feature: GDB support
