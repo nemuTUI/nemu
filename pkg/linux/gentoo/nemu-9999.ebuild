@@ -7,7 +7,7 @@ EAPI=6
 inherit cmake-utils linux-info git-r3
 
 DESCRIPTION="ncurses interface for QEMU"
-HOMEPAGE="https://github.com/0x501D/nemu"
+HOMEPAGE="https://github.com/nemuTUI/nemu"
 EGIT_REPO_URI="https://github.com/nemuTUI/nemu"
 SRC_URI=""
 
