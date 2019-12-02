@@ -126,6 +126,11 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
     req.i.ifi_family = AF_UNSPEC;
     req.i.ifi_flags |= IFF_UP;
 
+    req.i.ifi_change |= IFF_MULTICAST;
+    req.i.ifi_flags |= IFF_MULTICAST;
+    req.i.ifi_change |= IFF_ALLMULTI;
+    req.i.ifi_flags |= IFF_ALLMULTI;
+
     mac_len = nm_net_mac_a2n(maddr, macn, sizeof(macn));
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_ADDRESS,
             macn, mac_len) != NM_OK))
