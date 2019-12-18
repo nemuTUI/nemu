@@ -12,4 +12,4 @@ matrix:
       compiler: gcc
       before_install:
         - "sudo apt-get install -qq libgvc6 libncursesw5-dev libsqlite3-dev
-          libusb-1.0-0-dev libarchive-dev libcgraph6 libudev-dev check"
+          libusb-1.0-0-dev libarchive-dev libcgraph6 libudev-dev"
