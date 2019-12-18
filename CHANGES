@@ -1,3 +1,8 @@
+vX.X.X - ?
+------------------------
+    - Bugfix: do not reset loadvm flag with args preview (m - hotkey)
+    - Bugfix: multicast not working on macvtap bridges.
+
 v2.2.2 - 11 Nov 2019
 ------------------------
     - Feature: start vm from command line
