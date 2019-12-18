@@ -353,7 +353,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             nm_vect_insert_cstr(argv, nm_vect_str_ctx(&snap_res, 0));
 
             /* reset load flag */
-            if (!(flags | NM_VMCTL_INFO))
+            if (!(flags & NM_VMCTL_INFO))
             {
                 nm_str_format(&query, NM_RESET_LOAD_SQL, name->data);
                 nm_db_edit(query.data);
