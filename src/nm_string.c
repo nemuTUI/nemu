@@ -131,7 +131,7 @@ uint32_t nm_str_stoui(const nm_str_t *str, int base)
 
     res = strtoul(data, &endp, base);
 
-    if ((errno == ERANGE) || (res > UINT32_MAX))
+    if ((res == ULONG_MAX && errno == ERANGE) || (res > UINT32_MAX))
         nm_bug(_("%s: integer overflow"), __func__);
 
     if ((endp == data) || (*endp != '\0'))
@@ -147,7 +147,7 @@ static uint64_t nm_str_stoul__(const char *str, int base)
 
     res = strtoull(str, &endp, base);
 
-    if (errno == ERANGE)
+    if (res == ULLONG_MAX && errno == ERANGE)
         nm_bug(_("%s: integer overflow"), __func__);
 
     if ((endp == str) || (*endp != '\0'))
@@ -174,7 +174,7 @@ int64_t nm_str_stol(const nm_str_t *str, int base)
 
     res = strtoll(data, &endp, base);
 
-    if (errno == ERANGE)
+    if ((res == LLONG_MAX || res == LONG_MIN) && errno == ERANGE)
         nm_bug(_("%s: integer overflow"), __func__);
 
     if ((endp == data) || (*endp != '\0'))

@@ -24,6 +24,7 @@
 #include <inttypes.h>
 #include <regex.h>
 #include <getopt.h>
+#include <limits.h>
 
 #ifndef NM_DEBUG
 # ifndef NDEBUG
