@@ -23,7 +23,7 @@
 #include <libxml/xpathInternals.h>
 
 enum {NM_BLOCK_SIZE = 10240};
-static char NM_OVA_DIR_TEMPL[] = "/tmp/ova_extract_XXXXXX";
+static const char NM_OVA_DIR_TEMPL[] = "/tmp/ova_extract_XXXXXX";
 
 static const char NM_OVF_FORM_PATH[] = "Path to OVA";
 static const char NM_OVF_FORM_ARCH[] = "Architecture";
@@ -124,7 +124,7 @@ static nm_field_t *fields[NM_OVA_FLD_COUNT + 1];
 
 void nm_ovf_import(void)
 {
-    char *templ_path = (char *)NM_OVA_DIR_TEMPL;
+    char templ_path[sizeof(NM_OVA_DIR_TEMPL)];
     const char *ovf_file;
     nm_vect_t files = NM_INIT_VECT;
     nm_vect_t drives = NM_INIT_VECT;
@@ -137,6 +137,8 @@ void nm_ovf_import(void)
     size_t msg_len;
     pthread_t spin_th;
     int done = 0;
+
+    strncpy(templ_path, NM_OVA_DIR_TEMPL, sizeof(templ_path));
 
     msg_len = nm_max_msg_len(nm_form_msg);
 
