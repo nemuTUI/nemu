@@ -174,7 +174,7 @@ int64_t nm_str_stol(const nm_str_t *str, int base)
 
     res = strtoll(data, &endp, base);
 
-    if ((res == LLONG_MAX || res == LONG_MIN) && errno == ERANGE)
+    if ((res == LLONG_MAX || res == LLONG_MIN) && errno == ERANGE)
         nm_bug(_("%s: integer overflow"), __func__);
 
     if ((endp == data) || (*endp != '\0'))
