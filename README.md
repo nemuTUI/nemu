@@ -1,6 +1,7 @@
-**nEMU** [**n**curses interface for Q**EMU**]
+# nEMU [ncurses interface for QEMU]
+
 [![Build Status](https://travis-ci.org/nemuTUI/nemu.svg?branch=master)](https://travis-ci.org/nemuTUI/nemu)
-===========
+[![License](https://img.shields.io/github/license/nemuTUI/nemu)](https://img.shields.io/github/license/nemuTUI/nemu)
 
 ## Features
  * Install VM
