@@ -1,5 +1,7 @@
-vX.X.X - ?
+v2.2.3 - 24.01.2020
 ------------------------
+    - Bugfix: mkdtemp error on OVA import
+    - Bugfix: integer overflow error on start
     - Bugfix: do not reset loadvm flag with args preview (m - hotkey)
     - Bugfix: multicast not working on macvtap bridges.
 
