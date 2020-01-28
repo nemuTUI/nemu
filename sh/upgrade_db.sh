@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=10
+DB_ACTUAL_VERSION=11
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 RC=0
 
@@ -93,6 +93,14 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD debug_freeze integer;' &&
             sqlite3 "$DB_PATH" -line 'UPDATE vms SET debug_freeze="0";' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=10'
+            ) || RC=1
+            ;;
+
+        ( 10 )
+            (
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD cmdappend char;' &&
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE ifaces ADD altname char;' &&
+            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=11'
             ) || RC=1
             ;;
 

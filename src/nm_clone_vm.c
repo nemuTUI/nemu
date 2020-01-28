@@ -139,11 +139,12 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     uint32_t last_vnc;
     size_t ifs_count;
     size_t drives_count;
+    int altname = 0;
     char drv_ch = 'a';
 
     nm_form_get_last(&last_mac, &last_vnc);
 
-    nm_str_format(&query,NM_CLONE_VMS_SQL, dst->data, last_vnc, src->data);
+    nm_str_format(&query, NM_CLONE_VMS_SQL, dst->data, last_vnc, src->data);
     nm_db_edit(query.data);
 
     /* insert network interface info */
@@ -153,25 +154,28 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
         nm_str_t if_name = NM_INIT_STR;
+        nm_str_t if_name_copy = NM_INIT_STR;
         nm_str_t maddr = NM_INIT_STR;
         last_mac++;
 
         nm_net_mac_n2a(last_mac, &maddr);
-
         nm_str_format(&if_name, "%s_eth%zu", dst->data, n);
-        nm_net_fix_tap_name(&if_name, &maddr);
+        nm_str_copy(&if_name_copy, &if_name);
+        altname = nm_net_fix_tap_name(&if_name, &maddr);
 
         nm_str_format(&query,
-            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap, parent_eth) "
-            "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap, parent_eth, altname) "
+            "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
             dst->data, if_name.data, maddr.data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift)->data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift)->data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift)->data,
-            nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift)->data);
+            nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift)->data,
+            (altname) ? if_name_copy.data : "");
         nm_db_edit(query.data);
 
         nm_str_free(&if_name);
+        nm_str_free(&if_name_copy);
         nm_str_free(&maddr);
     }
 

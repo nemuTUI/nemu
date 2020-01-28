@@ -269,6 +269,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
                      int import, const nm_vect_t *drives)
 {
     nm_str_t query = NM_INIT_STR;
+    int altname = 0;
 
     /* insert main VM data */
     nm_str_format(&query,
@@ -325,17 +326,18 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     for (size_t n = 0; n < vm->ifs.count; n++)
     {
         nm_str_t if_name = NM_INIT_STR;
+        nm_str_t if_name_copy = NM_INIT_STR;
         nm_str_t maddr = NM_INIT_STR;
         mac++;
 
         nm_net_mac_n2a(mac, &maddr);
-
         nm_str_format(&if_name, "%s_eth%zu", vm->name.data, n);
-        nm_net_fix_tap_name(&if_name, &maddr);
+        nm_str_copy(&if_name_copy, &if_name);
+        altname = nm_net_fix_tap_name(&if_name, &maddr);
 
         nm_str_format(&query,
-            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap) "
-            "VALUES('%s', '%s', '%s', '%s', '%s', '%s')",
+            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap, altname) "
+            "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
             vm->name.data, if_name.data, maddr.data, vm->ifs.driver.data,
 #if defined (NM_OS_LINUX)
             nm_str_cmp_st(&vm->ifs.driver, NM_DEFAULT_NETDRV) == NM_OK ?
@@ -343,11 +345,13 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
 #else
             "0",
 #endif
-            "0" /* disable macvtap by default */
+            "0", /* disable macvtap by default */
+            (altname) ? if_name_copy.data : ""
         );
         nm_db_edit(query.data);
 
         nm_str_free(&if_name);
+        nm_str_free(&if_name_copy);
         nm_str_free(&maddr);
     }
 

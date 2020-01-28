@@ -358,6 +358,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     if (field_status(fields[NM_FLD_IFSCNT]))
     {
         size_t cur_count = cur->ifs.n_memb / NM_IFS_IDX_COUNT;
+        int altname;
 
         if (vm->ifs.count < cur_count)
         {
@@ -378,22 +379,20 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
             for (size_t n = cur_count; n < vm->ifs.count; n++)
             {
                 nm_str_t if_name = NM_INIT_STR;
+                nm_str_t if_name_copy = NM_INIT_STR;
                 nm_str_t maddr = NM_INIT_STR;
                 mac++;
 
                 nm_net_mac_n2a(mac, &maddr);
                 nm_str_format(&if_name, "%s_eth%zu",
                     nm_vect_str_ctx(&cur->main, NM_SQL_NAME), n);
+                nm_str_copy(&if_name_copy, &if_name);
 
-                if (if_name.len > 15) /* Linux tap iface max name len */
-                {
-                    nm_str_trunc(&if_name, 14);
-                    nm_str_append_format(&if_name, "%zu", n);
-                }
+                altname = nm_net_fix_tap_name(&if_name, &maddr);
 
                 nm_str_format(&query,
-                    "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap) "
-                    "VALUES('%s', '%s', '%s', '%s', '%s', '%s')",
+                    "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap, altname) "
+                    "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
                     nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
                     if_name.data,
                     maddr.data,
@@ -403,10 +402,12 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
 #else
                     NM_DISABLE,
 #endif
-                    NM_DISABLE);
+                    NM_DISABLE,
+                    (altname) ? if_name_copy.data : "");
                 nm_db_edit(query.data);
 
                 nm_str_free(&if_name);
+                nm_str_free(&if_name_copy);
                 nm_str_free(&maddr);
             }
 

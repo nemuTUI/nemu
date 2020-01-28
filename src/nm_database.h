@@ -11,7 +11,7 @@ static const char NM_CLONE_VMS_SQL[] = \
     "INSERT INTO vms SELECT NULL, '%s', mem, smp, kvm, hcpu, '%d', arch, iso, " \
     "install, usb, usbid, bios, kernel, mouse_override, kernel_append, tty_path, " \
     "socket_path, initrd, machine, fs9p_enable, fs9p_path, fs9p_name, usb_type, " \
-    "spice, debug_port, debug_freeze FROM vms WHERE name='%s'";
+    "spice, debug_port, debug_freeze, cmdappend FROM vms WHERE name='%s'";
 
 static const char NM_RESET_LOAD_SQL[] = \
     "UPDATE vmsnapshots SET load='0' WHERE vm_name='%s'";
@@ -196,14 +196,16 @@ enum select_ifs_idx {
     NM_SQL_IF_IP4,
     NM_SQL_IF_VHO,
     NM_SQL_IF_MVT,
-    NM_SQL_IF_PET
+    NM_SQL_IF_PET,
+    NM_IFS_IDX_COUNT
 };
 
 enum select_drive_idx {
     NM_SQL_DRV_NAME = 0,
     NM_SQL_DRV_TYPE,
     NM_SQL_DRV_SIZE,
-    NM_SQL_DRV_BOOT
+    NM_SQL_DRV_BOOT,
+    NM_DRV_IDX_COUNT
 };
 
 enum select_usb_idx {
@@ -212,12 +214,9 @@ enum select_usb_idx {
     NM_SQL_USB_NAME,
     NM_SQL_USB_VID,
     NM_SQL_USB_PID,
-    NM_SQL_USB_SERIAL
+    NM_SQL_USB_SERIAL,
+    NM_USB_IDX_COUNT
 };
-
-static const size_t NM_IFS_IDX_COUNT = 7;
-static const size_t NM_DRV_IDX_COUNT = 4;
-static const size_t NM_USB_IDX_COUNT = 6;
 
 #endif /* NM_DATABASE_H_ */
 /* vim:set ts=4 sw=4: */
