@@ -23,7 +23,7 @@ void nm_db_init(void)
     int rc;
 
     const char *query[] = {
-        "PRAGMA user_version=11",
+        "PRAGMA user_version=" NM_DB_VERSION,
         "CREATE TABLE vms(id integer PRIMARY KEY AUTOINCREMENT, "
             "name char(31), mem integer, smp integer, kvm integer, "
             "hcpu integer, vnc integer, arch char(32), iso char, "
@@ -90,6 +90,31 @@ void nm_db_edit(const char *query)
 void nm_db_close(void)
 {
     sqlite3_close(db_handler);
+}
+
+void nm_db_check_version(void)
+{
+    nm_str_t query = NM_INIT_STR;
+    nm_vect_t res = NM_INIT_VECT;
+
+    nm_str_alloc_text(&query, NM_GET_DB_VERSION_SQL);
+    nm_db_select(query.data, &res);
+
+    if (!res.n_memb)
+    {
+        fprintf(stderr, _("%s: cannot get database version"), __func__);
+        exit(NM_ERR);
+    }
+
+    if (nm_str_cmp_st(nm_vect_at(&res, 0), NM_DB_VERSION) != NM_OK)
+    {
+        fprintf(stderr, _("Database version is not up do date."
+                    " Execute upgrade_db.sh script\n"));
+        exit(NM_ERR);
+    }
+
+    nm_vect_free(&res, NULL);
+    nm_str_free(&query);
 }
 
 static int nm_db_select_cb(void *v, int argc, char **argv,

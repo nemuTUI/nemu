@@ -3,6 +3,8 @@
 
 #include <nm_vector.h>
 
+#define NM_DB_VERSION "11"
+
 //@TODO Those queries should have constant naming convention and some kind of sorting
 static const char NM_GET_VMS_SQL[] = \
     "SELECT name FROM vms ORDER BY name ASC";
@@ -154,10 +156,14 @@ static const char NM_USB_UPDATE_STATE_SQL[] = \
 static const char NM_VMCTL_GET_VNC_PORT_SQL[] = \
     "SELECT vnc, spice FROM vms WHERE name='%s'";
 
+static const char NM_GET_DB_VERSION_SQL[] = \
+    "PRAGMA user_version";
+
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
 void nm_db_edit(const char *query);
 void nm_db_close(void);
+void nm_db_check_version(void);
 
 enum select_main_idx {
     NM_SQL_ID = 0,
