@@ -11,6 +11,7 @@ typedef sqlite3 nm_sqlite_t;
 
 static nm_sqlite_t *db_handler = NULL;
 
+static void nm_db_check_version(void);
 static int nm_db_select_cb(void *v, int argc, char **argv,
                            char **unused NM_UNUSED);
 
@@ -53,7 +54,10 @@ void nm_db_init(void)
         nm_bug(_("%s: database error: %s"), __func__, sqlite3_errstr(rc));
 
     if (!need_create_db)
+    {
+        nm_db_check_version();
         return;
+    }
 
     for (size_t n = 0; n < nm_arr_len(query); n++)
     {
@@ -92,7 +96,7 @@ void nm_db_close(void)
     sqlite3_close(db_handler);
 }
 
-void nm_db_check_version(void)
+static void nm_db_check_version(void)
 {
     nm_str_t query = NM_INIT_STR;
     nm_vect_t res = NM_INIT_VECT;

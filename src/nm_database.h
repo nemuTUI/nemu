@@ -163,7 +163,6 @@ void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
 void nm_db_edit(const char *query);
 void nm_db_close(void);
-void nm_db_check_version(void);
 
 enum select_main_idx {
     NM_SQL_ID = 0,

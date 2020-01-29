@@ -34,7 +34,6 @@ int main(int argc, char **argv)
 
     nm_cfg_init();
     nm_db_init();
-    nm_db_check_version();
 #if defined (NM_OS_LINUX)
     nm_lan_create_veth(NM_FALSE);
 #endif
