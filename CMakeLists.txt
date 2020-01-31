@@ -1,3 +1,4 @@
+include(CheckSymbolExists)
 cmake_minimum_required(VERSION 2.8)
 project(nemu C)
 set(CMAKE_COLOR_MAKEFILE OFF)
@@ -46,6 +47,13 @@ if (NM_WITH_OVF_SUPPORT)
 endif()
 if (NM_WITH_NETWORK_MAP)
   add_definitions(-DNM_WITH_NETWORK_MAP)
+endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL Linux)
+  check_symbol_exists(RTM_NEWLINKPROP "linux/rtnetlink.h" HAVE_NEWLINKPROP)
+  if (HAVE_NEWLINKPROP)
+    add_definitions(-DNM_WITH_NEWLINKPROP)
+  endif()
 endif()
 
 set(CURSES_NEED_NCURSES TRUE)

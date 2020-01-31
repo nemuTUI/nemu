@@ -782,12 +782,25 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
 #if defined (NM_OS_LINUX)
+        /* Setup interface alternative name */
+        if ((!(flags & NM_VMCTL_INFO)) &&
+                ((nm_vect_str_len(&vm->ifs, NM_SQL_IF_ALT + idx_shift) != 0)))
+        {
+            if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK)
+                nm_net_add_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+
+            nm_net_set_altname(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                    nm_vect_str(&vm->ifs, NM_SQL_IF_ALT + idx_shift));
+        }
+
+        /* Setup IPv4 address if defined */
         if ((!(flags & NM_VMCTL_INFO)) &&
             (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) != 0) &&
-            (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK) &&
             (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift), NM_DISABLE) == NM_OK))
         {
-            nm_net_add_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+            if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK)
+                nm_net_add_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+
             nm_net_set_ipaddr(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
                               nm_vect_str(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
         }
@@ -895,11 +908,7 @@ void nm_vmctl_clear_tap(void)
         if (stat(lock_path.data, &file_info) == 0)
             continue;
 
-        nm_str_add_text(&query, "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost, "
-            "macvtap, parent_eth FROM ifaces WHERE vm_name='");
-        nm_str_add_str(&query, nm_vect_str(&vms, n));
-        nm_str_add_char(&query, '\'');
-
+        nm_str_format(&query, NM_VM_GET_IFACES_SQL, nm_vect_str_ctx(&vms, n));
         nm_db_select(query.data, &ifaces);
         ifs_count = ifaces.n_memb / NM_IFS_IDX_COUNT;
 

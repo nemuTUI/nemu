@@ -278,6 +278,37 @@ void nm_net_set_ipaddr(const nm_str_t *name, const nm_str_t *addr)
     nm_net_addr_change(name, addr, NM_SET_LINK_ADDR);
 }
 
+void nm_net_set_altname(const nm_str_t *name, const nm_str_t *altname)
+{
+#if defined (NM_WITH_NEWLINKPROP)
+    uint32_t dev_index;
+    struct rtnl_handle rth;
+    struct rtattr *props;
+    struct iplink_req req = {
+        .n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg)),
+        .n.nlmsg_flags = NLM_F_REQUEST | NLM_F_EXCL | NLM_F_CREATE | NLM_F_APPEND,
+        .n.nlmsg_type = RTM_NEWLINKPROP,
+        .i.ifi_family = AF_UNSPEC
+    };
+
+    props = nm_net_add_attr_nest(&req.n, sizeof(req), IFLA_PROP_LIST | NLA_F_NESTED);
+    nm_net_add_attr(&req.n, sizeof(req), IFLA_ALT_IFNAME,
+            altname->data, altname->len + 1);
+    nm_net_add_attr_nest_end(&req.n, props);
+
+    if ((dev_index = if_nametoindex(name->data)) == 0)
+        nm_bug("%s: if_nametoindex: %s", __func__, strerror(errno));
+    req.i.ifi_index = dev_index;
+
+    nm_net_rtnl_open(&rth);
+    nm_net_rtnl_talk(&rth, &req.n, NULL, 0);
+    close(rth.sd);
+#else
+    (void) name;
+    (void) altname;
+#endif /* NM_WITH_NEWLINKPROP */
+}
+
 int nm_net_verify_mac(const nm_str_t *mac)
 {
     int rc = NM_ERR;

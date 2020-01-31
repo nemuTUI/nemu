@@ -27,6 +27,7 @@ int nm_net_link_status(const nm_str_t *name);
 void nm_net_add_tap(const nm_str_t *name);
 void nm_net_del_tap(const nm_str_t *name);
 void nm_net_set_ipaddr(const nm_str_t *name, const nm_str_t *addr);
+void nm_net_set_altname(const nm_str_t *name, const nm_str_t *altname);
 int nm_net_fix_tap_name(nm_str_t *name, const nm_str_t *maddr);
 void nm_net_mac_n2a(uint64_t maddr, nm_str_t *res);
 int nm_net_verify_mac(const nm_str_t *mac);

@@ -138,6 +138,9 @@ static void nm_print_feset(void)
 #if defined (NM_WITH_NETWORK_MAP)
     nm_vect_insert_cstr(&feset, "+ svg");
 #endif
+#if defined (NM_WITH_NEWLINKPROP)
+    nm_vect_insert_cstr(&feset, "+ linkprop");
+#endif
 #if defined (NM_DEBUG)
     nm_vect_insert_cstr(&feset, "+ debug");
 #endif

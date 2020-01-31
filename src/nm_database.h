@@ -59,7 +59,8 @@ static const char NM_VM_GET_LIST_SQL[] = \
 
 static const char NM_VM_GET_IFACES_SQL [] = \
     "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost, " \
-    "macvtap, parent_eth FROM ifaces WHERE vm_name='%s' ORDER BY if_name ASC";
+    "macvtap, parent_eth, altname FROM ifaces " \
+    "WHERE vm_name='%s' ORDER BY if_name ASC";
 
 static const char NM_VM_GET_DRIVES_SQL[] = \
     "SELECT drive_name, drive_drv, capacity, boot " \
@@ -202,6 +203,7 @@ enum select_ifs_idx {
     NM_SQL_IF_VHO,
     NM_SQL_IF_MVT,
     NM_SQL_IF_PET,
+    NM_SQL_IF_ALT,
     NM_IFS_IDX_COUNT
 };
 
