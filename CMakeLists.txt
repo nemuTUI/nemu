@@ -23,6 +23,14 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
+if (NOT NM_CUSTOM_SYS_INCLUDE)
+  set(NM_CUSTOM_SYS_INCLUDE "" CACHE
+    PATH "Path to custom include directory" FORCE)
+endif()
+if (NM_CUSTOM_SYS_INCLUDE)
+  include_directories(SYSTEM ${NM_CUSTOM_SYS_INCLUDE})
+endif()
+
 option(NM_DEBUG "Build debug version" OFF)
 option(NM_WITH_OVF_SUPPORT "Build with OVF support" ON)
 option(NM_SAVEVM_SNAPSHOTS "Build with QEMU savevm snapshots" OFF)
@@ -50,7 +58,16 @@ if (NM_WITH_NETWORK_MAP)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
-  check_symbol_exists(RTM_NEWLINKPROP "linux/rtnetlink.h" HAVE_NEWLINKPROP)
+  if (NM_CUSTOM_SYS_INCLUDE)
+    set(RTNETLINK_PATH "${NM_CUSTOM_SYS_INCLUDE}/linux/rtnetlink.h")
+  else()
+    set(RTNETLINK_PATH "linux/rtnetlink.h")
+  endif()
+
+  check_symbol_exists(RTM_NEWLINKPROP ${RTNETLINK_PATH} HAVE_NEWLINKPROP)
+
+  unset(RTNETLINK_PATH)
+
   if (HAVE_NEWLINKPROP)
     add_definitions(-DNM_WITH_NEWLINKPROP)
   endif()
