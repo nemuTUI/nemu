@@ -1,4 +1,4 @@
-# nEMU [ncurses interface for QEMU]
+# nEMU [Ncurses UI for QEMU]
 
 [![Build Status](https://travis-ci.org/nemuTUI/nemu.svg?branch=master)](https://travis-ci.org/nemuTUI/nemu)
 [![Latest Tag](https://badgen.net/github/tag/nemuTUI/nemu)](https://github.com/nemuTUI/nemu/tags)
