@@ -17,6 +17,7 @@ static const char NM_DEFAULT_TARGET[]   = "x86_64,i386";
 static const char NM_INI_S_MAIN[]       = "main";
 static const char NM_INI_S_VIEW[]       = "viewer";
 static const char NM_INI_S_QEMU[]       = "qemu";
+static const char NM_INI_S_DBUS[]       = "dbus";
 
 static const char NM_INI_P_VM[]         = "vmdir";
 static const char NM_INI_P_DB[]         = "db";
@@ -30,6 +31,8 @@ static const char NM_INI_P_VANY[]       = "listen_any";
 static const char NM_INI_P_QTRG[]       = "targets";
 static const char NM_INI_P_QENL[]       = "enable_log";
 static const char NM_INI_P_QLOG[]       = "log_cmd";
+static const char NM_INI_P_ENAB[]       = "enabled";
+static const char NM_INI_P_DTMT[]       = "timeout";
 
 static nm_cfg_t cfg;
 
@@ -178,6 +181,23 @@ void nm_cfg_init(void)
         nm_debug("HL color: r:%d g:%d b:%d\n",
                 cfg.hl_color.r, cfg.hl_color.g, cfg.hl_color.b);
     }
+#if NM_WITH_DBUS
+    nm_str_trunc(&tmp_buf, 0);
+    if (nm_get_opt_param(ini, NM_INI_S_DBUS, NM_INI_P_ENAB, &tmp_buf) == NM_OK) {
+        cfg.dbus_enabled = !!nm_str_stoui(&tmp_buf, 10);
+    } else {
+        cfg.dbus_enabled = 0;
+    }
+
+    nm_str_trunc(&tmp_buf, 0);
+    if (nm_get_opt_param(ini, NM_INI_S_DBUS, NM_INI_P_DTMT, &tmp_buf) == NM_OK) {
+        cfg.dbus_timeout = nm_str_stol(&tmp_buf, 10);
+        if (cfg.dbus_timeout > INT32_MAX || cfg.dbus_timeout < INT32_MIN)
+            nm_bug(_("cfg: incorrect D-Bus timeout value %ld"), cfg.dbus_timeout);
+    } else {
+        cfg.dbus_timeout = -1;
+    }
+#endif
 
     nm_ini_parser_free(ini);
     nm_str_free(&cfg_path);

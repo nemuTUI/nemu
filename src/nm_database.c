@@ -117,7 +117,7 @@ static void nm_db_check_version(void)
         exit(NM_ERR);
     }
 
-    nm_vect_free(&res, NULL);
+    nm_vect_free(&res, nm_str_vect_free_cb);
     nm_str_free(&query);
 }
 

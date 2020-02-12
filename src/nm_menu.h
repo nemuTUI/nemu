@@ -16,10 +16,10 @@ typedef struct {
 
 typedef struct {
     const nm_str_t *name;
-    uint32_t status:1;
+    uint32_t status:2;
 } nm_menu_item_t;
 
-#define NM_INIT_MENU_ITEM (nm_menu_item_t) { NULL, 0 }
+#define NM_INIT_MENU_ITEM (nm_menu_item_t) { NULL, 2 }
 
 void nm_print_base_menu(nm_menu_data_t *ifs);
 void nm_print_vm_menu(nm_menu_data_t *vm);

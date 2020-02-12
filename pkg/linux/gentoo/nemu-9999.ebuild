@@ -13,7 +13,7 @@ SRC_URI=""
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="+vnc-client +ovf +spice savevm svg debug"
+IUSE="+vnc-client +ovf +spice dbus savevm svg debug"
 
 RDEPEND="
 	sys-libs/ncurses:0=[unicode]
@@ -25,6 +25,7 @@ RDEPEND="
 		dev-libs/libxml2
 		app-arch/libarchive
 	)
+	dbus ? ( sys-apps/dbus )
 	svg? ( media-gfx/graphviz[svg] )"
 DEPEND="${RDEPEND}
 	sys-devel/gettext"
@@ -37,6 +38,7 @@ src_configure() {
 		-DNM_WITH_OVF_SUPPORT=$(usex ovf)
 		-DNM_WITH_NETWORK_MAP=$(usex svg)
 		-DNM_WITH_SPICE=$(usex spice)
+		-DNM_WITH_DBUS=$(usex dbus)
 	)
 	cmake-utils_src_configure
 }

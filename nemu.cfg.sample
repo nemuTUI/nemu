@@ -36,3 +36,10 @@ enable_log = 1
 
 # Log path.
 log_cmd = /tmp/qemu_last_cmd.log
+
+[dbus]
+# Enable D-Bus feature
+enabled = 1
+
+# Message timeout (ms)
+timeout = 2000

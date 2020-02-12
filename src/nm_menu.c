@@ -1,5 +1,6 @@
 #include <nm_core.h>
 #include <nm_menu.h>
+#include <nm_dbus.h>
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
@@ -76,8 +77,11 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
 
     for (size_t n = vm->item_first, i = 0; n < vm->item_last; n++, i++)
     {
-        nm_str_t vm_name = NM_INIT_STR;
         int space_num;
+        nm_str_t vm_name = NM_INIT_STR;
+#if NM_WITH_DBUS
+        nm_str_t body = NM_INIT_STR;
+#endif
 
         if (n >= vm->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
@@ -94,11 +98,23 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
 
         if (nm_qmp_test_socket(nm_vect_item_name(vm->v, n)) == NM_OK)
         {
+#if NM_WITH_DBUS
+            if (!nm_vect_item_status(vm->v, n)) {
+                nm_str_format(&body, "%s started", (char *) nm_vect_item_name_ctx(vm->v, n));
+                nm_dbus_send_notify("VM status changed:", body.data);
+            }
+#endif
             nm_vect_set_item_status(vm->v, n, 1);
             wattron(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         }
         else
         {
+#if NM_WITH_DBUS
+            if (nm_vect_item_status(vm->v, n) == 1) {
+                nm_str_format(&body, "%s stoped", (char *) nm_vect_item_name_ctx(vm->v, n));
+                nm_dbus_send_notify("VM status changed:", body.data);
+            }
+#endif
             nm_vect_set_item_status(vm->v, n, 0);
             wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         }
@@ -117,6 +133,9 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         y++;
         wrefresh(side_window);
         nm_str_free(&vm_name);
+#if NM_WITH_DBUS
+        nm_str_free(&body);
+#endif
     }
 }
 
