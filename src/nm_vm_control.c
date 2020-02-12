@@ -18,6 +18,7 @@ enum {
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
 static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port, nm_str_t *cmd, int type);
 #endif
+static int nm_vmctl_clear_tap_vect(const nm_vect_t *vms);
 
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 {
@@ -150,6 +151,8 @@ void nm_vmctl_delete(const nm_str_t *name)
         if (rmdir(vmdir.data) == -1)
             delete_ok = NM_FALSE;
     }
+
+    nm_vmctl_clear_tap(name);
 
     nm_str_format(&query, NM_DEL_DRIVES_SQL, name->data);
     nm_db_edit(query.data);
@@ -887,28 +890,50 @@ void nm_vmctl_log_last(const nm_str_t *msg)
     fclose(fp);
 }
 
-void nm_vmctl_clear_tap(void)
+void nm_vmctl_clear_tap(const nm_str_t *name)
+{
+    nm_vect_t vm = NM_INIT_VECT;
+
+    nm_vect_insert(&vm, name, sizeof(nm_str_t), nm_str_vect_ins_cb);
+    (void) nm_vmctl_clear_tap_vect(&vm);
+
+    nm_vect_free(&vm, nm_str_vect_free_cb);
+}
+
+void nm_vmctl_clear_all_tap(void)
 {
     nm_vect_t vms = NM_INIT_VECT;
     nm_str_t query = NM_INIT_STR;
-    nm_str_t lock_path = NM_INIT_STR;
-    int clear_done = 0;
+    int clear_done;
 
     nm_db_select("SELECT name FROM vms", &vms);
+    clear_done = nm_vmctl_clear_tap_vect(&vms);
 
-    for (size_t n = 0; n < vms.n_memb; n++)
+    nm_notify(clear_done ? _(NM_MSG_IFCLR_DONE) : _(NM_MSG_IFCLR_NONE));
+
+    nm_str_free(&query);
+    nm_vect_free(&vms, nm_str_vect_free_cb);
+}
+
+static int nm_vmctl_clear_tap_vect(const nm_vect_t *vms)
+{
+    nm_str_t lock_path = NM_INIT_STR;
+    nm_str_t query = NM_INIT_STR;
+    int clear_done = 0;
+
+    for (size_t n = 0; n < vms->n_memb; n++)
     {
         struct stat file_info;
         size_t ifs_count;
         nm_vect_t ifaces = NM_INIT_VECT;
 
         nm_str_format(&lock_path, "%s/%s/%s",
-            nm_cfg_get()->vm_dir.data, nm_vect_str(&vms, n)->data, NM_VM_QMP_FILE);
+            nm_cfg_get()->vm_dir.data, nm_vect_str(vms, n)->data, NM_VM_QMP_FILE);
 
         if (stat(lock_path.data, &file_info) == 0)
             continue;
 
-        nm_str_format(&query, NM_VM_GET_IFACES_SQL, nm_vect_str_ctx(&vms, n));
+        nm_str_format(&query, NM_VM_GET_IFACES_SQL, nm_vect_str_ctx(vms, n));
         nm_db_select(query.data, &ifaces);
         ifs_count = ifaces.n_memb / NM_IFS_IDX_COUNT;
 
@@ -931,11 +956,10 @@ void nm_vmctl_clear_tap(void)
         nm_vect_free(&ifaces, nm_str_vect_free_cb);
     }
 
-    nm_notify(clear_done ? _(NM_MSG_IFCLR_DONE) : _(NM_MSG_IFCLR_NONE));
-
     nm_str_free(&query);
     nm_str_free(&lock_path);
-    nm_vect_free(&vms, nm_str_vect_free_cb);
+
+    return clear_done;
 }
 
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)

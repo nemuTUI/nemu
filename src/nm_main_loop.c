@@ -358,7 +358,7 @@ void nm_start_main_loop(void)
 
         if (ch == NM_KEY_U)
         {
-            nm_vmctl_clear_tap();
+            nm_vmctl_clear_all_tap();
         }
 #if defined (NM_WITH_OVF_SUPPORT)
         if (ch == NM_KEY_O_UP)
