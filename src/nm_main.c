@@ -141,6 +141,9 @@ static void nm_print_feset(void)
 #if defined (NM_WITH_NEWLINKPROP)
     nm_vect_insert_cstr(&feset, "+ linkprop");
 #endif
+#if defined (NM_WITH_DBUS)
+    nm_vect_insert_cstr(&feset, "+ dbus");
+#endif
 #if defined (NM_DEBUG)
     nm_vect_insert_cstr(&feset, "+ debug");
 #endif
