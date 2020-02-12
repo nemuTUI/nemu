@@ -1,6 +1,8 @@
 #include <nm_core.h>
 #include <nm_utils.h>
+#if NM_WITH_DBUS
 #include <dbus/dbus.h>
+#endif
 
 #define DBUS_NOTIFY_OBJECT    "/org/freedesktop/Notifications"
 #define DBUS_NOTIFY_INTERFACE "org.freedesktop.Notifications"
