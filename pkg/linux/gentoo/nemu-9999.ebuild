@@ -25,7 +25,7 @@ RDEPEND="
 		dev-libs/libxml2
 		app-arch/libarchive
 	)
-	dbus ? ( sys-apps/dbus )
+	dbus? ( sys-apps/dbus )
 	svg? ( media-gfx/graphviz[svg] )"
 DEPEND="${RDEPEND}
 	sys-devel/gettext"
