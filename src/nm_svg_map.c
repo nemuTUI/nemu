@@ -17,7 +17,7 @@ static char NM_GV_SHAPE[]  = "shape";
 static char NM_GV_FILL[]   = "filled";
 static char NM_GV_FCOL[]   = "fillcolor";
 static char NM_GV_RECT[]   = "rect";
-static char NM_GV_DOT[]    = "dot";
+static char NM_GV_LAYOUT[] = "neato";
 static char NM_GV_SVG[]    = "svg";
 static char NM_VM_COLOR[]  = "#4fbcdd";
 static char NM_VE_COLOR[]  = "#59e088";
@@ -35,7 +35,10 @@ void nm_svg_map(const char *path, const nm_vect_t *veths, int layer)
     if ((gvc = gvContext()) == NULL)
         nm_bug(_("%s: cannot create graphviz ctx"), __func__);
 
-    graph = agopen("network_map", Agdirected, NULL);
+    graph = agopen("network_map", Agundirected, NULL);
+    agattr(graph, AGRAPH, "overlap", "scalexy");
+    agattr(graph, AGRAPH, "splines", "true");
+    agattr(graph, AGRAPH, "sep", "+25,25");
 
     //@TODO Some of variables may be moved outside, and freed only once
     for (size_t n = 0; n < veths->n_memb; n++)
@@ -89,7 +92,7 @@ next:
         nm_str_free(&rname);
     }
 
-    gvLayout(gvc, graph, NM_GV_DOT);
+    gvLayout(gvc, graph, NM_GV_LAYOUT);
     gvRenderFilename(gvc, graph, NM_GV_SVG, path);
 
     gvFreeLayout(gvc, graph);
