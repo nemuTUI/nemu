@@ -1,6 +1,6 @@
 v2.3.0 - ?
 ------------------------
-    - Feature: stop vm from command line
+    - Feature: powerdown/force-stop/reset/kill vm from command line
     - Feature: dbus - send message on VM status change
     - Feature: alternative names for network interfaces,
                requires linux kernel and headers >= 5.5
