@@ -8,9 +8,9 @@
 #include <nm_lan_settings.h>
 
 #if defined (NM_OS_LINUX)
-    static const char NM_OPT_ARGS[] = "cs:S:f:vhl";
+    static const char NM_OPT_ARGS[] = "cs:p:f:vhl";
 #else
-    static const char NM_OPT_ARGS[] = "s:S:f:vhl";
+    static const char NM_OPT_ARGS[] = "s:p:f:vhl";
 #endif
 
 static void signals_handler(int signal);
@@ -72,7 +72,7 @@ static void nm_process_args(int argc, char **argv)
         { "create-veth", no_argument,       NULL, 'c' },
 #endif
         { "start",       required_argument, NULL, 's' },
-        { "stop",        required_argument, NULL, 'S' },
+        { "powerdown",   required_argument, NULL, 'p' },
         { "force-stop",  required_argument, NULL, 'f' },
         { "list",        no_argument,       NULL, 'l' },
         { "version",     no_argument,       NULL, 'v' },
@@ -95,7 +95,7 @@ static void nm_process_args(int argc, char **argv)
             nm_vmctl_start(&vmname, 0);
             nm_str_free(&vmname);
             nm_exit_core();
-        case 'S':
+        case 'p':
             nm_init_core();
             nm_str_alloc_text(&vmname, optarg);
             nm_qmp_vm_shut(&vmname);
