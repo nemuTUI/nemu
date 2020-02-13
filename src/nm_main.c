@@ -8,9 +8,9 @@
 #include <nm_lan_settings.h>
 
 #if defined (NM_OS_LINUX)
-    static const char NM_OPT_ARGS[] = "cs:p:f:vhl";
+    static const char NM_OPT_ARGS[] = "cs:p:f:z:k:vhl";
 #else
-    static const char NM_OPT_ARGS[] = "s:p:f:vhl";
+    static const char NM_OPT_ARGS[] = "s:p:f:z:k:vhl";
 #endif
 
 static void signals_handler(int signal);
@@ -74,6 +74,8 @@ static void nm_process_args(int argc, char **argv)
         { "start",       required_argument, NULL, 's' },
         { "powerdown",   required_argument, NULL, 'p' },
         { "force-stop",  required_argument, NULL, 'f' },
+        { "reset",       required_argument, NULL, 'z' },
+        { "kill",        required_argument, NULL, 'k' },
         { "list",        no_argument,       NULL, 'l' },
         { "version",     no_argument,       NULL, 'v' },
         { "help",        no_argument,       NULL, 'h' },
@@ -107,6 +109,18 @@ static void nm_process_args(int argc, char **argv)
             nm_qmp_vm_stop(&vmname);
             nm_str_free(&vmname);
             nm_exit_core();
+        case 'z':
+            nm_init_core();
+            nm_str_alloc_text(&vmname, optarg);
+            nm_qmp_vm_reset(&vmname);
+            nm_str_free(&vmname);
+            nm_exit_core();
+        case 'k':
+            nm_init_core();
+            nm_str_alloc_text(&vmname, optarg);
+            nm_vmctl_kill(&vmname);
+            nm_str_free(&vmname);
+            nm_exit_core();
         case 'l':
             nm_init_core();
             nm_db_select(NM_GET_VMS_SQL, &vm_list);
@@ -125,6 +139,8 @@ static void nm_process_args(int argc, char **argv)
             printf("%s\n", _("-s, --start      <name> start vm"));
             printf("%s\n", _("-p, --powerdown  <name> powerdown vm"));
             printf("%s\n", _("-f, --force-stop <name> shutdown vm"));
+            printf("%s\n", _("-z, --reset      <name> reset vm"));
+            printf("%s\n", _("-k, --kill       <name> kill vm process"));
             printf("%s\n", _("-l, --list              list vms"));
             printf("%s\n", _("-v, --version           show version"));
             printf("%s\n", _("-h, --help              show help"));
