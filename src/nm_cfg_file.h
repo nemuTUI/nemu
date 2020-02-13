@@ -31,12 +31,15 @@ typedef struct {
     nm_view_args_t vnc_view;
 #endif
     nm_str_t log_path;
+    nm_str_t daemon_pid;
     nm_vect_t qemu_targets;
     nm_rgb_t hl_color;
+    uint64_t daemon_sleep;
 #if NM_WITH_DBUS
     uint32_t dbus_enabled:1;
     int64_t dbus_timeout;
 #endif
+    uint32_t start_daemon:1;
     uint32_t listen_any:1;
     uint32_t spice_default:1;
     uint32_t log_enabled:1;

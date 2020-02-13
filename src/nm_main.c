@@ -3,14 +3,15 @@
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_main_loop.h>
+#include <nm_mon_daemon.h>
 #include <nm_vm_control.h>
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
 
 #if defined (NM_OS_LINUX)
-    static const char NM_OPT_ARGS[] = "cs:p:f:z:k:vhl";
+    static const char NM_OPT_ARGS[] = "cs:p:f:z:k:vhld";
 #else
-    static const char NM_OPT_ARGS[] = "s:p:f:z:k:vhl";
+    static const char NM_OPT_ARGS[] = "s:p:f:z:k:vhld";
 #endif
 
 static void signals_handler(int signal);
@@ -34,6 +35,7 @@ int main(int argc, char **argv)
     nm_process_args(argc, argv);
 
     nm_cfg_init();
+    nm_mon_start();
     nm_db_init();
 #if defined (NM_OS_LINUX)
     nm_lan_create_veth(NM_FALSE);
@@ -77,6 +79,7 @@ static void nm_process_args(int argc, char **argv)
         { "reset",       required_argument, NULL, 'z' },
         { "kill",        required_argument, NULL, 'k' },
         { "list",        no_argument,       NULL, 'l' },
+        { "daemon",      no_argument,       NULL, 'd' },
         { "version",     no_argument,       NULL, 'v' },
         { "help",        no_argument,       NULL, 'h' },
         { NULL,          0,                 NULL,  0  }
@@ -121,6 +124,10 @@ static void nm_process_args(int argc, char **argv)
             nm_vmctl_kill(&vmname);
             nm_str_free(&vmname);
             nm_exit_core();
+        case 'd':
+            nm_mon_loop();
+            nm_cfg_free();
+            exit(NM_OK);
         case 'l':
             nm_init_core();
             nm_db_select(NM_GET_VMS_SQL, &vm_list);
@@ -133,15 +140,16 @@ static void nm_process_args(int argc, char **argv)
             nm_print_feset();
             exit(NM_OK);
         case 'h':
-#if defined (NM_OS_LINUX)
-            printf("%s\n", _("-c, --create-veth   create veth interfaces"));
-#endif
             printf("%s\n", _("-s, --start      <name> start vm"));
             printf("%s\n", _("-p, --powerdown  <name> powerdown vm"));
             printf("%s\n", _("-f, --force-stop <name> shutdown vm"));
             printf("%s\n", _("-z, --reset      <name> reset vm"));
             printf("%s\n", _("-k, --kill       <name> kill vm process"));
             printf("%s\n", _("-l, --list              list vms"));
+            printf("%s\n", _("-d, --daemon            vm monitoring daemon"));
+#if defined (NM_OS_LINUX)
+            printf("%s\n", _("-c, --create-veth       create veth interfaces"));
+#endif
             printf("%s\n", _("-v, --version           show version"));
             printf("%s\n", _("-h, --help              show help"));
             exit(NM_OK);

@@ -13,7 +13,7 @@ static int
 nm_dbus_build_message(DBusMessage* msg, const char *head, const char *body)
 {
     DBusMessageIter args[2];
-    dbus_bool_t rc = 0;
+    dbus_bool_t rc = 1;
     const char *app[] = {NM_PROGNAME};
     uint32_t replaces_id = -1;
     const char *app_icon[] = {""};

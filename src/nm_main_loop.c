@@ -18,6 +18,7 @@
 #include <nm_edit_boot.h>
 #include <nm_ovf_import.h>
 #include <nm_vm_control.h>
+#include <nm_mon_daemon.h>
 #include <nm_vm_snapshot.h>
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
@@ -275,6 +276,7 @@ void nm_start_main_loop(void)
                 nm_clone_vm(name);
                 regen_data = 1;
                 old_hl = vms.highlight;
+                nm_mon_ping();
                 break;
 
             case NM_KEY_D:
@@ -295,6 +297,7 @@ void nm_start_main_loop(void)
                             vms.item_first--;
                             vms.item_last--;
                         }
+                        nm_mon_ping();
                     }
                     werase(side_window);
                     werase(action_window);
@@ -348,12 +351,14 @@ void nm_start_main_loop(void)
         {
             nm_add_vm();
             regen_data = 1;
+            nm_mon_ping();
         }
 
         if (ch == NM_KEY_A_UP)
         {
             nm_import_vm();
             regen_data = 1;
+            nm_mon_ping();
         }
 
         if (ch == NM_KEY_U)

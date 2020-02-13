@@ -21,9 +21,6 @@ void nm_copy_file(const nm_str_t *src, const nm_str_t *dst);
 void nm_unmap_file(const nm_file_map_t *file);
 /* Execute process. Read stdout if answer is not NULL */
 int nm_spawn_process(const nm_vect_t *argv, nm_str_t *answer);
-#if NM_WITH_NOTIFY
-void nm_send_notify(const nm_str_t *msg);
-#endif
 
 void nm_bug(const char *fmt, ...)
     __attribute__ ((format(printf, 1, 2)));

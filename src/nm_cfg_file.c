@@ -3,6 +3,7 @@
 #include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_cfg_file.h>
+#include <nm_mon_daemon.h>
 #include <nm_ini_parser.h>
 
 static const char NM_CFG_NAME[]         = "nemu.cfg";
@@ -17,7 +18,7 @@ static const char NM_DEFAULT_TARGET[]   = "x86_64,i386";
 static const char NM_INI_S_MAIN[]       = "main";
 static const char NM_INI_S_VIEW[]       = "viewer";
 static const char NM_INI_S_QEMU[]       = "qemu";
-static const char NM_INI_S_DBUS[]       = "dbus";
+static const char NM_INI_S_DMON[]       = "nemu-monitor";
 
 static const char NM_INI_P_VM[]         = "vmdir";
 static const char NM_INI_P_DB[]         = "db";
@@ -31,8 +32,11 @@ static const char NM_INI_P_VANY[]       = "listen_any";
 static const char NM_INI_P_QTRG[]       = "targets";
 static const char NM_INI_P_QENL[]       = "enable_log";
 static const char NM_INI_P_QLOG[]       = "log_cmd";
-static const char NM_INI_P_ENAB[]       = "enabled";
-static const char NM_INI_P_DTMT[]       = "timeout";
+static const char NM_INI_P_DYES[]       = "dbus_enabled";
+static const char NM_INI_P_DTMT[]       = "dbus_timeout";
+static const char NM_INI_P_PID[]        = "pid";
+static const char NM_INI_P_AUTO[]       = "autostart";
+static const char NM_INI_P_SLP[]        = "sleep";
 
 static nm_cfg_t cfg;
 
@@ -181,16 +185,30 @@ void nm_cfg_init(void)
         nm_debug("HL color: r:%d g:%d b:%d\n",
                 cfg.hl_color.r, cfg.hl_color.g, cfg.hl_color.b);
     }
+    nm_str_trunc(&tmp_buf, 0);
+    if (nm_get_opt_param(ini, NM_INI_S_DMON, NM_INI_P_AUTO, &tmp_buf) == NM_OK) {
+        cfg.start_daemon = !!nm_str_stoui(&tmp_buf, 10);
+    } else {
+        cfg.start_daemon = 0;
+    }
+
+    nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_PID, &cfg.daemon_pid);
+    nm_str_trunc(&tmp_buf, 0);
+    if (nm_get_opt_param(ini, NM_INI_S_DMON, NM_INI_P_SLP, &tmp_buf) == NM_OK) {
+        cfg.daemon_sleep = nm_str_stoul(&tmp_buf, 10);
+    } else {
+        cfg.daemon_sleep = NM_MON_SLEEP;
+    }
 #if NM_WITH_DBUS
     nm_str_trunc(&tmp_buf, 0);
-    if (nm_get_opt_param(ini, NM_INI_S_DBUS, NM_INI_P_ENAB, &tmp_buf) == NM_OK) {
+    if (nm_get_opt_param(ini, NM_INI_S_DMON, NM_INI_P_DYES, &tmp_buf) == NM_OK) {
         cfg.dbus_enabled = !!nm_str_stoui(&tmp_buf, 10);
     } else {
         cfg.dbus_enabled = 0;
     }
 
     nm_str_trunc(&tmp_buf, 0);
-    if (nm_get_opt_param(ini, NM_INI_S_DBUS, NM_INI_P_DTMT, &tmp_buf) == NM_OK) {
+    if (nm_get_opt_param(ini, NM_INI_S_DMON, NM_INI_P_DTMT, &tmp_buf) == NM_OK) {
         cfg.dbus_timeout = nm_str_stol(&tmp_buf, 10);
         if (cfg.dbus_timeout > INT32_MAX || cfg.dbus_timeout < INT32_MIN)
             nm_bug(_("cfg: incorrect D-Bus timeout value %ld"), cfg.dbus_timeout);
@@ -220,6 +238,8 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.spice_args);
 #endif
     nm_str_free(&cfg.log_path);
+    nm_str_free(&cfg.daemon_pid);
+    nm_str_free(&cfg.spice_args);
     nm_vect_free(&cfg.qemu_targets, NULL);
 }
 
