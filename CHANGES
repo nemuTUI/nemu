@@ -1,8 +1,11 @@
 v2.3.0 - ?
 ------------------------
+    - Feature: stop vm from command line
+    - Feature: dbus - send message on VM status change
     - Feature: alternative names for network interfaces,
                requires linux kernel and headers >= 5.5
     - Feature: check database version on start
+    - Bugfix: delete tap interfaces when vm is deleted
 
 v2.2.3 - 24.01.2020
 ------------------------
