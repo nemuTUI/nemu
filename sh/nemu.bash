@@ -10,10 +10,10 @@ _nemu_completions()
     COMPREPLY=()
 
     if [[ "$COMP_CWORD" == 1 ]]; then
-        COMPREPLY=( $(compgen -W "-h --help -l --list -s --start -v --version" -- "$curr") )
+        COMPREPLY=( $(compgen -W "-h --help -l --list -s --start -S --stop -f --force-stop -v --version" -- "$curr") )
     elif [[ "$COMP_CWORD" == 2 ]]; then
         case "$prev" in
-            "-s"|"--start")
+            "-s"|"--start"|"-S"|"--stop"|"-f"|"--force-stop")
                 COMPREPLY=( $(compgen -W "$(nemu -l)" -- "$curr") )
             ;;
             *)

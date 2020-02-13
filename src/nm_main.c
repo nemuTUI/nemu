@@ -4,12 +4,13 @@
 #include <nm_cfg_file.h>
 #include <nm_main_loop.h>
 #include <nm_vm_control.h>
+#include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
 
 #if defined (NM_OS_LINUX)
-    static const char NM_OPT_ARGS[] = "cs:vhl";
+    static const char NM_OPT_ARGS[] = "cs:S:f:vhl";
 #else
-    static const char NM_OPT_ARGS[] = "s:vhl";
+    static const char NM_OPT_ARGS[] = "s:S:f:vhl";
 #endif
 
 static void signals_handler(int signal);
@@ -71,6 +72,8 @@ static void nm_process_args(int argc, char **argv)
         { "create-veth", no_argument,       NULL, 'c' },
 #endif
         { "start",       required_argument, NULL, 's' },
+        { "stop",        required_argument, NULL, 'S' },
+        { "force-stop",  required_argument, NULL, 'f' },
         { "list",        no_argument,       NULL, 'l' },
         { "version",     no_argument,       NULL, 'v' },
         { "help",        no_argument,       NULL, 'h' },
@@ -92,6 +95,18 @@ static void nm_process_args(int argc, char **argv)
             nm_vmctl_start(&vmname, 0);
             nm_str_free(&vmname);
             nm_exit_core();
+        case 'S':
+            nm_init_core();
+            nm_str_alloc_text(&vmname, optarg);
+            nm_qmp_vm_shut(&vmname);
+            nm_str_free(&vmname);
+            nm_exit_core();
+        case 'f':
+            nm_init_core();
+            nm_str_alloc_text(&vmname, optarg);
+            nm_qmp_vm_stop(&vmname);
+            nm_str_free(&vmname);
+            nm_exit_core();
         case 'l':
             nm_init_core();
             nm_db_select(NM_GET_VMS_SQL, &vm_list);
@@ -107,10 +122,12 @@ static void nm_process_args(int argc, char **argv)
 #if defined (NM_OS_LINUX)
             printf("%s\n", _("-c, --create-veth   create veth interfaces"));
 #endif
-            printf("%s\n", _("-s, --start <name>  start vm"));
-            printf("%s\n", _("-l, --list          list vms"));
-            printf("%s\n", _("-v, --version       show version"));
-            printf("%s\n", _("-h, --help          show help"));
+            printf("%s\n", _("-s, --start      <name> start    vm"));
+            printf("%s\n", _("-S, --stop       <name> stop     vm"));
+            printf("%s\n", _("-f, --force-stop <name> shutdown vm"));
+            printf("%s\n", _("-l, --list              list vms"));
+            printf("%s\n", _("-v, --version           show version"));
+            printf("%s\n", _("-h, --help              show help"));
             exit(NM_OK);
         default:
             exit(NM_ERR);
