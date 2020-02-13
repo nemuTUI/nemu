@@ -122,8 +122,8 @@ static void nm_process_args(int argc, char **argv)
 #if defined (NM_OS_LINUX)
             printf("%s\n", _("-c, --create-veth   create veth interfaces"));
 #endif
-            printf("%s\n", _("-s, --start      <name> start    vm"));
-            printf("%s\n", _("-S, --stop       <name> stop     vm"));
+            printf("%s\n", _("-s, --start      <name> start vm"));
+            printf("%s\n", _("-p, --powerdown  <name> powerdown vm"));
             printf("%s\n", _("-f, --force-stop <name> shutdown vm"));
             printf("%s\n", _("-l, --list              list vms"));
             printf("%s\n", _("-v, --version           show version"));
