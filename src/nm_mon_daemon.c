@@ -56,26 +56,16 @@ void nm_mon_start(void)
     pid = fork();
 
     switch (pid) {
-    case 0: /* child 1 */
-        pid = fork();
-        switch (pid) {
-        case 0: /* child 2*/
-            if (execlp(NM_PROGNAME, NM_PROGNAME, "--daemon", NULL) == -1) {
-                fprintf(stderr, "%s: execlp error: %s\n", __func__, strerror(errno));
-                exit(EXIT_FAILURE);
-            }
-            break;
-        case -1: /* error 2 */
-            fprintf(stderr, "%s: fork error: %s\n", __func__, strerror(errno));
+    case 0: /* child */
+        if (execlp(NM_PROGNAME, NM_PROGNAME, "--daemon", NULL) == -1) {
+            fprintf(stderr, "%s: execlp error: %s\n", __func__, strerror(errno));
             exit(EXIT_FAILURE);
-        default: /* parent 2 */
-            exit(EXIT_SUCCESS);
         }
         break;
-    case -1: /* error 1 */
+    case -1: /* error */
         fprintf(stderr, "%s: fork error: %s\n", __func__, strerror(errno));
         exit(EXIT_FAILURE);
-    default: /* parent 1 */
+    default: /* parent */
         wpid = waitpid(pid, &wstatus, 0);
         if ((wpid == pid) && (WEXITSTATUS(wstatus) != 0)) {
             fprintf(stderr, "%s: failed to start daemon\n", __func__);
