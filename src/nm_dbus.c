@@ -10,7 +10,7 @@
 
 #if NM_WITH_DBUS
 static int
-notify_build_message(DBusMessage* msg, const char *head, const char *body)
+nm_dbus_build_message(DBusMessage* msg, const char *head, const char *body)
 {
     DBusMessageIter args[2];
     dbus_bool_t rc = 0;
@@ -68,7 +68,7 @@ void nm_dbus_send_notify(const char *title, const char *body)
     dbus_message_set_auto_start(msg, TRUE);
     dbus_message_set_destination(msg, DBUS_NOTIFY_INTERFACE);
 
-    if (!notify_build_message(msg, title, body)) {
+    if (!nm_dbus_build_message(msg, title, body)) {
         nm_debug("%s: enomem\n", __func__);
     }
 
