@@ -19,6 +19,8 @@ typedef struct nm_mon_item {
     int8_t state;
 } nm_mon_item_t;
 
+#define NM_MON_INIT (nm_mon_item_t) { NULL, -1 }
+
 static inline int8_t nm_mon_item_get_status(const nm_vect_t *v, const size_t idx)
 {
     return ((nm_mon_item_t *) nm_vect_at(v, idx))->state;
@@ -38,8 +40,6 @@ static inline char *nm_mon_item_get_name_cstr(const nm_vect_t *v, const size_t i
 {
     return ((nm_mon_item_t *) nm_vect_at(v, idx))->name->data;
 }
-
-#define NM_MON_INIT { NULL, -1 }
 
 void nm_mon_start(void)
 {

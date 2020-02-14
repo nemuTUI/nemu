@@ -239,7 +239,6 @@ void nm_cfg_free(void)
 #endif
     nm_str_free(&cfg.log_path);
     nm_str_free(&cfg.daemon_pid);
-    nm_str_free(&cfg.spice_args);
     nm_vect_free(&cfg.qemu_targets, NULL);
 }
 
