@@ -235,7 +235,7 @@ static void nm_mon_signals_handler(int signal)
     case SIGINT:
     case SIGTERM:
         unlink(nm_cfg_get()->daemon_pid.data);
-        exit(EXIT_SUCCESS);
+        nm_exit_core();
         break;
     }
 }
@@ -263,6 +263,7 @@ static int nm_mon_store_pid(void)
     }
 
     close(fd);
+    nm_str_free(&res);
 
     return rc;
 }
