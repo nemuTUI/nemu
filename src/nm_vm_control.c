@@ -661,7 +661,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                 nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)->data, n);
 
 #if defined (NM_OS_LINUX)
-            /* Delete macvtap iface if exists, we using simple tap iface now */
+            /* Delete macvtap iface if exists, we using simple tap iface now.
+             * We do not need to create tap interface: QEMU will create it itself. */
             if (!(flags & NM_VMCTL_INFO))
             {
                 uint32_t tap_idx = 0;
@@ -731,6 +732,11 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                                        nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift),
                                        nm_vect_str(&vm->ifs, NM_SQL_IF_MAC + idx_shift),
                                        macvtap_type);
+
+                    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_ALT + idx_shift) != 0) {
+                        nm_net_set_altname(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                                nm_vect_str(&vm->ifs, NM_SQL_IF_ALT + idx_shift));
+                    }
                 }
 
                 tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
@@ -785,27 +791,23 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
 #if defined (NM_OS_LINUX)
-        /* Setup interface alternative name */
+        /* Simple tap interface additional setup:
+         * If we need to setup IPv4 address or altname we must create
+         * the tap interface yourself. */
         if ((!(flags & NM_VMCTL_INFO)) &&
-                ((nm_vect_str_len(&vm->ifs, NM_SQL_IF_ALT + idx_shift) != 0)))
-        {
-            if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK)
-                nm_net_add_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
-
-            nm_net_set_altname(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
-                    nm_vect_str(&vm->ifs, NM_SQL_IF_ALT + idx_shift));
-        }
-
-        /* Setup IPv4 address if defined */
-        if ((!(flags & NM_VMCTL_INFO)) &&
-            (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) != 0) &&
+            (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK) &&
             (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift), NM_DISABLE) == NM_OK))
         {
-            if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK)
-                nm_net_add_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+            nm_net_add_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
 
-            nm_net_set_ipaddr(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
-                              nm_vect_str(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
+            if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) != 0) {
+                nm_net_set_ipaddr(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                        nm_vect_str(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
+            }
+            if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_ALT + idx_shift) != 0) {
+                nm_net_set_altname(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                        nm_vect_str(&vm->ifs, NM_SQL_IF_ALT + idx_shift));
+            }
         }
 #elif defined (NM_OS_FREEBSD)
         if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) == NM_OK)
