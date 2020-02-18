@@ -9,6 +9,51 @@
 #define DBUS_NOTIFY_METHOD    "Notify"
 
 #if NM_WITH_DBUS
+static DBusConnection* dbus_conn = NULL;
+static DBusError dbus_err;
+
+static int nm_dbus_get_error(void)
+{
+    if (dbus_error_is_set(&dbus_err)) {
+        nm_debug("%s: dbus error: %s\n", __func__, dbus_err.message);
+        dbus_error_free(&dbus_err);
+
+        return NM_OK;
+    }
+
+    return NM_ERR;
+}
+
+int nm_dbus_connect(void)
+{
+    if (!nm_cfg_get()->dbus_enabled)
+        return NM_OK;
+
+    dbus_error_init(&dbus_err);
+    dbus_conn = dbus_bus_get(DBUS_BUS_SESSION, &dbus_err);
+
+    if (nm_dbus_get_error() == NM_OK) {
+        return NM_ERR;
+    }
+
+    if (!dbus_conn) {
+        nm_debug("%s: NULL DBusConnection\n", __func__);
+        return NM_ERR;
+    }
+
+    return NM_OK;
+}
+
+void nm_dbus_disconnect(void)
+{
+    if (!nm_cfg_get()->dbus_enabled)
+        return;
+
+    if (dbus_conn) {
+        dbus_connection_unref(dbus_conn);
+    }
+}
+
 static int
 nm_dbus_build_message(DBusMessage* msg, const char *head, const char *body)
 {
@@ -27,10 +72,10 @@ nm_dbus_build_message(DBusMessage* msg, const char *head, const char *body)
     dbus_message_iter_append_basic(&args[0], DBUS_TYPE_STRING, &head);
     dbus_message_iter_append_basic(&args[0], DBUS_TYPE_STRING, &body);
 
-    dbus_message_iter_open_container(&args[0],DBUS_TYPE_ARRAY,DBUS_TYPE_STRING_AS_STRING,&args[1]);
-    dbus_message_iter_close_container(&args[0],&args[1]);
-    dbus_message_iter_open_container(&args[0],DBUS_TYPE_ARRAY,"{sv}",&args[1]);
-    dbus_message_iter_close_container(&args[0],&args[1]);
+    dbus_message_iter_open_container(&args[0], DBUS_TYPE_ARRAY,DBUS_TYPE_STRING_AS_STRING, &args[1]);
+    dbus_message_iter_close_container(&args[0], &args[1]);
+    dbus_message_iter_open_container(&args[0], DBUS_TYPE_ARRAY, "{sv}", &args[1]);
+    dbus_message_iter_close_container(&args[0], &args[1]);
     dbus_message_iter_append_basic(&args[0], DBUS_TYPE_INT32, &timeout);
 
     return rc;
@@ -39,29 +84,17 @@ nm_dbus_build_message(DBusMessage* msg, const char *head, const char *body)
 void nm_dbus_send_notify(const char *title, const char *body)
 {
     DBusMessage *msg = NULL;
-    DBusConnection* conn = NULL;
-    DBusError err;
 
     if (!nm_cfg_get()->dbus_enabled)
         return;
-
-    dbus_error_init(&err);
-    conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
-
-    if (dbus_error_is_set(&err)) {
-        goto errexit;
-    }
-
-    if (!conn) {
-        goto errexit;
-    }
 
     if ((msg = dbus_message_new_method_call(
                     NULL,
                     DBUS_NOTIFY_OBJECT,
                     DBUS_NOTIFY_INTERFACE,
                     DBUS_NOTIFY_METHOD)) == NULL) {
-        goto errexit;
+        nm_dbus_get_error();
+        goto clean;
     }
 
     dbus_message_set_no_reply(msg, TRUE);
@@ -70,23 +103,19 @@ void nm_dbus_send_notify(const char *title, const char *body)
 
     if (!nm_dbus_build_message(msg, title, body)) {
         nm_debug("%s: enomem\n", __func__);
+        goto clean;
     }
 
-    if (!dbus_connection_send(conn, msg, NULL)) {
-        goto errexit;
+    if (!dbus_connection_send(dbus_conn, msg, NULL)) {
+        nm_dbus_get_error();
+        goto clean;
     }
 
-    dbus_connection_flush(conn);
+    dbus_connection_flush(dbus_conn);
 
-    goto clean;
-
-errexit:
-    nm_debug("%s: dbus error: %s\n", __func__, err.message);
 clean:
     if (msg)
         dbus_message_unref(msg);
-    if (conn)
-        dbus_connection_unref(conn);
 }
 #endif
 

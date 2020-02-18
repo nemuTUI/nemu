@@ -13,13 +13,20 @@ static void nm_mon_check_vms(const nm_vect_t *mon_list);
 static void nm_mon_build_list(nm_vect_t *list, nm_vect_t *vms);
 static void nm_mon_signals_handler(int signal);
 static int nm_mon_store_pid(void);
+static void nm_mon_cleanup(int rc, void *arg);
 
 typedef struct nm_mon_item {
     nm_str_t *name;
     int8_t state;
 } nm_mon_item_t;
 
-#define NM_MON_INIT (nm_mon_item_t) { NULL, -1 }
+typedef struct nm_clean_data {
+    nm_vect_t *mon_list;
+    nm_vect_t *vm_list;
+} nm_clean_data_t;
+
+#define NM_ITEM_INIT (nm_mon_item_t) { NULL, -1 }
+#define NM_CLEAN_INIT (nm_clean_data_t) { NULL, NULL }
 
 static inline int8_t nm_mon_item_get_status(const nm_vect_t *v, const size_t idx)
 {
@@ -41,6 +48,23 @@ static inline char *nm_mon_item_get_name_cstr(const nm_vect_t *v, const size_t i
     return ((nm_mon_item_t *) nm_vect_at(v, idx))->name->data;
 }
 
+static void nm_mon_cleanup(int rc, void *arg)
+{
+    nm_clean_data_t *data = arg;
+
+    nm_debug("mon daemon exited: %d\n", rc);
+
+    nm_vect_free(data->mon_list, NULL);
+    nm_vect_free(data->vm_list, nm_str_vect_free_cb);
+
+#if NM_WITH_DBUS
+    nm_dbus_disconnect();
+#endif
+
+    unlink(nm_cfg_get()->daemon_pid.data);
+    nm_exit_core();
+}
+
 void nm_mon_start(void)
 {
     pid_t pid, wpid;
@@ -50,8 +74,10 @@ void nm_mon_start(void)
     if (!cfg->start_daemon)
         return;
 
-    if (access(cfg->daemon_pid.data, R_OK) != -1)
+    if (access(cfg->daemon_pid.data, R_OK) != -1) {
+        fprintf(stderr, "error: %s exists\n", cfg->daemon_pid.data);
         return;
+    }
 
     pid = fork();
 
@@ -120,11 +146,14 @@ void nm_mon_loop(void)
     nm_vect_t mon_list = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
     const nm_cfg_t *cfg;
+    nm_clean_data_t clean = NM_CLEAN_INIT;
 
     nm_cfg_init();
     cfg = nm_cfg_get();
-    if (access(cfg->daemon_pid.data, R_OK) != -1)
+    if (access(cfg->daemon_pid.data, R_OK) != -1) {
+        fprintf(stderr, "error: %s exists\n", cfg->daemon_pid.data);
         return;
+    }
 
     pid = fork();
 
@@ -135,6 +164,7 @@ void nm_mon_loop(void)
         fprintf(stderr, "%s: fork error: %s\n", __func__, strerror(errno));
         exit(EXIT_FAILURE);
     default: /* parent */
+        nm_exit_core();
         exit(EXIT_SUCCESS);
     }
 
@@ -145,6 +175,13 @@ void nm_mon_loop(void)
 
     if (chdir("/") < 0) {
         fprintf(stderr, "%s: chdir error: %s\n", __func__, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    clean.mon_list = &mon_list;
+    clean.vm_list = &vm_list;
+    if (on_exit(nm_mon_cleanup, &clean) != 0) {
+        fprintf(stderr, "%s: on_exit(3) failed\n", __func__);
         exit(EXIT_FAILURE);
     }
 
@@ -168,6 +205,11 @@ void nm_mon_loop(void)
 
     nm_db_init();
     nm_mon_build_list(&mon_list, &vm_list);
+#if NM_WITH_DBUS
+    if (nm_dbus_connect() != NM_OK) {
+        exit(EXIT_FAILURE);
+    }
+#endif
     
     for (;;) {
         if (nm_mon_rebuild) {
@@ -177,9 +219,6 @@ void nm_mon_loop(void)
         nm_mon_check_vms(&mon_list);
         nanosleep(&ts, NULL);
     }
-
-    nm_vect_free(&mon_list, NULL);
-    nm_vect_free(&vm_list, nm_str_vect_free_cb);
 }
 
 static void nm_mon_check_vms(const nm_vect_t *mon_list)
@@ -219,7 +258,7 @@ static void nm_mon_build_list(nm_vect_t *list, nm_vect_t *vms)
     nm_db_select(NM_GET_VMS_SQL, vms);
 
     for (size_t n = 0; n < vms->n_memb; n++) {
-        nm_mon_item_t item = NM_MON_INIT;
+        nm_mon_item_t item = NM_ITEM_INIT;
 
         item.name = nm_vect_str(vms, n);
         nm_vect_insert(list, &item, sizeof(nm_mon_item_t), NULL);
@@ -233,10 +272,9 @@ static void nm_mon_signals_handler(int signal)
         nm_mon_rebuild = 1;
         break;
     case SIGINT:
+        exit(EXIT_SUCCESS);
     case SIGTERM:
-        unlink(nm_cfg_get()->daemon_pid.data);
-        nm_exit_core();
-        break;
+        exit(EXIT_FAILURE);
     }
 }
 
