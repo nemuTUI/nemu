@@ -109,10 +109,10 @@ void nm_mon_ping(void)
     const char *path = nm_cfg_get()->daemon_pid.data;
     char *buf;
 
+    memset(&info, 0x0, sizeof(info));
+
     if ((stat(path, &info) == -1) || (!info.st_size))
         return;
-
-    memset(&info, 0x0, sizeof(info));
 
     buf = nm_calloc(1, info.st_size + 1);
     fd = open(path, O_RDONLY);
