@@ -75,7 +75,6 @@ void nm_mon_start(void)
         return;
 
     if (access(cfg->daemon_pid.data, R_OK) != -1) {
-        fprintf(stderr, "error: %s exists\n", cfg->daemon_pid.data);
         return;
     }
 
@@ -151,7 +150,6 @@ void nm_mon_loop(void)
     nm_cfg_init();
     cfg = nm_cfg_get();
     if (access(cfg->daemon_pid.data, R_OK) != -1) {
-        fprintf(stderr, "error: %s exists\n", cfg->daemon_pid.data);
         return;
     }
 
