@@ -28,20 +28,17 @@ static void nm_mach_init(void)
     const nm_vect_t *archs = &nm_cfg_get()->qemu_targets;
 
     for (size_t n = 0; n < archs->n_memb; n++)
-        nm_mach_get_data(((char **) archs->data)[n]);
+        nm_mach_get_data(((char **)archs->data)[n]);
 
 #ifdef NM_DEBUG
     nm_debug("\n");
-    for (size_t n = 0; n < nm_machs.n_memb; n++)
-    {
+    for (size_t n = 0; n < nm_machs.n_memb; n++) {
         nm_vect_t *v = *nm_mach_list(nm_machs.data[n]);
         nm_debug("Get machine list for %s:\n",
-            nm_mach_arch(nm_machs.data[n])->data);
+                 nm_mach_arch(nm_machs.data[n])->data);
 
         for (size_t n = 0; n < v->n_memb; n++)
-        {
-            nm_debug(">> mach: %s\n", (char *) v->data[n]);
-        }
+            nm_debug(">> mach: %s\n", (char *)v->data[n]);
     }
 #endif
 }
@@ -53,11 +50,9 @@ const char **nm_mach_get(const nm_str_t *arch)
     if (nm_machs.data == NULL)
         nm_mach_init();
 
-    for (size_t n = 0; n < nm_machs.n_memb; n++)
-    {
-        if (nm_str_cmp_ss(nm_machs.data[n], arch) == NM_OK)
-        {
-            v = (const char **) (*nm_mach_list(nm_machs.data[n]))->data;
+    for (size_t n = 0; n < nm_machs.n_memb; n++) {
+        if (nm_str_cmp_ss(nm_machs.data[n], arch) == NM_OK) {
+            v = (const char **)(*nm_mach_list(nm_machs.data[n]))->data;
             break;
         }
     }
@@ -83,18 +78,17 @@ static void nm_mach_get_data(const char *arch)
     nm_str_alloc_text(&mach_list.arch, arch);
 
     nm_str_format(&buf, "%s/bin/qemu-system-%s",
-        NM_STRING(NM_USR_PREFIX), arch);
+                  NM_STRING(NM_USR_PREFIX), arch);
     nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
     nm_vect_insert_cstr(&argv, "-M");
     nm_vect_insert_cstr(&argv, "help");
 
     nm_vect_end_zero(&argv);
-    if (nm_spawn_process(&argv, &answer) != NM_OK)
-    {
+    if (nm_spawn_process(&argv, &answer) != NM_OK) {
         nm_str_t warn_msg = NM_INIT_STR;
         nm_str_format(&warn_msg,
-            _("Cannot get mach for %-6s  . Error was logged"), arch);
+                      _("Cannot get mach for %-6s  . Error was logged"), arch);
         nm_warn(warn_msg.data);
         nm_str_free(&warn_msg);
         goto out;
@@ -103,7 +97,7 @@ static void nm_mach_get_data(const char *arch)
     mach_list.list = nm_mach_parse(&answer);
 
     nm_vect_insert(&nm_machs, &mach_list,
-        sizeof(mach_list), nm_mach_vect_ins_mlist_cb);
+                   sizeof(mach_list), nm_mach_vect_ins_mlist_cb);
 out:
     nm_str_free(&buf);
     nm_vect_free(&argv, NULL);
@@ -128,19 +122,13 @@ static nm_vect_t *nm_mach_parse(const nm_str_t *buf)
 
     bufp++;
 
-    while (*bufp != '\0')
-    {
+    while (*bufp != '\0') {
         if (lookup_mach && (*bufp != 0x20))
-        {
             nm_str_add_char_opt(&mach, *bufp);
-        }
         else if (lookup_mach && (*bufp == 0x20))
-        {
             lookup_mach = 0;
-        }
 
-        if (!lookup_mach && (*bufp == '\n'))
-        {
+        if (!lookup_mach && (*bufp == '\n')) {
             nm_str_t item = NM_INIT_STR;
 
             nm_str_copy(&item, &mach);

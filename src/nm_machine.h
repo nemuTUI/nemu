@@ -5,8 +5,8 @@
 #include <nm_vector.h>
 
 typedef struct {
-     nm_str_t arch;
-     nm_vect_t *list;
+    nm_str_t    arch;
+    nm_vect_t * list;
 } nm_mach_t;
 
 #define NM_INIT_MLIST { NM_INIT_STR, NULL }

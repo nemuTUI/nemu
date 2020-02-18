@@ -9,9 +9,9 @@
 #include <nm_lan_settings.h>
 
 #if defined (NM_OS_LINUX)
-    static const char NM_OPT_ARGS[] = "cs:p:f:z:k:vhld";
+static const char NM_OPT_ARGS[] = "cs:p:f:z:k:vhld";
 #else
-    static const char NM_OPT_ARGS[] = "s:p:f:z:k:vhld";
+static const char NM_OPT_ARGS[] = "s:p:f:z:k:vhld";
 #endif
 
 static void signals_handler(int signal);
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 {
     struct sigaction sa;
 
-    setlocale(LC_ALL,"");
+    setlocale(LC_ALL, "");
     bindtextdomain(NM_PROGNAME, NM_LOCALE_PATH);
     textdomain(NM_PROGNAME);
 
@@ -82,11 +82,10 @@ static void nm_process_args(int argc, char **argv)
         { "daemon",      no_argument,       NULL, 'd' },
         { "version",     no_argument,       NULL, 'v' },
         { "help",        no_argument,       NULL, 'h' },
-        { NULL,          0,                 NULL,  0  }
+        { NULL,          0,                 NULL, 0   }
     };
 
-    while ((opt = getopt_long(argc, argv, optstr, longopts, NULL)) != -1)
-    {
+    while ((opt = getopt_long(argc, argv, optstr, longopts, NULL)) != -1) {
         switch (opt) {
 #if defined (NM_OS_LINUX)
         case 'c':
@@ -132,7 +131,7 @@ static void nm_process_args(int argc, char **argv)
             nm_init_core();
             nm_db_select(NM_GET_VMS_SQL, &vm_list);
             for (size_t i = 0; i < vm_list.n_memb; ++i)
-                printf("%s\n", ((nm_str_t*)vm_list.data[i])->data);
+                printf("%s\n", ((nm_str_t *)vm_list.data[i])->data);
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
             nm_exit_core();
         case 'v':
@@ -190,7 +189,7 @@ static void nm_print_feset(void)
 #endif
 
     for (size_t n = 0; n < feset.n_memb; n++)
-        nm_str_append_format(&msg, " %s\n", (char *) nm_vect_at(&feset, n));
+        nm_str_append_format(&msg, " %s\n", (char *)nm_vect_at(&feset, n));
 
     if (msg.len)
         printf("%s", msg.data);

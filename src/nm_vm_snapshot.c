@@ -31,9 +31,9 @@ enum {
 };
 
 typedef struct {
-    nm_str_t snap_name;
-    nm_str_t load;
-    int update;
+    nm_str_t    snap_name;
+    nm_str_t    load;
+    int         update;
 } nm_vmsnap_t;
 
 #define NM_INIT_VMSNAP (nm_vmsnap_t) { NM_INIT_STR, NM_INIT_STR, 0 }
@@ -70,11 +70,11 @@ void nm_vm_snapshot_create(const nm_str_t *name)
 
     fields[NM_FLD_COUNT] = NULL;
     field_opts_off(fields[NM_FLD_VMSNAPNAME], O_STATIC);
-    set_field_type(fields[NM_FLD_VMLOAD], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_VMLOAD], TYPE_ENUM, nm_form_yes_no, false,
+                   false);
     set_field_buffer(fields[NM_FLD_VMLOAD], 0, nm_form_yes_no[1]);
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
         mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
         y += 2;
     }
@@ -88,7 +88,7 @@ void nm_vm_snapshot_create(const nm_str_t *name)
 
     sp_data.stop = &done;
 
-    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
+    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *)&sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
     if (nm_qmp_savevm(name, &data.snap_name) != NM_ERR)
@@ -118,13 +118,13 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     int done = 0;
     pthread_t spin_th;
     size_t snaps_count = 0;
-    size_t msg_len = mbstowcs(NULL, _(NM_FORMSTR_SNAP), strlen(_(NM_FORMSTR_SNAP)));
+    size_t msg_len =
+        mbstowcs(NULL, _(NM_FORMSTR_SNAP), strlen(_(NM_FORMSTR_SNAP)));
 
     nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, name->data);
     nm_db_select(query.data, &snaps);
 
-    if (snaps.n_memb == 0)
-    {
+    if (snaps.n_memb == 0) {
         nm_warn(_(NM_MSG_NO_SNAPS));
         goto out;
     }
@@ -140,14 +140,14 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     nm_print_snapshots(&snaps);
 
     snaps_count = snaps.n_memb / 5;
-    for (size_t n = 0; n < snaps_count; n++)
-    {
+    for (size_t n = 0; n < snaps_count; n++) {
         size_t idx_shift = 5 * n;
 
         nm_vect_insert(&choices,
-            nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_NAME + idx_shift),
-            nm_vect_str_len(&snaps, NM_SQL_VMSNAP_NAME + idx_shift) + 1,
-            NULL);
+                       nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_NAME + idx_shift),
+                       nm_vect_str_len(&snaps,
+                                       NM_SQL_VMSNAP_NAME + idx_shift) + 1,
+                       NULL);
     }
 
     nm_vect_end_zero(&choices);
@@ -168,15 +168,14 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     nm_get_field_buf(fields[0], &buf);
     nm_form_check_data(_(NM_FORMSTR_SNAP), buf, err);
 
-    if (nm_print_empty_fields(&err) == NM_ERR)
-    {
+    if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
         goto clean_and_out;
     }
 
     sp_data.stop = &done;
 
-    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
+    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *)&sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
     __nm_vm_snapshot_delete(name, &buf, vm_status);
@@ -217,8 +216,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, name->data);
     nm_db_select(query.data, &snaps);
 
-    if (snaps.n_memb == 0)
-    {
+    if (snaps.n_memb == 0) {
         nm_warn(_(NM_MSG_NO_SNAPS));
         goto out;
     }
@@ -234,14 +232,14 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     nm_print_snapshots(&snaps);
 
     snaps_count = snaps.n_memb / 5;
-    for (size_t n = 0; n < snaps_count; n++)
-    {
+    for (size_t n = 0; n < snaps_count; n++) {
         size_t idx_shift = 5 * n;
 
         nm_vect_insert(&choices,
-            nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_NAME + idx_shift),
-            nm_vect_str_len(&snaps, NM_SQL_VMSNAP_NAME + idx_shift) + 1,
-            NULL);
+                       nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_NAME + idx_shift),
+                       nm_vect_str_len(&snaps,
+                                       NM_SQL_VMSNAP_NAME + idx_shift) + 1,
+                       NULL);
     }
 
     nm_vect_end_zero(&choices);
@@ -254,7 +252,8 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
 
     mvwaddstr(form_data.form_window, 1, 2, _(NM_FORMSTR_SNAP));
 
-    snap_form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    snap_form =
+        nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
     curs_set(0);
     if (nm_draw_form(action_window, snap_form) != NM_OK)
         goto clean_and_out;
@@ -262,15 +261,14 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     nm_get_field_buf(fields[0], &buf);
     nm_form_check_data(_(NM_FORMSTR_SNAP), buf, err);
 
-    if (nm_print_empty_fields(&err) == NM_ERR)
-    {
+    if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
         goto clean_and_out;
     }
 
     sp_data.stop = &done;
 
-    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
+    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *)&sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
     __nm_vm_snapshot_load(name, &buf, vm_status);
@@ -297,8 +295,7 @@ static void __nm_vm_snapshot_load(const nm_str_t *name, const nm_str_t *snap,
                                   int vm_status)
 {
     /* vm is not running, will load snapshot at next boot */
-    if (!vm_status)
-    {
+    if (!vm_status) {
         nm_str_t query = NM_INIT_STR;
 
         /* reset load flag for all snapshots for current vm */
@@ -322,8 +319,7 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
 {
     int rc = NM_ERR;
 
-    if (!vm_status)
-    {
+    if (!vm_status) {
         /* vm is not running, use
          * qemu-img snapshot -d snapshot_name path_to_drive system command */
         nm_str_t buf = NM_INIT_STR;
@@ -344,7 +340,9 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
 
         nm_vect_insert(&argv, snap->data, snap->len + 1, NULL);
 
-        nm_str_format(&buf, "%s/%s/%s", nm_cfg_get()->vm_dir.data, name->data, nm_vect_str_ctx(&drives, 0));
+        nm_str_format(&buf, "%s/%s/%s",
+                      nm_cfg_get()->vm_dir.data, name->data,
+                      nm_vect_str_ctx(&drives, 0));
         nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
         nm_vect_end_zero(&argv);
@@ -356,16 +354,13 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
         nm_vect_free(&argv, NULL);
         nm_vect_free(&drives, nm_str_vect_free_cb);
         nm_str_free(&query);
-    }
-    else
-    {
+    } else {
         /* vm is running, delete snapshot using QMP command delvm */
         rc = nm_qmp_delvm(name, snap);
     }
 
 
-    if (rc == NM_OK)
-    {
+    if (rc == NM_OK) {
         /* delete snapshot from database */
         nm_str_t query = NM_INIT_STR;
 
@@ -389,17 +384,16 @@ static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data)
     nm_form_check_data(_(NM_FORMSTR_NAME), data->snap_name, err);
     nm_form_check_data(_(NM_FORMSTR_LOAD), data->load, err);
 
-    if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
-    {
+    if ((rc = nm_print_empty_fields(&err)) == NM_ERR) {
         nm_vect_free(&err, NULL);
         goto out;
     }
 
-    nm_str_format(&query, NM_SNAP_GET_NAME_SQL, name->data, data->snap_name.data);
+    nm_str_format(&query, NM_SNAP_GET_NAME_SQL, name->data,
+                  data->snap_name.data);
     nm_db_select(query.data, &names);
 
-    if (names.n_memb != 0)
-    {
+    if (names.n_memb != 0) {
         curs_set(0);
         int ch = nm_notify(_(NM_MSG_SNAP_OVER));
 
@@ -424,15 +418,11 @@ static void nm_vm_snapshot_to_db(const nm_str_t *name, const nm_vmsnap_t *data)
         load = 1;
 
     if (!data->update)
-    {
         nm_str_format(&query, NM_INSERT_SNAP_SQL,
-            name->data, data->snap_name.data, load);
-    }
+                      name->data, data->snap_name.data, load);
     else
-    {
         nm_str_format(&query, NM_UPDATE_SNAP_SQL, load,
-            name->data, data->snap_name.data);
-    }
+                      name->data, data->snap_name.data);
 
     nm_db_edit(query.data);
 

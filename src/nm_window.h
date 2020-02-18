@@ -6,7 +6,8 @@
 
 #include <signal.h>
 
-void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status);
+void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm,
+                      int status);
 void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx);
 void nm_print_drive_info(const nm_vect_t *v, size_t idx);
 void nm_print_snapshots(const nm_vect_t *v);
@@ -78,7 +79,8 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_INST_CONF  "Already installed (y/n)"
 #define NM_MSG_SNAP_OVER  "Override snapshot? (y/n)"
 #define NM_MSG_RUNNING    "Already running" NM_MSG_ANY_KEY
-#define NM_MSG_NO_SPACE   "No space left for importing drive image" NM_MSG_ANY_KEY
+#define NM_MSG_NO_SPACE   "No space left for importing drive image" \
+    NM_MSG_ANY_KEY
 #define NM_MSG_IFCLR_DONE "Unused ifaces deleted" NM_MSG_ANY_KEY
 #define NM_MSG_IFCLR_NONE "No unused ifaces" NM_MSG_ANY_KEY
 #define NM_MSG_ISO_MISS   "ISO/IMG path not set" NM_MSG_ANY_KEY
@@ -100,13 +102,16 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_MTAP_NSET  "MacVTap parent iface is not set" NM_MSG_ANY_KEY
 #define NM_MSG_TAP_EACC   "Access to tap iface is missing" NM_MSG_ANY_KEY
 #define NM_MSG_NO_SNAPS   "There are no snapshots" NM_MSG_ANY_KEY
-#define NM_NSG_DRV_LIM    NM_STRING(NM_DRIVE_LIMIT) " disks limit reached" NM_MSG_ANY_KEY
+#define NM_NSG_DRV_LIM    NM_STRING(NM_DRIVE_LIMIT) " disks limit reached" \
+    NM_MSG_ANY_KEY
 #define NM_MSG_DRV_NONE   "No additional disks" NM_MSG_ANY_KEY
 #define NM_MSG_DRV_EDEL   "Cannot delete drive from filesystem" NM_MSG_ANY_KEY
 #define NM_MSG_MAC_INVAL  "Invalid mac address" NM_MSG_ANY_KEY
 #define NM_MSG_MAC_USED   "This mac address is already used" NM_MSG_ANY_KEY
-#define NM_MSG_VHOST_ERR  "vhost can be enabled only on virtio-net" NM_MSG_ANY_KEY
-#define NM_MSG_VTAP_NOP   "MacVTap parent interface does not exists" NM_MSG_ANY_KEY
+#define NM_MSG_VHOST_ERR  "vhost can be enabled only on virtio-net" \
+    NM_MSG_ANY_KEY
+#define NM_MSG_VTAP_NOP   "MacVTap parent interface does not exists" \
+    NM_MSG_ANY_KEY
 #define NM_MSG_NAME_DIFF  "Names must be different" NM_MSG_ANY_KEY
 #define NM_MSG_OVF_MISS   "OVF file is not found" NM_MSG_ANY_KEY
 #define NM_MSG_OVF_EPAR   "Cannot parse OVF file" NM_MSG_ANY_KEY
@@ -120,9 +125,9 @@ extern sig_atomic_t redraw_window;
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)
 
 enum nm_color {
-    NM_COLOR_BLACK       = 1,
-    NM_COLOR_HIGHLIGHT   = 3,
-    NM_COLOR_RED         = 4
+    NM_COLOR_BLACK      = 1,
+    NM_COLOR_HIGHLIGHT  = 3,
+    NM_COLOR_RED        = 4
 };
 
 enum nm_key {
@@ -132,29 +137,29 @@ enum nm_key {
     NM_KEY_PLUS     = 43,
     NM_KEY_MINUS    = 45,
     NM_KEY_SLASH    = 47,
-    NM_KEY_A = 97,
-    NM_KEY_B = 98,
-    NM_KEY_C = 99,
-    NM_KEY_D = 100,
-    NM_KEY_E = 101,
-    NM_KEY_F = 102,
-    NM_KEY_G = 103,
-    NM_KEY_H = 104,
-    NM_KEY_I = 105,
-    NM_KEY_K = 107,
-    NM_KEY_L = 108,
-    NM_KEY_M = 109,
-    NM_KEY_O = 111,
-    NM_KEY_P = 112,
-    NM_KEY_Q = 113,
-    NM_KEY_R = 114,
-    NM_KEY_S = 115,
-    NM_KEY_T = 116,
-    NM_KEY_U = 117,
-    NM_KEY_V = 118,
-    NM_KEY_X = 120,
-    NM_KEY_Y = 121,
-    NM_KEY_Z = 122
+    NM_KEY_A        = 97,
+    NM_KEY_B        = 98,
+    NM_KEY_C        = 99,
+    NM_KEY_D        = 100,
+    NM_KEY_E        = 101,
+    NM_KEY_F        = 102,
+    NM_KEY_G        = 103,
+    NM_KEY_H        = 104,
+    NM_KEY_I        = 105,
+    NM_KEY_K        = 107,
+    NM_KEY_L        = 108,
+    NM_KEY_M        = 109,
+    NM_KEY_O        = 111,
+    NM_KEY_P        = 112,
+    NM_KEY_Q        = 113,
+    NM_KEY_R        = 114,
+    NM_KEY_S        = 115,
+    NM_KEY_T        = 116,
+    NM_KEY_U        = 117,
+    NM_KEY_V        = 118,
+    NM_KEY_X        = 120,
+    NM_KEY_Y        = 121,
+    NM_KEY_Z        = 122
 };
 
 enum nm_key_upper {
@@ -182,12 +187,12 @@ enum nm_key_upper {
             return;                                             \
         }                                                       \
         if (ch1 && ch2) {                                       \
-            mvwaddch(action_window, y, x, ch1 );                \
-            mvwaddch(action_window, y, x + 1, ch2 );            \
+            mvwaddch(action_window, y, x, ch1);                \
+            mvwaddch(action_window, y, x + 1, ch2);            \
         }                                                       \
         nm_align2line(&buf, (ch1 && ch2) ? cols - 2 : cols);    \
         mvwprintw(action_window, y++,                           \
-                (ch1 && ch2) ? x + 2 : x, "%s", buf.data);      \
+                  (ch1 && ch2) ? x + 2 : x, "%s", buf.data);      \
         ch1 = ch2 = 0;                                          \
     } while (0)
 

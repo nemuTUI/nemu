@@ -10,14 +10,14 @@
 #include <sys/un.h>
 #include <sys/socket.h>
 
-static const char NM_QMP_CMD_INIT[]     = "{\"execute\":\"qmp_capabilities\"}";
-static const char NM_QMP_CMD_VM_SHUT[]  = "{\"execute\":\"system_powerdown\"}";
-static const char NM_QMP_CMD_VM_QUIT[]  = "{\"execute\":\"quit\"}";
+static const char NM_QMP_CMD_INIT[] = "{\"execute\":\"qmp_capabilities\"}";
+static const char NM_QMP_CMD_VM_SHUT[] = "{\"execute\":\"system_powerdown\"}";
+static const char NM_QMP_CMD_VM_QUIT[] = "{\"execute\":\"quit\"}";
 static const char NM_QMP_CMD_VM_RESET[] = "{\"execute\":\"system_reset\"}";
-static const char NM_QMP_CMD_VM_STOP[]  = "{\"execute\":\"stop\"}";
-static const char NM_QMP_CMD_VM_CONT[]  = "{\"execute\":\"cont\"}";
+static const char NM_QMP_CMD_VM_STOP[] = "{\"execute\":\"stop\"}";
+static const char NM_QMP_CMD_VM_CONT[] = "{\"execute\":\"cont\"}";
 
-static const char NM_QMP_CMD_EXECUTE[]  = \
+static const char NM_QMP_CMD_EXECUTE[] = \
     "{\"execute\":\"%s\",\"arguments\":{\"name\":\"%s\"}}";
 
 static const char NM_QMP_CMD_SNAP_SYNC[] = \
@@ -32,22 +32,22 @@ static const char NM_QMP_CMD_USB_DEL[] = \
     "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"usb-%s-%s-%s\"}}";
 
 /* Get peripheral qmp command example
+ *
+ *  input:
+ *
+ *  {"execute": "qom-list", "arguments": { "path": "/machine/peripheral" }}
+ *
+ *  output:
+ *
+ *  {"return": [{"name": "type", "type": "string"}, {"name": "dev1", "type": "child<usb-host>"},
+ *      {"name": "dev2", "type": "child<usb-host>"}]}
+ */
 
-    input:
-
-    {"execute": "qom-list", "arguments": { "path": "/machine/peripheral" }}
-
-    output:
-
-    {"return": [{"name": "type", "type": "string"}, {"name": "dev1", "type": "child<usb-host>"},
-        {"name": "dev2", "type": "child<usb-host>"}]}
-*/
-
-enum {NM_QMP_READLEN = 1024};
+enum { NM_QMP_READLEN = 1024 };
 
 typedef struct {
-    int sd;
-    struct sockaddr_un sock;
+    int                 sd;
+    struct sockaddr_un  sock;
 } nm_qmp_handle_t;
 
 #define NM_INIT_QMP (nm_qmp_handle_t) { .sd = -1 }
@@ -56,8 +56,7 @@ static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
                           struct timeval *tv);
 static int nm_qmp_init_cmd(nm_qmp_handle_t *h);
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path);
-static int nm_qmp_talk(int sd, const char *cmd,
-                       size_t len, struct timeval *tv);
+static int nm_qmp_talk(int sd, const char *cmd, size_t len, struct timeval *tv);
 static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
                          const char *cmd);
 static int nm_qmp_check_answer(const nm_str_t *answer);
@@ -108,7 +107,7 @@ int nm_qmp_drive_snapshot(const nm_str_t *name, const nm_str_t *drive,
     tv.tv_usec = 0; /* 10 s */
 
     nm_str_format(&qmp_query, NM_QMP_CMD_SNAP_SYNC,
-        drive->data, path->data);
+                  drive->data, path->data);
 
     nm_debug("exec qmp: %s\n", qmp_query.data);
     rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
@@ -187,7 +186,7 @@ int nm_qmp_test_socket(const nm_str_t *name)
     if ((qmp.sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
         goto out;
 
-    if (connect(qmp.sd, (struct sockaddr *) &qmp.sock, sizeof(qmp.sock)) == 0)
+    if (connect(qmp.sd, (struct sockaddr *)&qmp.sock, sizeof(qmp.sock)) == 0)
         rc = NM_OK;
 
     close(qmp.sd);
@@ -249,21 +248,18 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
     tv.tv_sec = 0;
     tv.tv_usec = 100000; /* 0.1 s */
 
-    if ((h->sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
-    {
+    if ((h->sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         nm_warn(_(NM_MSG_Q_CR_ERR));
         return NM_ERR;
     }
 
-    if (fcntl(h->sd, F_SETFL, O_NONBLOCK) == -1)
-    {
+    if (fcntl(h->sd, F_SETFL, O_NONBLOCK) == -1) {
         close(h->sd);
         nm_warn(_(NM_MSG_Q_FL_ERR));
         return NM_ERR;
     }
 
-    if (connect(h->sd, (struct sockaddr *) &h->sock, len) == -1)
-    {
+    if (connect(h->sd, (struct sockaddr *)&h->sock, len) == -1) {
         close(h->sd);
         nm_warn(_(NM_MSG_Q_CN_ERR));
         return NM_ERR;
@@ -281,14 +277,10 @@ static int nm_qmp_check_answer(const nm_str_t *answer)
     int rc = NM_OK;
 
     if (regcomp(&reg, regex, REG_NOSUB | REG_EXTENDED) != 0)
-    {
         nm_bug("%s: regcomp failed", __func__);
-    }
 
     if (regexec(&reg, answer->data, 0, NULL, 0) != 0)
-    {
         rc = NM_ERR;
-    }
 
     regfree(&reg);
 
@@ -308,40 +300,35 @@ static int nm_qmp_talk(int sd, const char *cmd,
     FD_ZERO(&readset);
     FD_SET(sd, &readset);
 
-    if (write(sd, cmd, len) == -1)
-    {
+    if (write(sd, cmd, len) == -1) {
         close(sd);
         nm_warn(_(NM_MSG_Q_SE_ERR));
         return NM_ERR;
     }
 
-    while (!read_done)
-    {
+    while (!read_done) {
         ret = select(sd + 1, &readset, NULL, NULL, tv);
-        if (ret == -1)
+        if (ret == -1) {
             nm_bug("%s: select error: %s", __func__, strerror(errno));
-        else if (ret && FD_ISSET(sd, &readset)) /* data is available */
-        {
+        } else if (ret && FD_ISSET(sd, &readset)) { /* data is available */
             memset(buf, 0, NM_QMP_READLEN);
             nread = read(sd, buf, NM_QMP_READLEN);
-            if (nread > 1)
-            {
+            if (nread > 1) {
                 buf[nread - 2] = '\0';
                 nm_str_add_text(&answer, buf);
                 /* check for command succesfully executed here
                  * and return if it done */
                 if ((rc = nm_qmp_check_answer(&answer)) == NM_OK)
                     goto out;
-            }
-            else if (nread == 0) /* socket closed */
+            } else if (nread == 0) { /* socket closed */
                 read_done = 1;
-        }
-        else /* timeout, nothing happens */
+            }
+        } else { /* timeout, nothing happens */
             read_done = 1;
+        }
     }
 
-    if (answer.len == 0)
-    {
+    if (answer.len == 0) {
         nm_warn(_(NM_MSG_Q_NO_ANS));
         rc = NM_ERR;
         goto err;
@@ -360,7 +347,7 @@ err:
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path)
 {
     nm_str_format(path, "%s/%s/qmp.sock",
-        nm_cfg_get()->vm_dir.data, name->data);
+                  nm_cfg_get()->vm_dir.data, name->data);
 }
 
 /* vim:set ts=4 sw=4: */

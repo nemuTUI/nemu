@@ -54,17 +54,14 @@ static int nm_append_path(nm_str_t *path);
 
 void nm_form_free(nm_form_t *form, nm_field_t **fields)
 {
-    if (form)
-    {
+    if (form) {
         unpost_form(form);
         free_form(form);
         form = NULL;
     }
 
-    if (fields)
-    {
-        for (; *fields; fields++)
-        {
+    if (fields) {
+        for (; *fields; fields++) {
             free_field(*fields);
             *fields = NULL;
         }
@@ -84,7 +81,7 @@ nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x, int color)
 
     form = new_form(field);
     if (form == NULL)
-         nm_bug("%s: %s", __func__, strerror(errno));
+        nm_bug("%s: %s", __func__, strerror(errno));
 
     set_form_win(form, w);
     scale_form(form, &rows, &cols);
@@ -103,12 +100,11 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
 
     wtimeout(w, 100);
 
-    while ((ch = wgetch(w)) != NM_KEY_ESC)
-    {
+    while ((ch = wgetch(w)) != NM_KEY_ESC) {
         if (confirm == NM_OK)
             break;
 
-        switch(ch) {
+        switch (ch) {
         case KEY_DOWN:
             form_driver(form, REQ_VALIDATION);
             form_driver(form, REQ_NEXT_FIELD);
@@ -158,8 +154,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
 
                 nm_get_field_buf(current_field(form), &buf);
 
-                if (nm_append_path(&buf) == NM_OK)
-                {
+                if (nm_append_path(&buf) == NM_OK) {
                     set_field_buffer(current_field(form), 0, buf.data);
                     form_driver(form, REQ_END_FIELD);
                 }
@@ -181,8 +176,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
 
     nm_str_free(&buf);
 
-    if ((confirm == NM_OK) && (rc == NM_ERR))
-    {
+    if ((confirm == NM_OK) && (rc == NM_ERR)) {
         confirm = NM_ERR;
         NM_FORM_RESET();
         nm_warn(_(NM_MSG_BAD_CTX));
@@ -201,8 +195,7 @@ int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form)
     form->w_rows = (f_num * 2) + 1;
 
     if (form->w_cols < (max_msg + 18) ||
-        form->w_rows > rows - 4)
-    {
+        form->w_rows > rows - 4) {
         nm_warn(_(NM_MSG_SMALL_WIN));
         return NM_ERR;
     }
@@ -210,7 +203,7 @@ int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form)
     form->w_start_x = ((1 - NM_FORM_RATIO) * cols) / 2;
     form->form_len = form->w_cols - (max_msg + 6);
     form->form_window = derwin(action_window, form->w_rows,
-            form->w_cols, 3, form->w_start_x);
+                               form->w_cols, 3, form->w_start_x);
 
     return NM_OK;
 }
@@ -224,8 +217,7 @@ void nm_get_field_buf(nm_field_t *f, nm_str_t *res)
 
     s = strrchr(buf, 0x20);
 
-    if (s != NULL)
-    {
+    if (s != NULL) {
         while ((s > buf) && (s[-1] == 0x20))
             --s;
 
@@ -244,8 +236,7 @@ static int nm_append_path(nm_str_t *path)
 
     memset(&file_info, 0, sizeof(file_info));
 
-    if (path->data[0] == '~')
-    {
+    if (path->data[0] == '~') {
         nm_str_t new_path = NM_INIT_STR;
         const char *home;
 
@@ -259,24 +250,19 @@ static int nm_append_path(nm_str_t *path)
         nm_str_free(&new_path);
     }
 
-    if (glob(path->data, 0, NULL, &res) != 0)
-    {
+    if (glob(path->data, 0, NULL, &res) != 0) {
         nm_str_t tmp = NM_INIT_STR;
 
         nm_str_format(&tmp, "%s*", path->data);
-        if (glob(tmp.data, 0, NULL, &res) == 0)
-        {
+        if (glob(tmp.data, 0, NULL, &res) == 0) {
             nm_str_trunc(path, 0);
-            if ((rp = realpath(res.gl_pathv[0], NULL)) != NULL)
-            {
+            if ((rp = realpath(res.gl_pathv[0], NULL)) != NULL) {
                 nm_str_add_text(path, rp);
                 nm_str_free(&tmp);
                 rc = NM_OK;
                 if (stat(path->data, &file_info) != -1)
-                {
                     if (S_ISDIR(file_info.st_mode) && path->len > 1)
                         nm_str_add_char(path, '/');
-                }
                 goto out;
             }
         }
@@ -285,16 +271,13 @@ static int nm_append_path(nm_str_t *path)
         goto out;
     }
 
-    if ((rp = realpath(res.gl_pathv[0], NULL)) != NULL)
-    {
+    if ((rp = realpath(res.gl_pathv[0], NULL)) != NULL) {
         nm_str_trunc(path, 0);
         nm_str_add_text(path, rp);
         rc = NM_OK;
         if (stat(path->data, &file_info) != -1)
-        {
             if (S_ISDIR(file_info.st_mode) && path->len > 1)
                 nm_str_add_char(path, '/');
-        }
     }
 
 out:
@@ -318,8 +301,7 @@ void *nm_progress_bar(void *data)
 
     curs_set(0);
 
-    for (;;)
-    {
+    for (;;) {
         if (*dp->stop)
             break;
 
@@ -363,12 +345,11 @@ void *nm_file_progress(void *data)
     stat(vm->srcp.data, &img_info);
 
     nm_str_format(&dst, "%s/%s/%s_a.img",
-            nm_cfg_get()->vm_dir.data, vm->name.data, vm->name.data);
+                  nm_cfg_get()->vm_dir.data, vm->name.data, vm->name.data);
 
     curs_set(0);
 
-    for (;;)
-    {
+    for (;;) {
         memset(&dst_info, 0x0, sizeof(dst_info));
 
         if (*dp->stop)
@@ -378,7 +359,7 @@ void *nm_file_progress(void *data)
         perc = (dst_info.st_size * 100) / img_info.st_size;
         NM_ERASE_TITLE(action, cols);
         mvwprintw(action_window, 1, 2, "%d%% %ldmb/%ldmb",
-                perc, dst_info.st_size / 1024, img_info.st_size / 1024);
+                  perc, dst_info.st_size / 1024, img_info.st_size / 1024);
         wrefresh(action_window);
 
         nanosleep(&ts, NULL);
@@ -391,7 +372,7 @@ void *nm_file_progress(void *data)
 #if 0
 void *nm_spinner(void *data)
 {
-    const char spin_chars[] ="/-\\|";
+    const char spin_chars[] = "/-\\|";
     nm_spinner_data_t *dp = data;
     struct timespec ts;
 
@@ -401,8 +382,7 @@ void *nm_spinner(void *data)
     if (dp == NULL)
         nm_bug(_("%s: NULL pointer"), __func__);
 
-    for (uint32_t i = 0 ;; i++)
-    {
+    for (uint32_t i = 0;; i++) {
         if (*dp->stop)
             break;
 
@@ -428,7 +408,7 @@ int nm_print_empty_fields(const nm_vect_t *v)
     nm_str_alloc_text(&msg, _(NM_MSG_NULL_FLD));
 
     for (size_t n = 0; n < v->n_memb; n++)
-        nm_str_append_format(&msg, " '%s'", (char *) v->data[n]);
+        nm_str_append_format(&msg, " '%s'", (char *)v->data[n]);
 
     nm_warn(msg.data);
     nm_str_free(&msg);
@@ -448,8 +428,7 @@ int nm_form_name_used(const nm_str_t *name)
     nm_str_add_char(&query, '\'');
 
     nm_db_select(query.data, &res);
-    if (res.n_memb > 0)
-    {
+    if (res.n_memb > 0) {
         rc = NM_ERR;
         curs_set(0);
         nm_warn(_(NM_MSG_NAME_BUSY));
@@ -465,13 +444,10 @@ void nm_form_get_last(uint64_t *mac, uint32_t *vnc)
 {
     nm_vect_t res = NM_INIT_VECT;
 
-    if (vnc != NULL)
-    {
+    if (vnc != NULL) {
         nm_db_select("SELECT mac,vnc FROM lastval", &res);
         *vnc = nm_str_stoui(res.data[1], 10);
-    }
-    else
-    {
+    } else {
         nm_db_select("SELECT mac FROM lastval", &res);
     }
 

@@ -7,14 +7,15 @@
 #include <sys/statvfs.h>
 
 #if defined (NM_OS_LINUX)
-#include <sys/sysinfo.h>
+# include <sys/sysinfo.h>
 #elif defined (NM_OS_FREEBSD)
-#include <sys/sysctl.h>
+# include <sys/sysctl.h>
 #endif
 
 uint32_t nm_hw_total_ram(void)
 {
     uint32_t ram = 0;
+
 #if defined (NM_OS_LINUX)
     struct sysinfo info;
 
@@ -41,6 +42,7 @@ uint32_t nm_hw_total_ram(void)
 uint32_t nm_hw_ncpus(void)
 {
     uint32_t ncpus = 0;
+
 #if defined (NM_OS_LINUX)
     ncpus = sysconf(_SC_NPROCESSORS_ONLN);
 #elif defined (NM_OS_FREEBSD)

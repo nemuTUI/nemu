@@ -26,9 +26,9 @@ enum {
 static nm_field_t *fields[NM_FLD_COUNT + 1];
 
 static const char *nm_form_msg[] = {
-    "OS Installed", "Path to ISO/IMG", "Machine type",
-    "Path to BIOS", "Path to kernel", "Kernel cmdline",
-    "Path to initrd", "Serial TTY", "Serial socket",
+    "OS Installed",   "Path to ISO/IMG",    "Machine type",
+    "Path to BIOS",   "Path to kernel",     "Kernel cmdline",
+    "Path to initrd", "Serial TTY",         "Serial socket",
     "GDB debug port", "Freeze after start",
     NULL
 };
@@ -89,7 +89,8 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
     for (size_t n = 1; n < NM_FLD_COUNT; n++)
         field_opts_off(fields[n], O_STATIC);
 
-    set_field_type(fields[NM_FLD_INST], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_INST], TYPE_ENUM, nm_form_yes_no, false,
+                   false);
     set_field_type(fields[NM_FLD_SRCP], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_MACH], TYPE_ENUM, machs, false, false);
     set_field_type(fields[NM_FLD_BIOS], TYPE_REGEXP, "^/.*");
@@ -99,7 +100,8 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
     set_field_type(fields[NM_FLD_TTYP], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_SOCK], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_DEBP], TYPE_INTEGER, 1, 0, 65535);
-    set_field_type(fields[NM_FLD_DEBF], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_DEBF], TYPE_ENUM, nm_form_yes_no, false,
+                   false);
 
     if (machs == NULL)
         field_opts_off(fields[NM_FLD_MACH], O_ACTIVE);
@@ -109,15 +111,24 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
     else
         set_field_buffer(fields[NM_FLD_INST], 0, nm_form_yes_no[0]);
 
-    set_field_buffer(fields[NM_FLD_MACH], 0, nm_vect_str_ctx(&cur->main, NM_SQL_MACH));
-    set_field_buffer(fields[NM_FLD_SRCP], 0, nm_vect_str_ctx(&cur->main, NM_SQL_ISO));
-    set_field_buffer(fields[NM_FLD_BIOS], 0, nm_vect_str_ctx(&cur->main, NM_SQL_BIOS));
-    set_field_buffer(fields[NM_FLD_KERN], 0, nm_vect_str_ctx(&cur->main, NM_SQL_KERN));
-    set_field_buffer(fields[NM_FLD_CMDL], 0, nm_vect_str_ctx(&cur->main, NM_SQL_KAPP));
-    set_field_buffer(fields[NM_FLD_INIT], 0, nm_vect_str_ctx(&cur->main, NM_SQL_INIT));
-    set_field_buffer(fields[NM_FLD_TTYP], 0, nm_vect_str_ctx(&cur->main, NM_SQL_TTY));
-    set_field_buffer(fields[NM_FLD_SOCK], 0, nm_vect_str_ctx(&cur->main, NM_SQL_SOCK));
-    set_field_buffer(fields[NM_FLD_DEBP], 0, nm_vect_str_ctx(&cur->main, NM_SQL_DEBP));
+    set_field_buffer(fields[NM_FLD_MACH], 0,
+                     nm_vect_str_ctx(&cur->main, NM_SQL_MACH));
+    set_field_buffer(fields[NM_FLD_SRCP], 0,
+                     nm_vect_str_ctx(&cur->main, NM_SQL_ISO));
+    set_field_buffer(fields[NM_FLD_BIOS], 0,
+                     nm_vect_str_ctx(&cur->main, NM_SQL_BIOS));
+    set_field_buffer(fields[NM_FLD_KERN], 0,
+                     nm_vect_str_ctx(&cur->main, NM_SQL_KERN));
+    set_field_buffer(fields[NM_FLD_CMDL], 0,
+                     nm_vect_str_ctx(&cur->main, NM_SQL_KAPP));
+    set_field_buffer(fields[NM_FLD_INIT], 0,
+                     nm_vect_str_ctx(&cur->main, NM_SQL_INIT));
+    set_field_buffer(fields[NM_FLD_TTYP], 0,
+                     nm_vect_str_ctx(&cur->main, NM_SQL_TTY));
+    set_field_buffer(fields[NM_FLD_SOCK], 0,
+                     nm_vect_str_ctx(&cur->main, NM_SQL_SOCK));
+    set_field_buffer(fields[NM_FLD_DEBP], 0,
+                     nm_vect_str_ctx(&cur->main, NM_SQL_DEBP));
     if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_DEBF), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_DEBF], 0, nm_form_yes_no[0]);
     else
@@ -131,8 +142,7 @@ static void nm_edit_boot_field_names(nm_window_t *w)
 {
     int y = 1, x = 2, mult = 2;
 
-    for (size_t n = 0; n < NM_FLD_COUNT; n++)
-    {
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         mvwaddstr(w, y, x, _(nm_form_msg[n]));
         y += mult;
     }
@@ -163,12 +173,10 @@ static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
 
-    if (nm_str_cmp_st(&inst, "no") == NM_OK)
-    {
+    if (nm_str_cmp_st(&inst, "no") == NM_OK) {
         vm->installed = 1;
 
-        if (vm->inst_path.len == 0)
-        {
+        if (vm->inst_path.len == 0) {
             nm_warn(_(NM_MSG_ISO_MISS));
             rc = NM_ERR;
             goto out;
@@ -192,80 +200,71 @@ static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
 {
     nm_str_t query = NM_INIT_STR;
 
-    if (field_status(fields[NM_FLD_INST]))
-    {
+    if (field_status(fields[NM_FLD_INST])) {
         nm_str_format(&query, "UPDATE vms SET install='%s' WHERE name='%s'",
-            vm->installed ? NM_ENABLE : NM_DISABLE, name->data);
+                      vm->installed ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_MACH]))
-    {
+    if (field_status(fields[NM_FLD_MACH])) {
         nm_str_format(&query, "UPDATE vms SET machine='%s' WHERE name='%s'",
-            vm->mach.data, name->data);
+                      vm->mach.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_SRCP]))
-    {
+    if (field_status(fields[NM_FLD_SRCP])) {
         nm_str_format(&query, "UPDATE vms SET iso='%s' WHERE name='%s'",
-            vm->inst_path.data, name->data);
+                      vm->inst_path.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_BIOS]))
-    {
+    if (field_status(fields[NM_FLD_BIOS])) {
         nm_str_format(&query, "UPDATE vms SET bios='%s' WHERE name='%s'",
-            vm->bios.data, name->data);
+                      vm->bios.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_KERN]))
-    {
+    if (field_status(fields[NM_FLD_KERN])) {
         nm_str_format(&query, "UPDATE vms SET kernel='%s' WHERE name='%s'",
-            vm->kernel.data, name->data);
+                      vm->kernel.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_CMDL]))
-    {
-        nm_str_format(&query, "UPDATE vms SET kernel_append='%s' WHERE name='%s'",
-            vm->cmdline.data, name->data);
+    if (field_status(fields[NM_FLD_CMDL])) {
+        nm_str_format(&query,
+                      "UPDATE vms SET kernel_append='%s' WHERE name='%s'",
+                      vm->cmdline.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_INIT]))
-    {
+    if (field_status(fields[NM_FLD_INIT])) {
         nm_str_format(&query, "UPDATE vms SET initrd='%s' WHERE name='%s'",
-            vm->initrd.data, name->data);
+                      vm->initrd.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_TTYP]))
-    {
+    if (field_status(fields[NM_FLD_TTYP])) {
         nm_str_format(&query, "UPDATE vms SET tty_path='%s' WHERE name='%s'",
-            vm->tty.data, name->data);
+                      vm->tty.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_SOCK]))
-    {
+    if (field_status(fields[NM_FLD_SOCK])) {
         nm_str_format(&query, "UPDATE vms SET socket_path='%s' WHERE name='%s'",
-            vm->socket.data, name->data);
+                      vm->socket.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_DEBP]))
-    {
+    if (field_status(fields[NM_FLD_DEBP])) {
         nm_str_format(&query, "UPDATE vms SET debug_port='%s' WHERE name='%s'",
-            vm->debug_port.data, name->data);
+                      vm->debug_port.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_DEBF]))
-    {
-        nm_str_format(&query, "UPDATE vms SET debug_freeze='%s' WHERE name='%s'",
-            vm->debug_freeze ? NM_ENABLE : NM_DISABLE, name->data);
+    if (field_status(fields[NM_FLD_DEBF])) {
+        nm_str_format(&query,
+                      "UPDATE vms SET debug_freeze='%s' WHERE name='%s'",
+                      vm->debug_freeze ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);
     }
 

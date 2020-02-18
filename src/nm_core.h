@@ -46,11 +46,11 @@
 #define NM_PROGNAME "nemu"
 
 #ifndef NM_VERSION
-#define NM_VERSION "v2.2.3"
+# define NM_VERSION "v2.2.3"
 #endif
 
 #ifndef NM_USR_PREFIX
-#define NM_USR_PREFIX /usr
+# define NM_USR_PREFIX / usr
 #endif
 
 #define NM_LOCALE "/share/locale"
@@ -75,22 +75,22 @@
 
 #define NM_UNUSED __attribute__((__unused__))
 
-static const int NM_OK  = 0;
+static const int NM_OK = 0;
 static const int NM_ERR = -1;
 
-static const bool NM_TRUE  = true;
+static const bool NM_TRUE = true;
 static const bool NM_FALSE = false;
 
-static const char NM_ENABLE[]  = "1";
+static const char NM_ENABLE[] = "1";
 static const char NM_DISABLE[] = "0";
 
 static const char NM_DEFAULT_NETDRV[] = "virtio-net-pci";
 static const char NM_DEFAULT_DRVINT[] = "virtio";
 static const char NM_DEFAULT_USBVER[] = "XHCI";
-static const char NM_VM_PID_FILE[]    = "qemu.pid";
-static const char NM_VM_QMP_FILE[]    = "qmp.sock";
+static const char NM_VM_PID_FILE[] = "qemu.pid";
+static const char NM_VM_QMP_FILE[] = "qmp.sock";
 
-static inline char * __attribute__((format_arg (1))) _(const char *str)
+static inline char *__attribute__((format_arg(1))) _(const char *str)
 {
     return gettext(str);
 }

@@ -1,36 +1,36 @@
 #include <nm_core.h>
 
 #if defined (NM_WITH_OVF_SUPPORT)
-#include <nm_form.h>
-#include <nm_utils.h>
-#include <nm_string.h>
-#include <nm_vector.h>
-#include <nm_window.h>
-#include <nm_add_vm.h>
-#include <nm_cfg_file.h>
-#include <nm_ovf_import.h>
+# include <nm_form.h>
+# include <nm_utils.h>
+# include <nm_string.h>
+# include <nm_vector.h>
+# include <nm_window.h>
+# include <nm_add_vm.h>
+# include <nm_cfg_file.h>
+# include <nm_ovf_import.h>
 
-#include <limits.h>
+# include <limits.h>
 
 /* libarchive */
-#include <archive.h>
-#include <archive_entry.h>
+# include <archive.h>
+# include <archive_entry.h>
 
 /* libxml2 */
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>
+# include <libxml/tree.h>
+# include <libxml/parser.h>
+# include <libxml/xpath.h>
+# include <libxml/xpathInternals.h>
 
-enum {NM_BLOCK_SIZE = 10240};
+enum { NM_BLOCK_SIZE = 10240 };
 static const char NM_OVA_DIR_TEMPL[] = "/tmp/ova_extract_XXXXXX";
 
 static const char NM_OVF_FORM_PATH[] = "Path to OVA";
 static const char NM_OVF_FORM_ARCH[] = "Architecture";
 static const char NM_OVF_FORM_NAME[] = "Name (optional)";
-static const char NM_XML_OVF_NS[]    = "ovf";
-static const char NM_XML_RASD_NS[]   = "rasd";
-static const char NM_XML_OVF_HREF[]  = "http://schemas.dmtf.org/ovf/envelope/1";
+static const char NM_XML_OVF_NS[] = "ovf";
+static const char NM_XML_RASD_NS[] = "rasd";
+static const char NM_XML_OVF_HREF[] = "http://schemas.dmtf.org/ovf/envelope/1";
 
 static const char NM_XML_RASD_HREF[] = \
     "http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData";
@@ -104,8 +104,8 @@ static nm_xml_doc_pt nm_ovf_open(const char *tmp_dir, const char *ovf_file);
 static int nm_register_xml_ns(nm_xml_xpath_ctx_pt ctx);
 static int __nm_register_xml_ns(nm_xml_xpath_ctx_pt ctx, const char *ns,
                                 const char *href);
-static nm_xml_xpath_obj_pt nm_exec_xpath(const char *xpath,
-                                         nm_xml_xpath_ctx_pt ctx);
+static nm_xml_xpath_obj_pt nm_exec_xpath(const char *           xpath,
+                                         nm_xml_xpath_ctx_pt    ctx);
 static void nm_ovf_get_name(nm_str_t *name, nm_xml_xpath_ctx_pt ctx);
 static void nm_ovf_get_ncpu(nm_str_t *ncpu, nm_xml_xpath_ctx_pt ctx);
 static void nm_ovf_get_mem(nm_str_t *mem, nm_xml_xpath_ctx_pt ctx);
@@ -160,12 +160,12 @@ void nm_ovf_import(void)
                    nm_cfg_get_arch(), false, false);
     set_field_type(fields[NM_OVA_FLD_NAME], TYPE_REGEXP,
                    "^[a-zA-Z0-9_-]{1,30} *$");
-    set_field_buffer(fields[NM_OVA_FLD_ARCH], 0, *nm_cfg_get()->qemu_targets.data);
+    set_field_buffer(fields[NM_OVA_FLD_ARCH], 0,
+                     *nm_cfg_get()->qemu_targets.data);
     field_opts_off(fields[NM_OVA_FLD_SRC], O_STATIC);
     field_opts_off(fields[NM_OVA_FLD_NAME], O_STATIC);
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_OVA_FLD_COUNT; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_OVA_FLD_COUNT; n++) {
         mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
         y += 2;
     }
@@ -179,7 +179,7 @@ void nm_ovf_import(void)
 
     sp_data.stop = &done;
 
-    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
+    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *)&sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
     if (mkdtemp(templ_path) == NULL)
@@ -187,28 +187,24 @@ void nm_ovf_import(void)
 
     nm_ovf_extract(&vm.srcp, templ_path, &files);
 
-    if ((ovf_file = nm_find_ovf(&files)) == NULL)
-    {
+    if ((ovf_file = nm_find_ovf(&files)) == NULL) {
         nm_warn(_(NM_MSG_OVF_MISS));
         goto out;
     }
 
     nm_debug("ova: ovf file found: %s\n", ovf_file);
 
-    if ((doc = nm_ovf_open(templ_path, ovf_file)) == NULL)
-    {
+    if ((doc = nm_ovf_open(templ_path, ovf_file)) == NULL) {
         nm_warn(_(NM_MSG_OVF_EPAR));
         goto out;
     }
 
-    if ((xpath_ctx = xmlXPathNewContext(doc)) == NULL)
-    {
+    if ((xpath_ctx = xmlXPathNewContext(doc)) == NULL) {
         nm_warn(_(NM_MSG_XPATH_ERR));
         goto out;
     }
 
-    if (nm_register_xml_ns(xpath_ctx) != NM_OK)
-    {
+    if (nm_register_xml_ns(xpath_ctx) != NM_OK) {
         nm_warn(_(NM_MSG_ANY_KEY));
         goto out;
     }
@@ -255,7 +251,7 @@ static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
 {
     nm_archive_t *in, *out;
     nm_archive_entry_t *ar_entry;
-    char cwd[PATH_MAX] = {0};
+    char cwd[PATH_MAX] = { 0 };
     int rc;
 
     in = archive_read_new();
@@ -275,8 +271,7 @@ static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
     if (chdir(tmp_dir) == -1)
         nm_bug("%s: chdir error: %s", __func__, strerror(errno));
 
-    for (;;)
-    {
+    for (;;) {
         const char *file;
         rc = archive_read_next_header(in, &ar_entry);
 
@@ -292,16 +287,13 @@ static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
         nm_debug("ova: extract file: %s\n", file);
 
         rc = archive_write_header(out, ar_entry);
-        if (rc != ARCHIVE_OK)
+        if (rc != ARCHIVE_OK) {
             nm_bug("%s: bad archive: %s", __func__, archive_error_string(in));
-        else
-        {
+        } else {
             nm_archive_copy_data(in, out);
             if (archive_write_finish_entry(out) != ARCHIVE_OK)
-            {
                 nm_bug("%s: archive_write_finish_entry: %s",
                        __func__, archive_error_string(out));
-            }
         }
     }
 
@@ -318,22 +310,24 @@ static void nm_archive_copy_data(nm_archive_t *in, nm_archive_t *out)
     int rc;
     const void *buf;
     size_t size;
-#if ARCHIVE_VERSION_NUMBER >= 3000000
-    int64_t offset;
-#else
-    off_t offset;
-#endif
 
-    for (;;)
-    {
+# if ARCHIVE_VERSION_NUMBER >= 3000000
+    int64_t offset;
+# else
+    off_t offset;
+# endif
+
+    for (;;) {
         rc = archive_read_data_block(in, &buf, &size, &offset);
         if (rc == ARCHIVE_EOF)
             break;
         if (rc != ARCHIVE_OK)
-            nm_bug("%s: error read archive: %s", __func__, archive_error_string(in));
+            nm_bug("%s: error read archive: %s", __func__,
+                   archive_error_string(in));
 
         if (archive_write_data_block(out, buf, size, offset) != ARCHIVE_OK)
-            nm_bug("%s: error write archive: %s", __func__, archive_error_string(out));
+            nm_bug("%s: error write archive: %s", __func__, archive_error_string(
+                       out));
     }
 }
 
@@ -342,9 +336,8 @@ static int nm_clean_temp_dir(const char *tmp_dir, const nm_vect_t *files)
     nm_str_t path = NM_INIT_STR;
     int rc = NM_OK;
 
-    for (size_t n = 0; n < files->n_memb; n++)
-    {
-        nm_str_format(&path, "%s/%s", tmp_dir, (char *) nm_vect_at(files, n));
+    for (size_t n = 0; n < files->n_memb; n++) {
+        nm_str_format(&path, "%s/%s", tmp_dir, (char *)nm_vect_at(files, n));
 
         if (unlink(path.data) == -1)
             rc = NM_ERR;
@@ -353,10 +346,8 @@ static int nm_clean_temp_dir(const char *tmp_dir, const nm_vect_t *files)
     }
 
     if (rc == NM_OK)
-    {
         if (rmdir(tmp_dir) == -1)
             rc = NM_ERR;
-    }
 
     nm_str_free(&path);
 
@@ -365,8 +356,7 @@ static int nm_clean_temp_dir(const char *tmp_dir, const nm_vect_t *files)
 
 static const char *nm_find_ovf(const nm_vect_t *files)
 {
-    for (size_t n = 0; n < files->n_memb; n++)
-    {
+    for (size_t n = 0; n < files->n_memb; n++) {
         const char *file = nm_vect_at(files, n);
         size_t len = strlen(file);
 
@@ -398,9 +388,7 @@ static int nm_register_xml_ns(nm_xml_xpath_ctx_pt ctx)
 {
     if ((__nm_register_xml_ns(ctx, NM_XML_OVF_NS, NM_XML_OVF_HREF) == NM_ERR) ||
         (__nm_register_xml_ns(ctx, NM_XML_RASD_NS, NM_XML_RASD_HREF) == NM_ERR))
-    {
         return NM_ERR;
-    }
 
     return NM_OK;
 }
@@ -416,8 +404,7 @@ static int __nm_register_xml_ns(nm_xml_xpath_ctx_pt ctx, const char *ns,
     if ((xml_ns = xmlCharStrdup(ns)) == NULL)
         return NM_ERR;
 
-    if ((xml_href = xmlCharStrdup(href)) == NULL)
-    {
+    if ((xml_href = xmlCharStrdup(href)) == NULL) {
         xmlFree(xml_ns);
         return NM_ERR;
     }
@@ -431,8 +418,8 @@ static int __nm_register_xml_ns(nm_xml_xpath_ctx_pt ctx, const char *ns,
     return rc;
 }
 
-static nm_xml_xpath_obj_pt nm_exec_xpath(const char *xpath,
-                                         nm_xml_xpath_ctx_pt ctx)
+static nm_xml_xpath_obj_pt nm_exec_xpath(const char *           xpath,
+                                         nm_xml_xpath_ctx_pt    ctx)
 {
     nm_xml_char_t *xml_xpath;
     nm_xml_xpath_obj_pt obj = NULL;
@@ -476,15 +463,14 @@ static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx)
     if ((ndrives = obj_id->nodesetval->nodeNr) == 0)
         nm_bug("%s: no drives was found", __func__);
 
-    for (size_t n = 0; n < ndrives; n++)
-    {
+    for (size_t n = 0; n < ndrives; n++) {
         nm_xml_node_pt node_id = obj_id->nodesetval->nodeTab[n];
 
-        if ((node_id->type == XML_TEXT_NODE) || (node_id->type == XML_ATTRIBUTE_NODE))
-        {
+        if ((node_id->type == XML_TEXT_NODE) ||
+            (node_id->type == XML_ATTRIBUTE_NODE)) {
             nm_xml_char_t *xml_id = xmlNodeGetContent(node_id);
 
-            char *id = strrchr((char *) xml_id, '/');
+            char *id = strrchr((char *)xml_id, '/');
 
             if (id == NULL)
                 nm_bug("%s: NULL disk id", __func__);
@@ -564,10 +550,9 @@ static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
 
     node = obj->nodesetval->nodeTab[0];
 
-    if ((node->type == XML_TEXT_NODE) || (node->type == XML_ATTRIBUTE_NODE))
-    {
+    if ((node->type == XML_TEXT_NODE) || (node->type == XML_ATTRIBUTE_NODE)) {
         xml_text = xmlNodeGetContent(node);
-        nm_str_alloc_text(res, (char *) xml_text);
+        nm_str_alloc_text(res, (char *)xml_text);
         xmlFree(xml_text);
     }
 
@@ -604,13 +589,10 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
     nm_str_format(&vm_dir, "%s/%s", nm_cfg_get()->vm_dir.data, name->data);
 
     if (mkdir(vm_dir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
-    {
         nm_bug(_("%s: cannot create VM directory %s: %s"),
                __func__, vm_dir.data, strerror(errno));
-    }
 
-    for (size_t n = 0; n < drives->n_memb; n++)
-    {
+    for (size_t n = 0; n < drives->n_memb; n++) {
         nm_str_alloc_text(&buf, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img");
         nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
@@ -619,19 +601,18 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
         nm_vect_insert_cstr(&argv, "qcow2");
 
         nm_str_format(&buf, "%s/%s",
-            templ_path, (nm_drive_file(drives->data[n]))->data);
+                      templ_path, (nm_drive_file(drives->data[n]))->data);
         nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
         nm_str_format(&buf, "%s/%s",
-            vm_dir.data, (nm_drive_file(drives->data[n]))->data);
+                      vm_dir.data, (nm_drive_file(drives->data[n]))->data);
         nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
         nm_cmd_str(&buf, &argv);
         nm_debug("ova: exec: %s\n", buf.data);
 
         nm_vect_end_zero(&argv);
-        if (nm_spawn_process(&argv, NULL) != NM_OK)
-        {
+        if (nm_spawn_process(&argv, NULL) != NM_OK) {
             rmdir(vm_dir.data);
             nm_bug(_("%s: cannot create image file"), __func__);
         }
@@ -663,8 +644,7 @@ static int nm_ova_get_data(nm_vm_t *vm)
 
     nm_get_field_buf(fields[NM_OVA_FLD_SRC], &vm->srcp);
     nm_get_field_buf(fields[NM_OVA_FLD_ARCH], &vm->arch);
-    if (field_status(fields[NM_OVA_FLD_NAME]))
-    {
+    if (field_status(fields[NM_OVA_FLD_NAME])) {
         nm_get_field_buf(fields[NM_OVA_FLD_NAME], &vm->name);
         nm_form_check_data(_(NM_OVF_FORM_NAME), vm->name, err);
     }

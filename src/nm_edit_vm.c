@@ -13,22 +13,23 @@
 #include <nm_edit_vm.h>
 
 static const char NM_VM_FORM_CPU_BEGIN[] = "CPU cores [1-";
-static const char NM_VM_FORM_CPU_END[]   = "]";
+static const char NM_VM_FORM_CPU_END[] = "]";
 static const char NM_VM_FORM_MEM_BEGIN[] = "Memory [4-";
-static const char NM_VM_FORM_MEM_END[]   = "]Mb";
-static const char NM_VM_FORM_KVM[]       = "KVM [yes/no]";
-static const char NM_VM_FORM_HCPU[]      = "Host CPU [yes/no]";
-static const char NM_VM_FORM_NET_IFS[]   = "Network interfaces";
-static const char NM_VM_FORM_DRV_IF[]    = "Disk interface";
-static const char NM_VM_FORM_USB[]       = "USB [yes/no]";
-static const char NM_VM_FORM_USBT[]      = "USB version";
-static const char NM_VM_FORM_SYNC[]      = "Sync mouse position";
-static const char NM_VM_FORM_SPICE[]     = "Spice server";
+static const char NM_VM_FORM_MEM_END[] = "]Mb";
+static const char NM_VM_FORM_KVM[] = "KVM [yes/no]";
+static const char NM_VM_FORM_HCPU[] = "Host CPU [yes/no]";
+static const char NM_VM_FORM_NET_IFS[] = "Network interfaces";
+static const char NM_VM_FORM_DRV_IF[] = "Disk interface";
+static const char NM_VM_FORM_USB[] = "USB [yes/no]";
+static const char NM_VM_FORM_USBT[] = "USB version";
+static const char NM_VM_FORM_SYNC[] = "Sync mouse position";
+static const char NM_VM_FORM_SPICE[] = "Spice server";
 
 static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur);
 static void nm_edit_vm_field_names(nm_vect_t *msg);
 static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur);
-static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac);
+static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur,
+                                 uint64_t mac);
 
 enum {
     NM_FLD_CPUNUM = 0,
@@ -59,7 +60,7 @@ void nm_edit_vm(const nm_str_t *name)
     size_t msg_len;
 
     nm_edit_vm_field_names(&msg_fields);
-    msg_len = nm_max_msg_len((const char **) msg_fields.data);
+    msg_len = nm_max_msg_len((const char **)msg_fields.data);
 
     if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
         return;
@@ -77,8 +78,7 @@ void nm_edit_vm(const nm_str_t *name)
     fields[NM_FLD_COUNT] = NULL;
 
     nm_edit_vm_field_setup(&cur_settings);
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
         mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
         y += 2;
     }
@@ -108,20 +108,30 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     nm_str_t buf = NM_INIT_STR;
 
     set_field_type(fields[NM_FLD_CPUNUM], TYPE_INTEGER, 0, 1, nm_hw_ncpus());
-    set_field_type(fields[NM_FLD_RAMTOT], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
-    set_field_type(fields[NM_FLD_KVMFLG], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_type(fields[NM_FLD_HOSCPU], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_RAMTOT], TYPE_INTEGER, 0, 4,
+                   nm_hw_total_ram());
+    set_field_type(fields[NM_FLD_KVMFLG], TYPE_ENUM, nm_form_yes_no, false,
+                   false);
+    set_field_type(fields[NM_FLD_HOSCPU], TYPE_ENUM, nm_form_yes_no, false,
+                   false);
     set_field_type(fields[NM_FLD_IFSCNT], TYPE_INTEGER, 1, 0, 64);
-    set_field_type(fields[NM_FLD_DISKIN], TYPE_ENUM, nm_form_drive_drv, false, false);
-    set_field_type(fields[NM_FLD_USBUSE], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_type(fields[NM_FLD_USBTYP], TYPE_ENUM, nm_form_usbtype, false, false);
-    set_field_type(fields[NM_FLD_MOUSES], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_DISKIN], TYPE_ENUM, nm_form_drive_drv, false,
+                   false);
+    set_field_type(fields[NM_FLD_USBUSE], TYPE_ENUM, nm_form_yes_no, false,
+                   false);
+    set_field_type(fields[NM_FLD_USBTYP], TYPE_ENUM, nm_form_usbtype, false,
+                   false);
+    set_field_type(fields[NM_FLD_MOUSES], TYPE_ENUM, nm_form_yes_no, false,
+                   false);
 #if defined(NM_WITH_SPICE)
-    set_field_type(fields[NM_FLD_SPICE], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_SPICE], TYPE_ENUM, nm_form_yes_no, false,
+                   false);
 #endif
 
-    set_field_buffer(fields[NM_FLD_CPUNUM], 0, nm_vect_str_ctx(&cur->main, NM_SQL_SMP));
-    set_field_buffer(fields[NM_FLD_RAMTOT], 0, nm_vect_str_ctx(&cur->main, NM_SQL_MEM));
+    set_field_buffer(fields[NM_FLD_CPUNUM], 0,
+                     nm_vect_str_ctx(&cur->main, NM_SQL_SMP));
+    set_field_buffer(fields[NM_FLD_RAMTOT], 0,
+                     nm_vect_str_ctx(&cur->main, NM_SQL_MEM));
 
     if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_KVM), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_KVMFLG], 0, nm_form_yes_no[0]);
@@ -135,14 +145,16 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
 
     nm_str_format(&buf, "%zu", cur->ifs.n_memb / NM_IFS_IDX_COUNT);
     set_field_buffer(fields[NM_FLD_IFSCNT], 0, buf.data);
-    set_field_buffer(fields[NM_FLD_DISKIN], 0, nm_vect_str_ctx(&cur->drives, NM_SQL_DRV_TYPE));
+    set_field_buffer(fields[NM_FLD_DISKIN], 0,
+                     nm_vect_str_ctx(&cur->drives, NM_SQL_DRV_TYPE));
 
     if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_USBF), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_USBUSE], 0, nm_form_yes_no[0]);
     else
         set_field_buffer(fields[NM_FLD_USBUSE], 0, nm_form_yes_no[1]);
 
-    if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_USBT), NM_DEFAULT_USBVER) == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_USBT),
+                      NM_DEFAULT_USBVER) == NM_OK)
         set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_form_usbtype[1]);
     else
         set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_form_usbtype[0]);
@@ -153,7 +165,8 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
         set_field_buffer(fields[NM_FLD_MOUSES], 0, nm_form_yes_no[1]);
 
 #if defined(NM_WITH_SPICE)
-    if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_SPICE), NM_ENABLE) == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_SPICE),
+                      NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_SPICE], 0, nm_form_yes_no[0]);
     else
         set_field_buffer(fields[NM_FLD_SPICE], 0, nm_form_yes_no[1]);
@@ -174,22 +187,33 @@ static void nm_edit_vm_field_names(nm_vect_t *msg)
     nm_str_t buf = NM_INIT_STR;
 
     nm_str_format(&buf, "%s%u%s",
-        _(NM_VM_FORM_CPU_BEGIN), nm_hw_ncpus(), _(NM_VM_FORM_CPU_END));
+                  _(NM_VM_FORM_CPU_BEGIN), nm_hw_ncpus(),
+                  _(NM_VM_FORM_CPU_END));
     nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
 
     nm_str_format(&buf, "%s%u%s",
-        _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
+                  _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(),
+                  _(NM_VM_FORM_MEM_END));
     nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
 
     nm_vect_insert(msg, _(NM_VM_FORM_KVM), strlen(_(NM_VM_FORM_KVM)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_HCPU), strlen(_(NM_VM_FORM_HCPU)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_NET_IFS), strlen(_(NM_VM_FORM_NET_IFS)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)) + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_HCPU), strlen(_(NM_VM_FORM_HCPU)) + 1,
+                   NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_NET_IFS), strlen(_(
+                                                          NM_VM_FORM_NET_IFS)) + 1,
+                   NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(
+                                                         NM_VM_FORM_DRV_IF)) + 1,
+                   NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_USB), strlen(_(NM_VM_FORM_USB)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_USBT), strlen(_(NM_VM_FORM_USBT)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_SYNC), strlen(_(NM_VM_FORM_SYNC)) + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_USBT), strlen(_(NM_VM_FORM_USBT)) + 1,
+                   NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_SYNC), strlen(_(NM_VM_FORM_SYNC)) + 1,
+                   NULL);
 #if defined(NM_WITH_SPICE)
-    nm_vect_insert(msg, _(NM_VM_FORM_SPICE), strlen(_(NM_VM_FORM_SPICE)) + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_SPICE), strlen(_(
+                                                        NM_VM_FORM_SPICE)) + 1,
+                   NULL);
 #endif
     nm_vect_end_zero(msg);
 
@@ -207,6 +231,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     nm_str_t kvm = NM_INIT_STR;
     nm_str_t hcpu = NM_INIT_STR;
     nm_str_t sync = NM_INIT_STR;
+
 #if defined(NM_WITH_SPICE)
     nm_str_t spice = NM_INIT_STR;
 #endif
@@ -221,7 +246,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     nm_get_field_buf(fields[NM_FLD_USBTYP], &usbv);
     nm_get_field_buf(fields[NM_FLD_MOUSES], &sync);
 #if defined(NM_WITH_SPICE)
-    nm_get_field_buf(fields[NM_FLD_SPICE],  &spice);
+    nm_get_field_buf(fields[NM_FLD_SPICE], &spice);
 #endif
 
     if (field_status(fields[NM_FLD_CPUNUM]))
@@ -249,15 +274,13 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
 
-    if (field_status(fields[NM_FLD_KVMFLG]))
-    {
-        if (nm_str_cmp_st(&kvm, "yes") == NM_OK)
+    if (field_status(fields[NM_FLD_KVMFLG])) {
+        if (nm_str_cmp_st(&kvm, "yes") == NM_OK) {
             vm->kvm.enable = 1;
-        else
-        {
+        } else {
             if (!field_status(fields[NM_FLD_HOSCPU]) &&
-                (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_HCPU), NM_ENABLE) == NM_OK))
-            {
+                (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_HCPU),
+                               NM_ENABLE) == NM_OK)) {
                 rc = NM_ERR;
                 NM_FORM_RESET();
                 nm_warn(_(NM_MSG_HCPU_KVM));
@@ -266,14 +289,12 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
         }
     }
 
-    if (field_status(fields[NM_FLD_HOSCPU]))
-    {
-        if (nm_str_cmp_st(&hcpu, "yes") == NM_OK)
-        {
+    if (field_status(fields[NM_FLD_HOSCPU])) {
+        if (nm_str_cmp_st(&hcpu, "yes") == NM_OK) {
             if (((!vm->kvm.enable) && (field_status(fields[NM_FLD_KVMFLG]))) ||
-                ((nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_KVM), NM_DISABLE) == NM_OK) &&
-                 !field_status(fields[NM_FLD_KVMFLG])))
-            {
+                ((nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_KVM),
+                                NM_DISABLE) == NM_OK) &&
+                 !field_status(fields[NM_FLD_KVMFLG]))) {
                 rc = NM_ERR;
                 NM_FORM_RESET();
                 nm_warn(_(NM_MSG_HCPU_KVM));
@@ -287,16 +308,12 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
         vm->ifs.count = nm_str_stoui(&ifs, 10);
 
     if (field_status(fields[NM_FLD_USBUSE]))
-    {
         if (nm_str_cmp_st(&usb, "yes") == NM_OK)
             vm->usb_enable = 1;
-    }
 
     if (field_status(fields[NM_FLD_USBTYP]))
-    {
         if (nm_str_cmp_st(&usbv, NM_DEFAULT_USBVER) == NM_OK)
             vm->usb_xhci = 1;
-    }
 
     if (nm_str_cmp_st(&sync, "yes") == NM_OK)
         vm->mouse_sync = 1;
@@ -321,63 +338,55 @@ out:
     return rc;
 }
 
-static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac)
+static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur,
+                                 uint64_t mac)
 {
     nm_str_t query = NM_INIT_STR;
 
-    if (field_status(fields[NM_FLD_CPUNUM]))
-    {
+    if (field_status(fields[NM_FLD_CPUNUM])) {
         nm_str_format(&query, "UPDATE vms SET smp='%s' WHERE name='%s'",
-            vm->cpus.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+                      vm->cpus.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_RAMTOT]))
-    {
+    if (field_status(fields[NM_FLD_RAMTOT])) {
         nm_str_format(&query, "UPDATE vms SET mem='%s' WHERE name='%s'",
-            vm->memo.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+                      vm->memo.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_KVMFLG]))
-    {
+    if (field_status(fields[NM_FLD_KVMFLG])) {
         nm_str_format(&query, "UPDATE vms SET kvm='%s' WHERE name='%s'",
-            vm->kvm.enable ? NM_ENABLE : NM_DISABLE,
-            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+                      vm->kvm.enable ? NM_ENABLE : NM_DISABLE,
+                      nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_HOSCPU]))
-    {
+    if (field_status(fields[NM_FLD_HOSCPU])) {
         nm_str_format(&query, "UPDATE vms SET hcpu='%s' WHERE name='%s'",
-            vm->kvm.hostcpu_enable ? NM_ENABLE : NM_DISABLE,
-            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+                      vm->kvm.hostcpu_enable ? NM_ENABLE : NM_DISABLE,
+                      nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_IFSCNT]))
-    {
+    if (field_status(fields[NM_FLD_IFSCNT])) {
         size_t cur_count = cur->ifs.n_memb / NM_IFS_IDX_COUNT;
         int altname;
 
-        if (vm->ifs.count < cur_count)
-        {
-
-            for (; cur_count > vm->ifs.count; cur_count--)
-            {
+        if (vm->ifs.count < cur_count) {
+            for (; cur_count > vm->ifs.count; cur_count--) {
                 size_t idx_shift = NM_IFS_IDX_COUNT * (cur_count - 1);
 
                 nm_str_format(&query, NM_DEL_IFACE_SQL,
-                    nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
-                    nm_vect_str_ctx(&cur->ifs, NM_SQL_IF_NAME + idx_shift));
+                              nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
+                              nm_vect_str_ctx(&cur->ifs,
+                                              NM_SQL_IF_NAME + idx_shift));
                 nm_db_edit(query.data);
             }
         }
 
-        if (vm->ifs.count > cur_count)
-        {
-            for (size_t n = cur_count; n < vm->ifs.count; n++)
-            {
+        if (vm->ifs.count > cur_count) {
+            for (size_t n = cur_count; n < vm->ifs.count; n++) {
                 nm_str_t if_name = NM_INIT_STR;
                 nm_str_t if_name_copy = NM_INIT_STR;
                 nm_str_t maddr = NM_INIT_STR;
@@ -385,25 +394,25 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
 
                 nm_net_mac_n2a(mac, &maddr);
                 nm_str_format(&if_name, "%s_eth%zu",
-                    nm_vect_str_ctx(&cur->main, NM_SQL_NAME), n);
+                              nm_vect_str_ctx(&cur->main, NM_SQL_NAME), n);
                 nm_str_copy(&if_name_copy, &if_name);
 
                 altname = nm_net_fix_tap_name(&if_name, &maddr);
 
                 nm_str_format(&query,
-                    "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap, altname) "
-                    "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
-                    nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
-                    if_name.data,
-                    maddr.data,
-                    NM_DEFAULT_NETDRV,
+                              "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap, altname) "
+                              "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+                              nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
+                              if_name.data,
+                              maddr.data,
+                              NM_DEFAULT_NETDRV,
 #if defined (NM_OS_LINUX)
-                    NM_ENABLE,
+                              NM_ENABLE,
 #else
-                    NM_DISABLE,
+                              NM_DISABLE,
 #endif
-                    NM_DISABLE,
-                    (altname) ? if_name_copy.data : "");
+                              NM_DISABLE,
+                              (altname) ? if_name_copy.data : "");
                 nm_db_edit(query.data);
 
                 nm_str_free(&if_name);
@@ -415,43 +424,41 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
         }
     }
 
-    if (field_status(fields[NM_FLD_DISKIN]))
-    {
-        nm_str_format(&query, "UPDATE drives SET drive_drv='%s' WHERE vm_name='%s'",
-            vm->drive.driver.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+    if (field_status(fields[NM_FLD_DISKIN])) {
+        nm_str_format(&query,
+                      "UPDATE drives SET drive_drv='%s' WHERE vm_name='%s'",
+                      vm->drive.driver.data,
+                      nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_USBUSE]))
-    {
+    if (field_status(fields[NM_FLD_USBUSE])) {
         nm_str_format(&query, "UPDATE vms SET usb='%s' WHERE name='%s'",
-            vm->usb_enable ? NM_ENABLE : NM_DISABLE,
-            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+                      vm->usb_enable ? NM_ENABLE : NM_DISABLE,
+                      nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_USBTYP]))
-    {
+    if (field_status(fields[NM_FLD_USBTYP])) {
         nm_str_format(&query, "UPDATE vms SET usb_type='%s' WHERE name='%s'",
-            vm->usb_xhci ? nm_form_usbtype[1] : nm_form_usbtype[0],
-            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+                      vm->usb_xhci ? nm_form_usbtype[1] : nm_form_usbtype[0],
+                      nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_MOUSES]))
-    {
-        nm_str_format(&query, "UPDATE vms SET mouse_override='%s' WHERE name='%s'",
-            vm->mouse_sync ? NM_ENABLE : NM_DISABLE,
-            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+    if (field_status(fields[NM_FLD_MOUSES])) {
+        nm_str_format(&query,
+                      "UPDATE vms SET mouse_override='%s' WHERE name='%s'",
+                      vm->mouse_sync ? NM_ENABLE : NM_DISABLE,
+                      nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
 #if defined(NM_WITH_SPICE)
-    if (field_status(fields[NM_FLD_SPICE]))
-    {
+    if (field_status(fields[NM_FLD_SPICE])) {
         nm_str_format(&query, "UPDATE vms SET spice='%s' WHERE name='%s'",
-            vm->spice ? NM_ENABLE : NM_DISABLE,
-            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+                      vm->spice ? NM_ENABLE : NM_DISABLE,
+                      nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 #endif

@@ -7,11 +7,11 @@
 #include <arpa/inet.h>
 
 typedef struct {
-    struct in_addr addr;
-    uint32_t cidr;
+    struct in_addr  addr;
+    uint32_t        cidr;
 } nm_net_addr_t;
 
-#define NM_INIT_NETADDR (nm_net_addr_t) { {0}, 0 }
+#define NM_INIT_NETADDR (nm_net_addr_t) { { 0 }, 0 }
 
 int nm_net_iface_exists(const nm_str_t *name);
 uint32_t nm_net_iface_idx(const nm_str_t *name);

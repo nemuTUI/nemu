@@ -8,8 +8,8 @@ void nm_ovf_import(void);
 #endif
 
 typedef struct {
-    nm_str_t file_name;
-    nm_str_t capacity;
+    nm_str_t    file_name;
+    nm_str_t    capacity;
 } nm_drive_t;
 
 #define NM_INIT_DRIVE (nm_drive_t) { NM_INIT_STR, NM_INIT_STR }

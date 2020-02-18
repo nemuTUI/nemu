@@ -14,7 +14,7 @@ typedef struct {
 
 #define NM_INIT_POS (nm_cord_t) { 0, 0, 0, 0 }
 #define NM_SET_POS(l, c, x_, y_) \
-    (nm_cord_t) { .lines  = l, .cols = c, .x = x_, .y = y_ }
+    (nm_cord_t) { .lines = l, .cols = c, .x = x_, .y = y_ }
 
 void nm_ncurses_init(void);
 void nm_curses_deinit(void);

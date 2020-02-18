@@ -16,9 +16,9 @@ static const char NM_9P_SET_NAME_SQL[] =
     "UPDATE vms SET fs9p_name='%s' WHERE name='%s'";
 
 typedef struct {
-    nm_str_t mode;
-    nm_str_t path;
-    nm_str_t name;
+    nm_str_t    mode;
+    nm_str_t    path;
+    nm_str_t    name;
 } nm_9p_data_t;
 
 #define NM_INIT_9P_DATA (nm_9p_data_t) { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR }
@@ -31,7 +31,7 @@ enum {
 };
 
 static const char *nm_form_msg[] = {
-    "Enable sharing", "Path to directory",
+    "Enable sharing",    "Path to directory",
     "Name of the share", NULL
 };
 
@@ -63,20 +63,22 @@ void nm_9p_share(const nm_str_t *name)
 
     fields[NM_FLD_COUNT] = NULL;
 
-    set_field_type(fields[NM_FLD_9PMODE], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_9PMODE], TYPE_ENUM, nm_form_yes_no, false,
+                   false);
     set_field_type(fields[NM_FLD_9PPATH], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_9PNAME], TYPE_REGEXP, ".*");
     field_opts_off(fields[NM_FLD_9PPATH], O_STATIC);
     field_opts_off(fields[NM_FLD_9PNAME], O_STATIC);
 
     set_field_buffer(fields[NM_FLD_9PMODE], 0,
-        (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_9FLG),
-            NM_ENABLE) == NM_OK) ? "yes" : "no");
-    set_field_buffer(fields[NM_FLD_9PPATH], 0, nm_vect_str_ctx(&vm.main, NM_SQL_9PTH));
-    set_field_buffer(fields[NM_FLD_9PNAME], 0, nm_vect_str_ctx(&vm.main, NM_SQL_9ID));
+                     (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_9FLG),
+                                    NM_ENABLE) == NM_OK) ? "yes" : "no");
+    set_field_buffer(fields[NM_FLD_9PPATH], 0,
+                     nm_vect_str_ctx(&vm.main, NM_SQL_9PTH));
+    set_field_buffer(fields[NM_FLD_9PNAME], 0,
+                     nm_vect_str_ctx(&vm.main, NM_SQL_9ID));
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
         mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
         y += 2;
     }
@@ -108,14 +110,12 @@ static int nm_9p_get_data(nm_9p_data_t *data, const nm_vmctl_data_t *cur)
     nm_get_field_buf(fields[NM_FLD_9PPATH], &data->path);
     nm_get_field_buf(fields[NM_FLD_9PNAME], &data->name);
 
-    if (field_status(fields[NM_FLD_9PMODE]))
-    {
+    if (field_status(fields[NM_FLD_9PMODE])) {
         if (nm_str_cmp_st(&data->mode, "no") == NM_OK)
             goto out;
-    }
-    else
-    {
-        if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_9FLG), NM_ENABLE) != NM_OK)
+    } else {
+        if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_9FLG),
+                          NM_ENABLE) != NM_OK)
             goto out;
     }
 
@@ -132,25 +132,24 @@ out:
 static void nm_9p_update_db(const nm_str_t *name, const nm_9p_data_t *data)
 {
     nm_str_t query = NM_INIT_STR;
+
     nm_str_free(&query);
 
-    if (field_status(fields[NM_FLD_9PMODE]))
-    {
+    if (field_status(fields[NM_FLD_9PMODE])) {
         nm_str_format(&query, NM_9P_SET_MODE_SQL,
-            (nm_str_cmp_st(&data->mode, "yes") == NM_OK) ? "1" : "0", name->data);
+                      (nm_str_cmp_st(&data->mode,
+                                     "yes") == NM_OK) ? "1" : "0", name->data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }
 
-    if (field_status(fields[NM_FLD_9PPATH]))
-    {
+    if (field_status(fields[NM_FLD_9PPATH])) {
         nm_str_format(&query, NM_9P_SET_PATH_SQL, data->path.data, name->data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }
 
-    if (field_status(fields[NM_FLD_9PNAME]))
-    {
+    if (field_status(fields[NM_FLD_9PNAME])) {
         nm_str_format(&query, NM_9P_SET_NAME_SQL, data->name.data, name->data);
         nm_db_edit(query.data);
     }

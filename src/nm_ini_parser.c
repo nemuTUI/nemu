@@ -6,19 +6,20 @@
 typedef struct nm_ini_value_s nm_ini_value_t;
 
 struct nm_ini_value_s {
-    nm_str_t name;
-    nm_str_t value;
+    nm_str_t        name;
+    nm_str_t        value;
     nm_ini_value_t *next;
 };
 
 struct nm_ini_node_s {
-    nm_str_t name;
-    nm_ini_node_t *next;
+    nm_str_t        name;
+    nm_ini_node_t * next;
     nm_ini_value_t *values_head;
 };
 
 static nm_ini_node_t *nm_ini_node_push(nm_ini_node_t **head, nm_str_t *name);
-static void nm_ini_value_push(nm_ini_node_t *head, nm_str_t *name, nm_str_t *value);
+static void nm_ini_value_push(nm_ini_node_t *head, nm_str_t *name,
+                              nm_str_t *value);
 
 nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
 {
@@ -39,14 +40,12 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
     nm_map_file(&file);
     buf_ini = file.mp;
 
-    for (off_t n = 0; n < file.size; n++, buf_ini++)
-    {
+    for (off_t n = 0; n < file.size; n++, buf_ini++) {
         /* skip spaces and tabs */
         if (!look_for_value_end && ((*buf_ini == ' ') || (*buf_ini == '\t')))
             continue;
 
-        if (*buf_ini == '[')
-        {
+        if (*buf_ini == '[') {
             look_for_sec_end = 1;
             continue;
         }
@@ -55,22 +54,18 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
         if (comment_block && (*buf_ini != '\n'))
             continue;
 
-        if (*buf_ini == '#')
-        {
+        if (*buf_ini == '#') {
             comment_block = 1;
             continue;
         }
-        if (comment_block && (*buf_ini == '\n'))
-        {
+        if (comment_block && (*buf_ini == '\n')) {
             comment_block = 0;
             continue;
         }
 
         /* collect section names */
-        if (look_for_sec_end)
-        {
-            if (*buf_ini == ']')
-            {
+        if (look_for_sec_end) {
+            if (*buf_ini == ']') {
                 curr_node = nm_ini_node_push(&head, &sec_name);
                 nm_str_free(&sec_name);
                 look_for_sec_end = 0;
@@ -81,10 +76,8 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
         }
 
         /* collect param names */
-        if (look_for_param_end && !look_for_sec_end)
-        {
-            if (*buf_ini == '=')
-            {
+        if (look_for_param_end && !look_for_sec_end) {
+            if (*buf_ini == '=') {
                 look_for_param_end = 0;
                 look_for_value_end = 1;
                 continue;
@@ -94,18 +87,15 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
         }
 
         /* collect values */
-        if (look_for_value_end)
-        {
-            if (*buf_ini == '\n')
-            {
+        if (look_for_value_end) {
+            if (*buf_ini == '\n') {
                 nm_str_t value = NM_INIT_STR;
-                char* begin = par_value.data - 1;
-                char* end = par_value.data + par_value.len;
-                while(--end != begin && (*end == ' ' || *end == '\t'));
+                char *begin = par_value.data - 1;
+                char *end = par_value.data + par_value.len;
+                while (--end != begin && (*end == ' ' || *end == '\t'));
                 ++end;
-                while(++begin != end && (*begin == ' ' || *begin == '\t'));
-                if (begin != end)
-                {
+                while (++begin != end && (*begin == ' ' || *begin == '\t'));
+                if (begin != end) {
                     value.data = begin;
                     value.len = end - begin;
                 }
@@ -137,13 +127,11 @@ void nm_ini_parser_dump(const nm_ini_node_t *head)
         return;
 
     nm_debug("-=ini cfg start=-\n");
-    while (curr != NULL)
-    {
+    while (curr != NULL) {
         const nm_ini_value_t *values = curr->values_head;
 
         nm_debug("section: %s\n", curr->name.data);
-        while (values != NULL)
-        {
+        while (values != NULL) {
             nm_debug("\t%s = %s\n", values->name.data, values->value.data);
             values = values->next;
         }
@@ -161,13 +149,11 @@ void nm_ini_parser_free(nm_ini_node_t *head)
     if (curr == NULL)
         return;
 
-    while (curr != NULL)
-    {
+    while (curr != NULL) {
         nm_ini_node_t *old = curr;
         nm_ini_value_t *values = curr->values_head;
 
-        while (values != NULL)
-        {
+        while (values != NULL) {
             nm_ini_value_t *old_val = values;
             nm_str_free(&values->name);
             nm_str_free(&values->value);
@@ -185,8 +171,7 @@ static nm_ini_node_t *nm_ini_node_push(nm_ini_node_t **head, nm_str_t *name)
 {
     nm_ini_node_t *curr = *head;
 
-    if (curr == NULL) /* list is empty */
-    {
+    if (curr == NULL) { /* list is empty */
         curr = nm_calloc(1, sizeof(nm_ini_node_t));
         *head = curr;
         goto fill_data;
@@ -204,7 +189,8 @@ fill_data:
     return curr;
 }
 
-static void nm_ini_value_push(nm_ini_node_t *head, nm_str_t *name, nm_str_t *value)
+static void nm_ini_value_push(nm_ini_node_t *head, nm_str_t *name,
+                              nm_str_t *value)
 {
     nm_ini_value_t *curr;
 
@@ -213,8 +199,7 @@ static void nm_ini_value_push(nm_ini_node_t *head, nm_str_t *name, nm_str_t *val
 
     curr = head->values_head;
 
-    if (curr == NULL) /* list is empty */
-    {
+    if (curr == NULL) { /* list is empty */
         curr = nm_calloc(1, sizeof(nm_ini_value_t));
         head->values_head = curr;
         goto fill_data;
@@ -240,22 +225,18 @@ int nm_ini_parser_find(const nm_ini_node_t *head, const char *section,
     if (curr == NULL)
         nm_bug(_("NULL list head pointer"));
 
-    while (curr != NULL)
-    {
+    while (curr != NULL) {
         const nm_ini_value_t *values;
 
         if (found)
             break;
 
-        if (nm_str_cmp_st(&curr->name, section) == NM_OK)
-        {
+        if (nm_str_cmp_st(&curr->name, section) == NM_OK) {
             values = curr->values_head;
             found = 1;
 
-            while (values != NULL)
-            {
-                if (nm_str_cmp_st(&values->name, param) == NM_OK)
-                {
+            while (values != NULL) {
+                if (nm_str_cmp_st(&values->name, param) == NM_OK) {
                     ret = NM_OK;
                     nm_str_copy(res, &values->value);
                     break;

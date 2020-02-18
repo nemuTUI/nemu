@@ -1,7 +1,7 @@
 #include <nm_core.h>
 #include <nm_utils.h>
 #if NM_WITH_DBUS
-#include <dbus/dbus.h>
+# include <dbus/dbus.h>
 #endif
 
 #define DBUS_NOTIFY_OBJECT    "/org/freedesktop/Notifications"
@@ -9,7 +9,7 @@
 #define DBUS_NOTIFY_METHOD    "Notify"
 
 #if NM_WITH_DBUS
-static DBusConnection* dbus_conn = NULL;
+static DBusConnection *dbus_conn = NULL;
 static DBusError dbus_err;
 
 static int nm_dbus_get_error(void)
@@ -32,9 +32,8 @@ int nm_dbus_connect(void)
     dbus_error_init(&dbus_err);
     dbus_conn = dbus_bus_get(DBUS_BUS_SESSION, &dbus_err);
 
-    if (nm_dbus_get_error() == NM_OK) {
+    if (nm_dbus_get_error() == NM_OK)
         return NM_ERR;
-    }
 
     if (!dbus_conn) {
         nm_debug("%s: NULL DBusConnection\n", __func__);
@@ -49,19 +48,18 @@ void nm_dbus_disconnect(void)
     if (!nm_cfg_get()->dbus_enabled)
         return;
 
-    if (dbus_conn) {
+    if (dbus_conn)
         dbus_connection_unref(dbus_conn);
-    }
 }
 
 static int
-nm_dbus_build_message(DBusMessage* msg, const char *head, const char *body)
+nm_dbus_build_message(DBusMessage *msg, const char *head, const char *body)
 {
     DBusMessageIter args[2];
     dbus_bool_t rc = 1;
-    const char *app[] = {NM_PROGNAME};
+    const char *app[] = { NM_PROGNAME };
     uint32_t replaces_id = -1;
-    const char *app_icon[] = {""};
+    const char *app_icon[] = { "" };
     int32_t timeout = nm_cfg_get()->dbus_timeout;
 
     /* TODO add return code checking */
@@ -72,9 +70,11 @@ nm_dbus_build_message(DBusMessage* msg, const char *head, const char *body)
     dbus_message_iter_append_basic(&args[0], DBUS_TYPE_STRING, &head);
     dbus_message_iter_append_basic(&args[0], DBUS_TYPE_STRING, &body);
 
-    dbus_message_iter_open_container(&args[0], DBUS_TYPE_ARRAY,DBUS_TYPE_STRING_AS_STRING, &args[1]);
+    dbus_message_iter_open_container(&args[0], DBUS_TYPE_ARRAY,
+                                     DBUS_TYPE_STRING_AS_STRING, &args[1]);
     dbus_message_iter_close_container(&args[0], &args[1]);
-    dbus_message_iter_open_container(&args[0], DBUS_TYPE_ARRAY, "{sv}", &args[1]);
+    dbus_message_iter_open_container(&args[0], DBUS_TYPE_ARRAY, "{sv}",
+                                     &args[1]);
     dbus_message_iter_close_container(&args[0], &args[1]);
     dbus_message_iter_append_basic(&args[0], DBUS_TYPE_INT32, &timeout);
 
@@ -89,10 +89,10 @@ void nm_dbus_send_notify(const char *title, const char *body)
         return;
 
     if ((msg = dbus_message_new_method_call(
-                    NULL,
-                    DBUS_NOTIFY_OBJECT,
-                    DBUS_NOTIFY_INTERFACE,
-                    DBUS_NOTIFY_METHOD)) == NULL) {
+             NULL,
+             DBUS_NOTIFY_OBJECT,
+             DBUS_NOTIFY_INTERFACE,
+             DBUS_NOTIFY_METHOD)) == NULL) {
         nm_dbus_get_error();
         goto clean;
     }

@@ -7,8 +7,8 @@ extern uint64_t nm_total_cpu_before;
 extern uint64_t nm_total_cpu_after;
 extern uint64_t nm_proc_cpu_before;
 extern uint64_t nm_proc_cpu_after;
-extern uint8_t  nm_cpu_iter;
-extern float    nm_cpu_usage;
+extern uint8_t nm_cpu_iter;
+extern float nm_cpu_usage;
 
 #define NM_STAT_CLEAN() nm_total_cpu_before = nm_total_cpu_after = \
     nm_proc_cpu_before = nm_proc_cpu_after = nm_cpu_iter = nm_cpu_usage = 0;

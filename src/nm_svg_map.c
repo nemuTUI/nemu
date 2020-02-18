@@ -8,24 +8,24 @@
 #include <nm_lan_settings.h>
 
 #if defined (NM_WITH_NETWORK_MAP)
-#include <gvc.h>
+# include <gvc.h>
 
 static char NM_EMPTY_STR[] = "";
-static char NM_GV_LABEL[]  = "label";
-static char NM_GV_STYLE[]  = "style";
-static char NM_GV_SHAPE[]  = "shape";
-static char NM_GV_FILL[]   = "filled";
-static char NM_GV_FCOL[]   = "fillcolor";
-static char NM_GV_RECT[]   = "rect";
+static char NM_GV_LABEL[] = "label";
+static char NM_GV_STYLE[] = "style";
+static char NM_GV_SHAPE[] = "shape";
+static char NM_GV_FILL[] = "filled";
+static char NM_GV_FCOL[] = "fillcolor";
+static char NM_GV_RECT[] = "rect";
 static char NM_GV_LAYOUT[] = "neato";
-static char NM_GV_SVG[]    = "svg";
-static char NM_VM_COLOR[]  = "#4fbcdd";
-static char NM_VE_COLOR[]  = "#59e088";
+static char NM_GV_SVG[] = "svg";
+static char NM_VM_COLOR[] = "#4fbcdd";
+static char NM_VE_COLOR[] = "#59e088";
 
 typedef Agraph_t nm_gvgraph_t;
 typedef Agnode_t nm_gvnode_t;
 typedef Agedge_t nm_gvedge_t;
-typedef GVC_t    nm_gvctx_t;
+typedef GVC_t nm_gvctx_t;
 
 void nm_svg_map(const char *path, const nm_vect_t *veths, int layer)
 {
@@ -41,8 +41,7 @@ void nm_svg_map(const char *path, const nm_vect_t *veths, int layer)
     agattr(graph, AGRAPH, "sep", "+25,25");
 
     //@TODO Some of variables may be moved outside, and freed only once
-    for (size_t n = 0; n < veths->n_memb; n++)
-    {
+    for (size_t n = 0; n < veths->n_memb; n++) {
         nm_vect_t vms = NM_INIT_VECT;
         nm_str_t lname = NM_INIT_STR;
         nm_str_t rname = NM_INIT_STR;
@@ -74,13 +73,16 @@ void nm_svg_map(const char *path, const nm_vect_t *veths, int layer)
         nm_db_select(query.data, &vms);
 
         vms_count = vms.n_memb / 2;
-        for (size_t n = 0; n < vms_count; n++)
-        {
+        for (size_t n = 0; n < vms_count; n++) {
             size_t idx_shift = 2 * n;
-            nm_gvnode_t *node = agnode(graph, nm_vect_str_ctx(&vms, idx_shift), NM_TRUE);
+            nm_gvnode_t *node = agnode(graph, nm_vect_str_ctx(&vms,
+                                                              idx_shift),
+                                       NM_TRUE);
             nm_gvedge_t *edge = agedge(graph, node, vnode, NULL, NM_TRUE);
 
-            agsafeset(edge, NM_GV_LABEL, nm_vect_str_ctx(&vms, idx_shift + 1), NM_EMPTY_STR);
+            agsafeset(edge, NM_GV_LABEL, nm_vect_str_ctx(&vms,
+                                                         idx_shift + 1),
+                      NM_EMPTY_STR);
             agsafeset(node, NM_GV_STYLE, NM_GV_FILL, NM_EMPTY_STR);
             agsafeset(node, NM_GV_FCOL, NM_VM_COLOR, NM_EMPTY_STR);
         }

@@ -14,14 +14,14 @@ uint64_t nm_total_cpu_before;
 uint64_t nm_total_cpu_after;
 uint64_t nm_proc_cpu_before;
 uint64_t nm_proc_cpu_after;
-uint8_t  nm_cpu_iter;
-float    nm_cpu_usage;
+uint8_t nm_cpu_iter;
+float nm_cpu_usage;
 
 static void nm_stat_cpu_total_time(void)
 {
     int fd, space_num = 0;
-    char buf[NM_STAT_BUF_LEN] = {0};
-    char buf_time[NM_STAT_RES_LEN] = {0};
+    char buf[NM_STAT_BUF_LEN] = { 0 };
+    char buf_time[NM_STAT_RES_LEN] = { 0 };
     size_t nread = 0;
     char ch;
     char *token_b = NULL, *token_e = NULL;
@@ -30,26 +30,21 @@ static void nm_stat_cpu_total_time(void)
     if ((fd = open(NM_STAT_PATH, O_RDONLY)) == -1)
         return;
 
-    while ((read(fd, &ch, 1) > 0) && ch != '\n')
-    {
+    while ((read(fd, &ch, 1) > 0) && ch != '\n') {
         buf[nread] = ch;
         nread++;
     }
 
-    for (size_t n = 0; n < nread; n++)
-    {
+    for (size_t n = 0; n < nread; n++) {
         if (buf[n] == 0x20)
             space_num++;
         else
             continue;
 
         if (space_num == 2)
-        {
             token_b = buf + n + 1;
-        }
 
-        if (space_num > 2)
-        {
+        if (space_num > 2) {
             token_e = buf + n;
             memcpy(buf_time, token_b, token_e - token_b);
             res += nm_str_ttoul(buf_time, 10);
@@ -73,8 +68,8 @@ static void nm_stat_cpu_proc_time(int pid)
 {
     int fd, space_num = 0;
     ssize_t nread;
-    char buf[NM_STAT_BUF_LEN] = {0};
-    char buf_time[NM_STAT_RES_LEN] = {0};
+    char buf[NM_STAT_BUF_LEN] = { 0 };
+    char buf_time[NM_STAT_RES_LEN] = { 0 };
     char *token_b = NULL, *token_e = NULL;
     uint64_t utime = 0, stime = 0;
     nm_str_t path = NM_INIT_STR;
@@ -89,20 +84,16 @@ static void nm_stat_cpu_proc_time(int pid)
 
     buf[nread - 1] = '\0';
 
-    for (ssize_t n = 0; n < nread; n++)
-    {
+    for (ssize_t n = 0; n < nread; n++) {
         if (buf[n] == 0x20)
             space_num++;
         else
             continue;
 
         if (space_num == 13)
-        {
             token_b = buf + n + 1;
-        }
 
-        if (space_num == 14)
-        {
+        if (space_num == 14) {
             token_e = buf + n;
             memcpy(buf_time, token_b, token_e - token_b);
             utime = nm_str_ttoul(buf_time, 10);
@@ -110,8 +101,7 @@ static void nm_stat_cpu_proc_time(int pid)
             memset(buf_time, 0, sizeof(buf_time));
         }
 
-        if (space_num == 15)
-        {
+        if (space_num == 15) {
             token_e = buf + n;
             memcpy(buf_time, token_b, token_e - token_b);
             stime = nm_str_ttoul(buf_time, 10);
@@ -143,7 +133,8 @@ float nm_stat_get_usage(int pid)
     tb = nm_total_cpu_before;
 
     if (nm_cpu_iter)
-        nm_cpu_usage = ((pa - pb) / (ta - tb)) * 100 * sysconf(_SC_NPROCESSORS_ONLN);
+        nm_cpu_usage = ((pa - pb) / (ta - tb)) * 100 * sysconf(
+            _SC_NPROCESSORS_ONLN);
 
     nm_cpu_iter ^= 1;
 

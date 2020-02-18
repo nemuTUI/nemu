@@ -11,46 +11,47 @@ typedef struct {
 } nm_view_args_t;
 #endif
 
-#define NM_INIT_AD_VIEW (nm_view_args_t) {-1, -1}
+#define NM_INIT_AD_VIEW (nm_view_args_t) { -1, -1 }
 
 typedef struct {
-    short r;
-    short g;
-    short b;
+    short   r;
+    short   g;
+    short   b;
 } nm_rgb_t;
 
 typedef struct {
-    nm_str_t vm_dir;
-    nm_str_t db_path;
+    nm_str_t        vm_dir;
+    nm_str_t        db_path;
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
-    nm_str_t vnc_bin;
-    nm_str_t vnc_args;
-    nm_str_t spice_bin;
-    nm_str_t spice_args;
-    nm_view_args_t spice_view;
-    nm_view_args_t vnc_view;
+    nm_str_t        vnc_bin;
+    nm_str_t        vnc_args;
+    nm_str_t        spice_bin;
+    nm_str_t        spice_args;
+    nm_view_args_t  spice_view;
+    nm_view_args_t  vnc_view;
 #endif
-    nm_str_t log_path;
-    nm_str_t daemon_pid;
-    nm_vect_t qemu_targets;
-    nm_rgb_t hl_color;
-    uint64_t daemon_sleep;
+    nm_str_t        log_path;
+    nm_str_t        daemon_pid;
+    nm_vect_t       qemu_targets;
+    nm_rgb_t        hl_color;
+    uint64_t        daemon_sleep;
 #if NM_WITH_DBUS
-    uint32_t dbus_enabled:1;
-    int64_t dbus_timeout;
+    uint32_t        dbus_enabled : 1;
+    int64_t         dbus_timeout;
 #endif
-    uint32_t start_daemon:1;
-    uint32_t listen_any:1;
-    uint32_t spice_default:1;
-    uint32_t log_enabled:1;
-    uint32_t hl_is_set:1;
+    uint32_t        start_daemon : 1;
+    uint32_t        listen_any : 1;
+    uint32_t        spice_default : 1;
+    uint32_t        log_enabled : 1;
+    uint32_t        hl_is_set : 1;
 } nm_cfg_t;
 
 void nm_cfg_init(void);
 void nm_cfg_free(void);
 const nm_cfg_t *nm_cfg_get(void);
 
-static inline char** nm_cfg_get_arch() {
+static inline char **nm_cfg_get_arch()
+{
     return (char **)nm_cfg_get()->qemu_targets.data;
 }
 

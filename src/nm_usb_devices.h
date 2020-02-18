@@ -5,18 +5,19 @@
 #include <nm_vector.h>
 
 typedef struct {
-    nm_str_t name;
-    nm_str_t vendor_id;
-    nm_str_t product_id;
-    uint8_t bus_num;
-    uint8_t dev_addr;
+    nm_str_t    name;
+    nm_str_t    vendor_id;
+    nm_str_t    product_id;
+    uint8_t     bus_num;
+    uint8_t     dev_addr;
 } nm_usb_dev_t;
 
-#define NM_INIT_USB (nm_usb_dev_t) { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, 0, 0 }
+#define NM_INIT_USB (nm_usb_dev_t) { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, 0, \
+                                     0 }
 
 typedef struct {
-    nm_str_t serial;
-    nm_usb_dev_t *dev;
+    nm_str_t        serial;
+    nm_usb_dev_t *  dev;
 } nm_usb_data_t;
 
 #define NM_INIT_USB_DATA (nm_usb_data_t) { NM_INIT_STR, NULL }

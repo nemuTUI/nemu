@@ -2,22 +2,21 @@
 #include <nm_utils.h>
 #include <nm_vector.h>
 
-enum {NM_VECT_INIT_NMEMB = 10};
+enum { NM_VECT_INIT_NMEMB = 10 };
 
-void nm_vect_insert(nm_vect_t *v, const void *data, size_t len, nm_vect_ins_cb_pt cb)
+void nm_vect_insert(nm_vect_t *v, const void *data, size_t len,
+                    nm_vect_ins_cb_pt cb)
 {
     if (v == NULL)
         nm_bug(_("%s: NULL vector pointer value"), __func__);
 
-    if (v->data == NULL) /* list not initialized */
-    {
+    if (v->data == NULL) { /* list not initialized */
         v->data = nm_alloc(sizeof(void *) * NM_VECT_INIT_NMEMB);
         v->n_alloc = NM_VECT_INIT_NMEMB;
         memset(v->data, 0, v->n_alloc * sizeof(void *));
     }
 
-    if (v->n_memb == v->n_alloc)
-    {
+    if (v->n_memb == v->n_alloc) {
         v->data = nm_realloc(v->data, sizeof(void *) * (v->n_alloc * 2));
         memset(v->data + v->n_alloc, 0, v->n_alloc * sizeof(void *));
         v->n_alloc *= 2;
@@ -58,8 +57,7 @@ void nm_vect_free(nm_vect_t *v, nm_vect_free_cb_pt cb)
     if (v == NULL)
         return;
 
-    for (size_t n = 0; n < v->n_memb; n++)
-    {
+    for (size_t n = 0; n < v->n_memb; n++) {
         if (cb != NULL)
             cb(v->data[n]);
         free(v->data[n]);

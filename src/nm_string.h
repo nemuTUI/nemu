@@ -6,9 +6,9 @@
 #include <stdint.h>
 
 typedef struct {
-    char *data;
-    size_t len;
-    size_t alloc_bytes;
+    char *  data;
+    size_t  len;
+    size_t  alloc_bytes;
 } nm_str_t;
 
 #define NM_INIT_STR (nm_str_t) { NULL, 0, 0 }
@@ -36,10 +36,10 @@ int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2);
 int nm_strn_cmp_ss(const nm_str_t *str1, const nm_str_t *str2);
 size_t nm_strlcpy(char *dst, const char *src, size_t buflen);
 void nm_str_remove_char(nm_str_t *str, char ch);
-void nm_str_format(nm_str_t *str, const char *fmt, ...)
-    __attribute__ ((format(printf, 2, 3)));
-void nm_str_append_format(nm_str_t *str, const char *fmt, ...)
-    __attribute__ ((format(printf, 2, 3)));
+void nm_str_format(nm_str_t *str, const char *fmt,
+                   ...) __attribute__ ((format(printf, 2, 3)));
+void nm_str_append_format(nm_str_t *str, const char *fmt,
+                          ...) __attribute__ ((format(printf, 2, 3)));
 
 void nm_str_vect_ins_cb(void *unit_p, const void *ctx);
 void nm_str_vect_free_cb(void *unit_p);

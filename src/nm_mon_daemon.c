@@ -4,8 +4,8 @@
 #include <nm_cfg_file.h>
 #include <nm_qmp_control.h>
 
-#include <sys/wait.h> /* waitpid(2) */
-#include <time.h> /* nanosleep(2) */
+#include <sys/wait.h>   /* waitpid(2) */
+#include <time.h>       /* nanosleep(2) */
 
 static volatile sig_atomic_t nm_mon_rebuild = 0;
 
@@ -15,36 +15,40 @@ static void nm_mon_signals_handler(int signal);
 static int nm_mon_store_pid(void);
 
 typedef struct nm_mon_item {
-    nm_str_t *name;
-    int8_t state;
+    nm_str_t *  name;
+    int8_t      state;
 } nm_mon_item_t;
 
 typedef struct nm_clean_data {
-    nm_vect_t *mon_list;
-    nm_vect_t *vm_list;
+    nm_vect_t * mon_list;
+    nm_vect_t * vm_list;
 } nm_clean_data_t;
 
 #define NM_ITEM_INIT (nm_mon_item_t) { NULL, -1 }
 #define NM_CLEAN_INIT (nm_clean_data_t) { NULL, NULL }
 
-static inline int8_t nm_mon_item_get_status(const nm_vect_t *v, const size_t idx)
+static inline int8_t nm_mon_item_get_status(const nm_vect_t *   v,
+                                            const size_t        idx)
 {
-    return ((nm_mon_item_t *) nm_vect_at(v, idx))->state;
+    return ((nm_mon_item_t *)nm_vect_at(v, idx))->state;
 }
 
-static inline void nm_mon_item_set_status(const nm_vect_t *v, const size_t idx, int8_t s)
+static inline void nm_mon_item_set_status(const nm_vect_t *v, const size_t idx,
+                                          int8_t s)
 {
-    ((nm_mon_item_t *) nm_vect_at(v, idx))->state = s;
+    ((nm_mon_item_t *)nm_vect_at(v, idx))->state = s;
 }
 
-static inline nm_str_t *nm_mon_item_get_name(const nm_vect_t *v, const size_t idx)
+static inline nm_str_t *nm_mon_item_get_name(const nm_vect_t *  v,
+                                             const size_t       idx)
 {
-    return ((nm_mon_item_t *) nm_vect_at(v, idx))->name;
+    return ((nm_mon_item_t *)nm_vect_at(v, idx))->name;
 }
 
-static inline char *nm_mon_item_get_name_cstr(const nm_vect_t *v, const size_t idx)
+static inline char *nm_mon_item_get_name_cstr(const nm_vect_t * v,
+                                              const size_t      idx)
 {
-    return ((nm_mon_item_t *) nm_vect_at(v, idx))->name->data;
+    return ((nm_mon_item_t *)nm_vect_at(v, idx))->name->data;
 }
 
 #if defined (NM_OS_LINUX)
@@ -57,9 +61,9 @@ static void nm_mon_cleanup(int rc, void *arg)
     nm_vect_free(data->mon_list, NULL);
     nm_vect_free(data->vm_list, nm_str_vect_free_cb);
 
-#if NM_WITH_DBUS
+# if NM_WITH_DBUS
     nm_dbus_disconnect();
-#endif
+# endif
 
     unlink(nm_cfg_get()->daemon_pid.data);
     nm_exit_core();
@@ -75,16 +79,16 @@ void nm_mon_start(void)
     if (!cfg->start_daemon)
         return;
 
-    if (access(cfg->daemon_pid.data, R_OK) != -1) {
+    if (access(cfg->daemon_pid.data, R_OK) != -1)
         return;
-    }
 
     pid = fork();
 
     switch (pid) {
     case 0: /* child */
         if (execlp(NM_PROGNAME, NM_PROGNAME, "--daemon", NULL) == -1) {
-            fprintf(stderr, "%s: execlp error: %s\n", __func__, strerror(errno));
+            fprintf(stderr, "%s: execlp error: %s\n", __func__,
+                    strerror(errno));
             exit(EXIT_FAILURE);
         }
         break;
@@ -118,23 +122,22 @@ void nm_mon_ping(void)
     fd = open(path, O_RDONLY);
     if (fd == -1) {
         nm_debug("%s: error open pid file: %s: %s",
-                __func__, path, strerror(errno));
+                 __func__, path, strerror(errno));
         free(buf);
         return;
     }
 
     if (read(fd, buf, info.st_size) < 0) {
         nm_debug("%s: error read pid file: %s: %s",
-                __func__, path, strerror(errno));
+                 __func__, path, strerror(errno));
         goto out;
     }
 
     pid = nm_str_ttoul(buf, 10);
 
-    if (kill(pid, SIGUSR1) < 0) {
+    if (kill(pid, SIGUSR1) < 0)
         nm_debug("%s: error send signal to pid %d: %s",
-                __func__, pid, strerror(errno));
-    }
+                 __func__, pid, strerror(errno));
 out:
     close(fd);
     free(buf);
@@ -152,16 +155,15 @@ void nm_mon_loop(void)
 
     nm_cfg_init();
     cfg = nm_cfg_get();
-    if (access(cfg->daemon_pid.data, R_OK) != -1) {
+    if (access(cfg->daemon_pid.data, R_OK) != -1)
         return;
-    }
 
     pid = fork();
 
-    switch(pid) {
-    case 0: /* child */
+    switch (pid) {
+    case 0:     /* child */
         break;
-    case -1: /* error */
+    case -1:    /* error */
         fprintf(stderr, "%s: fork error: %s\n", __func__, strerror(errno));
         exit(EXIT_FAILURE);
     default: /* parent */
@@ -202,18 +204,17 @@ void nm_mon_loop(void)
     ts.tv_sec = cfg->daemon_sleep / 1000;
     ts.tv_nsec = (cfg->daemon_sleep % 1000) * 1e+6;
 
-    if (nm_mon_store_pid() != NM_OK) {
+    if (nm_mon_store_pid() != NM_OK)
         exit(EXIT_FAILURE);
-    }
 
     nm_db_init();
     nm_mon_build_list(&mon_list, &vm_list);
 #if NM_WITH_DBUS
-    if (nm_dbus_connect() != NM_OK) {
+    if (nm_dbus_connect() != NM_OK)
         exit(EXIT_FAILURE);
-    }
+
 #endif
-    
+
     for (;;) {
         if (nm_mon_rebuild) {
             nm_mon_build_list(&mon_list, &vm_list);
@@ -291,7 +292,7 @@ static int nm_mon_store_pid(void)
     fd = open(path, O_WRONLY | O_CREAT, 0644);
     if (fd == -1) {
         nm_debug("%s: error create pid file: %s: %s",
-                __func__, path, strerror(errno));
+                 __func__, path, strerror(errno));
         return NM_ERR;
     }
 
