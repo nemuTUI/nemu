@@ -15,7 +15,9 @@
 #endif
 
 
+#if defined (NM_OS_LINUX)
 static const size_t NM_NET_MACVTAP_NUM = 2;
+#endif
 
 typedef struct {
     nm_str_t name;

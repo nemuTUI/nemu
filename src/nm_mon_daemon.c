@@ -13,7 +13,6 @@ static void nm_mon_check_vms(const nm_vect_t *mon_list);
 static void nm_mon_build_list(nm_vect_t *list, nm_vect_t *vms);
 static void nm_mon_signals_handler(int signal);
 static int nm_mon_store_pid(void);
-static void nm_mon_cleanup(int rc, void *arg);
 
 typedef struct nm_mon_item {
     nm_str_t *name;
@@ -48,6 +47,7 @@ static inline char *nm_mon_item_get_name_cstr(const nm_vect_t *v, const size_t i
     return ((nm_mon_item_t *) nm_vect_at(v, idx))->name->data;
 }
 
+#if defined (NM_OS_LINUX)
 static void nm_mon_cleanup(int rc, void *arg)
 {
     nm_clean_data_t *data = arg;
@@ -64,6 +64,7 @@ static void nm_mon_cleanup(int rc, void *arg)
     unlink(nm_cfg_get()->daemon_pid.data);
     nm_exit_core();
 }
+#endif /* NM_OS_LINUX */
 
 void nm_mon_start(void)
 {
@@ -104,12 +105,14 @@ void nm_mon_ping(void)
 {
     pid_t pid;
     int fd;
-    struct stat info = {0};
+    struct stat info;
     const char *path = nm_cfg_get()->daemon_pid.data;
     char *buf;
 
     if ((stat(path, &info) == -1) || (!info.st_size))
         return;
+
+    memset(&info, 0x0, sizeof(info));
 
     buf = nm_calloc(1, info.st_size + 1);
     fd = open(path, O_RDONLY);
@@ -178,10 +181,12 @@ void nm_mon_loop(void)
 
     clean.mon_list = &mon_list;
     clean.vm_list = &vm_list;
+#if defined (NM_OS_LINUX)
     if (on_exit(nm_mon_cleanup, &clean) != 0) {
         fprintf(stderr, "%s: on_exit(3) failed\n", __func__);
         exit(EXIT_FAILURE);
     }
+#endif
 
     close(STDIN_FILENO);
     close(STDOUT_FILENO);

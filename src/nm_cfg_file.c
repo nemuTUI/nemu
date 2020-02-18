@@ -32,11 +32,13 @@ static const char NM_INI_P_VANY[]       = "listen_any";
 static const char NM_INI_P_QTRG[]       = "targets";
 static const char NM_INI_P_QENL[]       = "enable_log";
 static const char NM_INI_P_QLOG[]       = "log_cmd";
-static const char NM_INI_P_DYES[]       = "dbus_enabled";
-static const char NM_INI_P_DTMT[]       = "dbus_timeout";
 static const char NM_INI_P_PID[]        = "pid";
 static const char NM_INI_P_AUTO[]       = "autostart";
 static const char NM_INI_P_SLP[]        = "sleep";
+#if defined (NM_OS_LINUX)
+static const char NM_INI_P_DYES[]       = "dbus_enabled";
+static const char NM_INI_P_DTMT[]       = "dbus_timeout";
+#endif
 
 static nm_cfg_t cfg;
 
