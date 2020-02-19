@@ -3,12 +3,30 @@
 #include <nm_network.h>
 
 #include <sys/ioctl.h>
-#include <net/if.h>
 
 #if defined (NM_OS_LINUX)
+
+#ifdef _DEFAULT_SOURCE
+#include <net/if.h>
+#include <linux/if.h>
+#else
+/* Temporary work-around for broken glibc vs. linux kernel header definitions
+ * This is already fixed upstream, remove this when distributions have updated.
+ * net/if.h fuckup should be removed someday in future, when kernels <= 4.2 will not be supported
+ * https://github.com/systemd/systemd/commit/08ce521fb2546921f2642bef067d2cc02158b121
+ * https://github.com/systemd/systemd/commit/6f270e6bd8b78aedf9f77534d6d11141ea0bf8ca
+ */
+#define _NET_IF_H 1
+#include <net/if.h>
+#ifndef IFNAMSIZ
+#define IFNAMSIZ 16
+extern unsigned int if_nametoindex (const char *__ifname) __THROW;
+#endif
+#include <linux/if.h>
+#endif
+
 #include <time.h>
 #include <sys/socket.h>
-#include <linux/if.h>
 #include <linux/if_tun.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
@@ -60,6 +78,8 @@ static struct rtattr *NLMSG_TAIL(struct nlmsghdr* n)
 {
     return (struct rtattr *)((char *)n + NLMSG_ALIGN(n->nlmsg_len));
 }
+#else
+#include <net/if.h>
 #endif /* NM_OS_LINUX */
 
 enum tap_on_off {
