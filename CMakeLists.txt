@@ -3,16 +3,35 @@ cmake_minimum_required(VERSION 2.8)
 project(nemu C)
 set(CMAKE_COLOR_MAKEFILE OFF)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+include(GetGLibcVersion)
 
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-    set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE
-      PATH "Executable and lang files directory prefix" FORCE)
-  else()
+if (CMAKE_SYSTEM_NAME STREQUAL Linux)
+    add_definitions(-DNM_OS_LINUX)
+
+    check_glibc_version()
+    if (GLIBC_VERSION GREATER 2.18)
+      add_definitions(-D_DEFAULT_SOURCE)
+    else()
+      add_definitions(-D_XOPEN_SOURCE=700 -D_BSD_SOURCE)
+    endif()
+
+    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/sh/convert_kern_ver.sh OUTPUT_VARIABLE LINUX_KERN_VER)
+    if (LINUX_KERN_VER GREATER 132641 OR LINUX_KERN_VER EQUAL 132641)
+      message(STATUS "Enable sendfile(2) for file copy")
+      add_definitions(-DNM_WITH_SENDFILE)
+    endif()
+
     set(CMAKE_INSTALL_PREFIX "/usr" CACHE
       PATH "Executable and lang files directory prefix" FORCE)
-  endif()
+elseif (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+    add_definitions(-DNM_OS_FREEBSD -D_BSD_SOURCE -I/usr/local/include)
+
+    set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE
+      PATH "Executable and lang files directory prefix" FORCE)
+else()
+    message(FATAL_ERROR "Build on ${CMAKE_SYSTEM_NAME} is not supported")
 endif()
+
 add_definitions(-DNM_USR_PREFIX=${CMAKE_INSTALL_PREFIX})
 message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
 
@@ -146,19 +165,6 @@ execute_process(COMMAND ${CMAKE_SOURCE_DIR}/sh/git_get_version.sh ${CMAKE_SOURCE
 if (NOT GIT_TAG_VERSION STREQUAL "")
     message(STATUS "Build from git, version:${GIT_TAG_VERSION}")
     add_definitions(-DNM_VERSION="${GIT_TAG_VERSION}")
-endif()
-
-if (CMAKE_SYSTEM_NAME STREQUAL Linux)
-    add_definitions(-DNM_OS_LINUX)
-    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/sh/convert_kern_ver.sh OUTPUT_VARIABLE LINUX_KERN_VER)
-    if (LINUX_KERN_VER GREATER 132641 OR LINUX_KERN_VER EQUAL 132641)
-      message(STATUS "Enable sendfile(2) for file copy")
-      add_definitions(-DNM_WITH_SENDFILE)
-    endif()
-elseif (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-    add_definitions(-DNM_OS_FREEBSD -I/usr/local/include)
-else()
-    message(FATAL_ERROR "Build on ${CMAKE_SYSTEM_NAME} is not supported")
 endif()
 
 add_subdirectory(lang)

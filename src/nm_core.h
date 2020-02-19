@@ -1,16 +1,6 @@
 #ifndef NM_CORE_H_
 #define NM_CORE_H_
 
-#if defined (NM_OS_LINUX)
-# ifndef _DEFAULT_SOURCE
-#  define _DEFAULT_SOURCE
-# endif
-#elif defined (NM_OS_FREEBSD)
-# ifndef _BSD_SOURCE
-#  define _BSD_SOURCE
-# endif
-#endif
-
 #include <stdio.h>
 #include <locale.h>
 #include <signal.h>
