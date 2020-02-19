@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/nemuTUI/nemu.svg?branch=master)](https://travis-ci.org/nemuTUI/nemu)
 [![Latest Tag](https://badgen.net/github/tag/nemuTUI/nemu)](https://github.com/nemuTUI/nemu/tags)
+[![Packaging status](https://repology.org/badge/tiny-repos/nemu.svg)](https://repology.org/project/nemu/versions)
 
 ## Features
  * Install VM
