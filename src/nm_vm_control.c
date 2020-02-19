@@ -312,14 +312,22 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
     for (size_t n = 0; n < drives_count; n++)
     {
+        int nvme_drv = NM_FALSE;
         int scsi_drv = NM_FALSE;
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
         const nm_str_t *drive_img = nm_vect_str(&vm->drives, NM_SQL_DRV_NAME + idx_shift);
         const nm_str_t *blk_drv = nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift);
+        const char *blk_drv_type = blk_drv->data;
 
-        if (nm_str_cmp_st(blk_drv, "scsi") == NM_OK)
+        if (nm_str_cmp_st(blk_drv, "nvme") == NM_OK)
+        {
+            nvme_drv = NM_TRUE;
+            blk_drv_type = "none";
+        }
+        else if (nm_str_cmp_st(blk_drv, "scsi") == NM_OK)
         {
             scsi_drv = NM_TRUE;
+            blk_drv_type = "none";
             if (!scsi_added)
             {
                 nm_vect_insert_cstr(argv, "-device");
@@ -327,13 +335,21 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                 scsi_added = NM_TRUE;
             }
         }
+
         nm_vect_insert_cstr(argv, "-drive");
 
         nm_str_format(&buf, "id=hd%zu,media=disk,if=%s,file=%s%s",
-            n, (scsi_drv) ? "none" : blk_drv->data, vmdir.data, drive_img->data);
+            n, blk_drv_type, vmdir.data, drive_img->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
-        if (scsi_drv)
+        if (nvme_drv)
+        {
+            long int host_id = labs(gethostid());
+            nm_vect_insert_cstr(argv, "-device");
+            nm_str_format(&buf, "nvme,drive=hd%zu,serial=%lX%zX", n, host_id, n);
+            nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
+        }
+        else if (scsi_drv)
         {
             nm_vect_insert_cstr(argv, "-device");
             nm_str_format(&buf, "scsi-hd,drive=hd%zu", n);

@@ -25,6 +25,7 @@ const char *nm_form_net_drv[] = {
 
 const char *nm_form_drive_drv[] = {
     "ide",
+    "nvme",
     "scsi",
     "virtio",
     NULL
