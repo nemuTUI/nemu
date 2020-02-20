@@ -36,7 +36,7 @@
 #define NM_PROGNAME "nemu"
 
 #ifndef NM_VERSION
-#define NM_VERSION "v2.2.3"
+#define NM_VERSION "v2.3.0-RC0"
 #endif
 
 #ifndef NM_USR_PREFIX
