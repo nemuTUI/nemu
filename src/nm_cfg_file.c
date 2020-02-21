@@ -363,7 +363,15 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             fprintf(cfg_file, "# Log last QEMU command.\n"
                 "enable_log = 1\n\n");
             fprintf(cfg_file, "# Log path.\n"
-                "log_cmd = /tmp/qemu_last_cmd.log\n");
+                "log_cmd = /tmp/qemu_last_cmd.log\n\n");
+            fprintf(cfg_file, "[nemu-monitor]\n"
+                    "# Auto start monitoring daemon\nautostart = 1\n\n"
+                    "# Monitoring daemon pid file\npid = /tmp/nemu-monitor.pid"
+#ifdef NM_WITH_DBUS
+                    "\n\n# Enable D-Bus feature\ndbus_enabled = 1\n\n"
+                    "# Message timeout (ms)\ndbus_timeout = 2000"
+#endif
+                    "\n");
             fclose(cfg_file);
 
             nm_str_free(&db);

@@ -1,6 +1,6 @@
 [main]
 # virtual machine dir.
-vmdir = /home/user/qemu_vm
+vmdir = /home/user/nemu_vm
 
 # path to database file.
 db = /home/user/.nemu.db
