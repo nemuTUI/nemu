@@ -17,7 +17,6 @@ static char NM_GV_SHAPE[]  = "shape";
 static char NM_GV_FILL[]   = "filled";
 static char NM_GV_FCOL[]   = "fillcolor";
 static char NM_GV_RECT[]   = "rect";
-static char NM_GV_LAYOUT[] = "neato";
 static char NM_GV_SVG[]    = "svg";
 static char NM_VM_COLOR[]  = "#4fbcdd";
 static char NM_VE_COLOR[]  = "#59e088";
@@ -27,7 +26,8 @@ typedef Agnode_t nm_gvnode_t;
 typedef Agedge_t nm_gvedge_t;
 typedef GVC_t    nm_gvctx_t;
 
-void nm_svg_map(const char *path, const nm_vect_t *veths, int layer)
+void nm_svg_map(const char *path, const nm_vect_t *veths,
+        int state, const nm_str_t *layout)
 {
     nm_gvctx_t *gvc;
     nm_gvgraph_t *graph;
@@ -52,12 +52,12 @@ void nm_svg_map(const char *path, const nm_vect_t *veths, int layer)
 
         nm_lan_parse_name(nm_vect_str(veths, n), &lname, &rname);
 
-        switch (layer) {
-        case NM_SVG_LAYER_UP:
+        switch (state) {
+        case NM_SVG_STATE_UP:
             if (nm_net_link_status(&lname) != NM_OK)
                 goto next;
             break;
-        case NM_SVG_LAYER_DOWN:
+        case NM_SVG_STATE_DOWN:
             if (nm_net_link_status(&lname) == NM_OK)
                 goto next;
             break;
@@ -92,7 +92,7 @@ next:
         nm_str_free(&rname);
     }
 
-    gvLayout(gvc, graph, NM_GV_LAYOUT);
+    gvLayout(gvc, graph, layout->data);
     gvRenderFilename(gvc, graph, NM_GV_SVG, path);
 
     gvFreeLayout(gvc, graph);

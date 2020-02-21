@@ -15,7 +15,20 @@
 
 enum {
     NM_LAN_FIELDS_NUM = 2,
-    NM_SVG_FIELDS_NUM = 2,
+    NM_SVG_FIELDS_NUM = 3,
+};
+
+const char *nm_form_svg_state[] = {
+    "UP",
+    "DOWN",
+    "ALL",
+    NULL
+};
+
+const char *nm_form_svg_layout[] = {
+    "neato",
+    "dot",
+    NULL
 };
 
 extern sig_atomic_t redraw_window;
@@ -40,11 +53,12 @@ static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn);
 #if defined (NM_WITH_NETWORK_MAP)
 enum {
     NM_SVG_FLD_PATH = 0,
-    NM_SVG_FLD_TYPE
+    NM_SVG_FLD_TYPE,
+    NM_SVG_FLD_LAYT
 };
 
 static const char *nm_form_svg_msg[] = {
-    "Export path", "Layer", NULL
+    "Export path", "State", "Layout", NULL
 };
 
 static void nm_lan_export_svg(const nm_vect_t *veths);
@@ -480,14 +494,15 @@ void nm_lan_create_veth(int info)
 static void nm_lan_export_svg(const nm_vect_t *veths)
 {
     nm_form_t *form = NULL;
-    nm_field_t *fields[NM_LAN_FIELDS_NUM + 1] = {NULL};
+    nm_field_t *fields[NM_SVG_FIELDS_NUM + 1] = {NULL};
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     nm_vect_t err = NM_INIT_VECT;
     nm_str_t path = NM_INIT_STR;
     nm_str_t type = NM_INIT_STR;
-    int layer = NM_SVG_LAYER_ALL;
+    nm_str_t layout = NM_INIT_STR;
+    int state = NM_SVG_STATE_ALL;
     size_t msg_len = nm_max_msg_len(nm_form_svg_msg);
-    char **layers = (char **) nm_form_svg_layer;
+    char **states = (char **) nm_form_svg_state;
 
     if (nm_form_calc_size(msg_len, NM_SVG_FIELDS_NUM, &form_data) != NM_OK)
         return;
@@ -498,15 +513,17 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
     fields[NM_SVG_FIELDS_NUM] = NULL;
 
     set_field_type(fields[NM_SVG_FLD_PATH], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[NM_SVG_FLD_TYPE], TYPE_ENUM, nm_form_svg_layer, false, false);
-    set_field_buffer(fields[NM_SVG_FLD_TYPE], 0, nm_form_svg_layer[0]);
+    set_field_type(fields[NM_SVG_FLD_TYPE], TYPE_ENUM, nm_form_svg_state, false, false);
+    set_field_type(fields[NM_SVG_FLD_LAYT], TYPE_ENUM, nm_form_svg_layout, false, false);
+    set_field_buffer(fields[NM_SVG_FLD_TYPE], 0, nm_form_svg_state[0]);
+    set_field_buffer(fields[NM_SVG_FLD_LAYT], 0, nm_form_svg_layout[0]);
 
     werase(action_window);
     werase(help_window);
     nm_init_action(_(NM_MSG_EXPORT_MAP));
     nm_init_help_export();
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_LAN_FIELDS_NUM; n++)
+    for (size_t n = 0, y = 1, x = 2; n < NM_SVG_FIELDS_NUM; n++)
     {
         mvwaddstr(form_data.form_window, y, x, nm_form_svg_msg[n]);
         y += 2;
@@ -518,8 +535,10 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
 
     nm_get_field_buf(fields[NM_SVG_FLD_PATH], &path);
     nm_get_field_buf(fields[NM_SVG_FLD_TYPE], &type);
+    nm_get_field_buf(fields[NM_SVG_FLD_LAYT], &layout);
     nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_PATH]), path, err);
     nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_TYPE]), type, err);
+    nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_LAYT]), layout, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR)
     {
@@ -527,16 +546,16 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
         goto out;
     }
 
-    for (size_t n = 0; *layers; n++, layers++)
+    for (size_t n = 0; *states; n++, states++)
     {
-        if (nm_str_cmp_st(&type, *layers) == NM_OK)
+        if (nm_str_cmp_st(&type, *states) == NM_OK)
         {
-            layer = n;
+            state = n;
             break;
         }
     }
 
-    nm_svg_map(path.data, veths, layer);
+    nm_svg_map(path.data, veths, state, &layout);
 
 out:
     wtimeout(action_window, -1);
