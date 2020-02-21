@@ -564,6 +564,7 @@ out:
     nm_init_action(_(NM_MSG_LAN));
     nm_str_free(&path);
     nm_str_free(&type);
+    nm_str_free(&layout);
     nm_form_free(form, fields);
     delwin(form_data.form_window);
 }
