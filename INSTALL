@@ -3,7 +3,7 @@ How to install nEMU on Linux.
 
 1. Get sources
 
-% git clone https://bitbucket.org/PascalRD/nemu
+% git clone https://github.com/nemuTUI/nemu
 
 2. Run cmake in the top source directory and build the project
 
