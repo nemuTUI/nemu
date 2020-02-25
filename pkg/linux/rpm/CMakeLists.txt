@@ -9,7 +9,7 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CP
 
 set(CPACK_RPM_PACKAGE_LICENSE "BSD-2-clause")
 set(CPACK_RPM_PACKAGE_GROUP "Applications/Emulators")
-set(CPACK_RPM_PACKAGE_URL "https://bitbucket.org/PascalRD/nemu")
+set(CPACK_RPM_PACKAGE_URL "https://github.com/nemuTUI/nemu")
 set(CPACK_RPM_PACKAGE_VENDOR "Boris Stepanenko <boris.stepanenko@gmail.com>")
 set(CPACK_RPM_PACKAGE_AUTOREQ 0)
 set(CPACK_RPM_PACKAGE_REQUIRES "libxml2, systemd-libs, ncurses-libs, sqlite, glibc, libarchive, libusbx, graphviz")
