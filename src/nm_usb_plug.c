@@ -167,6 +167,25 @@ out:
     nm_str_free(&buf);
 }
 
+int nm_usb_check_plugged(const nm_str_t *name)
+{
+    int rc = NM_ERR;
+    nm_vect_t db_result = NM_INIT_VECT;
+    nm_str_t query = NM_INIT_STR;
+
+    nm_str_format(&query, NM_USB_GET_SQL, name->data);
+    nm_db_select(query.data, &db_result);
+
+    if (!db_result.n_memb) {
+        rc = NM_OK;
+    }
+
+    nm_vect_free(&db_result, nm_str_vect_free_cb);
+    nm_str_free(&query);
+
+    return rc;
+}
+
 static void nm_usb_unplug_list(const nm_vect_t *db_list, nm_vect_t *names)
 {
     size_t dev_count = db_list->n_memb / NM_USB_IDX_COUNT;

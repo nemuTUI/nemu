@@ -254,6 +254,10 @@ void nm_start_main_loop(void)
                     nm_warn(NM_MSG_MUST_RUN);
                     break;
                 }
+                if (nm_usb_check_plugged(name) != NM_OK) {
+                    nm_warn(NM_MSG_SNAP_USB);
+                    break;
+                }
                 nm_vm_snapshot_create(name);
                 break;
 
