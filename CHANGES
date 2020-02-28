@@ -1,11 +1,14 @@
-v2.3.0 - ?
+v2.3.0 - 28.02.2020
 ------------------------
     - Feature: powerdown/force-stop/reset/kill vm from command line
     - Feature: dbus - send message on VM status change
     - Feature: alternative names for network interfaces,
                requires linux kernel and headers >= 5.5
     - Feature: check database version on start
+    - Feature: user now can choose layouts of SVG map
+    - Feature: support emulation of NVMe disk drives
     - Bugfix: delete tap interfaces when vm is deleted
+    - Bugfix: deny creating snapshot with USB devices plugged
 
 v2.2.3 - 24.01.2020
 ------------------------
