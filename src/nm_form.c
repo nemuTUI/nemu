@@ -461,12 +461,9 @@ uint64_t nm_form_get_last_mac()
     uint64_t mac;
     nm_vect_t res = NM_INIT_VECT;
 
-    nm_db_select("SELECT MAX(mac_addr) FROM ifaces", &res);
+    nm_db_select("SELECT COALESCE(MAX(mac_addr), 'de:ad:be:ef:00:00') FROM ifaces;", &res);
 
-    if (!res.n_memb)
-        mac = 0xdeadbeef0000;
-    else
-        mac = nm_net_mac_s2n(res.data[0]);
+    mac = nm_net_mac_s2n(res.data[0]);
 
     nm_vect_free(&res, nm_str_vect_free_cb);
 
