@@ -95,6 +95,15 @@ static inline void __attribute__((noreturn)) nm_exit_core()
     nm_cfg_free();
     exit(NM_OK);
 }
+static inline int compar_uint32_t(const void *a, const void *b)
+{
+    const uint32_t _a = *(const uint32_t*)a;
+    const uint32_t _b = *(const uint32_t*)b;
+    if (_a != _b)
+        return _a < _b ? -1 : 1;
+
+    return 0;
+}
 
 #endif /* NM_CORE_H_ */
 /* vim:set ts=4 sw=4: */

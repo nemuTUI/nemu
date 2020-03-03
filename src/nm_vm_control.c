@@ -216,7 +216,7 @@ void nm_vmctl_connect(const nm_str_t *name)
 
     nm_str_format(&query, NM_VMCTL_GET_VNC_PORT_SQL, name->data);
     nm_db_select(query.data, &res);
-    port = nm_str_stoui(nm_vect_str(&res, 0), 10) + 5900;
+    port = nm_str_stoui(nm_vect_str(&res, 0), 10) + NM_STARTING_VNC_PORT;
 #if defined(NM_WITH_SPICE)
     if (nm_str_cmp_st(nm_vect_str(&res, 1), NM_ENABLE) == NM_OK)
     {
@@ -847,6 +847,53 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         vmdir.data, NM_VM_QMP_FILE);
     nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
+    /* Check if vnc/spice port is available, generate new one if not */
+    if (!(flags & NM_VMCTL_INFO))
+    {
+        uint32_t in_addr = cfg->listen_any ? INADDR_ANY : INADDR_LOOPBACK;
+        uint32_t curr_port = nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT;
+        if (curr_port > 0xffff)
+            nm_bug("%s: port number overflow", __func__);
+
+        nm_debug("%u\n", curr_port);
+
+        if (!nm_net_check_port((uint16_t)curr_port, SOCK_STREAM, in_addr))
+        {
+            nm_vect_t vms_ports = NM_INIT_VECT;
+            uint32_t *occupied_ports;
+
+            nm_db_select("SELECT vnc FROM vms ORDER BY vnc ASC", &vms_ports);
+
+            occupied_ports = (uint32_t *)calloc(vms_ports.n_memb, sizeof(uint32_t));
+            if (vms_ports.n_memb > 0 && !occupied_ports)
+                nm_bug("%s: couldn't allocate memory for occupied ports", __func__);
+
+            for (size_t i = 0; i < vms_ports.n_memb; ++i)
+                occupied_ports[i] = nm_str_stoui(vms_ports.data[i], 10) + NM_STARTING_VNC_PORT;
+
+            for (curr_port = NM_STARTING_VNC_PORT; curr_port <= 0xffff; ++curr_port)
+            {
+                nm_debug("%u\n", curr_port);
+                if (bsearch(&curr_port, occupied_ports, vms_ports.n_memb, sizeof(uint32_t), compar_uint32_t))
+                    continue;
+
+                if (nm_net_check_port((uint16_t)curr_port, SOCK_STREAM, in_addr))
+                    break;
+            }
+
+            nm_str_format(nm_vect_str(&vm->main, NM_SQL_VNC), "%u", curr_port - NM_STARTING_VNC_PORT);
+            nm_str_t query = NM_INIT_STR;
+            nm_str_format(&query, "UPDATE vms SET vnc='%u' WHERE name='%s'",
+                curr_port - NM_STARTING_VNC_PORT, nm_vect_str_ctx(&vm->main, NM_SQL_NAME));
+            nm_db_edit(query.data);
+
+            if (occupied_ports)
+                free(occupied_ports);
+            nm_str_free(&query);
+            nm_vect_free(&vms_ports, nm_str_vect_free_cb);
+        }
+    }
+
 #if defined (NM_WITH_SPICE)
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_SPICE), NM_ENABLE) == NM_OK)
     {
@@ -854,7 +901,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_vect_insert_cstr(argv, "qxl");
         nm_vect_insert_cstr(argv, "-spice");
         nm_str_format(&buf, "port=%u,disable-ticketing",
-            nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + 5900);
+            nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT);
         if (!cfg->listen_any)
             nm_str_append_format(&buf, ",addr=127.0.0.1");
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);

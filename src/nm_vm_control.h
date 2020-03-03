@@ -4,6 +4,8 @@
 #include <nm_string.h>
 #include <nm_vector.h>
 
+static const uint32_t NM_STARTING_VNC_PORT = 5900;
+
 enum vmctl_flags {
     NM_VMCTL_TEMP = (1 << 1),
     NM_VMCTL_INFO = (1 << 2)

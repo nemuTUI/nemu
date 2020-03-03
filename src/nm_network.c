@@ -785,4 +785,28 @@ static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *src,
 #endif /* NM_OS_LINUX */
 }
 
+int nm_net_check_port(const uint16_t port, const int type, const uint32_t inaddr)
+{
+    int ret = 0;
+    struct sockaddr_in addr;
+
+    int sock = socket(AF_INET, type, 0);
+    if(!sock)
+        nm_bug("%s: couldn't create socket", __func__);
+
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = htonl(inaddr);
+
+    if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0)
+    {
+        ret = 1;
+        shutdown(sock, SHUT_RDWR);
+    }
+
+    close(sock);
+
+    return ret;
+}
+
 /* vim:set ts=4 sw=4: */
