@@ -269,7 +269,7 @@ void nm_str_append_format(nm_str_t *str, const char *fmt, ...)
 
     /* get required length */
     va_start(args, fmt);
-    len = vsnprintf(buf, len, fmt, args);
+    len = vsnprintf(buf, 0, fmt, args);
     va_end(args);
 
     if (len < 0)
@@ -280,7 +280,7 @@ void nm_str_append_format(nm_str_t *str, const char *fmt, ...)
     buf = nm_calloc(1, len);
 
     va_start(args, fmt);
-    len = vsnprintf(buf, len, fmt, args);
+    len = vsnprintf(buf, 0, fmt, args);
     if (len < 0)
         nm_bug(_("%s: invalid length: %d"), __func__, len);
     va_end(args);
@@ -297,7 +297,7 @@ void nm_str_format(nm_str_t *str, const char *fmt, ...)
 
     /* get required length */
     va_start(args, fmt);
-    len = vsnprintf(buf, len, fmt, args);
+    len = vsnprintf(buf, 0, fmt, args);
     va_end(args);
 
     if (len < 0)

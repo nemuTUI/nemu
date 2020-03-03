@@ -650,7 +650,9 @@ static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives)
 
     nm_str_alloc_text(&vm->ifs.driver, NM_DEFAULT_NETDRV);
 
-    nm_form_get_last(&last_mac, &last_vnc);
+    last_mac = nm_form_get_last_mac();
+    last_vnc = nm_form_get_free_vnc();
+
     nm_str_format(&vm->vncp, "%u", last_vnc);
 
     nm_add_vm_to_db(vm, last_mac, NM_IMPORT_VM, drives);

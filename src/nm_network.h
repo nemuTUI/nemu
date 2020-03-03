@@ -29,7 +29,8 @@ void nm_net_del_tap(const nm_str_t *name);
 void nm_net_set_ipaddr(const nm_str_t *name, const nm_str_t *addr);
 void nm_net_set_altname(const nm_str_t *name, const nm_str_t *altname);
 int nm_net_fix_tap_name(nm_str_t *name, const nm_str_t *maddr);
-void nm_net_mac_n2a(uint64_t maddr, nm_str_t *res);
+void nm_net_mac_n2s(uint64_t maddr, nm_str_t *res);
+uint64_t nm_net_mac_s2n(const nm_str_t *addr);
 int nm_net_verify_mac(const nm_str_t *mac);
 int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
                           nm_str_t *err);

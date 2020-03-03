@@ -210,15 +210,15 @@ void nm_vmctl_connect(const nm_str_t *name)
 {
     nm_str_t cmd = NM_INIT_STR;
     nm_str_t query = NM_INIT_STR;
-    nm_vect_t vm = NM_INIT_VECT;
+    nm_vect_t res = NM_INIT_VECT;
     uint32_t port;
     int unused __attribute__((unused));
 
     nm_str_format(&query, NM_VMCTL_GET_VNC_PORT_SQL, name->data);
-    nm_db_select(query.data, &vm);
-    port = nm_str_stoui(nm_vect_str(&vm, 0), 10) + 5900;
+    nm_db_select(query.data, &res);
+    port = nm_str_stoui(nm_vect_str(&res, 0), 10) + 5900;
 #if defined(NM_WITH_SPICE)
-    if (nm_str_cmp_st(nm_vect_str(&vm, 1), NM_ENABLE) == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&res, 1), NM_ENABLE) == NM_OK)
     {
         nm_vmctl_gen_viewer(name, port, &cmd, NM_VIEWER_SPICE);
     }
@@ -231,7 +231,7 @@ void nm_vmctl_connect(const nm_str_t *name)
 #endif
     unused = system(cmd.data);
 
-    nm_vect_free(&vm, nm_str_vect_free_cb);
+    nm_vect_free(&res, nm_str_vect_free_cb);
     nm_str_free(&query);
     nm_str_free(&cmd);
 }

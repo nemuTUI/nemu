@@ -142,7 +142,8 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     int altname = 0;
     char drv_ch = 'a';
 
-    nm_form_get_last(&last_mac, &last_vnc);
+    last_mac = nm_form_get_last_mac();
+    last_vnc = nm_form_get_free_vnc();
 
     nm_str_format(&query, NM_CLONE_VMS_SQL, dst->data, last_vnc, src->data);
     nm_db_edit(query.data);
@@ -158,7 +159,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         nm_str_t maddr = NM_INIT_STR;
         last_mac++;
 
-        nm_net_mac_n2a(last_mac, &maddr);
+        nm_net_mac_n2s(last_mac, &maddr);
         nm_str_format(&if_name, "%s_eth%zu", dst->data, n);
         nm_str_copy(&if_name_copy, &if_name);
         altname = nm_net_fix_tap_name(&if_name, &maddr);
@@ -197,9 +198,6 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
 
         drv_ch++;
     }
-
-    nm_form_update_last_mac(last_mac);
-    nm_form_update_last_vnc(last_vnc);
 
     nm_str_free(&query);
 }

@@ -33,8 +33,6 @@ void nm_db_init(void)
             "socket_path char, initrd char, machine char, fs9p_enable integer, "
             "fs9p_path char, fs9p_name char, usb_type char, spice integer, "
             "debug_port integer, debug_freeze integer, cmdappend char)",
-        "CREATE TABLE lastval(id integer, mac integer, vnc integer)",
-        "INSERT INTO lastval(id, mac, vnc) VALUES ('1', '244837814042624', '0')",
         "CREATE TABLE ifaces(id integer primary key autoincrement, "
             "vm_name char, if_name char, mac_addr char, ipv4_addr char, "
             "if_drv char, vhost integer, macvtap integer, parent_eth char, altname char)",

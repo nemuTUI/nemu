@@ -4,6 +4,7 @@
 #include <nm_vector.h>
 #include <nm_window.h>
 #include <nm_database.h>
+#include <nm_network.h>
 
 #include <time.h>
 #include <glob.h>
@@ -455,44 +456,33 @@ int nm_form_name_used(const nm_str_t *name)
     return rc;
 }
 
-void nm_form_get_last(uint64_t *mac, uint32_t *vnc)
+uint64_t nm_form_get_last_mac()
 {
+    uint64_t mac;
     nm_vect_t res = NM_INIT_VECT;
 
-    if (vnc != NULL)
-    {
-        nm_db_select("SELECT mac,vnc FROM lastval", &res);
-        *vnc = nm_str_stoui(res.data[1], 10);
-    }
-    else
-    {
-        nm_db_select("SELECT mac FROM lastval", &res);
-    }
+    nm_db_select("SELECT MAX(mac_addr) FROM ifaces", &res);
 
-    *mac = nm_str_stoul(res.data[0], 10);
+    mac = nm_net_mac_s2n(res.data[0]);
 
     nm_vect_free(&res, nm_str_vect_free_cb);
+
+    return mac;
 }
 
-void nm_form_update_last_mac(uint64_t mac)
+uint32_t nm_form_get_free_vnc()
 {
-    nm_str_t query = NM_INIT_STR;
+    uint32_t vnc;
+    nm_vect_t res = NM_INIT_VECT;
 
-    nm_str_format(&query, "UPDATE lastval SET mac='%" PRIu64 "'", mac);
-    nm_db_edit(query.data);
+    nm_db_select("\
+SELECT DISTINCT vnc + 1 FROM vms \
+UNION SELECT 0 EXCEPT SELECT DISTINCT vnc FROM vms \
+ORDER BY vnc ASC LIMIT 1", &res);
 
-    nm_str_free(&query);
-}
+    vnc = nm_str_stoui(res.data[0], 10);
 
-void nm_form_update_last_vnc(uint32_t vnc)
-{
-    nm_str_t query = NM_INIT_STR;
-
-    vnc++;
-    nm_str_format(&query, "UPDATE lastval SET vnc='%u'", vnc);
-    nm_db_edit(query.data);
-
-    nm_str_free(&query);
+    return vnc;
 }
 
 void nm_vm_free(nm_vm_t *vm)

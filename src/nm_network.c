@@ -93,9 +93,7 @@ enum action {
     NM_SET_LINK_ADDR
 };
 
-#if defined (NM_OS_LINUX)
-static size_t nm_net_mac_a2n(const nm_str_t *addr, char *res, size_t len);
-#endif
+static size_t nm_net_mac_s2a(const nm_str_t *addr, char *res, size_t len);
 static void nm_net_manage_tap(const nm_str_t *name, int on_off);
 static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *net,
                                int action);
@@ -146,7 +144,7 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
     req.i.ifi_family = AF_UNSPEC;
     req.i.ifi_flags |= IFF_UP | IFF_MULTICAST | IFF_ALLMULTI;
 
-    mac_len = nm_net_mac_a2n(maddr, macn, sizeof(macn));
+    mac_len = nm_net_mac_s2a(maddr, macn, sizeof(macn));
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_ADDRESS,
             macn, mac_len) != NM_OK))
     {
@@ -434,7 +432,7 @@ int nm_net_fix_tap_name(nm_str_t *name, const nm_str_t *maddr)
     return 1;
 }
 
-void nm_net_mac_n2a(uint64_t maddr, nm_str_t *res)
+void nm_net_mac_n2s(uint64_t maddr, nm_str_t *res)
 {
     char buf[64] = {0};
     int pos = 0;
@@ -452,8 +450,7 @@ void nm_net_mac_n2a(uint64_t maddr, nm_str_t *res)
     nm_str_alloc_text(res, buf);
 }
 
-#if defined (NM_OS_LINUX)
-static size_t nm_net_mac_a2n(const nm_str_t *addr, char *res, size_t len)
+static size_t nm_net_mac_s2a(const nm_str_t *addr, char *res, size_t len)
 {
     nm_str_t copy = NM_INIT_STR;
     size_t n = 0;
@@ -484,7 +481,20 @@ static size_t nm_net_mac_a2n(const nm_str_t *addr, char *res, size_t len)
 
     return n + 1;
 }
-#endif /* NM_OS_LINUX */
+
+uint64_t nm_net_mac_s2n(const nm_str_t *addr)
+{
+    uint64_t mac = 0;
+    unsigned char buf[6];
+    const size_t buf_len = nm_arr_len(buf);
+
+    nm_net_mac_s2a(addr, (char *)buf, buf_len);
+
+    for (size_t i = 0; i < buf_len; ++i)
+        mac |= ((uint64_t)buf[i]) << 8 * (buf_len - 1 - i);
+
+    return mac;
+}
 
 static void nm_net_manage_tap(const nm_str_t *name, int on_off)
 {

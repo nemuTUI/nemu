@@ -104,7 +104,9 @@ static void nm_add_vm_main(int import)
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
-    nm_form_get_last(&last_mac, &last_vnc);
+    last_mac = nm_form_get_last_mac();
+    last_vnc = nm_form_get_free_vnc();
+
     nm_str_format(&vm.vncp, "%u", last_vnc);
 
     if (nm_add_vm_get_data(&vm, import) != NM_OK)
@@ -330,7 +332,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         nm_str_t maddr = NM_INIT_STR;
         mac++;
 
-        nm_net_mac_n2a(mac, &maddr);
+        nm_net_mac_n2s(mac, &maddr);
         nm_str_format(&if_name, "%s_eth%zu", vm->name.data, n);
         nm_str_copy(&if_name_copy, &if_name);
         altname = nm_net_fix_tap_name(&if_name, &maddr);
@@ -354,9 +356,6 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         nm_str_free(&if_name_copy);
         nm_str_free(&maddr);
     }
-
-    nm_form_update_last_mac(mac);
-    nm_form_update_last_vnc(nm_str_stoui(&vm->vncp, 10));
 
     nm_str_free(&query);
 }

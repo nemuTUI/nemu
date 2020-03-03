@@ -88,7 +88,7 @@ void nm_edit_vm(const nm_str_t *name)
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
-    nm_form_get_last(&last_mac, NULL);
+    last_mac = nm_form_get_last_mac();
 
     if (nm_edit_vm_get_data(&vm, &cur_settings) != NM_OK)
         goto out;
@@ -383,7 +383,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
                 nm_str_t maddr = NM_INIT_STR;
                 mac++;
 
-                nm_net_mac_n2a(mac, &maddr);
+                nm_net_mac_n2s(mac, &maddr);
                 nm_str_format(&if_name, "%s_eth%zu",
                     nm_vect_str_ctx(&cur->main, NM_SQL_NAME), n);
                 nm_str_copy(&if_name_copy, &if_name);
@@ -410,8 +410,6 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
                 nm_str_free(&if_name_copy);
                 nm_str_free(&maddr);
             }
-
-            nm_form_update_last_mac(mac);
         }
     }
 
