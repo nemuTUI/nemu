@@ -269,7 +269,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             goto out;
         }
         if ((srcp_len > 4) &&
-            (nm_str_cmp_tt(iso + (srcp_len - 4), ".iso") == NM_OK))
+            (nm_str_case_cmp_tt(iso + (srcp_len - 4), ".iso") == NM_OK))
         {
             nm_vect_insert_cstr(argv, "-boot");
             nm_vect_insert_cstr(argv, "d");

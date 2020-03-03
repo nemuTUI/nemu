@@ -101,6 +101,14 @@ int nm_str_cmp_tt(const char *text1, const char *text2)
     return NM_OK;
 }
 
+int nm_str_case_cmp_tt(const char *text1, const char *text2)
+{
+    if (strcasecmp(text1, text2) != 0)
+        return NM_ERR;
+
+    return NM_OK;
+}
+
 int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2)
 {
     assert(str1 != NULL);
