@@ -791,7 +791,7 @@ int nm_net_check_port(const uint16_t port, const int type, const uint32_t inaddr
     struct sockaddr_in addr;
 
     int sock = socket(AF_INET, type, 0);
-    if(!sock)
+    if (!sock)
         nm_bug("%s: couldn't create socket", __func__);
 
     addr.sin_family = AF_INET;

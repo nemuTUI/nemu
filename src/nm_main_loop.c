@@ -6,6 +6,7 @@
 #include <nm_string.h>
 #include <nm_window.h>
 #include <nm_add_vm.h>
+#include <nm_viewer.h>
 #include <nm_machine.h>
 #include <nm_edit_vm.h>
 #include <nm_clone_vm.h>
@@ -243,8 +244,8 @@ void nm_start_main_loop(void)
                 nm_edit_boot(name);
                 break;
 
-            case NM_KEY_G:
-                //nm_edit_viewer(name);
+            case NM_KEY_C_UP:
+                nm_viewer(name);
                 break;
 
 #ifdef NM_SAVEVM_SNAPSHOTS

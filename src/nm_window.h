@@ -66,6 +66,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_LAN        "Connected VM's"
 #define NM_MSG_EDIT_VM    "Edit properties"
 #define NM_MSG_EDIT_BOOT  "Edit boot settings"
+#define NM_MSG_EDIT_VIEW  "Edit display settings"
 #define NM_MSG_9P_SHARE   "Share host filesystem"
 #define NM_MSG_USB_ATTACH "Attach USB device"
 #define NM_MSG_USB_DETACH "Detach USB device"
@@ -160,6 +161,7 @@ enum nm_key {
 
 enum nm_key_upper {
     NM_KEY_A_UP = 65,
+    NM_KEY_C_UP = 67,
     NM_KEY_D_UP = 68,
     NM_KEY_I_UP = 73,
     NM_KEY_N_UP = 78,

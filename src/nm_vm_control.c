@@ -855,8 +855,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         if (curr_port > 0xffff)
             nm_bug("%s: port number overflow", __func__);
 
-        nm_debug("%u\n", curr_port);
-
         if (!nm_net_check_port((uint16_t)curr_port, SOCK_STREAM, in_addr))
         {
             nm_vect_t vms_ports = NM_INIT_VECT;
@@ -873,7 +871,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
             for (curr_port = NM_STARTING_VNC_PORT; curr_port <= 0xffff; ++curr_port)
             {
-                nm_debug("%u\n", curr_port);
                 if (bsearch(&curr_port, occupied_ports, vms_ports.n_memb, sizeof(uint32_t), compar_uint32_t))
                     continue;
 
