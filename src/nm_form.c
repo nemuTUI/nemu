@@ -463,7 +463,10 @@ uint64_t nm_form_get_last_mac()
 
     nm_db_select("SELECT MAX(mac_addr) FROM ifaces", &res);
 
-    mac = nm_net_mac_s2n(res.data[0]);
+    if (!res.n_memb)
+        mac = 0xdeadbeef0000;
+    else
+        mac = nm_net_mac_s2n(res.data[0]);
 
     nm_vect_free(&res, nm_str_vect_free_cb);
 
