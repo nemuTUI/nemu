@@ -556,8 +556,8 @@ void nm_print_help(void)
         "c",
 #endif
         "p", "z", "f", "d", "e", "i",
-        "a", "l", "b", "h", "m", "v",
-        "u", "P", "R",
+        "C", "a", "l", "b", "h", "m",
+        "v", "u", "P", "R",
 #if (NM_SAVEVM_SNAPSHOTS)
         "S", "X", "D",
 #endif
@@ -579,6 +579,7 @@ void nm_print_help(void)
         "delete vm",
         "edit vm settings",
         "edit network settings",
+        "edit viewer settings",
         "add virtual disk",
         "clone vm",
         "edit boot settings",
