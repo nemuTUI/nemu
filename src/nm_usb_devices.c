@@ -194,7 +194,7 @@ static inline void nm_usb_dev_free(nm_usb_dev_t *dev)
 #if defined (NM_OS_LINUX)
 static const char *nm_usb_hwdb_get(const char *modalias, const char *key)
 {
-    struct udev_list_entry *entry;
+    struct udev_list_entry *entry = NULL;
 
     udev_list_entry_foreach(entry, udev_hwdb_get_properties_list_entry(hwdb, modalias, 0))
     {
