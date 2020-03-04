@@ -16,8 +16,6 @@ enum {
     NM_FLD_KERN,
     NM_FLD_CMDL,
     NM_FLD_INIT,
-    NM_FLD_TTYP,
-    NM_FLD_SOCK,
     NM_FLD_DEBP,
     NM_FLD_DEBF,
     NM_FLD_COUNT
@@ -28,8 +26,7 @@ static nm_field_t *fields[NM_FLD_COUNT + 1];
 static const char *nm_form_msg[] = {
     "OS Installed", "Path to ISO/IMG", "Machine type",
     "Path to BIOS", "Path to kernel", "Kernel cmdline",
-    "Path to initrd", "Serial TTY", "Serial socket",
-    "GDB debug port", "Freeze after start",
+    "Path to initrd", "GDB debug port", "Freeze after start",
     NULL
 };
 
@@ -96,8 +93,6 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
     set_field_type(fields[NM_FLD_KERN], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_CMDL], TYPE_REGEXP, ".*");
     set_field_type(fields[NM_FLD_INIT], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[NM_FLD_TTYP], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[NM_FLD_SOCK], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_DEBP], TYPE_INTEGER, 1, 0, 65535);
     set_field_type(fields[NM_FLD_DEBF], TYPE_ENUM, nm_form_yes_no, false, false);
 
@@ -115,8 +110,6 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
     set_field_buffer(fields[NM_FLD_KERN], 0, nm_vect_str_ctx(&cur->main, NM_SQL_KERN));
     set_field_buffer(fields[NM_FLD_CMDL], 0, nm_vect_str_ctx(&cur->main, NM_SQL_KAPP));
     set_field_buffer(fields[NM_FLD_INIT], 0, nm_vect_str_ctx(&cur->main, NM_SQL_INIT));
-    set_field_buffer(fields[NM_FLD_TTYP], 0, nm_vect_str_ctx(&cur->main, NM_SQL_TTY));
-    set_field_buffer(fields[NM_FLD_SOCK], 0, nm_vect_str_ctx(&cur->main, NM_SQL_SOCK));
     set_field_buffer(fields[NM_FLD_DEBP], 0, nm_vect_str_ctx(&cur->main, NM_SQL_DEBP));
     if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_DEBF), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_DEBF], 0, nm_form_yes_no[0]);
@@ -152,8 +145,6 @@ static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
     nm_get_field_buf(fields[NM_FLD_KERN], &vm->kernel);
     nm_get_field_buf(fields[NM_FLD_CMDL], &vm->cmdline);
     nm_get_field_buf(fields[NM_FLD_INIT], &vm->initrd);
-    nm_get_field_buf(fields[NM_FLD_TTYP], &vm->tty);
-    nm_get_field_buf(fields[NM_FLD_SOCK], &vm->socket);
     nm_get_field_buf(fields[NM_FLD_DEBP], &vm->debug_port);
     nm_get_field_buf(fields[NM_FLD_DEBF], &debug_freeze);
 
@@ -238,20 +229,6 @@ static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
     {
         nm_str_format(&query, "UPDATE vms SET initrd='%s' WHERE name='%s'",
             vm->initrd.data, name->data);
-        nm_db_edit(query.data);
-    }
-
-    if (field_status(fields[NM_FLD_TTYP]))
-    {
-        nm_str_format(&query, "UPDATE vms SET tty_path='%s' WHERE name='%s'",
-            vm->tty.data, name->data);
-        nm_db_edit(query.data);
-    }
-
-    if (field_status(fields[NM_FLD_SOCK]))
-    {
-        nm_str_format(&query, "UPDATE vms SET socket_path='%s' WHERE name='%s'",
-            vm->socket.data, name->data);
         nm_db_edit(query.data);
     }
 
