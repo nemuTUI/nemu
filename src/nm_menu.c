@@ -39,7 +39,7 @@ void nm_print_base_menu(nm_menu_data_t *ifs)
         space_num = (screen_x - if_name.len - 4);
         if (space_num > 0)
         {
-            for (int n = 0; n < space_num; n++)
+            for (int s = 0; s < space_num; s++)
                 nm_str_add_char_opt(&if_name, ' ');
         }
 
@@ -89,7 +89,7 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         space_num = (screen_x - vm_name.len - 4);
         if (space_num > 0)
         {
-            for (int n = 0; n < space_num; n++)
+            for (int s = 0; s < space_num; s++)
                 nm_str_add_char_opt(&vm_name, ' ');
         }
 
@@ -222,7 +222,7 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
         space_num = (screen_x - veth_name.len - 4);
         if (space_num > 0)
         {
-            for (int n = 0; n < space_num; n++)
+            for (int s = 0; s < space_num; s++)
                 nm_str_add_char_opt(&veth_name, ' ');
         }
 

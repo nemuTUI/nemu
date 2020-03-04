@@ -167,13 +167,11 @@ static int nm_viewer_get_data(nm_view_data_t *vm)
 static void nm_viewer_update_db(const nm_str_t *name, nm_view_data_t *vm)
 {
     nm_str_t query = NM_INIT_STR;
-    uint32_t vnc_port;
-    int sync_on = 0;
 
 #if defined(NM_WITH_SPICE)
-    int spice_on = 0;
-
     if (field_status(fields[NM_FLD_SPICE])) {
+        int spice_on = 0;
+
         if (nm_str_cmp_st(&vm->spice, "yes") == NM_OK)
             spice_on = 1;
         nm_str_format(&query, "UPDATE vms SET spice='%s' WHERE name='%s'",
@@ -181,8 +179,9 @@ static void nm_viewer_update_db(const nm_str_t *name, nm_view_data_t *vm)
         nm_db_edit(query.data);
     }
 #endif /* NM_WITH_SPICE */
+
     if (field_status(fields[NM_FLD_PORT])) {
-        vnc_port = nm_str_stoui(&vm->port, 10) - NM_STARTING_VNC_PORT;
+        uint32_t vnc_port = nm_str_stoui(&vm->port, 10) - NM_STARTING_VNC_PORT;
         nm_str_format(&query, "UPDATE vms SET vnc='%u' WHERE name='%s'",
                 vnc_port, name->data);
         nm_db_edit(query.data);
@@ -202,6 +201,8 @@ static void nm_viewer_update_db(const nm_str_t *name, nm_view_data_t *vm)
 
     if (field_status(fields[NM_FLD_SYNC]))
     {
+        int sync_on = 0;
+
         if (nm_str_cmp_st(&vm->sync, "yes") == NM_OK)
             sync_on = 1;
         nm_str_format(&query, "UPDATE vms SET mouse_override='%s' WHERE name='%s'",

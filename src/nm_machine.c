@@ -38,9 +38,9 @@ static void nm_mach_init(void)
         nm_debug("Get machine list for %s:\n",
             nm_mach_arch(nm_machs.data[n])->data);
 
-        for (size_t n = 0; n < v->n_memb; n++)
+        for (size_t m = 0; m < v->n_memb; m++)
         {
-            nm_debug(">> mach: %s\n", (char *) v->data[n]);
+            nm_debug(">> mach: %s\n", (char *) v->data[m]);
         }
     }
 #endif

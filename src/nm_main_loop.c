@@ -31,7 +31,7 @@ static int nm_search_cmp_cb(const void *s1, const void *s2);
 
 void nm_start_main_loop(void)
 {
-    int ch, nemu = 0, regen_data = 1;
+    int nemu = 0, regen_data = 1;
     int clear_action = 1;
     size_t vm_list_len, old_hl = 0;
     nm_menu_data_t vms = NM_INIT_MENU_DATA;
@@ -58,6 +58,8 @@ void nm_start_main_loop(void)
 
     for (;;)
     {
+        int ch;
+
         if (regen_data)
         {
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
@@ -291,8 +293,8 @@ void nm_start_main_loop(void)
                     break;
                 }
                 {
-                    int ch = nm_notify(_(NM_MSG_DELETE));
-                    if (ch == 'y')
+                    int ans = nm_notify(_(NM_MSG_DELETE));
+                    if (ans == 'y')
                     {
                         nm_vmctl_delete(name);
                         regen_data = 1;

@@ -326,7 +326,6 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     if (field_status(fields[NM_FLD_IFSCNT]))
     {
         size_t cur_count = cur->ifs.n_memb / NM_IFS_IDX_COUNT;
-        int altname;
 
         if (vm->ifs.count < cur_count)
         {
@@ -346,6 +345,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
         {
             for (size_t n = cur_count; n < vm->ifs.count; n++)
             {
+                int altname;
                 nm_str_t if_name = NM_INIT_STR;
                 nm_str_t if_name_copy = NM_INIT_STR;
                 nm_str_t maddr = NM_INIT_STR;

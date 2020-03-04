@@ -57,7 +57,7 @@ static void nm_mon_cleanup(int rc, void *arg)
     nm_vect_free(data->mon_list, NULL);
     nm_vect_free(data->vm_list, nm_str_vect_free_cb);
 
-#if NM_WITH_DBUS
+#if defined (NM_WITH_DBUS)
     nm_dbus_disconnect();
 #endif
 
@@ -166,7 +166,6 @@ void nm_mon_loop(void)
         exit(EXIT_FAILURE);
     default: /* parent */
         nm_exit_core();
-        exit(EXIT_SUCCESS);
     }
 
     if (setsid() < 0) {
@@ -179,9 +178,10 @@ void nm_mon_loop(void)
         exit(EXIT_FAILURE);
     }
 
+#if defined (NM_OS_LINUX)
     clean.mon_list = &mon_list;
     clean.vm_list = &vm_list;
-#if defined (NM_OS_LINUX)
+
     if (on_exit(nm_mon_cleanup, &clean) != 0) {
         fprintf(stderr, "%s: on_exit(3) failed\n", __func__);
         exit(EXIT_FAILURE);
@@ -208,7 +208,7 @@ void nm_mon_loop(void)
 
     nm_db_init();
     nm_mon_build_list(&mon_list, &vm_list);
-#if NM_WITH_DBUS
+#if defined (NM_WITH_DBUS)
     if (nm_dbus_connect() != NM_OK) {
         exit(EXIT_FAILURE);
     }
@@ -235,7 +235,7 @@ static void nm_mon_check_vms(const nm_vect_t *mon_list)
         if (nm_qmp_test_socket(nm_mon_item_get_name(mon_list, n)) == NM_OK) {
             if (!status) {
                 nm_str_format(&body, "%s started", name);
-#if NM_WITH_DBUS
+#if defined (NM_WITH_DBUS)
                 nm_dbus_send_notify("VM status changed:", body.data);
 #endif
             }
@@ -243,7 +243,7 @@ static void nm_mon_check_vms(const nm_vect_t *mon_list)
         } else {
             if (status == 1) {
                 nm_str_format(&body, "%s stoped", name);
-#if NM_WITH_DBUS
+#if defined (NM_WITH_DBUS)
                 nm_dbus_send_notify("VM status changed:", body.data);
 #endif
             }

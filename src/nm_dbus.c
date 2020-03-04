@@ -1,6 +1,6 @@
 #include <nm_core.h>
 #include <nm_utils.h>
-#if NM_WITH_DBUS
+#if defined (NM_WITH_DBUS)
 #include <dbus/dbus.h>
 #endif
 
@@ -8,7 +8,7 @@
 #define DBUS_NOTIFY_INTERFACE "org.freedesktop.Notifications"
 #define DBUS_NOTIFY_METHOD    "Notify"
 
-#if NM_WITH_DBUS
+#if defined (NM_WITH_DBUS)
 static DBusConnection* dbus_conn = NULL;
 static DBusError dbus_err;
 

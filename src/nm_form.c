@@ -350,7 +350,6 @@ void *nm_file_progress(void *data)
     const nm_vm_t *vm = dp->ctx;
     nm_str_t dst = NM_INIT_STR;
     struct stat img_info, dst_info;
-    int64_t perc = 0;
 
     memset(&ts, 0x0, sizeof(ts));
     ts.tv_nsec = 1e+8;
@@ -364,6 +363,7 @@ void *nm_file_progress(void *data)
 
     for (;;)
     {
+        int64_t perc;
         memset(&dst_info, 0x0, sizeof(dst_info));
 
         if (*dp->stop)

@@ -41,7 +41,7 @@ void nm_svg_map(const char *path, const nm_vect_t *veths,
     agattr(graph, AGRAPH, "sep", "+25,25");
 
     //@TODO Some of variables may be moved outside, and freed only once
-    for (size_t n = 0; n < veths->n_memb; n++)
+    for (size_t v = 0; v < veths->n_memb; v++)
     {
         nm_vect_t vms = NM_INIT_VECT;
         nm_str_t lname = NM_INIT_STR;
@@ -50,7 +50,7 @@ void nm_svg_map(const char *path, const nm_vect_t *veths,
         nm_gvnode_t *vnode;
         size_t vms_count;
 
-        nm_lan_parse_name(nm_vect_str(veths, n), &lname, &rname);
+        nm_lan_parse_name(nm_vect_str(veths, v), &lname, &rname);
 
         switch (state) {
         case NM_SVG_STATE_UP:
@@ -65,7 +65,7 @@ void nm_svg_map(const char *path, const nm_vect_t *veths,
             break;
         }
 
-        vnode = agnode(graph, nm_vect_str_ctx(veths, n), NM_TRUE);
+        vnode = agnode(graph, nm_vect_str_ctx(veths, v), NM_TRUE);
         agsafeset(vnode, NM_GV_STYLE, NM_GV_FILL, NM_EMPTY_STR);
         agsafeset(vnode, NM_GV_FCOL, NM_VE_COLOR, NM_EMPTY_STR);
         agsafeset(vnode, NM_GV_SHAPE, NM_GV_RECT, NM_EMPTY_STR);

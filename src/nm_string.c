@@ -14,12 +14,6 @@ void nm_str_alloc_text(nm_str_t *str, const char *src)
     nm_str_alloc_mem(str, src, len);
 }
 
-void nm_str_alloc_str(nm_str_t *str, const nm_str_t *src)
-{
-    assert(src != NULL);
-    nm_str_alloc_mem(str, src->data, src->len);
-}
-
 void nm_str_add_char(nm_str_t *str, char ch)
 {
     nm_str_append_mem(str, &ch, sizeof(ch));
@@ -120,17 +114,6 @@ int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2)
     return NM_OK;
 }
 
-int nm_strn_cmp_ss(const nm_str_t *str1, const nm_str_t *str2)
-{
-    assert(str1 != NULL);
-    assert(str2 != NULL);
-
-    if (strncmp(str1->data, str2->data, strlen(str1->data)) != 0)
-        return NM_ERR;
-
-    return NM_OK;
-}
-
 uint32_t nm_str_stoui(const nm_str_t *str, int base)
 {
     uint64_t res;
@@ -217,6 +200,7 @@ void nm_str_dirname(const nm_str_t *str, nm_str_t *res)
     nm_str_alloc_mem(res, data, pos);
 }
 
+#if 0
 void nm_str_basename(const nm_str_t *str, nm_str_t *res)
 {
     nm_str_t path = NM_INIT_STR;
@@ -260,6 +244,7 @@ void nm_str_basename(const nm_str_t *str, nm_str_t *res)
     nm_str_alloc_mem(res, path_end, strlen(path_end));
     nm_str_free(&path);
 }
+#endif
 
 void nm_str_append_format(nm_str_t *str, const char *fmt, ...)
 {
@@ -393,8 +378,11 @@ static void nm_str_alloc_mem(nm_str_t *str, const char *src, size_t len)
         str->alloc_bytes = len_needed;
     }
 
-    memcpy(str->data, src, len);
-    str->data[len] = '\0';
+    if (src) {
+        memcpy(str->data, src, len);
+        str->data[len] = '\0';
+    }
+
     str->len = len;
 }
 

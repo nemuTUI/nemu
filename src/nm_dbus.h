@@ -1,7 +1,7 @@
 #ifndef NM_DBUS_H_
 #define NM_DBUS_H_
 
-#if NM_WITH_DBUS
+#if defined(NM_WITH_DBUS)
 void nm_dbus_send_notify(const char *title, const char *body);
 int nm_dbus_connect(void);
 void nm_dbus_disconnect(void);

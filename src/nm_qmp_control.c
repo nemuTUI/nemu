@@ -20,10 +20,6 @@ static const char NM_QMP_CMD_VM_CONT[]  = "{\"execute\":\"cont\"}";
 static const char NM_QMP_CMD_EXECUTE[]  = \
     "{\"execute\":\"%s\",\"arguments\":{\"name\":\"%s\"}}";
 
-static const char NM_QMP_CMD_SNAP_SYNC[] = \
-    "{\"execute\":\"blockdev-snapshot-sync\",\"arguments\":{\"device\":\"%s\"," \
-    "\"snapshot-file\":\"%s\",\"format\":\"qcow2\"}}";
-
 static const char NM_QMP_CMD_USB_ADD[] = \
     "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"usb-host\"," \
     "\"hostbus\":\"%u\",\"hostaddr\":\"%u\",\"id\":\"usb-%s-%s-%s\"}}";
@@ -95,27 +91,6 @@ void nm_qmp_vm_resume(const nm_str_t *name)
     struct timeval tv = { .tv_sec = 0, .tv_usec = 1000000 }; /* 1s */
 
     nm_qmp_vm_exec(name, NM_QMP_CMD_VM_CONT, &tv);
-}
-
-int nm_qmp_drive_snapshot(const nm_str_t *name, const nm_str_t *drive,
-                          const nm_str_t *path)
-{
-    nm_str_t qmp_query = NM_INIT_STR;
-    struct timeval tv;
-    int rc;
-
-    tv.tv_sec = 10;
-    tv.tv_usec = 0; /* 10 s */
-
-    nm_str_format(&qmp_query, NM_QMP_CMD_SNAP_SYNC,
-        drive->data, path->data);
-
-    nm_debug("exec qmp: %s\n", qmp_query.data);
-    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
-
-    nm_str_free(&qmp_query);
-
-    return rc;
 }
 
 int nm_qmp_savevm(const nm_str_t *name, const nm_str_t *snap)

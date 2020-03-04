@@ -176,10 +176,8 @@ void nm_lan_settings(void)
         }
 
         if (veths.n_memb > 0)
-            nm_menu_scroll(&veths_data, veth_list_len, ch);
-
-        if (veths.n_memb > 0)
         {
+            nm_menu_scroll(&veths_data, veth_list_len, ch);
             werase(action_window);
             nm_init_action(_(NM_MSG_LAN));
             nm_print_veth_menu(&veths_data, renew_status);
@@ -494,7 +492,7 @@ void nm_lan_create_veth(int info)
 static void nm_lan_export_svg(const nm_vect_t *veths)
 {
     nm_form_t *form = NULL;
-    nm_field_t *fields[NM_SVG_FIELDS_NUM + 1] = {NULL};
+    nm_field_t *sfields[NM_SVG_FIELDS_NUM + 1] = {NULL};
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     nm_vect_t err = NM_INIT_VECT;
     nm_str_t path = NM_INIT_STR;
@@ -508,15 +506,15 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
         return;
 
     for (size_t n = 0; n < NM_SVG_FIELDS_NUM; ++n)
-        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+        sfields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
-    fields[NM_SVG_FIELDS_NUM] = NULL;
+    sfields[NM_SVG_FIELDS_NUM] = NULL;
 
-    set_field_type(fields[NM_SVG_FLD_PATH], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[NM_SVG_FLD_TYPE], TYPE_ENUM, nm_form_svg_state, false, false);
-    set_field_type(fields[NM_SVG_FLD_LAYT], TYPE_ENUM, nm_form_svg_layout, false, false);
-    set_field_buffer(fields[NM_SVG_FLD_TYPE], 0, nm_form_svg_state[0]);
-    set_field_buffer(fields[NM_SVG_FLD_LAYT], 0, nm_form_svg_layout[0]);
+    set_field_type(sfields[NM_SVG_FLD_PATH], TYPE_REGEXP, "^/.*");
+    set_field_type(sfields[NM_SVG_FLD_TYPE], TYPE_ENUM, nm_form_svg_state, false, false);
+    set_field_type(sfields[NM_SVG_FLD_LAYT], TYPE_ENUM, nm_form_svg_layout, false, false);
+    set_field_buffer(sfields[NM_SVG_FLD_TYPE], 0, nm_form_svg_state[0]);
+    set_field_buffer(sfields[NM_SVG_FLD_LAYT], 0, nm_form_svg_layout[0]);
 
     werase(action_window);
     werase(help_window);
@@ -529,13 +527,13 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
         y += 2;
     }
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    form = nm_post_form(form_data.form_window, sfields, msg_len + 4, NM_TRUE);
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
-    nm_get_field_buf(fields[NM_SVG_FLD_PATH], &path);
-    nm_get_field_buf(fields[NM_SVG_FLD_TYPE], &type);
-    nm_get_field_buf(fields[NM_SVG_FLD_LAYT], &layout);
+    nm_get_field_buf(sfields[NM_SVG_FLD_PATH], &path);
+    nm_get_field_buf(sfields[NM_SVG_FLD_TYPE], &type);
+    nm_get_field_buf(sfields[NM_SVG_FLD_LAYT], &layout);
     nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_PATH]), path, err);
     nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_TYPE]), type, err);
     nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_LAYT]), layout, err);
@@ -565,7 +563,7 @@ out:
     nm_str_free(&path);
     nm_str_free(&type);
     nm_str_free(&layout);
-    nm_form_free(form, fields);
+    nm_form_free(form, sfields);
     delwin(form_data.form_window);
 }
 #endif /* NM_WITH_NETWORK_MAP */

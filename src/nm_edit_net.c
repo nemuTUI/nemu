@@ -43,13 +43,6 @@ typedef struct {
                         NM_INIT_STR, NM_INIT_STR }
 #endif
 
-typedef struct {
-    char *name;
-    size_t if_idx;
-} nm_sel_iface_t;
-
-#define NM_INIT_SEL_IF (nm_sel_iface_t) { NULL, 0 }
-
 static nm_field_t *fields[NM_NET_FIELDS_NUM + 1];
 
 static void nm_edit_net_field_names(nm_window_t *w);

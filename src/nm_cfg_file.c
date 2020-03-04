@@ -201,7 +201,7 @@ void nm_cfg_init(void)
     } else {
         cfg.daemon_sleep = NM_MON_SLEEP;
     }
-#if NM_WITH_DBUS
+#if defined (NM_WITH_DBUS)
     nm_str_trunc(&tmp_buf, 0);
     if (nm_get_opt_param(ini, NM_INI_S_DMON, NM_INI_P_DYES, &tmp_buf) == NM_OK) {
         cfg.dbus_enabled = !!nm_str_stoui(&tmp_buf, 10);
@@ -262,7 +262,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
     case 'Y':
         {
             FILE *cfg_file;
-            char ch;
+            int ch;
             nm_str_t db = NM_INIT_STR;
 #ifdef NM_WITH_VNC_CLIENT
             nm_str_t vnc_bin = NM_INIT_STR;

@@ -139,7 +139,6 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     uint32_t last_vnc;
     size_t ifs_count;
     size_t drives_count;
-    int altname = 0;
     char drv_ch = 'a';
 
     last_mac = nm_form_get_last_mac();
@@ -153,6 +152,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
 
     for (size_t n = 0; n < ifs_count; n++)
     {
+        int altname;
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
         nm_str_t if_name = NM_INIT_STR;
         nm_str_t if_name_copy = NM_INIT_STR;

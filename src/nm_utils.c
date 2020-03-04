@@ -132,7 +132,6 @@ static void nm_copy_file_sendfile(int in_fd, int out_fd)
 {
     off_t offset = 0;
     struct stat file_info;
-    int rc;
 
     memset(&file_info, 0, sizeof(file_info));
 
@@ -141,6 +140,8 @@ static void nm_copy_file_sendfile(int in_fd, int out_fd)
 
     while (offset < file_info.st_size)
     {
+        int rc;
+
         if ((rc = sendfile(out_fd, in_fd, &offset, file_info.st_size)) == -1)
             nm_bug("%s: cannot copy file: %s", __func__, strerror(errno));
 
@@ -161,11 +162,10 @@ static void nm_copy_file_default(int in_fd, int out_fd)
 
     while ((nread = read(in_fd, buf, NM_BLKSIZE)) > 0)
     {
-        ssize_t nwrite;
         char *bufsp = buf;
 
         do {
-            nwrite = write(out_fd, bufsp, NM_BLKSIZE);
+            ssize_t nwrite = write(out_fd, bufsp, NM_BLKSIZE);
 
             if (nwrite >= 0)
             {

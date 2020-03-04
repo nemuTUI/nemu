@@ -271,7 +271,6 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
                      int import, const nm_vect_t *drives)
 {
     nm_str_t query = NM_INIT_STR;
-    int altname = 0;
 
     /* insert main VM data */
     nm_str_format(&query,
@@ -327,6 +326,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     /* insert network interface info */
     for (size_t n = 0; n < vm->ifs.count; n++)
     {
+        int altname;
         nm_str_t if_name = NM_INIT_STR;
         nm_str_t if_name_copy = NM_INIT_STR;
         nm_str_t maddr = NM_INIT_STR;

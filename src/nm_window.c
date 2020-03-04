@@ -78,9 +78,9 @@ NM_HELP_GEN(delete)
 void nm_create_windows(void)
 {
     int action_cols, screen_x, screen_y;
-    nm_cord_t help_size = NM_INIT_POS;
-    nm_cord_t side_size = NM_INIT_POS;
-    nm_cord_t action_size = NM_INIT_POS;
+    nm_cord_t help_size;
+    nm_cord_t side_size;
+    nm_cord_t action_size;
 
     getmaxyx(stdscr, screen_y, screen_x);
     action_cols = screen_x * nm_window_scale;
@@ -487,36 +487,32 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
     /* print PID */
     {
         int fd;
-
-#if defined (NM_OS_LINUX)
-        float usage;
-#endif
-
         nm_str_t pid_path = NM_INIT_STR;
-        ssize_t nread;
-        char pid[10];
-        int pid_num = 0;
 
         nm_str_format(&pid_path, "%s/%s/%s",
             nm_cfg_get()->vm_dir.data, name->data, NM_VM_PID_FILE);
 
         if ((status && (fd = open(pid_path.data, O_RDONLY)) != -1))
         {
+            char pid[10];
+            ssize_t nread;
+
             if ((nread = read(fd, pid, sizeof(pid))) > 0)
             {
                 pid[nread - 1] = '\0';
-                pid_num = atoi(pid);
+                int pid_num = atoi(pid);
+
                 nm_str_format(&buf, "%-12s%d", "pid: ", pid_num);
                 NM_PR_VM_INFO();
+#if defined (NM_OS_LINUX)
+                float usage = nm_stat_get_usage(pid_num);
+                nm_str_format(&buf, "%-12s%0.1f%%", "cpu usage: ", usage);
+                mvwhline(action_window, y, 1, ' ', cols - 4);
+                NM_PR_VM_INFO();
+#endif
             }
             close(fd);
 
-#if defined (NM_OS_LINUX)
-            usage = nm_stat_get_usage(pid_num);
-            nm_str_format(&buf, "%-12s%0.1f%%", "cpu usage: ", usage);
-            mvwhline(action_window, y, 1, ' ', cols - 4);
-            NM_PR_VM_INFO();
-#endif
         }
         else /* clear PID file info and cpu usage data */
         {
@@ -619,7 +615,7 @@ nm_print_help__(const char **keys, const char **values,
                 size_t hotkey_num, size_t maxlen)
 {
     size_t cols, rows;
-    size_t n = 0, last = 0;
+    size_t n = 0;
     int perc;
     nm_str_t help_title = NM_INIT_STR;
 
@@ -647,15 +643,16 @@ nm_print_help__(const char **keys, const char **values,
 
     if (perc != 100)
     {
-        int ch;
         size_t shift = 0;
 
         for (;;)
         {
-            ch = wgetch(action_window);
+            int ch = wgetch(action_window);
 
             if (ch == NM_KEY_ENTER)
             {
+                size_t last = 0;
+
                 shift++;
                 n = shift;
                 werase(action_window);

@@ -35,7 +35,7 @@ typedef struct {
     nm_vect_t qemu_targets;
     nm_rgb_t hl_color;
     uint64_t daemon_sleep;
-#if NM_WITH_DBUS
+#if defined (NM_WITH_DBUS)
     uint32_t dbus_enabled:1;
     int64_t dbus_timeout;
 #endif

@@ -256,7 +256,6 @@ static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
     nm_archive_t *in, *out;
     nm_archive_entry_t *ar_entry;
     char cwd[PATH_MAX] = {0};
-    int rc;
 
     in = archive_read_new();
     out = archive_write_disk_new();
@@ -278,7 +277,7 @@ static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
     for (;;)
     {
         const char *file;
-        rc = archive_read_next_header(in, &ar_entry);
+        int rc = archive_read_next_header(in, &ar_entry);
 
         if (rc == ARCHIVE_EOF)
             break;
@@ -315,7 +314,6 @@ static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
 
 static void nm_archive_copy_data(nm_archive_t *in, nm_archive_t *out)
 {
-    int rc;
     const void *buf;
     size_t size;
 #if ARCHIVE_VERSION_NUMBER >= 3000000
@@ -326,7 +324,8 @@ static void nm_archive_copy_data(nm_archive_t *in, nm_archive_t *out)
 
     for (;;)
     {
-        rc = archive_read_data_block(in, &buf, &size, &offset);
+        int rc = archive_read_data_block(in, &buf, &size, &offset);
+
         if (rc == ARCHIVE_EOF)
             break;
         if (rc != ARCHIVE_OK)
@@ -554,7 +553,6 @@ static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
 {
     nm_xml_xpath_obj_pt obj;
     nm_xml_node_pt node;
-    nm_xml_char_t *xml_text;
 
     if ((obj = nm_exec_xpath(xpath, ctx)) == NULL)
         nm_bug("%s: cannot get %s from ovf file", __func__, param);
@@ -566,7 +564,7 @@ static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
 
     if ((node->type == XML_TEXT_NODE) || (node->type == XML_ATTRIBUTE_NODE))
     {
-        xml_text = xmlNodeGetContent(node);
+        nm_xml_char_t *xml_text = xmlNodeGetContent(node);
         nm_str_alloc_text(res, (char *) xml_text);
         xmlFree(xml_text);
     }

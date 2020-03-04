@@ -225,7 +225,7 @@ void nm_net_add_veth(const nm_str_t *l_name, const nm_str_t *r_name)
     data = nm_net_add_attr_nest(&req.n, sizeof(req), IFLA_INFO_DATA);
 
     {
-        struct rtattr *data;
+        struct rtattr *vdata;
         uint32_t ifi_flags, ifi_change;
         struct ifinfomsg *ifm, *peer_ifm;
 
@@ -235,7 +235,7 @@ void nm_net_add_veth(const nm_str_t *l_name, const nm_str_t *r_name)
         ifm->ifi_flags = 0;
         ifm->ifi_change = 0;
 
-        data = NLMSG_TAIL(&req.n);
+        vdata = NLMSG_TAIL(&req.n);
         if ((nm_net_add_attr(&req.n, sizeof(req), NM_NET_VETH_INFO_PEER,
                 NULL, 0) != NM_OK))
         {
@@ -249,14 +249,14 @@ void nm_net_add_veth(const nm_str_t *l_name, const nm_str_t *r_name)
             nm_bug("%s: Error add_attr", __func__);
         }
 
-        peer_ifm = RTA_DATA(data);
+        peer_ifm = RTA_DATA(vdata);
         peer_ifm->ifi_index = 0;
         peer_ifm->ifi_flags = ifm->ifi_flags;
         peer_ifm->ifi_change = ifm->ifi_change;
         ifm->ifi_flags = ifi_flags;
         ifm->ifi_change = ifi_change;
 
-        data->rta_len = (char *) NLMSG_TAIL(&req.n) - (char *) data;
+        vdata->rta_len = (char *) NLMSG_TAIL(&req.n) - (char *) vdata;
     }
 
     nm_net_add_attr_nest_end(&req.n, data);
@@ -374,10 +374,10 @@ int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
             break;
         case 1:
             {
-                nm_str_t buf = NM_INIT_STR;
-                nm_str_alloc_text(&buf, token);
-                netaddr.cidr = nm_str_stoui(&buf, 10);
-                nm_str_free(&buf);
+                nm_str_t tmp = NM_INIT_STR;
+                nm_str_alloc_text(&tmp, token);
+                netaddr.cidr = nm_str_stoui(&tmp, 10);
+                nm_str_free(&tmp);
             }
             break;
         default:
@@ -498,11 +498,11 @@ uint64_t nm_net_mac_s2n(const nm_str_t *addr)
 
 static void nm_net_manage_tap(const nm_str_t *name, int on_off)
 {
-    int fd = -1;
     struct ifreq ifr;
 
     memset(&ifr, 0, sizeof(ifr));
 #if defined (NM_OS_LINUX)
+    int fd;
     ifr.ifr_flags |= (IFF_NO_PI | IFF_TAP);
     nm_strlcpy(ifr.ifr_name, name->data, IFNAMSIZ);
 
@@ -517,6 +517,8 @@ static void nm_net_manage_tap(const nm_str_t *name, int on_off)
 
     if (on_off == NM_TAP_ON)
         nm_net_link_up(name);
+
+    close(fd);
 #elif defined (NM_OS_FREEBSD)
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == -1)
@@ -531,8 +533,6 @@ static void nm_net_manage_tap(const nm_str_t *name, int on_off)
     }
     close(sock);
 #endif /* NM_OS_LINUX */
-    if (fd > 0)
-        close(fd);
 }
 
 #if defined (NM_OS_LINUX)
