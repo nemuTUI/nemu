@@ -5,13 +5,16 @@ branches:
 script:
     - mkdir build && cd build
     - cmake ../ -DNM_DEBUG=ON -DNM_SAVEVM_SNAPSHOTS=ON -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON
-    - cppcheck --error-exitcode=42 --enable=all --suppress=unusedStructMember:../src/nm_network.c ../src
+    - >
+       cppcheck --error-exitcode=42 --enable=all
+       --suppress=unusedStructMember:../src/nm_network.c
+       --suppress=nullPointer:../src/nm_network.c ../src
     - make
 matrix:
   include:
     - os: linux
       dist: bionic
       compiler: gcc
-      before_install:
-        - "sudo apt-get install -qq libdbus-1-dev libncursesw5-dev libsqlite3-dev
-          libusb-1.0-0-dev libarchive-dev libgraphviz-dev libudev-dev cppcheck"
+      before_install: >
+        - sudo apt-get install -qq libdbus-1-dev libncursesw5-dev libsqlite3-dev
+          libusb-1.0-0-dev libarchive-dev libgraphviz-dev libudev-dev cppcheck

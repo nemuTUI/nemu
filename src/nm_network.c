@@ -561,10 +561,6 @@ static int nm_net_add_attr(struct nlmsghdr *n, size_t mlen,
     size_t len = RTA_LENGTH(dlen);
     struct rtattr *rta;
 
-    if (!data) {
-        return NM_ERR;
-    }
-
     if (NLMSG_ALIGN(n->nlmsg_len) + RTA_ALIGN(len) > mlen)
     {
         return NM_ERR;
