@@ -12,5 +12,5 @@ matrix:
     - os: linux
       compiler: gcc
       before_install:
-        - "sudo apt-get install -qq libgvc6 llibdbus-1-dev ibncursesw5-dev libsqlite3-dev
+        - "sudo apt-get install -qq libgvc6 libdbus-1-dev libncursesw5-dev libsqlite3-dev
           libusb-1.0-0-dev libarchive-dev libcgraph6 libudev-dev cppcheck"
