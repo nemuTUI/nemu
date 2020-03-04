@@ -103,6 +103,12 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=11'
             ) || RC=1
             ;;
+        # ( 11 )
+        #     (
+        #     sqlite3 "$DB_PATH" -line 'DROP TABLE IF EXISTS lastval;' &&
+        #     sqlite3 "$DB_PATH" -line 'PRAGMA user_version=12'
+        #     ) || RC=1
+        #     ;;
 
         ( * )
             echo "Unsupported database user_version" >&2
