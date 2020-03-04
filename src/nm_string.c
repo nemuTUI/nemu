@@ -350,6 +350,21 @@ size_t nm_strlcpy(char *dst, const char *src, size_t buflen)
     return ret;
 }
 
+void nm_str_append_to_vect(const nm_str_t *src, nm_vect_t *v, const char *delim)
+{
+    char *token, *saveptr;
+    nm_str_t buf = NM_INIT_STR;
+
+    nm_str_copy(&buf, src);
+    saveptr = buf.data;
+
+    while ((token = strtok_r(saveptr, delim, &saveptr))) {
+        nm_vect_insert_cstr(v, token);
+    }
+
+    nm_str_free(&buf);
+}
+
 void nm_str_vect_ins_cb(void *unit_p, const void *ctx)
 {
     nm_str_copy((nm_str_t *) unit_p, (const nm_str_t *) ctx);

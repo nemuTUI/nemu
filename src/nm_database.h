@@ -192,7 +192,9 @@ enum select_main_idx {
     NM_SQL_USBT,
     NM_SQL_SPICE,
     NM_SQL_DEBP,
-    NM_SQL_DEBF
+    NM_SQL_DEBF,
+    NM_SQL_ARGS,
+    NM_VM_IDX_COUNT
 };
 
 enum select_ifs_idx {

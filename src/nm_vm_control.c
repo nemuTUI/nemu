@@ -916,6 +916,19 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 #if defined (NM_WITH_SPICE)
     }
 #endif
+
+    if (nm_vect_str_len(&vm->main, NM_SQL_ARGS))
+    {
+        nm_vect_t args = NM_INIT_VECT;
+
+        nm_str_append_to_vect(nm_vect_str(&vm->main, NM_SQL_ARGS), &args, " ");
+
+        for (size_t n = 0; n < args.n_memb; n++)
+            nm_vect_insert_cstr(argv, args.data[n]);
+
+        nm_vect_free(&args, NULL);
+    }
+
     nm_vect_end_zero(argv);
 
     nm_cmd_str(&buf, argv);

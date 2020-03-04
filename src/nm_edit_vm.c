@@ -24,6 +24,7 @@ static const char NM_VM_FORM_DRV_IF[]    = "Disk interface";
 static const char NM_VM_FORM_USB[]       = "USB [yes/no]";
 static const char NM_VM_FORM_USBT[]      = "USB version";
 static const char NM_VM_FORM_MACH[]      = "Machine type";
+static const char NM_VM_FORM_ARGS[]      = "Extra QEMU args";
 
 static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur);
 static void nm_edit_vm_field_names(nm_vect_t *msg);
@@ -40,6 +41,7 @@ enum {
     NM_FLD_USBUSE,
     NM_FLD_USBTYP,
     NM_FLD_MACH,
+    NM_FLD_ARGS,
     NM_FLD_COUNT
 };
 
@@ -148,6 +150,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
         set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_form_usbtype[0]);
 
     set_field_buffer(fields[NM_FLD_MACH], 0, nm_vect_str_ctx(&cur->main, NM_SQL_MACH));
+    set_field_buffer(fields[NM_FLD_ARGS], 0, nm_vect_str_ctx(&cur->main, NM_SQL_ARGS));
 
     for (size_t n = 0; n < NM_FLD_COUNT; n++)
         set_field_status(fields[n], 0);
@@ -178,6 +181,7 @@ static void nm_edit_vm_field_names(nm_vect_t *msg)
     nm_vect_insert(msg, _(NM_VM_FORM_USB), strlen(_(NM_VM_FORM_USB)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_USBT), strlen(_(NM_VM_FORM_USBT)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_MACH), strlen(_(NM_VM_FORM_MACH)) + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_ARGS), strlen(_(NM_VM_FORM_ARGS)) + 1, NULL);
     nm_vect_end_zero(msg);
 
     nm_str_free(&buf);
@@ -203,6 +207,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     nm_get_field_buf(fields[NM_FLD_USBUSE], &usb);
     nm_get_field_buf(fields[NM_FLD_USBTYP], &usbv);
     nm_get_field_buf(fields[NM_FLD_MACH], &vm->mach);
+    nm_get_field_buf(fields[NM_FLD_ARGS], &vm->cmdappend);
 
     if (field_status(fields[NM_FLD_CPUNUM]))
         nm_form_check_data(_("CPU cores"), vm->cpus, err);
@@ -403,6 +408,13 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     {
         nm_str_format(&query, "UPDATE vms SET machine='%s' WHERE name='%s'",
             vm->mach.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+        nm_db_edit(query.data);
+    }
+
+    if (field_status(fields[NM_FLD_ARGS]))
+    {
+        nm_str_format(&query, "UPDATE vms SET cmdappend='%s' WHERE name='%s'",
+            vm->cmdappend.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 

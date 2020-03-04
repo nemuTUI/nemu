@@ -462,6 +462,12 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         nm_str_format(&buf, "%-12s", "freeze cpu: yes");
         NM_PR_VM_INFO();
     }
+    if (nm_vect_str_len(&vm->main, NM_SQL_ARGS))
+    {
+        nm_str_format(&buf,"%-12s%s", "extra args: ",
+                nm_vect_str_ctx(&vm->main, NM_SQL_ARGS));
+        NM_PR_VM_INFO();
+    }
 
     /* print host IP addresses for TAP ints */
     for (size_t n = 0; n < ifs_count; n++)
