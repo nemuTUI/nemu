@@ -454,7 +454,7 @@ static size_t nm_net_mac_s2a(const nm_str_t *addr, char *res, size_t len)
 {
     nm_str_t copy = NM_INIT_STR;
     size_t n = 0;
-    char *savep = NULL;
+    char *savep;
 
     nm_str_copy(&copy, addr);
     savep = copy.data;

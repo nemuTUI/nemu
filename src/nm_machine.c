@@ -116,7 +116,7 @@ static nm_vect_t *nm_mach_parse(const nm_str_t *buf)
     const char *bufp = buf->data;
     int lookup_mach = 1;
     nm_str_t mach = NM_INIT_STR;
-    nm_vect_t *v = NULL;
+    nm_vect_t *v;
 
     assert(bufp != NULL);
 
