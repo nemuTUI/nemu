@@ -10,6 +10,7 @@ script:
 matrix:
   include:
     - os: linux
+      dist: bionic
       compiler: gcc
       before_install:
         - "sudo apt-get install -qq libgvc6 libdbus-1-dev libncursesw5-dev libsqlite3-dev
