@@ -4,6 +4,7 @@
 #include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_window.h>
+#include <nm_machine.h>
 #include <nm_hw_info.h>
 #include <nm_network.h>
 #include <nm_database.h>
@@ -22,6 +23,7 @@ static const char NM_VM_FORM_NET_IFS[]   = "Network interfaces";
 static const char NM_VM_FORM_DRV_IF[]    = "Disk interface";
 static const char NM_VM_FORM_USB[]       = "USB [yes/no]";
 static const char NM_VM_FORM_USBT[]      = "USB version";
+static const char NM_VM_FORM_MACH[]      = "Machine type";
 
 static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur);
 static void nm_edit_vm_field_names(nm_vect_t *msg);
@@ -37,6 +39,7 @@ enum {
     NM_FLD_DISKIN,
     NM_FLD_USBUSE,
     NM_FLD_USBTYP,
+    NM_FLD_MACH,
     NM_FLD_COUNT
 };
 
@@ -100,6 +103,9 @@ out:
 static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
 {
     nm_str_t buf = NM_INIT_STR;
+    const char **machs = NULL;
+
+    machs = nm_mach_get(nm_vect_str(&cur->main, NM_SQL_ARCH));
 
     set_field_type(fields[NM_FLD_CPUNUM], TYPE_INTEGER, 0, 1, nm_hw_ncpus());
     set_field_type(fields[NM_FLD_RAMTOT], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
@@ -109,6 +115,10 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     set_field_type(fields[NM_FLD_DISKIN], TYPE_ENUM, nm_form_drive_drv, false, false);
     set_field_type(fields[NM_FLD_USBUSE], TYPE_ENUM, nm_form_yes_no, false, false);
     set_field_type(fields[NM_FLD_USBTYP], TYPE_ENUM, nm_form_usbtype, false, false);
+    set_field_type(fields[NM_FLD_MACH], TYPE_ENUM, machs, false, false);
+    if (machs == NULL)
+        field_opts_off(fields[NM_FLD_MACH], O_ACTIVE);
+
 
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, nm_vect_str_ctx(&cur->main, NM_SQL_SMP));
     set_field_buffer(fields[NM_FLD_RAMTOT], 0, nm_vect_str_ctx(&cur->main, NM_SQL_MEM));
@@ -136,6 +146,8 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
         set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_form_usbtype[1]);
     else
         set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_form_usbtype[0]);
+
+    set_field_buffer(fields[NM_FLD_MACH], 0, nm_vect_str_ctx(&cur->main, NM_SQL_MACH));
 
     for (size_t n = 0; n < NM_FLD_COUNT; n++)
         set_field_status(fields[n], 0);
@@ -165,6 +177,7 @@ static void nm_edit_vm_field_names(nm_vect_t *msg)
     nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_USB), strlen(_(NM_VM_FORM_USB)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_USBT), strlen(_(NM_VM_FORM_USBT)) + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_MACH), strlen(_(NM_VM_FORM_MACH)) + 1, NULL);
     nm_vect_end_zero(msg);
 
     nm_str_free(&buf);
@@ -189,6 +202,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     nm_get_field_buf(fields[NM_FLD_DISKIN], &vm->drive.driver);
     nm_get_field_buf(fields[NM_FLD_USBUSE], &usb);
     nm_get_field_buf(fields[NM_FLD_USBTYP], &usbv);
+    nm_get_field_buf(fields[NM_FLD_MACH], &vm->mach);
 
     if (field_status(fields[NM_FLD_CPUNUM]))
         nm_form_check_data(_("CPU cores"), vm->cpus, err);
@@ -384,6 +398,14 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
             nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
+
+    if (field_status(fields[NM_FLD_MACH]))
+    {
+        nm_str_format(&query, "UPDATE vms SET machine='%s' WHERE name='%s'",
+            vm->mach.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+        nm_db_edit(query.data);
+    }
+
 
     nm_str_free(&query);
 }

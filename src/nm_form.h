@@ -52,7 +52,6 @@ typedef struct {
 
 typedef struct {
     nm_str_t inst_path;
-    nm_str_t mach;
     nm_str_t bios;
     nm_str_t kernel;
     nm_str_t cmdline;
@@ -65,7 +64,7 @@ typedef struct {
 #define NM_INIT_VM_BOOT (nm_vm_boot_t) { \
                          NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                          NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                         NM_INIT_STR, 0, 0 }
+                         0, 0 }
 
 typedef struct {
     nm_str_t name;
@@ -74,6 +73,7 @@ typedef struct {
     nm_str_t memo;
     nm_str_t srcp;
     nm_str_t vncp;
+    nm_str_t mach;
     nm_vm_drive_t drive;
     nm_vm_ifs_t ifs;
     nm_vm_kvm_t kvm;
@@ -84,7 +84,7 @@ typedef struct {
 #define NM_INIT_VM (nm_vm_t) { \
                     NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                     NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                    NM_INIT_VM_DRIVE, NM_INIT_VM_IFS, \
+                    NM_INIT_STR, NM_INIT_VM_DRIVE, NM_INIT_VM_IFS, \
                     NM_INIT_VM_KVM, 0, 0 }
 
 typedef struct {
