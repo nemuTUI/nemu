@@ -168,7 +168,6 @@ static nm_vect_t *nm_mach_parse(const nm_str_t *buf, nm_str_t *def)
         if (!lookup_mach && (*bufp == '\n'))
         {
             nm_str_t item = NM_INIT_STR;
-            nm_str_t defm = NM_INIT_STR;
 
             nm_str_copy(&item, &mach);
             nm_vect_insert(v, item.data, item.len + 1, NULL);
@@ -185,13 +184,10 @@ static nm_vect_t *nm_mach_parse(const nm_str_t *buf, nm_str_t *def)
                     def_len++;
                 }
 
-                nm_str_add_text_part(&defm, tmpp + 1, def_len - 1);
-
-                if (!strncmp(defm.data, "(default)", defm.len))
+                if (!strncmp(tmpp + 1, "(default)", def_len - 1))
                     nm_str_copy(def, &item);
             }
 
-            nm_str_free(&defm);
             nm_str_free(&item);
         }
 
