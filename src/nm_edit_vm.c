@@ -107,6 +107,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     nm_str_t buf = NM_INIT_STR;
 
     const char **machs = nm_mach_get(nm_vect_str(&cur->main, NM_SQL_ARCH));
+    field_opts_off(fields[NM_FLD_ARGS], O_STATIC);
 
     set_field_type(fields[NM_FLD_CPUNUM], TYPE_INTEGER, 0, 1, nm_hw_ncpus());
     set_field_type(fields[NM_FLD_RAMTOT], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
