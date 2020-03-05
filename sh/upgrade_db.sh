@@ -20,6 +20,22 @@ if [ "$DB_CURRENT_VERSION" = "$DB_ACTUAL_VERSION" ]; then
     exit 0
 fi
 
+db_update_machine()
+{
+# TODO make machine column NOT NULL
+    local a
+    local rc=0
+    local archs=$(sqlite3 "$DB_PATH" -line 'SELECT DISTINCT arch FROM vms;' | awk '{print $NF}')
+
+    for a in $archs; do
+        local def=$(qemu-system-"${a}" -M help | awk '/(default)/ {print $1}')
+        [ -z "$def" ] && rc=1
+        sqlite3 "$DB_PATH" -line "UPDATE vms SET machine='${def}' WHERE machine IS NULL and arch='${a}'" || rc=1
+    done
+
+    return $rc
+}
+
 echo "database version: ${DB_CURRENT_VERSION}"
 while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
     [ "$RC" = 1 ] && break;
@@ -106,6 +122,7 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
         # ( 11 )
         #     (
         #     sqlite3 "$DB_PATH" -line 'DROP TABLE IF EXISTS lastval;' &&
+        #     db_update_machine &&
         #     sqlite3 "$DB_PATH" -line 'PRAGMA user_version=12'
         #     ) || RC=1
         #     ;;

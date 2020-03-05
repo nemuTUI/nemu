@@ -12,6 +12,10 @@ static inline nm_str_t *nm_mach_arch(const nm_mach_t *p)
 {
     return (nm_str_t *)&p->arch;
 }
+static inline nm_str_t *nm_mach_def(const nm_mach_t *p)
+{
+    return (nm_str_t *)&p->def;
+}
 static inline nm_vect_t **nm_mach_list(const nm_mach_t *p)
 {
     return (nm_vect_t **)&p->list;
@@ -21,7 +25,7 @@ static nm_vect_t nm_machs = NM_INIT_VECT;
 
 static void nm_mach_init(void);
 static void nm_mach_get_data(const char *arch);
-static nm_vect_t *nm_mach_parse(const nm_str_t *buf);
+static nm_vect_t *nm_mach_parse(const nm_str_t *buf, nm_str_t *def);
 
 static void nm_mach_init(void)
 {
@@ -35,8 +39,9 @@ static void nm_mach_init(void)
     for (size_t n = 0; n < nm_machs.n_memb; n++)
     {
         nm_vect_t *v = *nm_mach_list(nm_machs.data[n]);
-        nm_debug("Get machine list for %s:\n",
-            nm_mach_arch(nm_machs.data[n])->data);
+        nm_debug("Get machine list for %s (default: %s)\n",
+                nm_mach_arch(nm_machs.data[n])->data,
+                nm_mach_def(nm_machs.data[n])->data);
 
         for (size_t m = 0; m < v->n_memb; m++)
         {
@@ -63,6 +68,25 @@ const char **nm_mach_get(const nm_str_t *arch)
     }
 
     return v;
+}
+
+const char *nm_mach_get_default(const nm_str_t *arch)
+{
+    const char *def = NULL;
+
+    if (nm_machs.data == NULL)
+        nm_mach_init();
+
+    for (size_t n = 0; n < nm_machs.n_memb; n++)
+    {
+        if (nm_str_cmp_ss(nm_machs.data[n], arch) == NM_OK)
+        {
+            def = nm_mach_def(nm_machs.data[n])->data;
+            break;
+        }
+    }
+
+    return def;
 }
 
 void nm_mach_free(void)
@@ -100,7 +124,9 @@ static void nm_mach_get_data(const char *arch)
         goto out;
     }
 
-    mach_list.list = nm_mach_parse(&answer);
+    nm_str_trunc(&buf, 0);
+    mach_list.list = nm_mach_parse(&answer, &buf);
+    nm_str_copy(&mach_list.def, &buf);
 
     nm_vect_insert(&nm_machs, &mach_list,
         sizeof(mach_list), nm_mach_vect_ins_mlist_cb);
@@ -111,7 +137,7 @@ out:
     nm_str_free(&mach_list.arch);
 }
 
-static nm_vect_t *nm_mach_parse(const nm_str_t *buf)
+static nm_vect_t *nm_mach_parse(const nm_str_t *buf, nm_str_t *def)
 {
     const char *bufp = buf->data;
     int lookup_mach = 1;
@@ -130,11 +156,11 @@ static nm_vect_t *nm_mach_parse(const nm_str_t *buf)
 
     while (*bufp != '\0')
     {
-        if (lookup_mach && (*bufp != 0x20))
+        if (lookup_mach && (!isblank(*bufp)))
         {
             nm_str_add_char_opt(&mach, *bufp);
         }
-        else if (lookup_mach && (*bufp == 0x20))
+        else if (lookup_mach && (isblank(*bufp)))
         {
             lookup_mach = 0;
         }
@@ -142,12 +168,30 @@ static nm_vect_t *nm_mach_parse(const nm_str_t *buf)
         if (!lookup_mach && (*bufp == '\n'))
         {
             nm_str_t item = NM_INIT_STR;
+            nm_str_t defm = NM_INIT_STR;
 
             nm_str_copy(&item, &mach);
             nm_vect_insert(v, item.data, item.len + 1, NULL);
             nm_str_trunc(&mach, 0);
             lookup_mach = 1;
 
+            /* search and save default machine */
+            if (!def->len) {
+                const char *tmpp = bufp;
+                size_t def_len = 0;
+
+                while (!isblank(*tmpp) && (tmpp != buf->data)) {
+                    tmpp--;
+                    def_len++;
+                }
+
+                nm_str_add_text_part(&defm, tmpp + 1, def_len - 1);
+
+                if (!strncmp(defm.data, "(default)", defm.len))
+                    nm_str_copy(def, &item);
+            }
+
+            nm_str_free(&defm);
             nm_str_free(&item);
         }
 
@@ -164,12 +208,14 @@ static nm_vect_t *nm_mach_parse(const nm_str_t *buf)
 void nm_mach_vect_ins_mlist_cb(void *unit_p, const void *ctx)
 {
     nm_str_copy(nm_mach_arch(unit_p), nm_mach_arch(ctx));
+    nm_str_copy(nm_mach_def(unit_p), nm_mach_def(ctx));
     memcpy(nm_mach_list(unit_p), nm_mach_list(ctx), sizeof(nm_vect_t *));
 }
 
 void nm_mach_vect_free_mlist_cb(void *unit_p)
 {
     nm_str_free(nm_mach_arch(unit_p));
+    nm_str_free(nm_mach_def(unit_p));
     free(*nm_mach_list(unit_p));
 }
 

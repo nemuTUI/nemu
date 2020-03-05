@@ -3,6 +3,7 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_machine.h>
 #include <nm_add_drive.h>
 #include <nm_add_vm.h>
 #include <nm_hw_info.h>
@@ -274,9 +275,10 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
 
     /* insert main VM data */
     nm_str_format(&query,
-        "INSERT INTO vms(name, mem, smp, kvm, hcpu, vnc, arch, iso, install, "
+        "INSERT INTO vms(name, mem, smp, kvm, hcpu, vnc, arch, iso, install, machine, "
         "mouse_override, usb, usb_type, fs9p_enable, spice, debug_port, debug_freeze) "
-        "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+        "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "
+        "'%s', '%s', '%s', '%s', '%s')",
         vm->name.data, vm->memo.data, vm->cpus.data,
 #if (NM_OS_LINUX)
         NM_ENABLE, NM_ENABLE, /* enable KVM and host CPU by default */
@@ -286,6 +288,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         vm->vncp.data, vm->arch.data,
         import ? "" : vm->srcp.data,
         import ? NM_DISABLE : NM_ENABLE, /* if imported, then no need to install */
+        nm_mach_get_default(&vm->arch), /* setup default machine type */
         NM_DISABLE, /* mouse override */
         vm->usb_enable ? NM_ENABLE : NM_DISABLE, /* USB enabled */
         NM_DEFAULT_USBVER, /* set USB 3.0 by default */
