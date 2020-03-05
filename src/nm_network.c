@@ -571,8 +571,8 @@ static int nm_net_add_attr(struct nlmsghdr *n, size_t mlen,
     rta = (struct rtattr *) (((char *) n) + NLMSG_ALIGN(n->nlmsg_len));
     rta->rta_type = type;
     rta->rta_len = len;
-    /* cppcheck-suppress nullPointer */
-    memcpy(RTA_DATA(rta), data, dlen);
+    if (data)
+        memcpy(RTA_DATA(rta), data, dlen);
     n->nlmsg_len = NLMSG_ALIGN(n->nlmsg_len) + RTA_ALIGN(len);
 
     return NM_OK;
