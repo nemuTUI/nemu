@@ -34,6 +34,7 @@ typedef struct {
     nm_str_t daemon_pid;
     nm_vect_t qemu_targets;
     nm_rgb_t hl_color;
+    nm_str_t debug_path;
     uint64_t daemon_sleep;
 #if defined (NM_WITH_DBUS)
     uint32_t dbus_enabled:1;
@@ -44,6 +45,7 @@ typedef struct {
     uint32_t spice_default:1;
     uint32_t log_enabled:1;
     uint32_t hl_is_set:1;
+    uint32_t debug:1;
 } nm_cfg_t;
 
 void nm_cfg_init(void);

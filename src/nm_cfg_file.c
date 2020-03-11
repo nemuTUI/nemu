@@ -23,6 +23,7 @@ static const char NM_INI_S_DMON[]       = "nemu-monitor";
 static const char NM_INI_P_VM[]         = "vmdir";
 static const char NM_INI_P_DB[]         = "db";
 static const char NM_INI_P_HL[]         = "hl_color";
+static const char NM_INI_P_DEBUG_PATH[] = "debug_path";
 static const char NM_INI_P_PROT[]       = "spice_default";
 static const char NM_INI_P_VBIN[]       = "vnc_bin";
 static const char NM_INI_P_VARG[]       = "vnc_args";
@@ -78,9 +79,18 @@ void nm_cfg_init(void)
 
     nm_generate_cfg(pw->pw_dir, &cfg_path);
     ini = nm_ini_parser_init(&cfg_path);
-#ifdef NM_DEBUG
-    nm_ini_parser_dump(ini);
-#endif
+
+    /* Get debug file path */
+    if (nm_get_opt_param(ini, NM_INI_S_MAIN, NM_INI_P_DEBUG_PATH, &cfg.debug_path) == NM_OK) {
+        FILE *fp;
+        if ((fp = fopen(cfg.debug_path.data, "a+")) == NULL)
+            nm_bug(_("cfg: no write access to %s"), cfg.debug_path.data);
+        fclose(fp);
+
+        cfg.debug = 1;
+        nm_ini_parser_dump(ini);
+    }
+
     /* Get VM storage directory path */
     nm_get_param(ini, NM_INI_S_MAIN, NM_INI_P_VM, &cfg.vm_dir);
 
@@ -149,13 +159,14 @@ void nm_cfg_init(void)
         nm_vect_end_zero(&cfg.qemu_targets); /* need for ncurses form */
         nm_str_trunc(&tmp_buf, 0);
         nm_str_free(&qemu_bin);
-#ifdef NM_DEBUG
-        const char **tp = (const char **) cfg.qemu_targets.data;
 
-        nm_debug("\nConfigured QEMU targets:\n");
-        for (; *tp != NULL; tp++)
-            nm_debug(">> %s\n", *tp);
-#endif
+        if (cfg.debug) {
+            const char **tp = (const char **) cfg.qemu_targets.data;
+
+            nm_debug("\nConfigured QEMU targets:\n");
+            for (; *tp != NULL; tp++)
+                nm_debug(">> %s\n", *tp);
+        }
     }
 
     /* Get log enable flag */
@@ -233,6 +244,7 @@ void nm_cfg_free(void)
 {
     nm_str_free(&cfg.vm_dir);
     nm_str_free(&cfg.db_path);
+    nm_str_free(&cfg.debug_path);
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
     nm_str_free(&cfg.vnc_bin);
     nm_str_free(&cfg.spice_bin);
@@ -341,6 +353,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 
             fprintf(cfg_file, "[main]\n# virtual machine dir.\nvmdir = %s\n\n", vmdir.data);
             fprintf(cfg_file, "# path to database file.\ndb = %s\n\n", db.data);
+            fprintf(cfg_file, "# path to debug log file. Example:\n# debug_path = /tmp/nemu_debug.log\n\n");
             fprintf(cfg_file, "# override highlight color of running VM's. Example:\n# hl_color = 00afd7\n\n");
             fprintf(cfg_file, "[viewer]\n");
 #ifdef NM_WITH_SPICE

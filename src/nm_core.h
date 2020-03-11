@@ -17,13 +17,6 @@
 #include <getopt.h>
 #include <limits.h>
 
-#ifndef NM_DEBUG
-# ifndef NDEBUG
-#  define NDEBUG
-# endif
-#endif
-#include <assert.h>
-
 #include <pwd.h>
 #include <errno.h>
 

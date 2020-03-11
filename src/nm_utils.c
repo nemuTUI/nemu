@@ -250,11 +250,14 @@ int nm_spawn_process(const nm_vect_t *argv, nm_str_t *answer)
 
 void nm_debug(const char *fmt, ...)
 {
-#ifdef NM_DEBUG
+    const nm_cfg_t *cfg = nm_cfg_get();
+    if(!cfg->debug)
+        return;
+
     va_list args;
     FILE *fp;
 
-    if ((fp = fopen("/tmp/nemu_debug.log", "a+")) == NULL)
+    if ((fp = fopen(cfg->debug_path.data, "a+")) == NULL)
         return;
 
     va_start(args, fmt);
@@ -262,9 +265,6 @@ void nm_debug(const char *fmt, ...)
     va_end(args);
 
     fclose(fp);
-#else
-    (void) fmt;
-#endif
 }
 
 void nm_cmd_str(nm_str_t *str, const nm_vect_t *argv)

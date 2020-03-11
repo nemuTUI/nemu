@@ -34,21 +34,21 @@ static void nm_mach_init(void)
     for (size_t n = 0; n < archs->n_memb; n++)
         nm_mach_get_data(((char **) archs->data)[n]);
 
-#ifdef NM_DEBUG
-    nm_debug("\n");
-    for (size_t n = 0; n < nm_machs.n_memb; n++)
-    {
-        nm_vect_t *v = *nm_mach_list(nm_machs.data[n]);
-        nm_debug("Get machine list for %s (default: %s)\n",
-                nm_mach_arch(nm_machs.data[n])->data,
-                nm_mach_def(nm_machs.data[n])->data);
-
-        for (size_t m = 0; m < v->n_memb; m++)
+    if (nm_cfg_get()->debug) {
+        nm_debug("\n");
+        for (size_t n = 0; n < nm_machs.n_memb; n++)
         {
-            nm_debug(">> mach: %s\n", (char *) v->data[m]);
+            nm_vect_t *v = *nm_mach_list(nm_machs.data[n]);
+            nm_debug("Get machine list for %s (default: %s)\n",
+                    nm_mach_arch(nm_machs.data[n])->data,
+                    nm_mach_def(nm_machs.data[n])->data);
+
+            for (size_t m = 0; m < v->n_memb; m++)
+            {
+                nm_debug(">> mach: %s\n", (char *) v->data[m]);
+            }
         }
     }
-#endif
 }
 
 const char **nm_mach_get(const nm_str_t *arch)

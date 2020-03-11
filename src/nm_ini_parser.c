@@ -128,7 +128,6 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
     return head;
 }
 
-#ifdef NM_DEBUG
 void nm_ini_parser_dump(const nm_ini_node_t *head)
 {
     const nm_ini_node_t *curr = head;
@@ -152,7 +151,6 @@ void nm_ini_parser_dump(const nm_ini_node_t *head)
     }
     nm_debug("-=ini cfg end=-\n");
 }
-#endif
 
 void nm_ini_parser_free(nm_ini_node_t *head)
 {

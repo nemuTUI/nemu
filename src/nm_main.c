@@ -185,9 +185,6 @@ static void nm_print_feset(void)
 #if defined (NM_WITH_DBUS)
     nm_vect_insert_cstr(&feset, "+ dbus");
 #endif
-#if defined (NM_DEBUG)
-    nm_vect_insert_cstr(&feset, "+ debug");
-#endif
 
     for (size_t n = 0; n < feset.n_memb; n++)
         nm_str_append_format(&msg, " %s\n", (char *) nm_vect_at(&feset, n));
