@@ -285,7 +285,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 
     printf(_("Config file \"%s\" is not found.\n"), cfg_path->data);
     printf(_("You can copy example from:\n"));
-    printf(NM_STRING(NM_USR_PREFIX) "/share/nemu/templates/config/nemu.cfg.sample\n");
+    printf("%s/share/nemu/templates/config/nemu.cfg.sample\n", NM_FULL_DATAROOTDIR);
     printf(_("and edit it manually or let the program generate it.\n\n"));
     printf(_("Generate cfg? (y/n)\n> "));
 

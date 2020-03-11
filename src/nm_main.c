@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     struct sigaction sa;
 
     setlocale(LC_ALL,"");
-    bindtextdomain(NM_PROGNAME, NM_LOCALE_PATH);
+    bindtextdomain(NM_PROGNAME, NM_FULL_LOCALEDIR);
     textdomain(NM_PROGNAME);
 
     nm_process_args(argc, argv);

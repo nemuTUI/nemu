@@ -37,9 +37,11 @@ void nm_add_drive(const nm_str_t *name)
     size_t msg_len;
 
     nm_vmctl_get_data(name, &vm);
-    if ((vm.drives.n_memb / 4) == NM_DRIVE_LIMIT)
-    {
-        nm_warn(_(NM_NSG_DRV_LIM));
+    if ((vm.drives.n_memb / 4) == NM_DRIVE_LIMIT) {
+        nm_str_t warn_msg = NM_INIT_STR;
+        nm_str_format(&warn_msg, _("%zu %s"), NM_DRIVE_LIMIT, NM_NSG_DRV_LIM);
+        nm_warn(warn_msg.data);
+        nm_str_free(&warn_msg);
         goto out;
     }
 
@@ -219,7 +221,7 @@ int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
     nm_str_t buf = NM_INIT_STR;
     nm_vect_t argv = NM_INIT_VECT;
 
-    nm_str_alloc_text(&buf, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img");
+    nm_str_format(&buf, "%s/qemu-img", nm_cfg_get()->qemu_bin_path.data);
     nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
     nm_vect_insert_cstr(&argv, "create");

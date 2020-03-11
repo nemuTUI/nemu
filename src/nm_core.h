@@ -33,16 +33,6 @@
 #define NM_VERSION "v2.3.0"
 #endif
 
-#ifndef NM_USR_PREFIX
-#define NM_USR_PREFIX /usr
-#endif
-
-#define NM_LOCALE "/share/locale"
-#define NM_LOCALE_PATH NM_STRING(NM_USR_PREFIX) NM_LOCALE
-
-#define NM_STRING_NX(S) # S
-#define NM_STRING(S) NM_STRING_NX(S)
-
 #define nm_min(a, b) \
     __extension__({ \
         __typeof__ (a) _a = (a); \
