@@ -13,7 +13,7 @@ SRC_URI=""
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="+vnc-client +ovf +spice dbus savevm svg debug"
+IUSE="+vnc-client +ovf +spice dbus savevm svg"
 
 RDEPEND="
 	sys-libs/ncurses:0=[unicode]
@@ -33,12 +33,12 @@ DEPEND="${RDEPEND}
 src_configure() {
 	local mycmakeargs=(
 		-DNM_WITH_VNC_CLIENT=$(usex vnc-client)
-		-DNM_DEBUG=$(usex debug)
 		-DNM_SAVEVM_SNAPSHOTS=$(usex savevm)
 		-DNM_WITH_OVF_SUPPORT=$(usex ovf)
 		-DNM_WITH_NETWORK_MAP=$(usex svg)
 		-DNM_WITH_SPICE=$(usex spice)
 		-DNM_WITH_DBUS=$(usex dbus)
+		-DCMAKE_INSTALL_PREFIX=/usr
 	)
 	cmake-utils_src_configure
 }
