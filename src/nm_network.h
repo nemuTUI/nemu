@@ -6,6 +6,11 @@
 
 #include <arpa/inet.h>
 
+#if defined (NM_OS_FREEBSD)
+#include <sys/socket.h>
+#include <netinet/in.h>
+#endif
+
 typedef struct {
     struct in_addr addr;
     uint32_t cidr;

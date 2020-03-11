@@ -148,7 +148,6 @@ void nm_mon_loop(void)
     nm_vect_t mon_list = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
     const nm_cfg_t *cfg;
-    nm_clean_data_t clean = NM_CLEAN_INIT;
 
     nm_cfg_init();
     cfg = nm_cfg_get();
@@ -179,6 +178,8 @@ void nm_mon_loop(void)
     }
 
 #if defined (NM_OS_LINUX)
+    nm_clean_data_t clean = NM_CLEAN_INIT;
+
     clean.mon_list = &mon_list;
     clean.vm_list = &vm_list;
 
