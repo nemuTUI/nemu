@@ -19,10 +19,12 @@ typedef struct nm_mon_item {
     int8_t state;
 } nm_mon_item_t;
 
+#if defined (NM_OS_LINUX)
 typedef struct nm_clean_data {
     nm_vect_t *mon_list;
     nm_vect_t *vm_list;
 } nm_clean_data_t;
+#endif
 
 #define NM_ITEM_INIT (nm_mon_item_t) { NULL, -1 }
 #define NM_CLEAN_INIT (nm_clean_data_t) { NULL, NULL }
