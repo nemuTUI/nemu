@@ -87,10 +87,17 @@ if(NM_OS_LINUX)
     add_definitions(-DNM_WITH_SENDFILE)
   endif()
 
-  check_symbol_exists(
-    RTM_NEWLINKPROP
-    "${NM_CUSTOM_SYS_INCLUDE}/linux/rtnetlink.h;linux/rtnetlink.h"
-    NM_WITH_NEWLINKPROP)
+  if(NM_CUSTOM_SYS_INCLUDE)
+    check_symbol_exists(
+      RTM_NEWLINKPROP
+      "${NM_CUSTOM_SYS_INCLUDE}/linux/rtnetlink.h"
+      NM_WITH_NEWLINKPROP)
+  else()
+    check_symbol_exists(
+      RTM_NEWLINKPROP
+      "linux/rtnetlink.h"
+      NM_WITH_NEWLINKPROP)
+  endif()
   if(NM_WITH_NEWLINKPROP)
     set(NM_WITH_NEWLINKPROP TRUE)
     add_definitions(-DNM_WITH_NEWLINKPROP)
