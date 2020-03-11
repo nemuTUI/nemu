@@ -609,7 +609,7 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
 
     for (size_t n = 0; n < drives->n_memb; n++)
     {
-        nm_str_alloc_text(&buf, NM_STRING(NM_USR_PREFIX) "/bin/qemu-img");
+        nm_str_format(&buf, "%s/qemu-img", nm_cfg_get()->qemu_bin_path.data);
         nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
         nm_vect_insert_cstr(&argv, "convert");

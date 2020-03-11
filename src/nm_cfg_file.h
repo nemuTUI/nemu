@@ -32,6 +32,7 @@ typedef struct {
 #endif
     nm_str_t log_path;
     nm_str_t daemon_pid;
+    nm_str_t qemu_bin_path;
     nm_vect_t qemu_targets;
     nm_rgb_t hl_color;
     nm_str_t debug_path;

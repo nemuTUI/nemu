@@ -106,8 +106,8 @@ static void nm_mach_get_data(const char *arch)
 
     nm_str_alloc_text(&mach_list.arch, arch);
 
-    nm_str_format(&buf, "%s/bin/qemu-system-%s",
-        NM_STRING(NM_USR_PREFIX), arch);
+    nm_str_format(&buf, "%s/qemu-system-%s",
+        nm_cfg_get()->qemu_bin_path.data, arch);
     nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
     nm_vect_insert_cstr(&argv, "-M");

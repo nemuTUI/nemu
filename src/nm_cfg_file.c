@@ -13,6 +13,7 @@ static const char NM_DEFAULT_VNC[]      = "/usr/bin/vncviewer";
 static const char NM_DEFAULT_VNCARG[]   = ":%p";
 static const char NM_DEFAULT_SPICE[]    = "/usr/bin/remote-viewer";
 static const char NM_DEFAULT_SPICEARG[] = "--title %t spice://127.0.0.1:%p";
+static const char NM_DEFAULT_QEMUDIR[]  = "/usr/bin";
 static const char NM_DEFAULT_TARGET[]   = "x86_64,i386";
 
 static const char NM_INI_S_MAIN[]       = "main";
@@ -30,6 +31,7 @@ static const char NM_INI_P_VARG[]       = "vnc_args";
 static const char NM_INI_P_SBIN[]       = "spice_bin";
 static const char NM_INI_P_SARG[]       = "spice_args";
 static const char NM_INI_P_VANY[]       = "listen_any";
+static const char NM_INI_P_QEMUDIR[]    = "qemu_bin_path";
 static const char NM_INI_P_QTRG[]       = "targets";
 static const char NM_INI_P_QENL[]       = "enable_log";
 static const char NM_INI_P_QLOG[]       = "log_cmd";
@@ -138,6 +140,23 @@ void nm_cfg_init(void)
     cfg.listen_any = !!nm_str_stoui(&tmp_buf, 10);
     nm_str_trunc(&tmp_buf, 0);
 
+    /* Get QEMU bin directory path */
+    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QEMUDIR, &cfg.qemu_bin_path);
+    if (stat(cfg.qemu_bin_path.data, &file_info) == -1)
+        nm_bug("cfg: %s: %s", cfg.qemu_bin_path.data, strerror(errno));
+    if (!S_ISDIR(file_info.st_mode))
+        nm_bug(_("cfg: %s is not a directory"), cfg.qemu_bin_path.data);
+    if (access(cfg.qemu_bin_path.data, R_OK | X_OK) != 0)
+        nm_bug(_("cfg: no read + exec access to %s"), cfg.qemu_bin_path.data);
+
+    /* Check for qemu-img */
+    nm_str_format(&tmp_buf, "%s/qemu-img", cfg.qemu_bin_path.data);
+    if (stat(tmp_buf.data, &file_info) == -1)
+        nm_bug("cfg: %s: %s", tmp_buf.data, strerror(errno));
+    if (access(tmp_buf.data, R_OK | X_OK) != 0)
+        nm_bug(_("cfg: no read + exec access to %s"), tmp_buf.data);
+    nm_str_trunc(&tmp_buf, 0);
+
     /* Get QEMU targets list */
     nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QTRG, &tmp_buf);
     {
@@ -147,8 +166,8 @@ void nm_cfg_init(void)
 
         while ((token = strtok_r(saveptr, ",", &saveptr)))
         {
-            nm_str_format(&qemu_bin, "%s/bin/qemu-system-%s",
-                NM_STRING(NM_USR_PREFIX), token);
+            nm_str_format(&qemu_bin, "%s/qemu-system-%s",
+                cfg.qemu_bin_path.data, token);
 
             if (stat(qemu_bin.data, &file_info) == -1)
                 nm_bug(_("cfg: %s: %s"), qemu_bin.data, strerror(errno));
@@ -253,6 +272,7 @@ void nm_cfg_free(void)
 #endif
     nm_str_free(&cfg.log_path);
     nm_str_free(&cfg.daemon_pid);
+    nm_str_free(&cfg.qemu_bin_path);
     nm_vect_free(&cfg.qemu_targets, NULL);
 }
 
@@ -285,6 +305,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             nm_str_t spice_args = NM_INIT_STR;
 #endif
             nm_str_t vmdir = NM_INIT_STR;
+            nm_str_t qemu_bin_path = NM_INIT_STR;
             nm_str_t targets = NM_INIT_STR;
             int dir_created = 0;
 
@@ -298,6 +319,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             nm_str_alloc_text(&spice_args, NM_DEFAULT_SPICEARG);
 #endif
             nm_str_alloc_text(&vmdir, home);
+            nm_str_alloc_text(&qemu_bin_path, NM_DEFAULT_QEMUDIR);
             nm_str_alloc_text(&targets, NM_DEFAULT_TARGET);
 
             nm_str_append_format(&db, "/.%s", NM_DEFAULT_DBFILE);
@@ -349,6 +371,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             nm_get_input(_("SPICE client path(enter \"/bin/false\" if you connect other way)"), &spice_bin);
             nm_get_input(_("SPICE client arguments"), &spice_args);
 #endif
+            nm_get_input(_("Path to directory, where QEMU binary can be found"), &qemu_bin_path);
             nm_get_input(_("QEMU system targets list, separated by comma"), &targets);
 
             fprintf(cfg_file, "[main]\n# virtual machine dir.\nvmdir = %s\n\n", vmdir.data);
@@ -371,7 +394,9 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 #endif
             fprintf(cfg_file, "# listen for vnc|spice connections"
                 " (0 - only localhost, 1 - any address)\nlisten_any = 0\n\n");
-            fprintf(cfg_file, "[qemu]\n# comma separated QEMU system targets installed.\n"
+            fprintf(cfg_file, "[qemu]\n# path to directory, where QEMU binary can be found.\n"
+                "qemu_bin_path = %s\n\n", qemu_bin_path.data);
+            fprintf(cfg_file, "# comma separated QEMU system targets installed.\n"
                 "targets = %s\n\n", targets.data);
             fprintf(cfg_file, "# Log last QEMU command.\n"
                 "enable_log = 1\n\n");
@@ -397,6 +422,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             nm_str_free(&spice_args);
 #endif
             nm_str_free(&vmdir);
+            nm_str_free(&qemu_bin_path);
             nm_str_free(&targets);
         }
         break;

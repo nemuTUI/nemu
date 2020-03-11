@@ -31,6 +31,9 @@ spice_args = --title %t spice://127.0.0.1:%p
 listen_any = 0
 
 [qemu]
+# path to directory, where QEMU binary can be found.
+qemu_bin_path = /usr/bin
+
 # comma separated QEMU system targets installed.
 targets = x86_64,i386
 

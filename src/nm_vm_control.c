@@ -249,8 +249,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
     nm_str_format(&vmdir, "%s/%s/", cfg->vm_dir.data, name->data);
 
-    nm_str_format(&buf, "%s%s",
-        NM_STRING(NM_USR_PREFIX) "/bin/qemu-system-",
+    nm_str_format(&buf, "%s/%s%s",
+        cfg->qemu_bin_path.data, "qemu-system-",
         nm_vect_str(&vm->main, NM_SQL_ARCH)->data);
     nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
