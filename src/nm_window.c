@@ -101,9 +101,11 @@ void nm_init_help(const char *msg, int err)
 
 static void nm_print_help_lines(const char **msg, size_t objs, int err)
 {
+    if (!msg)
+        return;
+
     int x = 1, y = 0;
 
-    assert(msg);
     wbkgd(help_window, COLOR_PAIR(err ? NM_COLOR_RED : NM_COLOR_BLACK));
 
     for (size_t n = 0; n < objs; n++)
@@ -242,6 +244,9 @@ void nm_print_snapshots(const nm_vect_t *v)
 
 void nm_print_drive_info(const nm_vect_t *v, size_t idx)
 {
+    if (!idx)
+        return;
+
     nm_str_t buf = NM_INIT_STR;
     size_t y = 3, x = 2;
     size_t cols, rows;
@@ -249,7 +254,6 @@ void nm_print_drive_info(const nm_vect_t *v, size_t idx)
     chtype ch1, ch2;
     ch1 = ch2 = 0;
 
-    assert(idx > 0);
     idx_shift = 2 * (--idx);
 
     getmaxyx(action_window, rows, cols);
@@ -263,6 +267,9 @@ void nm_print_drive_info(const nm_vect_t *v, size_t idx)
 
 void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
 {
+    if (!idx)
+        return;
+
     nm_str_t buf = NM_INIT_STR;
     size_t y = 3, x = 2;
     size_t cols, rows;
@@ -270,7 +277,6 @@ void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
     chtype ch1, ch2;
     ch1 = ch2 = 0;
 
-    assert(idx > 0);
     idx_shift = NM_IFS_IDX_COUNT * (--idx);
 
     getmaxyx(action_window, rows, cols);
@@ -738,7 +744,8 @@ void nm_print_nemu(void)
 
 void nm_align2line(nm_str_t *str, size_t line_len)
 {
-    assert(line_len > 4);
+    if (line_len <= 4)
+        return;
 
     if (str->len > (line_len - 4))
     {
@@ -749,9 +756,10 @@ void nm_align2line(nm_str_t *str, size_t line_len)
 
 size_t nm_max_msg_len(const char **msg)
 {
-    size_t len = 0;
+    if (!msg)
+        return 0;
 
-    assert(msg != NULL);
+    size_t len = 0;
 
     while (*msg)
     {
@@ -763,11 +771,13 @@ size_t nm_max_msg_len(const char **msg)
     return len;
 }
 
-int nm_warn__(const char *msg, int red)
+static int nm_warn__(const char *msg, int red)
 {
+    if (!msg)
+        return ERR;
+
     int ch;
 
-    assert(msg != NULL);
     werase(help_window);
     nm_init_help(msg, red);
     ch = wgetch(help_window);

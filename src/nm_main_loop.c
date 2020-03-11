@@ -446,6 +446,9 @@ void nm_start_main_loop(void)
 
 static size_t nm_search_vm(const nm_vect_t *list, int *err)
 {
+    if (!err)
+        return 0;
+
     size_t pos = 0;
     void *match = NULL;
     nm_form_t *form = NULL;
@@ -455,8 +458,6 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
     size_t msg_len = mbstowcs(NULL, _(NM_SEARCH_STR), strlen(NM_SEARCH_STR));
     int req_len = msg_len + 9;
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
-
-    assert(err != NULL);
 
     if (req_len > cols)
     {

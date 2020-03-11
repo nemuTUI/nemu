@@ -139,12 +139,13 @@ out:
 
 static nm_vect_t *nm_mach_parse(const nm_str_t *buf, nm_str_t *def)
 {
+    if(!buf || !buf->data)
+        return NULL;
+
     const char *bufp = buf->data;
     int lookup_mach = 1;
     nm_str_t mach = NM_INIT_STR;
     nm_vect_t *v;
-
-    assert(bufp != NULL);
 
     v = nm_calloc(1, sizeof(nm_vect_t));
 

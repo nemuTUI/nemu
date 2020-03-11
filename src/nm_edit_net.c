@@ -184,14 +184,21 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     size_t idx_shift;
 
-    assert(if_idx > 0);
+    if (!if_idx) {
+        rc = NM_ERR;
+        goto out;
+    }
+
     idx_shift = NM_IFS_IDX_COUNT * (--if_idx);
     if_idx++; /* restore idx */
 
     nm_str_format(&iface_data.name, "%s",
         nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)->data);
 
-    assert(iface_data.name.len > 0);
+    if (!iface_data.name.len) {
+        rc = NM_ERR;
+        goto out;
+    }
 
     werase(help_window);
     nm_init_help_edit();
@@ -236,7 +243,8 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, size_t if_idx)
     size_t mvtap_idx = 0;
     size_t idx_shift;
 
-    assert(if_idx > 0);
+    if (!if_idx)
+        return;
     idx_shift = NM_IFS_IDX_COUNT * (--if_idx);
 
     set_field_type(fields[NM_FLD_NDRV], TYPE_ENUM, nm_form_net_drv, false, false);

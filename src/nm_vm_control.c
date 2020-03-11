@@ -482,9 +482,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                 }
             }
 
-            if (found_in_cache)
+            if (found_in_cache && usb)
             {
-                assert(usb != NULL);
                 nm_vect_insert_cstr(argv, "-device");
                 nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s",
                     *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),
@@ -522,9 +521,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                 }
             }
 
-            if (found_in_devs)
+            if (found_in_devs && usb)
             {
-                assert(usb != NULL);
                 nm_vect_insert_cstr(argv, "-device");
                 nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s",
                     *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),

@@ -445,9 +445,10 @@ static inline int nm_get_opt_param(const void *ini, const char *section,
 static inline void nm_cfg_get_color(size_t pos, short *color,
                                     const nm_str_t *buf)
 {
-    nm_str_t hex = NM_INIT_STR;
+    if(color == NULL)
+        return;
 
-    assert(color != NULL);
+    nm_str_t hex = NM_INIT_STR;
 
     nm_str_alloc_text(&hex, "0x");
     nm_str_add_char(&hex, buf->data[pos]);
