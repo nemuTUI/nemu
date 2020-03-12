@@ -905,11 +905,9 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     {
 #endif
     nm_vect_insert_cstr(argv, "-vnc");
-    if (cfg->listen_any)
-        nm_str_format(&buf, ":");
-    else
-        nm_str_format(&buf, "127.0.0.1:");
-    nm_str_add_str(&buf, nm_vect_str(&vm->main, NM_SQL_VNC));
+    nm_str_format(&buf, "%s:%u",
+        cfg->listen_any ? "" : "127.0.0.1",
+        nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT);
     nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 #if defined (NM_WITH_SPICE)
     }
