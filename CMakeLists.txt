@@ -145,8 +145,10 @@ if(NM_WITH_DBUS)
   add_definitions(-DNM_WITH_DBUS)
 endif()
 
-execute_process(COMMAND ${CMAKE_SOURCE_DIR}/sh/git_get_version.sh
-                        ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_TAG_VERSION)
+if(NOT GIT_TAG_VERSION)
+  execute_process(COMMAND ${CMAKE_SOURCE_DIR}/sh/git_get_version.sh
+                          ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_TAG_VERSION)
+endif()
 if(NOT GIT_TAG_VERSION STREQUAL "")
   message(STATUS "Build from git, version:${GIT_TAG_VERSION}")
   add_definitions(-DNM_VERSION="${GIT_TAG_VERSION}")
