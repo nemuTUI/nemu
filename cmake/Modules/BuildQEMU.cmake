@@ -89,7 +89,6 @@ macro(build_qemu)
       --disable-debug-mutex
       --disable-libpmem
       --disable-xkbcommon
-      --target-list=${NM_QEMU_TARGET_LIST}
-    BUILD_COMMAND make)
+      --target-list=${NM_QEMU_TARGET_LIST})
 
 endmacro(build_qemu)
