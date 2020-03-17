@@ -1,8 +1,5 @@
 macro(build_qemu)
   include(ExternalProject)
-  include(ProcessorCount)
-
-  processorcount(N_CPUS)
 
   ExternalProject_Add(
     qemu
@@ -93,6 +90,6 @@ macro(build_qemu)
       --disable-libpmem
       --disable-xkbcommon
       --target-list=${NM_QEMU_TARGET_LIST}
-    BUILD_COMMAND make -j ${N_CPUS})
+    BUILD_COMMAND make)
 
 endmacro(build_qemu)
