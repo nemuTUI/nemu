@@ -18,7 +18,7 @@
  * VirtFS support (Plan 9 host files sharing)
  * Import OVA
 
-## Videos
+## UI demo:
 [![Alt New user interface](https://img.youtube.com/vi/y8RT6-AF1BA/3.jpg)](https://www.youtube.com/watch?v=y8RT6-AF1BA)
 ### Old user interface (versions < 2.0.0)
 [![Alt Install OpenBSD VM example](https://img.youtube.com/vi/GdqSk1cto50/1.jpg)](https://www.youtube.com/watch?v=GdqSk1cto50)
