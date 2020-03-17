@@ -13,7 +13,12 @@ static const char NM_DEFAULT_VNC[]      = "/usr/bin/vncviewer";
 static const char NM_DEFAULT_VNCARG[]   = ":%p";
 static const char NM_DEFAULT_SPICE[]    = "/usr/bin/remote-viewer";
 static const char NM_DEFAULT_SPICEARG[] = "--title %t spice://127.0.0.1:%p";
+#ifndef NM_WITH_QEMU
 static const char NM_DEFAULT_QEMUDIR[]  = "/usr/bin";
+#else
+static const char NM_DEFAULT_QEMUDIR[]  = NM_FULL_DATAROOTDIR "/nemu/qemu/bin";
+#endif /* NM_WITH_QEMU */
+
 static const char NM_DEFAULT_TARGET[]   = "x86_64,i386";
 
 static const char NM_INI_S_MAIN[]       = "main";
@@ -285,7 +290,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 
     printf(_("Config file \"%s\" is not found.\n"), cfg_path->data);
     printf(_("You can copy example from:\n"));
-    printf("%s/share/nemu/templates/config/nemu.cfg.sample\n", NM_FULL_DATAROOTDIR);
+    printf("%s/nemu/templates/config/nemu.cfg.sample\n", NM_FULL_DATAROOTDIR);
     printf(_("and edit it manually or let the program generate it.\n\n"));
     printf(_("Generate cfg? (y/n)\n> "));
 

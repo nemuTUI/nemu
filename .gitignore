@@ -11,3 +11,4 @@ lang/cmake_install.cmake
 lang/nemu.mo
 install_manifest.txt
 build
+qemu

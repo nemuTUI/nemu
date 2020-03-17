@@ -3,11 +3,13 @@ cmake_minimum_required(VERSION 2.8)
 project(nemu C)
 
 set(CMAKE_COLOR_MAKEFILE OFF)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+                      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 
 include(GNUInstallDirs)
 include(GetGLibcVersion)
 include(CheckSymbolExists)
+include(BuildQEMU)
 
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(NM_OS_LINUX TRUE)
@@ -39,6 +41,7 @@ option(NM_WITH_VNC_CLIENT "Build with usage of external VNC client" ON)
 option(NM_WITH_SPICE "Build with Spice protocol support" ON)
 option(NM_WITH_NETWORK_MAP "Build with exporting network map to SVG" OFF)
 option(NM_WITH_DBUS "Build with D-Bus support" OFF)
+option(NM_WITH_QEMU "Build with embedded QEMU" OFF)
 
 include_directories(src)
 aux_source_directory(src SRC_LIST)
@@ -89,14 +92,10 @@ if(NM_OS_LINUX)
 
   if(NM_CUSTOM_SYS_INCLUDE)
     check_symbol_exists(
-      RTM_NEWLINKPROP
-      "${NM_CUSTOM_SYS_INCLUDE}/linux/rtnetlink.h"
+      RTM_NEWLINKPROP "${NM_CUSTOM_SYS_INCLUDE}/linux/rtnetlink.h"
       NM_WITH_NEWLINKPROP)
   else()
-    check_symbol_exists(
-      RTM_NEWLINKPROP
-      "linux/rtnetlink.h"
-      NM_WITH_NEWLINKPROP)
+    check_symbol_exists(RTM_NEWLINKPROP "linux/rtnetlink.h" NM_WITH_NEWLINKPROP)
   endif()
   if(NM_WITH_NEWLINKPROP)
     set(NM_WITH_NEWLINKPROP TRUE)
@@ -145,9 +144,23 @@ if(NM_WITH_DBUS)
   add_definitions(-DNM_WITH_DBUS)
 endif()
 
+if(NM_WITH_QEMU)
+  set(PATCH_COMMAND patch)
+  if(NOT NM_QEMU_TARGET_LIST)
+    set(NM_QEMU_TARGET_LIST
+        "x86_64-softmmu,i386-softmmu"
+        CACHE STRING "List of embedded QEMU targets" FORCE)
+  endif()
+  if(NOT CPACK_RPM_PACKAGE_SOURCES)
+    build_qemu()
+  endif()
+  add_definitions(-DNM_WITH_QEMU)
+endif()
+
 if(NOT GIT_TAG_VERSION)
-  execute_process(COMMAND ${CMAKE_SOURCE_DIR}/sh/git_get_version.sh
-                          ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_TAG_VERSION)
+  execute_process(
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/sh/git_get_version.sh
+            ${CMAKE_CURRENT_SOURCE_DIR} OUTPUT_VARIABLE GIT_TAG_VERSION)
 endif()
 if(NOT GIT_TAG_VERSION STREQUAL "")
   message(STATUS "Build from git, version:${GIT_TAG_VERSION}")
@@ -201,6 +214,13 @@ install(
     WORLD_EXECUTE
     WORLD_READ
   DESTINATION ${CMAKE_INSTALL_BINDIR})
+if(NM_WITH_QEMU)
+  install(
+    DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR}/qemu/${CMAKE_INSTALL_DATAROOTDIR}/nemu/qemu
+      USE_SOURCE_PERMISSIONS
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/nemu)
+endif()
 if(EXISTS ${CMAKE_INSTALL_FULL_DATAROOTDIR}/bash-completion/completions)
   install(
     FILES ${NEMU_BASH_AUTOCOMPLETE}
@@ -236,3 +256,7 @@ message(STATUS "VNC/Spice support: ${NM_WITH_VNC_CLIENT}")
 message(STATUS "Spice support: ${NM_WITH_SPICE}")
 message(STATUS "Network map export: ${NM_WITH_NETWORK_MAP}")
 message(STATUS "D-Bus support: ${NM_WITH_DBUS}")
+message(STATUS "Embedded QEMU: ${NM_WITH_QEMU}")
+if(NM_WITH_QEMU)
+  message(STATUS "Embedded QEMU targets: ${NM_QEMU_TARGET_LIST}")
+endif()

@@ -24,7 +24,8 @@ build: dirs
 		-DCPACK_RPM_PACKAGE_SOURCES=ON \
 		-DNM_WITH_NETWORK_MAP=ON \
 		-DNM_WITH_DBUS=ON \
-		-DNM_SAVEVM_SNAPSHOTS=ON && \
+		-DNM_SAVEVM_SNAPSHOTS=ON \
+		-DNM_WITH_QEMU=ON && \
 	cpack -G RPM --config ./CPackSourceConfig.cmake && \
 	cp *.src.rpm $(outdir) && \
 	cd ${TOP_DIR} && \

@@ -1,7 +1,7 @@
 #!/bin/sh
 
-if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <linux|freebsd> <username>"
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+    echo "Usage: $0 <linux|freebsd> <username> <qemu_bin_dir>"
     exit 0
 fi
 
@@ -15,6 +15,26 @@ USB_GROUP=""
 VHOST_GROUP=""
 OS="$1"
 USER="$2"
+
+if [ "$#" -eq 3 ]; then
+    QEMU_BIN_PATH="$3"
+else
+    USER_DIR=$(grep ${USER} /etc/passwd | awk 'BEGIN { FS = ":" }; { printf "%s\n", $6 }')
+    if [ ! -d $USER_DIR ]; then
+        echo "Couldn't find user home directory" >&2
+        exit 1
+    fi
+    if [ ! -f $USER_DIR/.nemu.cfg ]; then
+        echo "Couldn't find .nemu.cfg in user home directory" >&2
+        exit 1
+    fi
+
+    QEMU_BIN_PATH=$(grep qemu_bin_path ${USER_DIR}/.nemu.cfg | awk '{ printf "%s\n", $3 }')
+    if [ -z$ QEMU_BIN_PATH ]; then
+        echo "Couldn't get qemu_bin_path from .nemu.cfg" >&2
+        exit 1
+    fi
+fi
 
 case "$OS" in
     ( linux )
@@ -46,7 +66,7 @@ case "$OS" in
           fi
         fi
 
-        ls -1 /usr/bin/qemu-system-* | xargs -n1 setcap CAP_NET_ADMIN=ep && \
+        ls -1 $QEMU_BIN_PATH/qemu-system-* | xargs -n1 setcap CAP_NET_ADMIN=ep && \
         setcap CAP_NET_ADMIN=ep /usr/bin/nemu && \
         echo "[OK]"
         ;;
