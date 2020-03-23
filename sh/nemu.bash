@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 
+get_running_vms()
+{
+    nemu -l | awk 'BEGIN { FS = " - " }; { if($2 == "running") printf "%s\n", $1}'
+}
+
+get_stopped_vms()
+{
+    nemu -l | awk 'BEGIN { FS = " - " }; { if($2 == "stopped") printf "%s\n", $1}'
+}
+
 _nemu_completions()
 {
     local curr prev
@@ -14,8 +24,11 @@ _nemu_completions()
             -f --force-stop -z --reset -k --kill -v --version" -- "$curr") )
     elif [[ "$COMP_CWORD" == 2 ]]; then
         case "$prev" in
-            "-s"|"--start"|"-p"|"--powerdown"|"-f"|"--force-stop"|"-z"|"--reset"|"-k"|"--kill")
-                COMPREPLY=( $(compgen -W "$(nemu -l)" -- "$curr") )
+            "-s"|"--start")
+                COMPREPLY=( $(compgen -W "$(get_stopped_vms)" -- "$curr") )
+            ;;
+            "-p"|"--powerdown"|"-f"|"--force-stop"|"-z"|"--reset"|"-k"|"--kill")
+                COMPREPLY=( $(compgen -W "$(get_running_vms)" -- "$curr") )
             ;;
             *)
             ;;

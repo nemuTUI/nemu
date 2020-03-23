@@ -131,8 +131,11 @@ static void nm_process_args(int argc, char **argv)
         case 'l':
             nm_init_core();
             nm_db_select(NM_GET_VMS_SQL, &vm_list);
-            for (size_t i = 0; i < vm_list.n_memb; ++i)
-                printf("%s\n", ((nm_str_t*)vm_list.data[i])->data);
+            for (size_t i = 0; i < vm_list.n_memb; ++i) {
+                const nm_str_t *name = (nm_str_t *)vm_list.data[i];
+                int status = nm_qmp_test_socket(name);
+                printf("%s - %s\n", name->data, status == NM_OK ? "running" : "stopped");
+            }
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
             nm_exit_core();
         case 'v':
