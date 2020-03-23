@@ -2,7 +2,7 @@
 
 get_all_vms()
 {
-    nemu -l
+    nemu -l | awk 'BEGIN { FS = " - " }; { printf "%s\n", $1}'
 }
 
 get_running_vms()
