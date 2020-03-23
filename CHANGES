@@ -4,6 +4,7 @@ v2.4.0 - ?
     - Feature: change vnc/spice port
     - Feature: added qemu_bin_path config option
     - Feature: can build nEMU with embedded QEMU
+    - Feature: print VM info from command line
     - Change: automatically set machine type for all VMs
     - Change: added display settings window
     - Change: reworked automatic MAC address assignment

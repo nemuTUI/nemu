@@ -15,7 +15,7 @@ uint64_t nm_total_cpu_after;
 uint64_t nm_proc_cpu_before;
 uint64_t nm_proc_cpu_after;
 uint8_t  nm_cpu_iter;
-float    nm_cpu_usage;
+double   nm_cpu_usage;
 
 static void nm_stat_cpu_total_time(void)
 {
@@ -130,20 +130,20 @@ out:
     nm_str_free(&path);
 }
 
-float nm_stat_get_usage(int pid)
+double nm_stat_get_usage(int pid)
 {
-    float pa, pb, ta, tb;
+    double pa, pb, ta, tb;
 
     nm_stat_cpu_total_time();
     nm_stat_cpu_proc_time(pid);
 
-    pa = nm_proc_cpu_after;
-    pb = nm_proc_cpu_before;
-    ta = nm_total_cpu_after;
-    tb = nm_total_cpu_before;
+    pa = (double)nm_proc_cpu_after;
+    pb = (double)nm_proc_cpu_before;
+    ta = (double)nm_total_cpu_after;
+    tb = (double)nm_total_cpu_before;
 
     if (nm_cpu_iter)
-        nm_cpu_usage = ((pa - pb) / (ta - tb)) * 100 * sysconf(_SC_NPROCESSORS_ONLN);
+        nm_cpu_usage = ((pa - pb) / (ta - tb)) * 100.0 * (double)sysconf(_SC_NPROCESSORS_ONLN);
 
     nm_cpu_iter ^= 1;
 

@@ -31,6 +31,7 @@ void nm_vmctl_clear_tap(const nm_str_t *name);
 void nm_vmctl_clear_all_tap(void);
 void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     const nm_str_t *name, int flags, nm_vect_t *tfds);
+nm_str_t nm_vmctl_info(const nm_str_t *name);
 void nm_vmctl_log_last(const nm_str_t *msg);
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
 void nm_vmctl_connect(const nm_str_t *name);

@@ -9,9 +9,9 @@
 #include <nm_lan_settings.h>
 
 #if defined (NM_OS_LINUX)
-    static const char NM_OPT_ARGS[] = "cs:p:f:z:k:vhld";
+    static const char NM_OPT_ARGS[] = "cs:p:f:z:k:i:vhld";
 #else
-    static const char NM_OPT_ARGS[] = "s:p:f:z:k:vhld";
+    static const char NM_OPT_ARGS[] = "s:p:f:z:k:i:vhld";
 #endif
 
 static void signals_handler(int signal);
@@ -78,6 +78,7 @@ static void nm_process_args(int argc, char **argv)
         { "force-stop",  required_argument, NULL, 'f' },
         { "reset",       required_argument, NULL, 'z' },
         { "kill",        required_argument, NULL, 'k' },
+        { "info",        required_argument, NULL, 'i' },
         { "list",        no_argument,       NULL, 'l' },
         { "daemon",      no_argument,       NULL, 'd' },
         { "version",     no_argument,       NULL, 'v' },
@@ -124,6 +125,14 @@ static void nm_process_args(int argc, char **argv)
             nm_vmctl_kill(&vmname);
             nm_str_free(&vmname);
             nm_exit_core();
+        case 'i':
+            nm_init_core();
+            nm_str_alloc_text(&vmname, optarg);
+            nm_str_t info = nm_vmctl_info(&vmname);
+            printf("%s", info.data);
+            nm_str_free(&info);
+            nm_str_free(&vmname);
+            nm_exit_core();
         case 'd':
             nm_mon_loop();
             nm_cfg_free();
@@ -148,6 +157,7 @@ static void nm_process_args(int argc, char **argv)
             printf("%s\n", _("-f, --force-stop <name> shutdown vm"));
             printf("%s\n", _("-z, --reset      <name> reset vm"));
             printf("%s\n", _("-k, --kill       <name> kill vm process"));
+            printf("%s\n", _("-i, --info       <name> print vm info"));
             printf("%s\n", _("-l, --list              list vms"));
             printf("%s\n", _("-d, --daemon            vm monitoring daemon"));
 #if defined (NM_OS_LINUX)

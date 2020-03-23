@@ -511,7 +511,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
                 nm_str_format(&buf, "%-12s%d", "pid: ", pid_num);
                 NM_PR_VM_INFO();
 #if defined (NM_OS_LINUX)
-                float usage = nm_stat_get_usage(pid_num);
+                double usage = nm_stat_get_usage(pid_num);
                 nm_str_format(&buf, "%-12s%0.1f%%", "cpu usage: ", usage);
                 mvwhline(action_window, y, 1, ' ', cols - 4);
                 NM_PR_VM_INFO();

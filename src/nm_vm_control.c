@@ -7,6 +7,8 @@
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
 #include <nm_usb_devices.h>
+#include <nm_qmp_control.h>
+#include <nm_stat_usage.h>
 
 #include <time.h>
 
@@ -935,6 +937,172 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 out:
     nm_str_free(&vmdir);
     nm_str_free(&buf);
+}
+
+nm_str_t nm_vmctl_info(const nm_str_t *name)
+{
+    nm_str_t info = NM_INIT_STR;
+    nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
+    int status;
+    size_t ifs_count, drives_count;
+
+    nm_vmctl_get_data(name, &vm);
+
+    nm_str_format(&info, "%-12s%s\n", "name: ", name->data);
+
+    status = nm_qmp_test_socket(name);
+    nm_str_append_format(&info, "%-12s%s\n", "status: ",
+        status == NM_OK ? "running" : "stopped");
+
+    nm_str_append_format(&info, "%-12s%s\n", "arch: ",
+        nm_vect_str_ctx(&vm.main, NM_SQL_ARCH));
+    nm_str_append_format(&info, "%-12s%s\n", "cores: ",
+        nm_vect_str_ctx(&vm.main, NM_SQL_SMP));
+    nm_str_append_format(&info, "%-12s%s Mb\n","memory: ",
+        nm_vect_str_ctx(&vm.main, NM_SQL_MEM));
+
+    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_KVM), NM_ENABLE) == NM_OK) {
+        if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
+            nm_str_append_format(&info, "%-12s%s\n", "kvm: ", "enabled [+hostcpu]");
+        else
+            nm_str_append_format(&info, "%-12s%s\n", "kvm: ", "enabled");
+    } else {
+        nm_str_append_format(&info, "%-12s%s\n", "kvm: ", "disabled");
+    }
+
+    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_USBF), "1") == NM_OK) {
+        nm_str_append_format(&info, "%-12s%s [%s]\n", "usb: ", "enabled",
+            (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_USBT), NM_DEFAULT_USBVER) == NM_OK) ?
+            "XHCI" : "EHCI");
+    } else {
+        nm_str_append_format(&info, "%-12s%s\n", "usb: ", "disabled");
+    }
+
+    nm_str_append_format(&info, "%-12s%s [%u]\n", "vnc port: ",
+        nm_vect_str_ctx(&vm.main, NM_SQL_VNC),
+        nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT);
+
+    ifs_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
+    for (size_t n = 0; n < ifs_count; n++) {
+        size_t idx_shift = NM_IFS_IDX_COUNT * n;
+
+        nm_str_append_format(&info, "eth%zu%-8s%s [%s %s%s]\n",
+            n, ":",
+            nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
+            nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_MAC + idx_shift),
+            nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_DRV + idx_shift),
+            (nm_str_cmp_st(nm_vect_str(&vm.ifs, NM_SQL_IF_VHO + idx_shift),
+                NM_ENABLE) == NM_OK) ? "+vhost" : "");
+    }
+
+    drives_count = vm.drives.n_memb / NM_DRV_IDX_COUNT;
+    for (size_t n = 0; n < drives_count; n++) {
+        size_t idx_shift = NM_DRV_IDX_COUNT * n;
+        int boot = 0;
+
+        if (nm_str_cmp_st(nm_vect_str(&vm.drives, NM_SQL_DRV_BOOT + idx_shift),
+                NM_ENABLE) == NM_OK)
+            boot = 1;
+
+
+        nm_str_append_format(&info, "disk%zu%-7s%s [%sGb %s] %s\n", n, ":",
+            nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift),
+            nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_SIZE + idx_shift),
+            nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_TYPE + idx_shift),
+            boot ? "*" : "");
+    }
+
+    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_9FLG), "1") == NM_OK) {
+        nm_str_append_format(&info, "%-12s%s [%s]\n", "9pfs: ",
+            nm_vect_str_ctx(&vm.main, NM_SQL_9PTH),
+            nm_vect_str_ctx(&vm.main, NM_SQL_9ID));
+    }
+
+    if (nm_vect_str_len(&vm.main, NM_SQL_MACH))
+        nm_str_append_format(&info, "%-12s%s\n", "machine: ",
+            nm_vect_str_ctx(&vm.main, NM_SQL_MACH));
+
+    if (nm_vect_str_len(&vm.main, NM_SQL_BIOS))
+        nm_str_append_format(&info,"%-12s%s\n", "bios: ",
+            nm_vect_str_ctx(&vm.main, NM_SQL_BIOS));
+
+    if (nm_vect_str_len(&vm.main, NM_SQL_KERN))
+        nm_str_append_format(&info,"%-12s%s\n", "kernel: ",
+            nm_vect_str_ctx(&vm.main, NM_SQL_KERN));
+
+    if (nm_vect_str_len(&vm.main, NM_SQL_KAPP))
+        nm_str_append_format(&info, "%-12s%s\n", "cmdline: ",
+            nm_vect_str_ctx(&vm.main, NM_SQL_KAPP));
+
+    if (nm_vect_str_len(&vm.main, NM_SQL_INIT))
+        nm_str_append_format(&info, "%-12s%s\n", "initrd: ",
+            nm_vect_str_ctx(&vm.main, NM_SQL_INIT));
+
+    if (nm_vect_str_len(&vm.main, NM_SQL_TTY))
+        nm_str_append_format(&info, "%-12s%s\n", "tty: ",
+            nm_vect_str_ctx(&vm.main, NM_SQL_TTY));
+
+    if (nm_vect_str_len(&vm.main, NM_SQL_SOCK))
+        nm_str_append_format(&info, "%-12s%s\n", "socket: ",
+            nm_vect_str_ctx(&vm.main, NM_SQL_SOCK));
+
+    if (nm_vect_str_len(&vm.main, NM_SQL_DEBP))
+        nm_str_append_format(&info, "%-12s%s\n", "gdb port: ",
+            nm_vect_str_ctx(&vm.main, NM_SQL_DEBP));
+
+    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_DEBF), NM_ENABLE) == NM_OK)
+        nm_str_append_format(&info, "%-12s\n", "freeze cpu: yes");
+
+    if (nm_vect_str_len(&vm.main, NM_SQL_ARGS))
+        nm_str_append_format(&info,"%-12s%s\n", "extra args: ",
+            nm_vect_str_ctx(&vm.main, NM_SQL_ARGS));
+
+    for (size_t n = 0; n < ifs_count; n++) {
+        size_t idx_shift = NM_IFS_IDX_COUNT * n;
+
+        if (!nm_vect_str_len(&vm.ifs, NM_SQL_IF_IP4 + idx_shift))
+            continue;
+
+        nm_str_append_format(&info, "%-12s%s [%s]\n", "host IP: ",
+            nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
+            nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_IP4 + idx_shift));
+    }
+
+    if (status == NM_OK) {
+        int fd;
+        nm_str_t pid_path = NM_INIT_STR;
+
+        nm_str_format(&pid_path, "%s/%s/%s",
+            nm_cfg_get()->vm_dir.data, name->data, NM_VM_PID_FILE);
+
+        if ((fd = open(pid_path.data, O_RDONLY)) != -1) {
+            char pid[10];
+            ssize_t nread;
+
+            if ((nread = read(fd, pid, sizeof(pid))) > 0) {
+                pid[nread - 1] = '\0';
+                int pid_num = atoi(pid);
+                nm_str_append_format(&info, "%-12s%d\n", "pid: ", pid_num);
+#if defined (NM_OS_LINUX)
+                struct timespec ts;
+                memset(&ts, 0, sizeof(ts));
+                ts.tv_nsec = 1e+8; // 0.1 s
+
+                nm_stat_get_usage(pid_num);
+                nanosleep(&ts, NULL);
+                double usage = nm_stat_get_usage(pid_num);
+
+                nm_str_append_format(&info, "%-12s%0.1f%%\n", "cpu usage: ", usage);
+#endif
+            }
+            close(fd);
+        }
+        nm_str_free(&pid_path);
+    }
+
+    nm_vmctl_free_data(&vm);
+
+    return info;
 }
 
 void nm_vmctl_free_data(nm_vmctl_data_t *vm)
