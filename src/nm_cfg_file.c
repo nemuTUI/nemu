@@ -6,6 +6,8 @@
 #include <nm_mon_daemon.h>
 #include <nm_ini_parser.h>
 
+#include <dirent.h>
+
 static const char NM_CFG_NAME[]         = "nemu.cfg";
 static const char NM_DEFAULT_VMDIR[]    = "nemu_vm";
 static const char NM_DEFAULT_DBFILE[]   = "nemu.db";
@@ -58,6 +60,7 @@ static inline int nm_get_opt_param(const void *ini, const char *section,
                                    const char *value, nm_str_t *res);
 static inline void nm_cfg_get_color(size_t pos, short *color,
                                     const nm_str_t *buf);
+static void nm_cfg_get_targets(nm_str_t *buf, const nm_str_t *path);
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
 static void nm_cfg_get_view(nm_view_args_t *view, const nm_str_t *buf);
 #endif
@@ -253,7 +256,6 @@ void nm_cfg_init(void)
         cfg.dbus_timeout = -1;
     }
 #endif
-
     nm_ini_parser_free(ini);
     nm_str_free(&cfg_path);
     nm_str_free(&tmp_buf);
@@ -325,7 +327,6 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 #endif
             nm_str_alloc_text(&vmdir, home);
             nm_str_alloc_text(&qemu_bin_path, NM_DEFAULT_QEMUDIR);
-            nm_str_alloc_text(&targets, NM_DEFAULT_TARGET);
 
             nm_str_append_format(&db, "/.%s", NM_DEFAULT_DBFILE);
             nm_str_append_format(&vmdir, "/%s", NM_DEFAULT_VMDIR);
@@ -377,6 +378,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             nm_get_input(_("SPICE client arguments"), &spice_args);
 #endif
             nm_get_input(_("Path to directory, where QEMU binary can be found"), &qemu_bin_path);
+            nm_cfg_get_targets(&targets, &qemu_bin_path);
             nm_get_input(_("QEMU system targets list, separated by comma"), &targets);
 
             fprintf(cfg_file, "[main]\n# virtual machine dir.\nvmdir = %s\n\n", vmdir.data);
@@ -500,6 +502,28 @@ static inline void nm_cfg_get_color(size_t pos, short *color,
     //@TODO This uint32_t to short int conversion kinda scares me
     *color = (nm_str_stoui(&hex, 16)) * 1000 / 255;
     nm_str_free(&hex);
+}
+
+static void nm_cfg_get_targets(nm_str_t *buf, const nm_str_t *path)
+{
+    const char qemu_bin_prefix[] = "qemu-system-";
+    DIR *d = opendir(path->data);
+
+    if (d) {
+        struct dirent *dir;
+
+        nm_str_free(buf);
+        while ((dir = readdir(d)) != NULL) {
+            if (strstr(dir->d_name, qemu_bin_prefix) == dir->d_name)
+                nm_str_append_format(buf, "%s%s",
+                    buf->len ? "," : "",
+                    dir->d_name + nm_arr_len(qemu_bin_prefix) - 1);
+        }
+        closedir(d);
+    }
+
+    if (!buf->len)
+        nm_str_format(buf, "%s", NM_DEFAULT_TARGET);
 }
 
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
