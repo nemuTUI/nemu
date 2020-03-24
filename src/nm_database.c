@@ -10,8 +10,10 @@
 typedef sqlite3 nm_sqlite_t;
 
 static nm_sqlite_t *db_handler = NULL;
+static const char db_script[] = NM_FULL_DATAROOTDIR "/nemu/scripts/upgrade_db.sh";
 
 static void nm_db_check_version(void);
+static int nm_db_update(void);
 static int nm_db_select_cb(void *v, int argc, char **argv,
                            char **unused NM_UNUSED);
 
@@ -110,13 +112,47 @@ static void nm_db_check_version(void)
 
     if (nm_str_cmp_st(nm_vect_at(&res, 0), NM_DB_VERSION) != NM_OK)
     {
-        fprintf(stderr, _("Database version is not up do date."
-                    " Execute upgrade_db.sh script\n"));
-        exit(NM_ERR);
+        printf(_("Database version is not up do date."
+                    " I will try to update it.\n"));
+        if (nm_db_update() != NM_OK) {
+            fprintf(stderr, _("Cannot update database\n"));
+            exit(NM_ERR);
+        }
     }
 
     nm_vect_free(&res, nm_str_vect_free_cb);
     nm_str_free(&query);
+}
+
+static int nm_db_update(void)
+{
+    int rc = NM_OK;
+    nm_str_t backup = NM_INIT_STR;
+    nm_str_t answer = NM_INIT_STR;
+    nm_vect_t argv = NM_INIT_VECT;
+    const nm_cfg_t *cfg = nm_cfg_get();
+
+    nm_str_format(&backup, "%s-backup", cfg->db_path.data);
+    nm_copy_file(&cfg->db_path, &backup);
+
+    nm_vect_insert_cstr(&argv, db_script);
+    nm_vect_insert_cstr(&argv, cfg->db_path.data);
+    nm_vect_end_zero(&argv);
+
+    if (nm_spawn_process(&argv, &answer) != NM_OK) {
+        rc = NM_ERR;
+        unlink(cfg->db_path.data);
+        nm_copy_file(&backup, &cfg->db_path);
+    }
+
+    printf("%s\n", answer.data);
+    unlink(backup.data);
+
+    nm_vect_free(&argv, NULL);
+    nm_str_free(&backup);
+    nm_str_free(&answer);
+
+    return rc;
 }
 
 static int nm_db_select_cb(void *v, int argc, char **argv,
