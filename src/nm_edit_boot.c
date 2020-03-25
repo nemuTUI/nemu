@@ -112,8 +112,7 @@ static void nm_edit_boot_field_names(nm_window_t *w)
 {
     int y = 1, x = 2, mult = 2;
 
-    for (size_t n = 0; n < NM_FLD_COUNT; n++)
-    {
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         mvwaddstr(w, y, x, _(nm_form_msg[n]));
         y += mult;
     }
@@ -141,12 +140,10 @@ static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
 
-    if (nm_str_cmp_st(&inst, "no") == NM_OK)
-    {
+    if (nm_str_cmp_st(&inst, "no") == NM_OK) {
         vm->installed = 1;
 
-        if (vm->inst_path.len == 0)
-        {
+        if (vm->inst_path.len == 0) {
             nm_warn(_(NM_MSG_ISO_MISS));
             rc = NM_ERR;
             goto out;
@@ -170,57 +167,49 @@ static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
 {
     nm_str_t query = NM_INIT_STR;
 
-    if (field_status(fields[NM_FLD_INST]))
-    {
+    if (field_status(fields[NM_FLD_INST])) {
         nm_str_format(&query, "UPDATE vms SET install='%s' WHERE name='%s'",
             vm->installed ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_SRCP]))
-    {
+    if (field_status(fields[NM_FLD_SRCP])) {
         nm_str_format(&query, "UPDATE vms SET iso='%s' WHERE name='%s'",
             vm->inst_path.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_BIOS]))
-    {
+    if (field_status(fields[NM_FLD_BIOS])) {
         nm_str_format(&query, "UPDATE vms SET bios='%s' WHERE name='%s'",
             vm->bios.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_KERN]))
-    {
+    if (field_status(fields[NM_FLD_KERN])) {
         nm_str_format(&query, "UPDATE vms SET kernel='%s' WHERE name='%s'",
             vm->kernel.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_CMDL]))
-    {
+    if (field_status(fields[NM_FLD_CMDL])) {
         nm_str_format(&query, "UPDATE vms SET kernel_append='%s' WHERE name='%s'",
             vm->cmdline.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_INIT]))
-    {
+    if (field_status(fields[NM_FLD_INIT])) {
         nm_str_format(&query, "UPDATE vms SET initrd='%s' WHERE name='%s'",
             vm->initrd.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_DEBP]))
-    {
+    if (field_status(fields[NM_FLD_DEBP])) {
         nm_str_format(&query, "UPDATE vms SET debug_port='%s' WHERE name='%s'",
             vm->debug_port.data, name->data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_DEBF]))
-    {
+    if (field_status(fields[NM_FLD_DEBF])) {
         nm_str_format(&query, "UPDATE vms SET debug_freeze='%s' WHERE name='%s'",
             vm->debug_freeze ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);

@@ -70,14 +70,12 @@ void nm_map_file(nm_file_map_t *file)
 {
     struct stat stat;
 
-    if ((file->fd = open(file->name->data, O_RDONLY)) == -1)
-    {
+    if ((file->fd = open(file->name->data, O_RDONLY)) == -1) {
         nm_bug(_("Cannot open file %s:%s"),
             file->name->data, strerror(errno));
     }
 
-    if (fstat(file->fd, &stat) == -1)
-    {
+    if (fstat(file->fd, &stat) == -1) {
         close(file->fd);
         nm_bug(_("Cannot get file info %s:%s"),
             file->name->data, strerror(errno));
@@ -86,8 +84,7 @@ void nm_map_file(nm_file_map_t *file)
     file->size = stat.st_size;
     file->mp = mmap(0, file->size, PROT_READ, MAP_PRIVATE, file->fd, 0);
 
-    if (file->mp == MAP_FAILED)
-    {
+    if (file->mp == MAP_FAILED) {
         close(file->fd);
         nm_bug(_("%s: cannot map file %s:%s"),
             __func__, file->name->data, strerror(errno));
@@ -104,14 +101,12 @@ void nm_copy_file(const nm_str_t *src, const nm_str_t *dst)
 {
     int in_fd, out_fd;
 
-    if ((in_fd = open(src->data, O_RDONLY)) == -1)
-    {
+    if ((in_fd = open(src->data, O_RDONLY)) == -1) {
         nm_bug("%s: cannot open file %s: %s",
             __func__, src->data, strerror(errno));
     }
 
-    if ((out_fd = open(dst->data, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1)
-    {
+    if ((out_fd = open(dst->data, O_WRONLY | O_CREAT | O_EXCL, 0644)) == -1) {
         close(in_fd);
         nm_bug("%s: cannot open file %s: %s",
             __func__, dst->data, strerror(errno));
@@ -138,8 +133,7 @@ static void nm_copy_file_sendfile(int in_fd, int out_fd)
     if (fstat(in_fd, &file_info) != 0)
         nm_bug("%s: cannot get file info %d: %s", __func__, in_fd, strerror(errno));
 
-    while (offset < file_info.st_size)
-    {
+    while (offset < file_info.st_size) {
         int rc;
 
         if ((rc = sendfile(out_fd, in_fd, &offset, file_info.st_size)) == -1)
@@ -160,20 +154,16 @@ static void nm_copy_file_default(int in_fd, int out_fd)
 
     posix_fadvise(in_fd, 0, 0, POSIX_FADV_SEQUENTIAL);
 
-    while ((nread = read(in_fd, buf, NM_BLKSIZE)) > 0)
-    {
+    while ((nread = read(in_fd, buf, NM_BLKSIZE)) > 0) {
         char *bufsp = buf;
 
         do {
             ssize_t nwrite = write(out_fd, bufsp, NM_BLKSIZE);
 
-            if (nwrite >= 0)
-            {
+            if (nwrite >= 0) {
                 nread -= nwrite;
                 bufsp += nwrite;
-            }
-            else if (errno != EINTR)
-            {
+            } else if (errno != EINTR) {
                 nm_bug("%s: copy file failed: %s", __func__, strerror(errno));
             }
 
@@ -219,11 +209,10 @@ int nm_spawn_process(const nm_vect_t *argv, nm_str_t *answer)
             close(fd[1]);
             w_rc = waitpid(child_pid, &wstatus, 0);
 
-            if ((w_rc == child_pid) && (WEXITSTATUS(wstatus) != 0))
-            {
+            if ((w_rc == child_pid) && (WEXITSTATUS(wstatus) != 0)) {
                 nm_str_t err_msg = NM_INIT_STR;
-                while (read(fd[0], buf, sizeof(buf) - 1) > 0)
-                {
+
+                while (read(fd[0], buf, sizeof(buf) - 1) > 0) {
                     nm_str_add_text(&err_msg, buf);
                     memset(&buf, 0, sizeof(buf));
                 }
@@ -231,11 +220,8 @@ int nm_spawn_process(const nm_vect_t *argv, nm_str_t *answer)
                 nm_debug("exec_error: %s", err_msg.data);
                 nm_str_free(&err_msg);
                 rc = NM_ERR;
-            }
-            else if (answer && (w_rc == child_pid) && (WEXITSTATUS(wstatus) == 0))
-            {
-                while (read(fd[0], buf, sizeof(buf) - 1) > 0)
-                {
+            } else if (answer && (w_rc == child_pid) && (WEXITSTATUS(wstatus) == 0)) {
+                while (read(fd[0], buf, sizeof(buf) - 1) > 0) {
                     nm_str_add_text(answer, buf);
                     memset(buf, 0, sizeof(buf));
                 }
@@ -272,8 +258,7 @@ void nm_cmd_str(nm_str_t *str, const nm_vect_t *argv)
     if (str->len > 0)
         nm_str_trunc(str, 0);
 
-    for (size_t m = 0; m < argv->n_memb; m++)
-    {
+    for (size_t m = 0; m < argv->n_memb; m++) {
         nm_str_append_format(str, "%s ", (char *)nm_vect_at(argv, m));
     }
 }

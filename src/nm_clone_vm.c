@@ -9,7 +9,7 @@
 #include <nm_vm_control.h>
 #include <nm_clone_vm.h>
 
-static const char NM_CLONE_NAME_MSG[] ="Name";
+static const char NM_CLONE_NAME_MSG[] = "Name";
 
 static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
                               const nm_vect_t *drives);
@@ -58,8 +58,7 @@ void nm_clone_vm(const nm_str_t *name)
     nm_get_field_buf(fields[0], &cl_name);
     nm_form_check_data(_(NM_CLONE_NAME_MSG), cl_name, err);
 
-    if (nm_print_empty_fields(&err) == NM_ERR)
-    {
+    if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
         goto out;
     }
@@ -98,8 +97,7 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
 
     nm_str_format(&new_vm_dir, "%s/%s", nm_cfg_get()->vm_dir.data, dst->data);
 
-    if (mkdir(new_vm_dir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
-    {
+    if (mkdir(new_vm_dir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
         nm_bug(_("%s: cannot create VM directory %s: %s"),
                __func__, new_vm_dir.data, strerror(errno));
     }
@@ -111,8 +109,7 @@ static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
 
     drives_count = drives->n_memb / NM_DRV_IDX_COUNT;
 
-    for (size_t n = 0; n < drives_count; n++)
-    {
+    for (size_t n = 0; n < drives_count; n++) {
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
         nm_str_t *drive_name = nm_vect_str(drives, NM_SQL_DRV_NAME + idx_shift);
 
@@ -150,8 +147,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     /* insert network interface info */
     ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
 
-    for (size_t n = 0; n < ifs_count; n++)
-    {
+    for (size_t n = 0; n < ifs_count; n++) {
         int altname;
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
         nm_str_t if_name = NM_INIT_STR;
@@ -183,8 +179,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     /* insert drive info */
     drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
 
-    for (size_t n = 0; n < drives_count; n++)
-    {
+    for (size_t n = 0; n < drives_count; n++) {
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
 
         nm_str_format(&query,

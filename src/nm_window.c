@@ -108,10 +108,8 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err)
 
     wbkgd(help_window, COLOR_PAIR(err ? NM_COLOR_RED : NM_COLOR_BLACK));
 
-    for (size_t n = 0; n < objs; n++)
-    {
-        if (n > 0)
-        {
+    for (size_t n = 0; n < objs; n++) {
+        if (n > 0) {
             x++;
             mvwaddch(help_window, y, x, ACS_VLINE);
             x+=2;
@@ -223,12 +221,10 @@ void nm_print_snapshots(const nm_vect_t *v)
         NM_SQL_VMSNAP_TIME = 4
     };
 
-    for (size_t n = 0; n < count; n++)
-    {
+    for (size_t n = 0; n < count; n++) {
         size_t idx_shift = 5 * n;
-        if (n && n < count)
-        {
 
+        if (n && n < count) {
             ch1 = (n != (count - 1)) ? ACS_LTEE : ACS_LLCORNER;
             ch2 = ACS_HLINE;
         }
@@ -289,8 +285,7 @@ void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
             nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
     NM_PR_VM_INFO();
 
-    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) > 0)
-    {
+    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) > 0) {
         nm_str_format(&buf, "%-12s%s", "host addr: ",
                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
         NM_PR_VM_INFO();
@@ -335,27 +330,21 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         nm_vect_str_ctx(&vm->main, NM_SQL_MEM), "Mb");
     NM_PR_VM_INFO();
 
-    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_KVM), NM_ENABLE) == NM_OK)
-    {
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_KVM), NM_ENABLE) == NM_OK) {
         if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
             nm_str_format(&buf, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
         else
             nm_str_format(&buf, "%-12s%s", "kvm: ", "enabled");
-    }
-    else
-    {
+    } else {
         nm_str_format(&buf, "%-12s%s", "kvm: ", "disabled");
     }
     NM_PR_VM_INFO();
 
-    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBF), "1") == NM_OK)
-    {
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBF), "1") == NM_OK) {
         nm_str_format(&buf, "%-12s%s [%s]", "usb: ", "enabled",
                 (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBT), NM_DEFAULT_USBVER) == NM_OK) ?
                 "XHCI" : "EHCI");
-    }
-    else
-    {
+    } else {
         nm_str_format(&buf, "%-12s%s", "usb: ", "disabled");
     }
     NM_PR_VM_INFO();
@@ -368,8 +357,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
     /* print network interfaces info */
     ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
 
-    for (size_t n = 0; n < ifs_count; n++)
-    {
+    for (size_t n = 0; n < ifs_count; n++) {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
 
         nm_str_format(&buf, "eth%zu%-8s%s [%s %s%s]",
@@ -386,14 +374,12 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
     /* print drives info */
     drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
 
-    for (size_t n = 0; n < drives_count; n++)
-    {
+    for (size_t n = 0; n < drives_count; n++) {
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
         int boot = 0;
 
         if (nm_str_cmp_st(nm_vect_str(&vm->drives, NM_SQL_DRV_BOOT + idx_shift),
-                NM_ENABLE) == NM_OK)
-        {
+                NM_ENABLE) == NM_OK) {
             boot = 1;
         }
 
@@ -406,8 +392,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
     }
 
     /* print 9pfs info */
-    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_9FLG), "1") == NM_OK)
-    {
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_9FLG), "1") == NM_OK) {
         nm_str_format(&buf, "%-12s%s [%s]", "9pfs: ",
                  nm_vect_str_ctx(&vm->main, NM_SQL_9PTH),
                  nm_vect_str_ctx(&vm->main, NM_SQL_9ID));
@@ -415,69 +400,58 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
     }
 
     /* generate guest boot settings info */
-    if (nm_vect_str_len(&vm->main, NM_SQL_MACH))
-    {
+    if (nm_vect_str_len(&vm->main, NM_SQL_MACH)) {
         nm_str_format(&buf, "%-12s%s", "machine: ",
                 nm_vect_str_ctx(&vm->main, NM_SQL_MACH));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm->main, NM_SQL_BIOS))
-    {
+    if (nm_vect_str_len(&vm->main, NM_SQL_BIOS)) {
         nm_str_format(&buf,"%-12s%s", "bios: ",
                 nm_vect_str_ctx(&vm->main, NM_SQL_BIOS));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm->main, NM_SQL_KERN))
-    {
+    if (nm_vect_str_len(&vm->main, NM_SQL_KERN)) {
         nm_str_format(&buf,"%-12s%s", "kernel: ",
                 nm_vect_str_ctx(&vm->main, NM_SQL_KERN));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm->main, NM_SQL_KAPP))
-    {
+    if (nm_vect_str_len(&vm->main, NM_SQL_KAPP)) {
         nm_str_format(&buf, "%-12s%s", "cmdline: ",
                 nm_vect_str_ctx(&vm->main, NM_SQL_KAPP));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm->main, NM_SQL_INIT))
-    {
+    if (nm_vect_str_len(&vm->main, NM_SQL_INIT)) {
         nm_str_format(&buf, "%-12s%s", "initrd: ",
                 nm_vect_str_ctx(&vm->main, NM_SQL_INIT));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm->main, NM_SQL_TTY))
-    {
+    if (nm_vect_str_len(&vm->main, NM_SQL_TTY)) {
         nm_str_format(&buf, "%-12s%s", "tty: ",
                 nm_vect_str_ctx(&vm->main, NM_SQL_TTY));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm->main, NM_SQL_SOCK))
-    {
+    if (nm_vect_str_len(&vm->main, NM_SQL_SOCK)) {
         nm_str_format(&buf, "%-12s%s", "socket: ",
                 nm_vect_str_ctx(&vm->main, NM_SQL_SOCK));
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm->main, NM_SQL_DEBP))
-    {
+    if (nm_vect_str_len(&vm->main, NM_SQL_DEBP)) {
         nm_str_format(&buf, "%-12s%s", "gdb port: ",
                 nm_vect_str_ctx(&vm->main, NM_SQL_DEBP));
         NM_PR_VM_INFO();
     }
-    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_DEBF), NM_ENABLE) == NM_OK)
-    {
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_DEBF), NM_ENABLE) == NM_OK) {
         nm_str_format(&buf, "%-12s", "freeze cpu: yes");
         NM_PR_VM_INFO();
     }
-    if (nm_vect_str_len(&vm->main, NM_SQL_ARGS))
-    {
+    if (nm_vect_str_len(&vm->main, NM_SQL_ARGS)) {
         nm_str_format(&buf,"%-12s%s", "extra args: ",
                 nm_vect_str_ctx(&vm->main, NM_SQL_ARGS));
         NM_PR_VM_INFO();
     }
 
     /* print host IP addresses for TAP ints */
-    for (size_t n = 0; n < ifs_count; n++)
-    {
+    for (size_t n = 0; n < ifs_count; n++) {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
 
         if (!nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift))
@@ -498,13 +472,11 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         nm_str_format(&pid_path, "%s/%s/%s",
             nm_cfg_get()->vm_dir.data, name->data, NM_VM_PID_FILE);
 
-        if ((status && (fd = open(pid_path.data, O_RDONLY)) != -1))
-        {
+        if ((status && (fd = open(pid_path.data, O_RDONLY)) != -1)) {
             char pid[10];
             ssize_t nread;
 
-            if ((nread = read(fd, pid, sizeof(pid))) > 0)
-            {
+            if ((nread = read(fd, pid, sizeof(pid))) > 0) {
                 pid[nread - 1] = '\0';
                 int pid_num = atoi(pid);
 
@@ -519,11 +491,8 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
             }
             close(fd);
 
-        }
-        else /* clear PID file info and cpu usage data */
-        {
-            if (y < (rows - 2))
-            {
+        } else { /* clear PID file info and cpu usage data */
+            if (y < (rows - 2)) {
                 mvwhline(action_window, y, 1, ' ', cols - 4);
                 mvwhline(action_window, y + 1, 1, ' ', cols - 4);
             }
@@ -629,8 +598,7 @@ nm_print_help__(const char **keys, const char **values,
     rows -= 4;
     cols -= 2;
 
-    if (maxlen + 10 > cols)
-    {
+    if (maxlen + 10 > cols) {
         nm_warn(_(NM_MSG_SMALL_WIN));
         return;
     }
@@ -647,16 +615,13 @@ nm_print_help__(const char **keys, const char **values,
     for (size_t y = 3; n < rows && n < hotkey_num; n++, y++)
         mvwprintw(action_window, y, 2, "%-10s%s", keys[n], values[n]);
 
-    if (perc != 100)
-    {
+    if (perc != 100) {
         size_t shift = 0;
 
-        for (;;)
-        {
+        for (;;) {
             int ch = wgetch(action_window);
 
-            if (ch == NM_KEY_ENTER)
-            {
+            if (ch == NM_KEY_ENTER) {
                 size_t last = 0;
 
                 shift++;
@@ -670,22 +635,21 @@ nm_print_help__(const char **keys, const char **values,
                     mvwprintw(action_window, y, 2, "%-10s%s", keys[n], values[n]);
 
                 last = n;
-                if (last < hotkey_num)
-                {
+                if (last < hotkey_num) {
                     perc = 100 * last / hotkey_num;
                     nm_str_format(&help_title, _("nEMU %s - help [%d%%]") , NM_VERSION, perc);
-                }
-                else
+                } else {
                     nm_str_format(&help_title, _("nEMU %s - help [end]"), NM_VERSION);
+                }
 
                 nm_init_action(help_title.data);
             }
             else
                 break;
         }
-    }
-    else
+    } else {
         wgetch(action_window);
+    }
 
     wrefresh(action_window);
     nm_init_action(NULL);
@@ -747,8 +711,7 @@ void nm_align2line(nm_str_t *str, size_t line_len)
     if (line_len <= 4)
         return;
 
-    if (str->len > (line_len - 4))
-    {
+    if (str->len > (line_len - 4)) {
         nm_str_trunc(str, line_len - 7);
         nm_str_add_text(str, "...");
     }
@@ -761,8 +724,7 @@ size_t nm_max_msg_len(const char **msg)
 
     size_t len = 0;
 
-    while (*msg)
-    {
+    while (*msg) {
         size_t mb_len = mbstowcs(NULL, _(*msg), strlen(_(*msg)));
         len = (mb_len > len) ? mb_len : len;
         msg++;

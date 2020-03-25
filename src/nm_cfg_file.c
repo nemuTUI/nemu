@@ -172,8 +172,7 @@ void nm_cfg_init(void)
         char *saveptr = tmp_buf.data;
         nm_str_t qemu_bin = NM_INIT_STR;
 
-        while ((token = strtok_r(saveptr, ",", &saveptr)))
-        {
+        while ((token = strtok_r(saveptr, ",", &saveptr))) {
             nm_str_format(&qemu_bin, "%s/qemu-system-%s",
                 cfg.qemu_bin_path.data, token);
 
@@ -201,8 +200,7 @@ void nm_cfg_init(void)
     cfg.log_enabled = !!nm_str_stoui(&tmp_buf, 10);
     nm_str_trunc(&tmp_buf, 0);
 
-    if (cfg.log_enabled)
-    {
+    if (cfg.log_enabled) {
         /* Get file log path */
         nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QLOG, &cfg.log_path);
 
@@ -212,8 +210,7 @@ void nm_cfg_init(void)
     }
 
     nm_str_trunc(&tmp_buf, 0);
-    if (nm_get_opt_param(ini, NM_INI_S_MAIN, NM_INI_P_HL, &tmp_buf) == NM_OK)
-    {
+    if (nm_get_opt_param(ini, NM_INI_S_MAIN, NM_INI_P_HL, &tmp_buf) == NM_OK) {
         if (tmp_buf.len != 6)
             nm_bug(_("cfg: incorrect color value %s, example:5fafff"), tmp_buf.data);
 
@@ -340,10 +337,8 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             do {
                 nm_get_input(_("VM storage directory"), &vmdir);
 
-                if (stat(vmdir.data, &file_info) != 0)
-                {
-                    if (mkdir(vmdir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
-                    {
+                if (stat(vmdir.data, &file_info) != 0) {
+                    if (mkdir(vmdir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
                         printf(_("Cannot create VM storage directory %s: %s\n"),
                             vmdir.data, strerror(errno));
                         printf(_("Try again? (y/n)\n> "));
@@ -356,14 +351,10 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                         default:
                             exit(NM_OK);
                         }
-                    }
-                    else
-                    {
+                    } else {
                         dir_created = 1;
                     }
-                }
-                else
-                {
+                } else {
                     dir_created = 1;
                 }
             } while (!dir_created);
@@ -449,10 +440,8 @@ static void nm_get_input(const char *msg, nm_str_t *res)
     if ((nread = getline(&buf.data, &buf.alloc_bytes, stdin)) == -1)
         nm_bug(_("Error get user input data"));
 
-    if (nread > 1)
-    {
-        if (buf.data[nread - 1] == '\n')
-        {
+    if (nread > 1) {
+        if (buf.data[nread - 1] == '\n') {
             buf.data[nread - 1] = '\0';
             nread--;
         }
@@ -479,8 +468,7 @@ static inline int nm_get_opt_param(const void *ini, const char *section,
     if (nm_ini_parser_find(ini, section, value, res) != NM_OK)
         return NM_ERR;
 
-    if (res->len == 0)
-    {
+    if (res->len == 0) {
         nm_bug(_("cfg error: %s->%s is empty"), section, value);
         return NM_ERR;
     }
@@ -531,16 +519,13 @@ static void nm_cfg_get_view(nm_view_args_t *view, const nm_str_t *buf)
 {
     int label_found = 0;
 
-    for (size_t n = 0; n < buf->len; n++)
-    {
-        if (buf->data[n] == '%')
-        {
+    for (size_t n = 0; n < buf->len; n++) {
+        if (buf->data[n] == '%') {
             label_found = 1;
             continue;
         }
 
-        if (label_found && buf->data[n - 1] == '%')
-        {
+        if (label_found && buf->data[n - 1] == '%') {
             switch (buf->data[n]) {
             case 't':
                 nm_debug("args: got %%t at %zu pos\n", n - 1);

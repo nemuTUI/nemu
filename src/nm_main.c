@@ -86,8 +86,7 @@ static void nm_process_args(int argc, char **argv)
         { NULL,          0,                 NULL,  0  }
     };
 
-    while ((opt = getopt_long(argc, argv, optstr, longopts, NULL)) != -1)
-    {
+    while ((opt = getopt_long(argc, argv, optstr, longopts, NULL)) != -1) {
         switch (opt) {
 #if defined (NM_OS_LINUX)
         case 'c':

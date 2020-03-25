@@ -76,8 +76,7 @@ void nm_edit_vm(const nm_str_t *name)
     fields[NM_FLD_COUNT] = NULL;
 
     nm_edit_vm_field_setup(&cur_settings);
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
         mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
         y += 2;
     }
@@ -229,15 +228,12 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
 
-    if (field_status(fields[NM_FLD_KVMFLG]))
-    {
-        if (nm_str_cmp_st(&kvm, "yes") == NM_OK)
+    if (field_status(fields[NM_FLD_KVMFLG])) {
+        if (nm_str_cmp_st(&kvm, "yes") == NM_OK) {
             vm->kvm.enable = 1;
-        else
-        {
+        } else {
             if (!field_status(fields[NM_FLD_HOSCPU]) &&
-                (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_HCPU), NM_ENABLE) == NM_OK))
-            {
+                    (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)) {
                 rc = NM_ERR;
                 NM_FORM_RESET();
                 nm_warn(_(NM_MSG_HCPU_KVM));
@@ -246,14 +242,11 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
         }
     }
 
-    if (field_status(fields[NM_FLD_HOSCPU]))
-    {
-        if (nm_str_cmp_st(&hcpu, "yes") == NM_OK)
-        {
+    if (field_status(fields[NM_FLD_HOSCPU])) {
+        if (nm_str_cmp_st(&hcpu, "yes") == NM_OK) {
             if (((!vm->kvm.enable) && (field_status(fields[NM_FLD_KVMFLG]))) ||
-                ((nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_KVM), NM_DISABLE) == NM_OK) &&
-                 !field_status(fields[NM_FLD_KVMFLG])))
-            {
+                    ((nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_KVM), NM_DISABLE) == NM_OK) &&
+                     !field_status(fields[NM_FLD_KVMFLG]))) {
                 rc = NM_ERR;
                 NM_FORM_RESET();
                 nm_warn(_(NM_MSG_HCPU_KVM));
@@ -266,14 +259,12 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     if (field_status(fields[NM_FLD_IFSCNT]))
         vm->ifs.count = nm_str_stoui(&ifs, 10);
 
-    if (field_status(fields[NM_FLD_USBUSE]))
-    {
+    if (field_status(fields[NM_FLD_USBUSE])) {
         if (nm_str_cmp_st(&usb, "yes") == NM_OK)
             vm->usb_enable = 1;
     }
 
-    if (field_status(fields[NM_FLD_USBTYP]))
-    {
+    if (field_status(fields[NM_FLD_USBTYP])) {
         if (nm_str_cmp_st(&usbv, NM_DEFAULT_USBVER) == NM_OK)
             vm->usb_xhci = 1;
     }
@@ -293,45 +284,37 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
 {
     nm_str_t query = NM_INIT_STR;
 
-    if (field_status(fields[NM_FLD_CPUNUM]))
-    {
+    if (field_status(fields[NM_FLD_CPUNUM])) {
         nm_str_format(&query, "UPDATE vms SET smp='%s' WHERE name='%s'",
             vm->cpus.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_RAMTOT]))
-    {
+    if (field_status(fields[NM_FLD_RAMTOT])) {
         nm_str_format(&query, "UPDATE vms SET mem='%s' WHERE name='%s'",
             vm->memo.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_KVMFLG]))
-    {
+    if (field_status(fields[NM_FLD_KVMFLG])) {
         nm_str_format(&query, "UPDATE vms SET kvm='%s' WHERE name='%s'",
             vm->kvm.enable ? NM_ENABLE : NM_DISABLE,
             nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_HOSCPU]))
-    {
+    if (field_status(fields[NM_FLD_HOSCPU])) {
         nm_str_format(&query, "UPDATE vms SET hcpu='%s' WHERE name='%s'",
             vm->kvm.hostcpu_enable ? NM_ENABLE : NM_DISABLE,
             nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_IFSCNT]))
-    {
+    if (field_status(fields[NM_FLD_IFSCNT])) {
         size_t cur_count = cur->ifs.n_memb / NM_IFS_IDX_COUNT;
 
-        if (vm->ifs.count < cur_count)
-        {
-
-            for (; cur_count > vm->ifs.count; cur_count--)
-            {
+        if (vm->ifs.count < cur_count) {
+            for (; cur_count > vm->ifs.count; cur_count--) {
                 size_t idx_shift = NM_IFS_IDX_COUNT * (cur_count - 1);
 
                 nm_str_format(&query, NM_DEL_IFACE_SQL,
@@ -341,10 +324,8 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
             }
         }
 
-        if (vm->ifs.count > cur_count)
-        {
-            for (size_t n = cur_count; n < vm->ifs.count; n++)
-            {
+        if (vm->ifs.count > cur_count) {
+            for (size_t n = cur_count; n < vm->ifs.count; n++) {
                 int altname;
                 nm_str_t if_name = NM_INIT_STR;
                 nm_str_t if_name_copy = NM_INIT_STR;
@@ -381,43 +362,37 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
         }
     }
 
-    if (field_status(fields[NM_FLD_DISKIN]))
-    {
+    if (field_status(fields[NM_FLD_DISKIN])) {
         nm_str_format(&query, "UPDATE drives SET drive_drv='%s' WHERE vm_name='%s'",
             vm->drive.driver.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_USBUSE]))
-    {
+    if (field_status(fields[NM_FLD_USBUSE])) {
         nm_str_format(&query, "UPDATE vms SET usb='%s' WHERE name='%s'",
             vm->usb_enable ? NM_ENABLE : NM_DISABLE,
             nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_USBTYP]))
-    {
+    if (field_status(fields[NM_FLD_USBTYP])) {
         nm_str_format(&query, "UPDATE vms SET usb_type='%s' WHERE name='%s'",
             vm->usb_xhci ? nm_form_usbtype[1] : nm_form_usbtype[0],
             nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_MACH]))
-    {
+    if (field_status(fields[NM_FLD_MACH])) {
         nm_str_format(&query, "UPDATE vms SET machine='%s' WHERE name='%s'",
             vm->mach.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_ARGS]))
-    {
+    if (field_status(fields[NM_FLD_ARGS])) {
         nm_str_format(&query, "UPDATE vms SET cmdappend='%s' WHERE name='%s'",
             vm->cmdappend.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
-
 
     nm_str_free(&query);
 }

@@ -49,17 +49,14 @@ static int nm_append_path(nm_str_t *path);
 
 void nm_form_free(nm_form_t *form, nm_field_t **fields)
 {
-    if (form)
-    {
+    if (form) {
         unpost_form(form);
         free_form(form);
         form = NULL;
     }
 
-    if (fields)
-    {
-        for (; *fields; fields++)
-        {
+    if (fields) {
+        for (; *fields; fields++) {
             free_field(*fields);
             *fields = NULL;
         }
@@ -98,8 +95,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
 
     wtimeout(w, 100);
 
-    while ((ch = wgetch(w)) != NM_KEY_ESC)
-    {
+    while ((ch = wgetch(w)) != NM_KEY_ESC) {
         if (confirm == NM_OK)
             break;
 
@@ -153,8 +149,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
 
                 nm_get_field_buf(current_field(form), &buf);
 
-                if (nm_append_path(&buf) == NM_OK)
-                {
+                if (nm_append_path(&buf) == NM_OK) {
                     set_field_buffer(current_field(form), 0, buf.data);
                     form_driver(form, REQ_END_FIELD);
                 }
@@ -176,8 +171,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
 
     nm_str_free(&buf);
 
-    if ((confirm == NM_OK) && (rc == NM_ERR))
-    {
+    if ((confirm == NM_OK) && (rc == NM_ERR)) {
         confirm = NM_ERR;
         NM_FORM_RESET();
         nm_warn(_(NM_MSG_BAD_CTX));
@@ -196,8 +190,7 @@ int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form)
     form->w_rows = (f_num * 2) + 1;
 
     if (form->w_cols < (max_msg + 18) ||
-        form->w_rows > rows - 4)
-    {
+        form->w_rows > rows - 4) {
         nm_warn(_(NM_MSG_SMALL_WIN));
         return NM_ERR;
     }
@@ -219,8 +212,7 @@ void nm_get_field_buf(nm_field_t *f, nm_str_t *res)
 
     s = strrchr(buf, 0x20);
 
-    if (s != NULL)
-    {
+    if (s != NULL) {
         while ((s > buf) && (s[-1] == 0x20))
             --s;
 
@@ -239,8 +231,7 @@ static int nm_append_path(nm_str_t *path)
 
     memset(&file_info, 0, sizeof(file_info));
 
-    if (path->data[0] == '~')
-    {
+    if (path->data[0] == '~') {
         nm_str_t new_path = NM_INIT_STR;
         const char *home;
 
@@ -254,21 +245,17 @@ static int nm_append_path(nm_str_t *path)
         nm_str_free(&new_path);
     }
 
-    if (glob(path->data, 0, NULL, &res) != 0)
-    {
+    if (glob(path->data, 0, NULL, &res) != 0) {
         nm_str_t tmp = NM_INIT_STR;
 
         nm_str_format(&tmp, "%s*", path->data);
-        if (glob(tmp.data, 0, NULL, &res) == 0)
-        {
+        if (glob(tmp.data, 0, NULL, &res) == 0) {
             nm_str_trunc(path, 0);
-            if ((rp = realpath(res.gl_pathv[0], NULL)) != NULL)
-            {
+            if ((rp = realpath(res.gl_pathv[0], NULL)) != NULL) {
                 nm_str_add_text(path, rp);
                 nm_str_free(&tmp);
                 rc = NM_OK;
-                if (stat(path->data, &file_info) != -1)
-                {
+                if (stat(path->data, &file_info) != -1) {
                     if (S_ISDIR(file_info.st_mode) && path->len > 1)
                         nm_str_add_char(path, '/');
                 }
@@ -280,13 +267,11 @@ static int nm_append_path(nm_str_t *path)
         goto out;
     }
 
-    if ((rp = realpath(res.gl_pathv[0], NULL)) != NULL)
-    {
+    if ((rp = realpath(res.gl_pathv[0], NULL)) != NULL) {
         nm_str_trunc(path, 0);
         nm_str_add_text(path, rp);
         rc = NM_OK;
-        if (stat(path->data, &file_info) != -1)
-        {
+        if (stat(path->data, &file_info) != -1) {
             if (S_ISDIR(file_info.st_mode) && path->len > 1)
                 nm_str_add_char(path, '/');
         }
@@ -313,8 +298,7 @@ void *nm_progress_bar(void *data)
 
     curs_set(0);
 
-    for (;;)
-    {
+    for (;;) {
         if (*dp->stop)
             break;
 
@@ -361,8 +345,7 @@ void *nm_file_progress(void *data)
 
     curs_set(0);
 
-    for (;;)
-    {
+    for (;;) {
         int64_t perc;
         memset(&dst_info, 0x0, sizeof(dst_info));
 
@@ -396,8 +379,7 @@ void *nm_spinner(void *data)
     if (dp == NULL)
         nm_bug(_("%s: NULL pointer"), __func__);
 
-    for (uint32_t i = 0 ;; i++)
-    {
+    for (uint32_t i = 0 ;; i++) {
         if (*dp->stop)
             break;
 
@@ -443,8 +425,7 @@ int nm_form_name_used(const nm_str_t *name)
     nm_str_add_char(&query, '\'');
 
     nm_db_select(query.data, &res);
-    if (res.n_memb > 0)
-    {
+    if (res.n_memb > 0) {
         rc = NM_ERR;
         curs_set(0);
         nm_warn(_(NM_MSG_NAME_BUSY));

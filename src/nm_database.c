@@ -53,14 +53,12 @@ void nm_db_init(void)
     if ((rc = sqlite3_open(cfg->db_path.data, &db_handler)) != SQLITE_OK)
         nm_bug(_("%s: database error: %s"), __func__, sqlite3_errstr(rc));
 
-    if (!need_create_db)
-    {
+    if (!need_create_db) {
         nm_db_check_version();
         return;
     }
 
-    for (size_t n = 0; n < nm_arr_len(query); n++)
-    {
+    for (size_t n = 0; n < nm_arr_len(query); n++) {
         nm_debug("%s: \"%s\"\n", __func__, query[n]);
 
         if (sqlite3_exec(db_handler, query[n], NULL, NULL, &db_errmsg) != SQLITE_OK)
@@ -75,8 +73,7 @@ void nm_db_select(const char *query, nm_vect_t *v)
     nm_debug("%s: \"%s\"\n", __func__, query);
 
     if (sqlite3_exec(db_handler, query, nm_db_select_cb,
-                    (void *) v, &db_errmsg) != SQLITE_OK)
-    {
+                    (void *) v, &db_errmsg) != SQLITE_OK) {
         nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
     }
 }
@@ -104,14 +101,12 @@ static void nm_db_check_version(void)
     nm_str_alloc_text(&query, NM_GET_DB_VERSION_SQL);
     nm_db_select(query.data, &res);
 
-    if (!res.n_memb)
-    {
+    if (!res.n_memb) {
         fprintf(stderr, _("%s: cannot get database version"), __func__);
         exit(NM_ERR);
     }
 
-    if (nm_str_cmp_st(nm_vect_at(&res, 0), NM_DB_VERSION) != NM_OK)
-    {
+    if (nm_str_cmp_st(nm_vect_at(&res, 0), NM_DB_VERSION) != NM_OK) {
         printf(_("Database version is not up do date."
                     " I will try to update it.\n"));
         if (nm_db_update() != NM_OK) {
@@ -161,8 +156,7 @@ static int nm_db_select_cb(void *v, int argc, char **argv,
     nm_vect_t *res = (nm_vect_t *) v;
     nm_str_t value = NM_INIT_STR;
 
-    for (int n = 0; n < argc; n++)
-    {
+    for (int n = 0; n < argc; n++) {
         nm_str_alloc_text(&value, argv[n] ? argv[n] : "");
         nm_vect_insert(res, &value, sizeof(nm_str_t), nm_str_vect_ins_cb);
     }

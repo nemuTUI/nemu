@@ -45,8 +45,7 @@ void nm_usb_get_devs(nm_vect_t *v)
         nm_bug(_("%s: libusb_get_device_list failed"), __func__);
 
     //@TODO Some of variables may be moved outside, and freed only once
-    for (n = 0; n < dev_count; n++)
-    {
+    for (n = 0; n < dev_count; n++) {
         nm_usb_dev_t dev = NM_INIT_USB;
         libusb_device *device = list[n];
         struct libusb_device_descriptor desc;
@@ -104,8 +103,7 @@ int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
     if ((dev_count = libusb_get_device_list(ctx, &list)) < 1)
         nm_bug(_("%s: libusb_get_device_list failed"), __func__);
 
-    for (ssize_t n = 0; n < dev_count; n++)
-    {
+    for (ssize_t n = 0; n < dev_count; n++) {
         uint8_t bus_num, dev_addr;
         libusb_device *device = list[n];
 
@@ -113,8 +111,7 @@ int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
         dev_addr = libusb_get_device_address(device);
 
         if ((bus_num == dev->bus_num) &&
-            (dev_addr == dev->dev_addr))
-        {
+            (dev_addr == dev->dev_addr)) {
             libusb_device_handle *handle;
             char serial_buf[NM_USB_SERIAL_LEN] = {0};
             struct libusb_device_descriptor desc;
@@ -128,8 +125,7 @@ int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
                 nm_bug("%s: %s", __func__, libusb_strerror(usb_rc));
 
             if (libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
-                        (uint8_t *) serial_buf, NM_USB_SERIAL_LEN) > 0)
-            {
+                        (uint8_t *) serial_buf, NM_USB_SERIAL_LEN) > 0) {
                 nm_str_alloc_text(serial, serial_buf);
                 rc = NM_OK;
             }
@@ -196,8 +192,7 @@ static const char *nm_usb_hwdb_get(const char *modalias, const char *key)
 {
     struct udev_list_entry *entry = NULL;
 
-    udev_list_entry_foreach(entry, udev_hwdb_get_properties_list_entry(hwdb, modalias, 0))
-    {
+    udev_list_entry_foreach(entry, udev_hwdb_get_properties_list_entry(hwdb, modalias, 0)) {
         if (strcmp(udev_list_entry_get_name(entry), key) == 0)
             return udev_list_entry_get_value(entry);
     }

@@ -194,10 +194,8 @@ void nm_str_dirname(const nm_str_t *str, nm_str_t *res)
     if (str->len == 0)
         nm_bug(_("%s: zero length string"), __func__);
 
-    for (size_t n = (pos - 1); n > 0; n--)
-    {
-        if (data[n] == '/')
-        {
+    for (size_t n = (pos - 1); n > 0; n--) {
+        if (data[n] == '/') {
             pos = n;
             break;
         }
@@ -224,31 +222,24 @@ void nm_str_basename(const nm_str_t *str, nm_str_t *res)
         nm_bug(_("%s: zero length string"), __func__);
 
     path_end = strrchr(path.data, '/');
-    if (path_end == NULL)
-    {
+    if (path_end == NULL) {
         nm_str_copy(res, str);
         return;
     }
 
-    if (path_end[1] == '\0')
-    {
+    if (path_end[1] == '\0') {
         while ((path_end > path.data) && (path_end[-1] == '/'))
             --path_end;
 
-        if (path_end > path.data)
-        {
+        if (path_end > path.data) {
             *path_end-- = '\0';
             while ((path_end > path.data) && (path_end[-1]) != '/')
                 --path_end;
-        }
-        else
-        {
+        } else {
             while (path_end[1] != '\0')
                 ++path_end;
         }
-    }
-    else
-    {
+    } else {
         ++path_end;
     }
 
@@ -322,8 +313,7 @@ void nm_str_remove_char(nm_str_t *str, char ch)
 
     prd = pwr = str->data;
 
-    while (*prd)
-    {
+    while (*prd) {
         *pwr = *prd++;
         pwr += (*pwr == ch) ? 0 : 1;
     }
@@ -336,8 +326,7 @@ size_t nm_strlcpy(char *dst, const char *src, size_t buflen)
     size_t srclen = strlen(src);
     size_t ret = srclen;
 
-    if (buflen > 0)
-    {
+    if (buflen > 0) {
         if (srclen >= buflen)
             srclen = buflen - 1;
 
@@ -385,8 +374,7 @@ static void nm_str_alloc_mem(nm_str_t *str, const char *src, size_t len)
 
     len_needed = len + 1;
 
-    if (len_needed > str->alloc_bytes)
-    {
+    if (len_needed > str->alloc_bytes) {
         nm_str_free(str);
         str->data = nm_alloc(len_needed);
         str->alloc_bytes = len_needed;
@@ -416,8 +404,7 @@ static void nm_str_append_mem(nm_str_t *str, const char *src, size_t len)
 
     len_needed++;
 
-    if (len_needed > str->alloc_bytes)
-    {
+    if (len_needed > str->alloc_bytes) {
         str->data = nm_realloc(str->data, len_needed);
         str->alloc_bytes = len_needed;
     }
@@ -443,8 +430,7 @@ static void nm_str_append_mem_opt(nm_str_t *str, const char *src, size_t len)
 
     len_needed++;
 
-    if (len_needed > str->alloc_bytes)
-    {
+    if (len_needed > str->alloc_bytes) {
         str->data = nm_realloc(str->data, len_needed * 10);
         str->alloc_bytes = len_needed * 10;
     }
@@ -459,8 +445,7 @@ static const char *nm_str_get(const nm_str_t *str)
     if (!str)
         return NULL;
 
-    if (str->data == NULL)
-    {
+    if (str->data == NULL) {
         if ((str->alloc_bytes != 0) || (str->len != 0))
             nm_bug(_("Malformed nm_str_t data"));
 

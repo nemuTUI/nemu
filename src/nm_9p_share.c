@@ -75,8 +75,7 @@ void nm_9p_share(const nm_str_t *name)
     set_field_buffer(fields[NM_FLD_9PPATH], 0, nm_vect_str_ctx(&vm.main, NM_SQL_9PTH));
     set_field_buffer(fields[NM_FLD_9PNAME], 0, nm_vect_str_ctx(&vm.main, NM_SQL_9ID));
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
         mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
         y += 2;
     }
@@ -108,16 +107,12 @@ static int nm_9p_get_data(nm_9p_data_t *data, const nm_vmctl_data_t *cur)
     nm_get_field_buf(fields[NM_FLD_9PPATH], &data->path);
     nm_get_field_buf(fields[NM_FLD_9PNAME], &data->name);
 
-    if (field_status(fields[NM_FLD_9PMODE]))
-    {
+    if (field_status(fields[NM_FLD_9PMODE])) {
         if (nm_str_cmp_st(&data->mode, "no") == NM_OK)
             goto out;
     }
-    else
-    {
-        if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_9FLG), NM_ENABLE) != NM_OK)
+    else if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_9FLG), NM_ENABLE) != NM_OK)
             goto out;
-    }
 
     nm_form_check_data(_(nm_form_msg[1]), data->path, err);
     nm_form_check_data(_(nm_form_msg[2]), data->name, err);
@@ -134,23 +129,20 @@ static void nm_9p_update_db(const nm_str_t *name, const nm_9p_data_t *data)
     nm_str_t query = NM_INIT_STR;
     nm_str_free(&query);
 
-    if (field_status(fields[NM_FLD_9PMODE]))
-    {
+    if (field_status(fields[NM_FLD_9PMODE])) {
         nm_str_format(&query, NM_9P_SET_MODE_SQL,
             (nm_str_cmp_st(&data->mode, "yes") == NM_OK) ? "1" : "0", name->data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }
 
-    if (field_status(fields[NM_FLD_9PPATH]))
-    {
+    if (field_status(fields[NM_FLD_9PPATH])) {
         nm_str_format(&query, NM_9P_SET_PATH_SQL, data->path.data, name->data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }
 
-    if (field_status(fields[NM_FLD_9PNAME]))
-    {
+    if (field_status(fields[NM_FLD_9PNAME])) {
         nm_str_format(&query, NM_9P_SET_NAME_SQL, data->name.data, name->data);
         nm_db_edit(query.data);
     }

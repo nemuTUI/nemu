@@ -224,21 +224,18 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
     tv.tv_sec = 0;
     tv.tv_usec = 100000; /* 0.1 s */
 
-    if ((h->sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
-    {
+    if ((h->sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         nm_warn(_(NM_MSG_Q_CR_ERR));
         return NM_ERR;
     }
 
-    if (fcntl(h->sd, F_SETFL, O_NONBLOCK) == -1)
-    {
+    if (fcntl(h->sd, F_SETFL, O_NONBLOCK) == -1) {
         close(h->sd);
         nm_warn(_(NM_MSG_Q_FL_ERR));
         return NM_ERR;
     }
 
-    if (connect(h->sd, (struct sockaddr *) &h->sock, len) == -1)
-    {
+    if (connect(h->sd, (struct sockaddr *) &h->sock, len) == -1) {
         close(h->sd);
         nm_warn(_(NM_MSG_Q_CN_ERR));
         return NM_ERR;
@@ -255,13 +252,11 @@ static int nm_qmp_check_answer(const nm_str_t *answer)
     regex_t reg;
     int rc = NM_OK;
 
-    if (regcomp(&reg, regex, REG_NOSUB | REG_EXTENDED) != 0)
-    {
+    if (regcomp(&reg, regex, REG_NOSUB | REG_EXTENDED) != 0) {
         nm_bug("%s: regcomp failed", __func__);
     }
 
-    if (regexec(&reg, answer->data, 0, NULL, 0) != 0)
-    {
+    if (regexec(&reg, answer->data, 0, NULL, 0) != 0) {
         rc = NM_ERR;
     }
 
@@ -283,40 +278,35 @@ static int nm_qmp_talk(int sd, const char *cmd,
     FD_ZERO(&readset);
     FD_SET(sd, &readset);
 
-    if (write(sd, cmd, len) == -1)
-    {
+    if (write(sd, cmd, len) == -1) {
         close(sd);
         nm_warn(_(NM_MSG_Q_SE_ERR));
         return NM_ERR;
     }
 
-    while (!read_done)
-    {
+    while (!read_done) {
         ret = select(sd + 1, &readset, NULL, NULL, tv);
-        if (ret == -1)
+        if (ret == -1) {
             nm_bug("%s: select error: %s", __func__, strerror(errno));
-        else if (ret && FD_ISSET(sd, &readset)) /* data is available */
-        {
+        } else if (ret && FD_ISSET(sd, &readset)) { /* data is available */
             memset(buf, 0, NM_QMP_READLEN);
             nread = read(sd, buf, NM_QMP_READLEN);
-            if (nread > 1)
-            {
+            if (nread > 1) {
                 buf[nread - 2] = '\0';
                 nm_str_add_text(&answer, buf);
                 /* check for command succesfully executed here
                  * and return if it done */
                 if ((rc = nm_qmp_check_answer(&answer)) == NM_OK)
                     goto out;
-            }
-            else if (nread == 0) /* socket closed */
+            } else if (nread == 0) { /* socket closed */
                 read_done = 1;
-        }
-        else /* timeout, nothing happens */
+            }
+        } else { /* timeout, nothing happens */
             read_done = 1;
+        }
     }
 
-    if (answer.len == 0)
-    {
+    if (answer.len == 0) {
         nm_warn(_(NM_MSG_Q_NO_ANS));
         rc = NM_ERR;
         goto err;

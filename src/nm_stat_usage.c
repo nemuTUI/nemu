@@ -30,26 +30,22 @@ static void nm_stat_cpu_total_time(void)
     if ((fd = open(NM_STAT_PATH, O_RDONLY)) == -1)
         return;
 
-    while ((read(fd, &ch, 1) > 0) && ch != '\n')
-    {
+    while ((read(fd, &ch, 1) > 0) && ch != '\n') {
         buf[nread] = ch;
         nread++;
     }
 
-    for (size_t n = 0; n < nread; n++)
-    {
+    for (size_t n = 0; n < nread; n++) {
         if (buf[n] == 0x20)
             space_num++;
         else
             continue;
 
-        if (space_num == 2)
-        {
+        if (space_num == 2) {
             token_b = buf + n + 1;
         }
 
-        if (space_num > 2)
-        {
+        if (space_num > 2) {
             token_e = buf + n;
             memcpy(buf_time, token_b, token_e - token_b);
             res += nm_str_ttoul(buf_time, 10);
@@ -89,20 +85,17 @@ static void nm_stat_cpu_proc_time(int pid)
 
     buf[nread - 1] = '\0';
 
-    for (ssize_t n = 0; n < nread; n++)
-    {
+    for (ssize_t n = 0; n < nread; n++) {
         if (buf[n] == 0x20)
             space_num++;
         else
             continue;
 
-        if (space_num == 13)
-        {
+        if (space_num == 13) {
             token_b = buf + n + 1;
         }
 
-        if (space_num == 14)
-        {
+        if (space_num == 14) {
             token_e = buf + n;
             memcpy(buf_time, token_b, token_e - token_b);
             utime = nm_str_ttoul(buf_time, 10);
@@ -110,8 +103,7 @@ static void nm_stat_cpu_proc_time(int pid)
             memset(buf_time, 0, sizeof(buf_time));
         }
 
-        if (space_num == 15)
-        {
+        if (space_num == 15) {
             token_e = buf + n;
             memcpy(buf_time, token_b, token_e - token_b);
             stime = nm_str_ttoul(buf_time, 10);

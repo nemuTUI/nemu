@@ -113,8 +113,7 @@ void nm_viewer(const nm_str_t *name)
     for (size_t n = 0; n < NM_FLD_COUNT; n++)
         set_field_status(fields[n], 0);
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
         mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
         y += 2;
     }
@@ -199,8 +198,7 @@ static void nm_viewer_update_db(const nm_str_t *name, nm_view_data_t *vm)
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_SYNC]))
-    {
+    if (field_status(fields[NM_FLD_SYNC])) {
         int sync_on = 0;
 
         if (nm_str_cmp_st(&vm->sync, "yes") == NM_OK)

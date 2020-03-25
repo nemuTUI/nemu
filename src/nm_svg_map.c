@@ -41,8 +41,7 @@ void nm_svg_map(const char *path, const nm_vect_t *veths,
     agattr(graph, AGRAPH, "sep", "+25,25");
 
     //@TODO Some of variables may be moved outside, and freed only once
-    for (size_t v = 0; v < veths->n_memb; v++)
-    {
+    for (size_t v = 0; v < veths->n_memb; v++) {
         nm_vect_t vms = NM_INIT_VECT;
         nm_str_t lname = NM_INIT_STR;
         nm_str_t rname = NM_INIT_STR;
@@ -74,8 +73,7 @@ void nm_svg_map(const char *path, const nm_vect_t *veths,
         nm_db_select(query.data, &vms);
 
         vms_count = vms.n_memb / 2;
-        for (size_t n = 0; n < vms_count; n++)
-        {
+        for (size_t n = 0; n < vms_count; n++) {
             size_t idx_shift = 2 * n;
             nm_gvnode_t *node = agnode(graph, nm_vect_str_ctx(&vms, idx_shift), NM_TRUE);
             nm_gvedge_t *edge = agedge(graph, node, vnode, NULL, NM_TRUE);

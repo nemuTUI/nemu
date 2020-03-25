@@ -89,8 +89,7 @@ void nm_edit_net(const nm_str_t *name)
 
     nm_vmctl_get_data(name, &vm);
 
-    if (vm.ifs.n_memb == 0)
-    {
+    if (vm.ifs.n_memb == 0) {
         nm_warn(_(NM_MSG_NO_IFACES));
         goto out;
     }
@@ -110,8 +109,7 @@ void nm_edit_net(const nm_str_t *name)
     else
         ifs.item_last = vm_list_len = iface_count;
 
-    for (size_t n = 0; n < iface_count; n++)
-    {
+    for (size_t n = 0; n < iface_count; n++) {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
         nm_vect_insert(&ifaces,
                        nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
@@ -123,13 +121,11 @@ void nm_edit_net(const nm_str_t *name)
     do {
         nm_menu_scroll(&ifs, vm_list_len, ch);
 
-        if (ch == NM_KEY_ENTER)
-        {
+        if (ch == NM_KEY_ENTER) {
             werase(action_window);
             nm_init_action(_(NM_MSG_IF_PROP));
 
-            if (nm_edit_net_action(name, &vm, ifs.highlight) == NM_OK)
-            {
+            if (nm_edit_net_action(name, &vm, ifs.highlight) == NM_OK) {
                 nm_vmctl_free_data(&vm);
                 nm_vmctl_get_data(name, &vm);
             }
@@ -140,8 +136,7 @@ void nm_edit_net(const nm_str_t *name)
         nm_init_action(_(NM_MSG_IF_PROP));
         nm_print_iface_info(&vm, ifs.highlight);
 
-        if (redraw_window)
-        {
+        if (redraw_window) {
             nm_destroy_windows();
             endwin();
             refresh();
@@ -152,14 +147,13 @@ void nm_edit_net(const nm_str_t *name)
 
             vm_list_len = (getmaxy(side_window) - 4);
             /* TODO save last pos */
-            if (vm_list_len < iface_count)
-            {
+            if (vm_list_len < iface_count) {
                 ifs.item_last = vm_list_len;
                 ifs.item_first = 0;
                 ifs.highlight = 1;
-            }
-            else
+            } else {
                 ifs.item_last = vm_list_len = iface_count;
+            }
 
             redraw_window = 0;
         }
@@ -216,8 +210,7 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
 
     form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
 
-    if (nm_draw_form(action_window, form) != NM_OK)
-    {
+    if (nm_draw_form(action_window, form) != NM_OK) {
         rc = NM_ERR;
         goto out;
     }
@@ -266,8 +259,7 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, size_t if_idx)
         nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
     set_field_buffer(fields[NM_FLD_MADR], 0,
         nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
-    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) > 0)
-    {
+    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) > 0) {
         set_field_buffer(fields[NM_FLD_IPV4], 0,
             nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
     }
@@ -280,8 +272,7 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, size_t if_idx)
     if (mvtap_idx > NM_NET_MACVTAP_NUM)
         nm_bug("%s: invalid macvtap array index: %zu", __func__, mvtap_idx);
     set_field_buffer(fields[NM_FLD_MTAP], 0, nm_form_macvtap[mvtap_idx]);
-    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_PET + idx_shift) > 0)
-    {
+    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_PET + idx_shift) > 0) {
         set_field_buffer(fields[NM_FLD_PETH], 0,
             nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_PET + idx_shift));
     }
@@ -297,8 +288,7 @@ static void nm_edit_net_field_names(nm_window_t *w)
 {
     int y = 1, x = 2, mult = 2;
 
-    for (size_t n = 0; n < NM_NET_FIELDS_NUM; n++)
-    {
+    for (size_t n = 0; n < NM_NET_FIELDS_NUM; n++) {
         mvwaddstr(w, y, x, _(nm_form_msg[n]));
         y += mult;
     }
@@ -332,28 +322,23 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
 
-    if (field_status(fields[NM_FLD_MADR]))
-    {
-        if (nm_net_verify_mac(&ifp->maddr) != NM_OK)
-        {
+    if (field_status(fields[NM_FLD_MADR])) {
+        if (nm_net_verify_mac(&ifp->maddr) != NM_OK) {
             nm_warn(_(NM_MSG_MAC_INVAL));
             rc = NM_ERR;
             goto out;
         }
 
-        if (nm_edit_net_maddr_busy(&ifp->maddr) != NM_OK)
-        {
+        if (nm_edit_net_maddr_busy(&ifp->maddr) != NM_OK) {
             nm_warn(_(NM_MSG_MAC_USED));
             rc = NM_ERR;
             goto out;
         }
     }
 
-    if ((field_status(fields[NM_FLD_IPV4])) && (ifp->ipv4.len > 0))
-    {
+    if ((field_status(fields[NM_FLD_IPV4])) && (ifp->ipv4.len > 0)) {
         nm_str_t err_msg = NM_INIT_STR;
-        if (nm_net_verify_ipaddr4(&ifp->ipv4, NULL, &err_msg) != NM_OK)
-        {
+        if (nm_net_verify_ipaddr4(&ifp->ipv4, NULL, &err_msg) != NM_OK) {
             nm_warn(err_msg.data);
             rc = NM_ERR;
             goto out;
@@ -364,17 +349,13 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
 #if defined (NM_OS_LINUX)
     /* Do not allow to enable vhost on non virtio net device */
     if ((field_status(fields[NM_FLD_VHST])) &&
-        (nm_str_cmp_st(&ifp->vhost, "yes") == NM_OK))
-    {
+        (nm_str_cmp_st(&ifp->vhost, "yes") == NM_OK)) {
         int vhost_ok = 1;
 
-        if (field_status(fields[NM_FLD_NDRV]))
-        {
+        if (field_status(fields[NM_FLD_NDRV])) {
             if (nm_str_cmp_st(&ifp->drv, NM_DEFAULT_NETDRV) != NM_OK)
                 vhost_ok = 0;
-        }
-        else
-        {
+        } else {
             nm_str_t query = NM_INIT_STR;
             nm_vect_t netv = NM_INIT_VECT;
 
@@ -389,18 +370,15 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
             nm_str_free(&query);
         }
 
-        if (!vhost_ok)
-        {
+        if (!vhost_ok) {
             rc = NM_ERR;
             nm_warn(_(NM_MSG_VHOST_ERR));
         }
     }
 
     /* Check for MacVTap parent interface exists */
-    if (field_status(fields[NM_FLD_PETH]) && (ifp->parent_eth.len > 0))
-    {
-        if (nm_net_iface_exists(&ifp->parent_eth) != NM_OK)
-        {
+    if (field_status(fields[NM_FLD_PETH]) && (ifp->parent_eth.len > 0)) {
+        if (nm_net_iface_exists(&ifp->parent_eth) != NM_OK) {
             rc = NM_ERR;
             nm_warn(_(NM_MSG_VTAP_NOP));
         }
@@ -420,8 +398,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
 {
     nm_str_t query = NM_INIT_STR;
 
-    if (field_status(fields[NM_FLD_NDRV]))
-    {
+    if (field_status(fields[NM_FLD_NDRV])) {
         nm_str_format(&query,
             "UPDATE ifaces SET if_drv='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->drv.data, name->data, ifp->name.data);
@@ -429,8 +406,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
 
 #if defined (NM_OS_LINUX)
         /* disable vhost if driver is not virtio-net */
-        if (nm_str_cmp_st(&ifp->drv, NM_DEFAULT_NETDRV) != NM_OK)
-        {
+        if (nm_str_cmp_st(&ifp->drv, NM_DEFAULT_NETDRV) != NM_OK) {
             nm_str_format(&query,
                 "UPDATE ifaces SET vhost='0' WHERE vm_name='%s' AND if_name='%s'",
                 name->data, ifp->name.data);
@@ -439,16 +415,14 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
 #endif
     }
 
-    if (field_status(fields[NM_FLD_MADR]))
-    {
+    if (field_status(fields[NM_FLD_MADR])) {
         nm_str_format(&query,
             "UPDATE ifaces SET mac_addr='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->maddr.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_IPV4]))
-    {
+    if (field_status(fields[NM_FLD_IPV4])) {
         nm_str_format(&query,
             "UPDATE ifaces SET ipv4_addr='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->ipv4.data, name->data, ifp->name.data);
@@ -456,8 +430,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
     }
 
 #if defined (NM_OS_LINUX)
-    if (field_status(fields[NM_FLD_VHST]))
-    {
+    if (field_status(fields[NM_FLD_VHST])) {
         nm_str_format(&query,
             "UPDATE ifaces SET vhost='%s' WHERE vm_name='%s' AND if_name='%s'",
             (nm_str_cmp_st(&ifp->vhost, "yes") == NM_OK) ? NM_ENABLE : NM_DISABLE,
@@ -465,15 +438,12 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_MTAP]))
-    {
+    if (field_status(fields[NM_FLD_MTAP])) {
         ssize_t macvtap_idx = -1;
         const char **p = nm_form_macvtap;
 
-        for (ssize_t n = 0; *p; p++, n++)
-        {
-            if (nm_str_cmp_st(&ifp->macvtap, *p) == NM_OK)
-            {
+        for (ssize_t n = 0; *p; p++, n++) {
+            if (nm_str_cmp_st(&ifp->macvtap, *p) == NM_OK) {
                 macvtap_idx = n;
                 break;
             }
@@ -488,8 +458,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_PETH]))
-    {
+    if (field_status(fields[NM_FLD_PETH])) {
         nm_str_format(&query,
             "UPDATE ifaces SET parent_eth='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->parent_eth.data, name->data, ifp->name.data);
@@ -521,10 +490,8 @@ static int nm_edit_net_maddr_busy(const nm_str_t *mac)
 
     nm_db_select(NM_GET_IFACES_MACS, &maddrs);
 
-    for (size_t n = 0; n < maddrs.n_memb; n++)
-    {
-        if (nm_str_cmp_ss(mac, nm_vect_str(&maddrs, n)) == NM_OK)
-        {
+    for (size_t n = 0; n < maddrs.n_memb; n++) {
+        if (nm_str_cmp_ss(mac, nm_vect_str(&maddrs, n)) == NM_OK) {
             rc = NM_ERR;
             break;
         }

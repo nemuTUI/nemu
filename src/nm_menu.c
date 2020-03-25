@@ -18,15 +18,13 @@ void nm_print_base_menu(nm_menu_data_t *ifs)
     wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
     screen_x = getmaxx(side_window);
-    if (screen_x < 20) /* window to small */
-    {
+    if (screen_x < 20) { /* window to small */
         mvwaddstr(side_window, 3, 1, "...");
         wrefresh(side_window);
         return;
     }
 
-    for (size_t n = ifs->item_first, i = 0; n < ifs->item_last; n++, i++)
-    {
+    for (size_t n = ifs->item_first, i = 0; n < ifs->item_last; n++, i++) {
         nm_str_t if_name = NM_INIT_STR;
         int space_num;
 
@@ -37,20 +35,16 @@ void nm_print_base_menu(nm_menu_data_t *ifs)
         nm_align2line(&if_name, screen_x);
 
         space_num = (screen_x - if_name.len - 4);
-        if (space_num > 0)
-        {
+        if (space_num > 0) {
             for (int s = 0; s < space_num; s++)
                 nm_str_add_char_opt(&if_name, ' ');
         }
 
-        if (ifs->highlight == i + 1)
-        {
+        if (ifs->highlight == i + 1) {
             wattron(side_window, A_REVERSE);
             mvwprintw(side_window, y, x, "%s", if_name.data);
             wattroff(side_window, A_REVERSE);
-        }
-        else
-        {
+        } else {
             mvwprintw(side_window, y, x, "%s", if_name.data);
         }
 
@@ -66,8 +60,7 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
     size_t screen_x;
 
     screen_x = getmaxx(side_window);
-    if (screen_x < 20) /* window to small */
-    {
+    if (screen_x < 20) { /* window to small */
         mvwaddstr(side_window, 3, 1, "...");
         wrefresh(side_window);
         return;
@@ -75,8 +68,7 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
 
     wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
-    for (size_t n = vm->item_first, i = 0; n < vm->item_last; n++, i++)
-    {
+    for (size_t n = vm->item_first, i = 0; n < vm->item_last; n++, i++) {
         int space_num;
         nm_str_t vm_name = NM_INIT_STR;
 
@@ -87,31 +79,24 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         nm_align2line(&vm_name, screen_x);
 
         space_num = (screen_x - vm_name.len - 4);
-        if (space_num > 0)
-        {
+        if (space_num > 0) {
             for (int s = 0; s < space_num; s++)
                 nm_str_add_char_opt(&vm_name, ' ');
         }
 
-        if (nm_qmp_test_socket(nm_vect_item_name(vm->v, n)) == NM_OK)
-        {
+        if (nm_qmp_test_socket(nm_vect_item_name(vm->v, n)) == NM_OK) {
             nm_vect_set_item_status(vm->v, n, 1);
             wattron(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
-        }
-        else
-        {
+        } else {
             nm_vect_set_item_status(vm->v, n, 0);
             wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         }
 
-        if (vm->highlight == i + 1)
-        {
+        if (vm->highlight == i + 1) {
             wattron(side_window, A_REVERSE);
             mvwprintw(side_window, y, x, "%s", vm_name.data);
             wattroff(side_window, A_REVERSE);
-        }
-        else
-        {
+        } else {
             mvwprintw(side_window, y, x, "%s", vm_name.data);
         }
 
@@ -124,60 +109,38 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
 void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
 {
     if ((ch == KEY_UP) && (menu->highlight == 1) && (menu->item_first == 0) &&
-            (list_len < menu->v->n_memb))
-    {
+            (list_len < menu->v->n_memb)) {
         menu->highlight = list_len;
         menu->item_first = menu->v->n_memb - list_len;
         menu->item_last = menu->v->n_memb;
-    }
-
-    else if (ch == KEY_UP)
-    {
-        if ((menu->highlight == 1) && (menu->v->n_memb <= list_len))
+    } else if (ch == KEY_UP) {
+        if ((menu->highlight == 1) && (menu->v->n_memb <= list_len)) {
             menu->highlight = menu->v->n_memb;
-        else if ((menu->highlight == 1) && (menu->item_first != 0))
-        {
+        } else if ((menu->highlight == 1) && (menu->item_first != 0)) {
             menu->item_first--;
             menu->item_last--;
-        }
-        else
-        {
+        } else {
             menu->highlight--;
         }
-    }
-
-    else if ((ch == KEY_DOWN) && (menu->highlight == list_len) &&
-            (menu->item_last == menu->v->n_memb))
-    {
+    } else if ((ch == KEY_DOWN) && (menu->highlight == list_len) &&
+            (menu->item_last == menu->v->n_memb)) {
         menu->highlight = 1;
         menu->item_first = 0;
         menu->item_last = list_len;
-    }
-
-    else if (ch == KEY_DOWN)
-    {
-        if ((menu->highlight == menu->v->n_memb) && (menu->v->n_memb <= list_len))
+    } else if (ch == KEY_DOWN) {
+        if ((menu->highlight == menu->v->n_memb) && (menu->v->n_memb <= list_len)) {
             menu->highlight = 1;
-        else if ((menu->highlight == list_len) && (menu->item_last < menu->v->n_memb))
-        {
+        } else if ((menu->highlight == list_len) && (menu->item_last < menu->v->n_memb)) {
             menu->item_first++;
             menu->item_last++;
-        }
-        else
-        {
+        } else {
             menu->highlight++;
         }
-    }
-
-    else if (ch == KEY_HOME)
-    {
+    } else if (ch == KEY_HOME) {
         menu->highlight = 1;
         menu->item_first = 0;
         menu->item_last = list_len;
-    }
-
-    else if (ch == KEY_END)
-    {
+    } else if (ch == KEY_END) {
         menu->highlight = list_len;
         menu->item_first = menu->v->n_memb - list_len;
         menu->item_last = menu->v->n_memb;
@@ -198,8 +161,7 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
     nm_str_t veth_rname = NM_INIT_STR;
 
     screen_x = getmaxx(side_window);
-    if (screen_x < 20) /* window to small */
-    {
+    if (screen_x < 20) { /* window to small */
         mvwaddstr(side_window, 3, 1, "...");
         wrefresh(side_window);
         return;
@@ -207,8 +169,7 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
 
     wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
-    for (size_t n = veth->item_first, i = 0; n < veth->item_last; n++, i++)
-    {
+    for (size_t n = veth->item_first, i = 0; n < veth->item_last; n++, i++) {
         int space_num;
 
         if (n >= veth->v->n_memb)
@@ -220,14 +181,12 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
         nm_lan_parse_name(&veth_copy, &veth_lname, &veth_rname);
 
         space_num = (screen_x - veth_name.len - 4);
-        if (space_num > 0)
-        {
+        if (space_num > 0) {
             for (int s = 0; s < space_num; s++)
                 nm_str_add_char_opt(&veth_name, ' ');
         }
 
-        if (get_status)
-        {
+        if (get_status) {
             if (nm_net_link_status(&veth_lname) == NM_OK)
                 nm_vect_set_item_status(veth->v, n, 1);
             else
@@ -239,14 +198,11 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
         else
             wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
-        if (veth->highlight == i + 1)
-        {
+        if (veth->highlight == i + 1) {
             wattron(side_window, A_REVERSE);
             mvwprintw(side_window, y, x, "%s", veth_name.data);
             wattroff(side_window, A_REVERSE);
-        }
-        else
-        {
+        } else {
             mvwprintw(side_window, y, x, "%s", veth_name.data);
         }
 

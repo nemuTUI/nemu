@@ -148,27 +148,23 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
 
     mac_len = nm_net_mac_s2a(maddr, macn, sizeof(macn));
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_ADDRESS,
-            macn, mac_len) != NM_OK))
-    {
+            macn, mac_len) != NM_OK)) {
         nm_bug("%s: Error add_attr", __func__);
     }
 
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_LINK,
-            &dev_index, sizeof(dev_index)) != NM_OK))
-    {
+            &dev_index, sizeof(dev_index)) != NM_OK)) {
         nm_bug("%s: Error add_attr", __func__);
     }
 
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_IFNAME,
-            name->data, name->len) != NM_OK))
-    {
+            name->data, name->len) != NM_OK)) {
         nm_bug("%s: Error add_attr", __func__);
     }
 
     linkinfo = nm_net_add_attr_nest(&req.n, sizeof(req), IFLA_LINKINFO);
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_INFO_KIND,
-            NM_NET_MACVTAP, strlen(NM_NET_MACVTAP)) != NM_OK))
-    {
+            NM_NET_MACVTAP, strlen(NM_NET_MACVTAP)) != NM_OK)) {
         nm_bug("%s: Error add_attr", __func__);
     }
 
@@ -183,8 +179,7 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
 
     data = nm_net_add_attr_nest(&req.n, sizeof(req), IFLA_INFO_DATA);
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_MACVLAN_MODE,
-            &mode, sizeof(mode)) != NM_OK))
-    {
+            &mode, sizeof(mode)) != NM_OK)) {
         nm_bug("%s: Error add_attr", __func__);
     }
 
@@ -212,15 +207,13 @@ void nm_net_add_veth(const nm_str_t *l_name, const nm_str_t *r_name)
     req.i.ifi_index = 0;
 
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_IFNAME,
-            l_name->data, l_name->len) != NM_OK))
-    {
+            l_name->data, l_name->len) != NM_OK)) {
         nm_bug("%s: Error add_attr", __func__);
     }
 
     linkinfo = nm_net_add_attr_nest(&req.n, sizeof(req), IFLA_LINKINFO);
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_INFO_KIND,
-            NM_NET_VETH, strlen(NM_NET_VETH)) != NM_OK))
-    {
+            NM_NET_VETH, strlen(NM_NET_VETH)) != NM_OK)) {
         nm_bug("%s: Error add_attr", __func__);
     }
 
@@ -239,15 +232,13 @@ void nm_net_add_veth(const nm_str_t *l_name, const nm_str_t *r_name)
 
         vdata = NLMSG_TAIL(&req.n);
         if ((nm_net_add_attr(&req.n, sizeof(req), NM_NET_VETH_INFO_PEER,
-                NULL, 0) != NM_OK))
-        {
+                NULL, 0) != NM_OK)) {
             nm_bug("%s: Error add_attr", __func__);
         }
 
         req.n.nlmsg_len += sizeof(struct ifinfomsg);
         if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_IFNAME,
-                r_name->data, r_name->len) != NM_OK))
-        {
+                r_name->data, r_name->len) != NM_OK)) {
             nm_bug("%s: Error add_attr", __func__);
         }
 
@@ -335,8 +326,7 @@ int nm_net_verify_mac(const nm_str_t *mac)
     const char *regex = "^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$";
     regex_t reg;
 
-    if (regcomp(&reg, regex, REG_EXTENDED) != 0)
-    {
+    if (regcomp(&reg, regex, REG_EXTENDED) != 0) {
         nm_bug("%s: regcomp failed", __func__);
     }
 
@@ -361,15 +351,13 @@ int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
     nm_str_copy(&buf, src);
     saveptr = buf.data;
 
-    if (src->data[src->len - 1] == '/')
-    {
+    if (src->data[src->len - 1] == '/') {
         nm_str_alloc_text(err, _("Invalid address format: expected IPv4/CIDR"));
         rc = NM_ERR;
         goto out;
     }
 
-    while ((token = strtok_r(saveptr, "/", &saveptr)))
-    {
+    while ((token = strtok_r(saveptr, "/", &saveptr))) {
         switch (n) {
         case 0:
             nm_str_alloc_text(&addr, token);
@@ -391,22 +379,19 @@ int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
     }
 
     if ((addr.len == 0) ||
-        (inet_pton(AF_INET, addr.data, &netaddr.addr.s_addr) != 1))
-    {
+        (inet_pton(AF_INET, addr.data, &netaddr.addr.s_addr) != 1)) {
         nm_str_alloc_text(err, _("Invalid IPv4 address"));
         rc = NM_ERR;
         goto out;
     }
 
-    if ((netaddr.cidr > 32) || (netaddr.cidr == 0))
-    {
+    if ((netaddr.cidr > 32) || (netaddr.cidr == 0)) {
         nm_str_alloc_text(err, _("Invalid CIDR: expected [1-32]"));
         rc = NM_ERR;
         goto out;
     }
 
-    if (net != NULL)
-    {
+    if (net != NULL) {
         net->cidr = netaddr.cidr;
         memcpy(&net->addr, &netaddr.addr, sizeof(struct in_addr));
     }
@@ -439,8 +424,7 @@ void nm_net_mac_n2s(uint64_t maddr, nm_str_t *res)
     char buf[64] = {0};
     int pos = 0;
 
-    for (int byte = 0; byte < 6; byte++)
-    {
+    for (int byte = 0; byte < 6; byte++) {
         uint32_t octet = ((maddr >> 40) & 0xff);
 
         pos += snprintf(buf + pos, sizeof(buf) - pos, "%02x:", octet);
@@ -461,12 +445,10 @@ static size_t nm_net_mac_s2a(const nm_str_t *addr, char *res, size_t len)
     nm_str_copy(&copy, addr);
     savep = copy.data;
 
-    for (; n < len; n++)
-    {
+    for (; n < len; n++) {
         char *cp = strchr(copy.data, ':');
 
-        if (cp)
-        {
+        if (cp) {
             *cp = '\0';
             cp++;
         }
@@ -528,8 +510,7 @@ static void nm_net_manage_tap(const nm_str_t *name, int on_off)
 
     strlcpy(ifr.ifr_name, name->data, sizeof(ifr.ifr_name));
 
-    if (on_off == NM_TAP_OFF)
-    {
+    if (on_off == NM_TAP_OFF) {
         if (ioctl(sock, SIOCIFDESTROY, &ifr) == -1)
             nm_bug("%s: ioctl(SIOCIFDESTROY): %s", __func__, strerror(errno));
     }
@@ -548,8 +529,7 @@ static void nm_net_rtnl_open(struct rtnl_handle *rth)
     if ((rth->sd = socket(AF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, NETLINK_ROUTE)) == -1)
         nm_bug("%s: cannot open netlink socket: %s", __func__, strerror(errno));
 
-    if (bind(rth->sd, (struct sockaddr *) &rth->sa, sizeof(rth->sa)) == -1)
-    {
+    if (bind(rth->sd, (struct sockaddr *) &rth->sa, sizeof(rth->sa)) == -1) {
         close(rth->sd);
         nm_bug("%s: cannot bind netlink socket: %s", __func__, strerror(errno));
     }
@@ -563,8 +543,7 @@ static int nm_net_add_attr(struct nlmsghdr *n, size_t mlen,
     size_t len = RTA_LENGTH(dlen);
     struct rtattr *rta;
 
-    if (NLMSG_ALIGN(n->nlmsg_len) + RTA_ALIGN(len) > mlen)
-    {
+    if (NLMSG_ALIGN(n->nlmsg_len) + RTA_ALIGN(len) > mlen) {
         return NM_ERR;
     }
 
@@ -632,12 +611,10 @@ static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n,
     len = recvmsg(rth->sd, &msg, 0);
 
     for (nh = (struct nlmsghdr *) buf; NLMSG_OK(nh, len);
-         nh = NLMSG_NEXT(nh, len))
-    {
+         nh = NLMSG_NEXT(nh, len)) {
         if (nh->nlmsg_type == NLMSG_DONE)
             return;
-        if (nh->nlmsg_type == NLMSG_ERROR)
-        {
+        if (nh->nlmsg_type == NLMSG_ERROR) {
             struct nlmsgerr *nlerr = (struct nlmsgerr *) NLMSG_DATA(nh);
             if (!nlerr->error)
                 return;
@@ -677,8 +654,7 @@ int nm_net_link_status(const nm_str_t *name)
     req.i.ifi_family = AF_UNSPEC;
 
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_IFNAME,
-            name->data, name->len) != NM_OK))
-    {
+            name->data, name->len) != NM_OK)) {
         nm_bug("%s: Error add_attr", __func__);
     }
 
@@ -769,8 +745,7 @@ static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *src,
             if ((nm_net_add_attr(&req.n, sizeof(req), IFA_LOCAL,
                     &net.addr.s_addr, sizeof(net.addr.s_addr)) != NM_OK) ||
                 (nm_net_add_attr(&req.n, sizeof(req), IFA_BROADCAST,
-                    &brd.s_addr, sizeof(brd.s_addr)) != NM_OK))
-            {
+                    &brd.s_addr, sizeof(brd.s_addr)) != NM_OK)) {
                 nm_bug("%s: Error add_attr", __func__);
             }
 
@@ -802,8 +777,7 @@ int nm_net_check_port(const uint16_t port, const int type, const uint32_t inaddr
     addr.sin_port = htons(port);
     addr.sin_addr.s_addr = htonl(inaddr);
 
-    if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0)
-    {
+    if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
         ret = 1;
         shutdown(sock, SHUT_RDWR);
     }

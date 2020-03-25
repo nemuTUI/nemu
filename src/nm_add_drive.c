@@ -70,8 +70,7 @@ void nm_add_drive(const nm_str_t *name)
 
     set_field_buffer(fields[NM_FLD_DRVTYPE], 0, NM_DEFAULT_DRVINT);
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
         mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
         y += 2;
     }
@@ -84,8 +83,7 @@ void nm_add_drive(const nm_str_t *name)
     nm_get_field_buf(fields[NM_FLD_DRVTYPE], &drv_type);
     nm_form_check_data(_("Size"), buf, err);
 
-    if (nm_print_empty_fields(&err) == NM_ERR)
-    {
+    if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
         goto out;
     }
@@ -118,8 +116,7 @@ void nm_del_drive(const nm_str_t *name)
     nm_str_format(&query, NM_VM_GET_ADDDRIVES_SQL, name->data);
     nm_db_select(query.data, &drives);
 
-    if (drives.n_memb == 0)
-    {
+    if (drives.n_memb == 0) {
         nm_warn(_(NM_MSG_DRV_NONE));
         goto out;
     }
@@ -138,8 +135,7 @@ void nm_del_drive(const nm_str_t *name)
     else
         m_drvs.item_last = drv_list_len = drv_count;
 
-    for (size_t n = 0; n < drv_count; n++)
-    {
+    for (size_t n = 0; n < drv_count; n++) {
         size_t idx_shift = 2 * n;
         nm_vect_insert(&drv_list,
                        nm_vect_str_ctx(&drives, idx_shift),
@@ -152,8 +148,7 @@ void nm_del_drive(const nm_str_t *name)
     do {
         nm_menu_scroll(&m_drvs, drv_list_len, ch);
 
-        if (ch == NM_KEY_ENTER)
-        {
+        if (ch == NM_KEY_ENTER) {
             delete_drive = 1;
             break;
         }
@@ -163,8 +158,7 @@ void nm_del_drive(const nm_str_t *name)
         nm_init_action(_(NM_MSG_VDRIVE_DEL));
         nm_print_drive_info(&drives, m_drvs.highlight);
 
-        if (redraw_window)
-        {
+        if (redraw_window) {
             nm_destroy_windows();
             endwin();
             refresh();
@@ -175,14 +169,13 @@ void nm_del_drive(const nm_str_t *name)
 
             drv_list_len = (getmaxy(side_window) - 4);
             /* TODO save last pos */
-            if (drv_list_len < drv_count)
-            {
+            if (drv_list_len < drv_count) {
                 m_drvs.item_last = drv_list_len;
                 m_drvs.item_first = 0;
                 m_drvs.highlight = 1;
-            }
-            else
+            } else {
                 m_drvs.item_last = drv_list_len = drv_count;
+            }
 
             redraw_window = 0;
         }
@@ -230,10 +223,10 @@ int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
 
 //@TODO Fix conversion from size_t to char (might be a problem if there is too many drives)
     size_t drive_count = 0;
+
     if (drives != NULL)
-    {
         drive_count = drives->n_memb / 4;
-    }
+
     char drv_ch = 'a' + drive_count;
 
 //@TODO Why add VM name twice (in directory name and in filename)?

@@ -78,13 +78,10 @@ static void nm_add_vm_main(int import)
 
     werase(action_window);
     werase(help_window);
-    if (import == NM_INSTALL_VM)
-    {
+    if (import == NM_INSTALL_VM) {
         nm_init_action(_(NM_MSG_INSTALL));
         nm_init_help_install();
-    }
-    else
-    {
+    } else {
         nm_init_action(_(NM_MSG_IMPORT));
         nm_init_help_import();
     }
@@ -95,8 +92,7 @@ static void nm_add_vm_main(int import)
     fields[NM_FLD_COUNT] = NULL;
 
     nm_add_vm_field_setup(import);
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
         mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
         y += 2;
     }
@@ -113,8 +109,7 @@ static void nm_add_vm_main(int import)
     if (nm_add_vm_get_data(&vm, import) != NM_OK)
         goto out;
 
-    if (import)
-    {
+    if (import) {
         sp_data.stop = &done;
         sp_data.ctx = &vm;
 
@@ -125,8 +120,7 @@ static void nm_add_vm_main(int import)
     nm_add_vm_to_fs(&vm, import);
     nm_add_vm_to_db(&vm, last_mac, import, NULL);
 
-    if (import)
-    {
+    if (import) {
         done = 1;
         if (pthread_join(spin_th, NULL) != 0)
             nm_bug(_("%s: cannot join thread"), __func__);
@@ -230,24 +224,19 @@ static int nm_add_vm_get_data(nm_vm_t *vm, int import)
         goto out;
 
     /* Check for free space for importing drive image */
-    if (import)
-    {
+    if (import) {
         off_t size_gb = 0;
         struct stat img_info;
         memset(&img_info, 0, sizeof(img_info));
 
-        if (stat(vm->srcp.data, &img_info) == 0)
-        {
+        if (stat(vm->srcp.data, &img_info) == 0) {
             size_gb = img_info.st_size / 1024 / 1024 / 1024;
             nm_str_format(&vm->drive.size, "%ld", size_gb);
-        }
-        else
-        {
+        } else {
             nm_bug(_("%s: cannot get stat of file: %s"), __func__, vm->srcp.data);
         }
 
-        if (size_gb >= nm_hw_disk_free())
-        {
+        if (size_gb >= nm_hw_disk_free()) {
             curs_set(0);
             nm_warn(_(NM_MSG_NO_SPACE));
             goto out;
@@ -300,8 +289,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     nm_db_edit(query.data);
 
     /* insert drive info */
-    if (drives == NULL)
-    {
+    if (drives == NULL) {
         nm_str_format(&query,
             "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot) "
             "VALUES('%s', '%s_a.img', '%s', '%s', '%s')",
@@ -309,11 +297,8 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
             NM_ENABLE /* boot flag */
             );
         nm_db_edit(query.data);
-    }
-    else /* imported from OVF */
-    {
-        for (size_t n = 0; n < drives->n_memb; n++)
-        {
+    } else { /* imported from OVF */
+        for (size_t n = 0; n < drives->n_memb; n++) {
             nm_str_format(&query,
                 "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot) "
                 "VALUES('%s', '%s', '%s', '%s', '%s')",
@@ -327,8 +312,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     }
 
     /* insert network interface info */
-    for (size_t n = 0; n < vm->ifs.count; n++)
-    {
+    for (size_t n = 0; n < vm->ifs.count; n++) {
         int altname;
         nm_str_t if_name = NM_INIT_STR;
         nm_str_t if_name_copy = NM_INIT_STR;
@@ -370,19 +354,15 @@ static void nm_add_vm_to_fs(nm_vm_t *vm, int import)
 
     nm_str_format(&vm_dir, "%s/%s", nm_cfg_get()->vm_dir.data, vm->name.data);
 
-    if (mkdir(vm_dir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
-    {
+    if (mkdir(vm_dir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
         nm_bug(_("%s: cannot create VM directory %s: %s"),
                __func__, vm_dir.data, strerror(errno));
     }
 
-    if (!import)
-    {
+    if (!import) {
         if (nm_add_drive_to_fs(&vm->name, &vm->drive.size, NULL) != NM_OK)
             nm_bug(_("%s: cannot create image file"), __func__);
-    }
-    else
-    {
+    } else {
         nm_str_format(&buf, "%s/%s_a.img", vm_dir.data, vm->name.data);
         nm_copy_file(&vm->srcp, &buf);
     }

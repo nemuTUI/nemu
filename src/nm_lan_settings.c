@@ -83,11 +83,9 @@ void nm_lan_settings(void)
     nm_init_side_lan();
 
     do {
-        if (ch == NM_KEY_QUESTION)
+        if (ch == NM_KEY_QUESTION) {
             nm_lan_help();
-
-        else if (ch == NM_KEY_A)
-        {
+        } else if (ch == NM_KEY_A) {
             werase(action_window);
             nm_init_action(_(NM_MSG_ADD_VETH));
             werase(help_window);
@@ -95,52 +93,38 @@ void nm_lan_settings(void)
             nm_lan_add_veth();
             regen_data = 1;
             old_hl = veths_data.highlight;
-        }
-
-        else if (ch == NM_KEY_R)
-        {
-            if (veths.n_memb > 0)
-            {
+        } else if (ch == NM_KEY_R) {
+            if (veths.n_memb > 0) {
                 nm_lan_del_veth(nm_vect_item_name_cur(&veths_data));
                 regen_data = 1;
                 old_hl = veths_data.highlight;
-                if (veths_data.item_first != 0)
-                {
+
+                if (veths_data.item_first != 0) {
                     veths_data.item_first--;
                     veths_data.item_last--;
                 }
                 werase(side_window);
                 nm_init_side_lan();
             }
-        }
-
-        else if (ch == NM_KEY_D)
-        {
-            if (veths.n_memb > 0)
-            {
+        } else if (ch == NM_KEY_D) {
+            if (veths.n_memb > 0) {
                 nm_lan_down_veth(nm_vect_item_name_cur(&veths_data));
                 renew_status = 1;
             }
-        }
-
-        else if (ch == NM_KEY_U)
-        {
-            if (veths.n_memb > 0)
-            {
+        } else if (ch == NM_KEY_U) {
+            if (veths.n_memb > 0) {
                 nm_lan_up_veth(nm_vect_item_name_cur(&veths_data));
                 renew_status = 1;
             }
         }
 #if defined (NM_WITH_NETWORK_MAP)
-        else if (ch == NM_KEY_E)
-        {
+        else if (ch == NM_KEY_E) {
             if (veths.n_memb > 0)
                 nm_lan_export_svg(&veths);
         }
 #endif
 
-        if (regen_data)
-        {
+        if (regen_data) {
             nm_vect_free(&veths_list, NULL);
             nm_vect_free(&veths, nm_str_vect_free_cb);
             nm_db_select(NM_LAN_GET_VETH_SQL, &veths);
@@ -148,8 +132,7 @@ void nm_lan_settings(void)
 
             veths_data.highlight = 1;
 
-            if (old_hl > 1)
-            {
+            if (old_hl > 1) {
                 if (veths.n_memb < old_hl)
                     veths_data.highlight = (old_hl - 1);
                 else
@@ -162,8 +145,7 @@ void nm_lan_settings(void)
             else
                 veths_data.item_last = veth_list_len = veths.n_memb;
 
-            for (size_t n = 0; n < veths.n_memb; n++)
-            {
+            for (size_t n = 0; n < veths.n_memb; n++) {
                 nm_menu_item_t veth = NM_INIT_MENU_ITEM;
                 veth.name = (nm_str_t *) nm_vect_at(&veths, n);
                 nm_vect_insert(&veths_list, &veth, sizeof(veth), NULL);
@@ -175,8 +157,7 @@ void nm_lan_settings(void)
             renew_status = 1;
         }
 
-        if (veths.n_memb > 0)
-        {
+        if (veths.n_memb > 0) {
             nm_menu_scroll(&veths_data, veth_list_len, ch);
             werase(action_window);
             nm_init_action(_(NM_MSG_LAN));
@@ -185,15 +166,12 @@ void nm_lan_settings(void)
 
             if (renew_status)
                 renew_status = 0;
-        }
-        else
-        {
+        } else {
             werase(action_window);
             nm_init_action(_(NM_MSG_LAN));
         }
 
-        if (redraw_window)
-        {
+        if (redraw_window) {
             nm_destroy_windows();
             endwin();
             refresh();
@@ -204,14 +182,13 @@ void nm_lan_settings(void)
 
             veth_list_len = (getmaxy(side_window) - 4);
             /* TODO save last pos */
-            if (veth_list_len < veths.n_memb)
-            {
+            if (veth_list_len < veths.n_memb) {
                 veths_data.item_last = veth_list_len;
                 veths_data.item_first = 0;
                 veths_data.highlight = 1;
-            }
-            else
+            } else {
                 veths_data.item_last = veth_list_len = veths.n_memb;
+            }
 
             redraw_window = 0;
         }
@@ -246,8 +223,7 @@ static void nm_lan_add_veth(void)
     set_field_type(fields[NM_FLD_LNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,15} *$");
     set_field_type(fields[NM_FLD_RNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,15} *$");
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_LAN_FIELDS_NUM; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_LAN_FIELDS_NUM; n++) {
         mvwaddstr(form_data.form_window, y, x, nm_form_add_msg[n]);
         y += 2;
     }
@@ -289,16 +265,14 @@ static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn)
     nm_form_check_datap(_("Name"), ln, err);
     nm_form_check_datap(_("Peer name"), rn, err);
 
-    if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
-    {
+    if ((rc = nm_print_empty_fields(&err)) == NM_ERR) {
         nm_vect_free(&err, NULL);
         goto out;
     }
 
     nm_str_format(&query, NM_LAN_CHECK_NAME_SQL, ln->data, ln->data);
     nm_db_select(query.data, &names);
-    if (names.n_memb > 0)
-    {
+    if (names.n_memb > 0) {
         nm_warn(_(NM_MSG_NAME_BUSY));
         rc = NM_ERR;
         goto out;
@@ -306,15 +280,13 @@ static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn)
 
     nm_str_format(&query, NM_LAN_CHECK_NAME_SQL, rn->data, rn->data);
     nm_db_select(query.data, &names);
-    if (names.n_memb > 0)
-    {
+    if (names.n_memb > 0) {
         nm_warn(_(NM_MSG_NAME_BUSY));
         rc = NM_ERR;
         goto out;
     }
 
-    if (nm_str_cmp_ss(ln, rn) == NM_OK)
-    {
+    if (nm_str_cmp_ss(ln, rn) == NM_OK) {
         nm_warn(_(NM_MSG_NAME_DIFF));
         rc = NM_ERR;
     }
@@ -428,16 +400,14 @@ void nm_lan_parse_name(const nm_str_t *name, nm_str_t *ln, nm_str_t *rn)
 
     nm_str_copy(&name_copy, name);
 
-    if (rn != NULL)
-    {
+    if (rn != NULL) {
         cp = strchr(name_copy.data, '>');
         nm_str_alloc_text(rn, ++cp);
         cp = NULL;
     }
 
     cp = strchr(name_copy.data, '<');
-    if (cp)
-    {
+    if (cp) {
         *cp = '\0';
         nm_str_alloc_text(ln, name_copy.data);
     }
@@ -453,8 +423,7 @@ void nm_lan_create_veth(int info)
     nm_db_select(NM_GET_VETH_SQL, &veths);
     veth_count = veths.n_memb / 2;
 
-    for (size_t n = 0; n < veth_count; n++)
-    {
+    for (size_t n = 0; n < veth_count; n++) {
         size_t idx_shift = n * 2;
         const nm_str_t *l_name = nm_vect_str(&veths, idx_shift);
         const nm_str_t *r_name = nm_vect_str(&veths, idx_shift + 1);
@@ -462,8 +431,7 @@ void nm_lan_create_veth(int info)
         if (info)
             printf("Checking \"%s <-> %s\"...", l_name->data, r_name->data);
 
-        if (nm_net_iface_exists(l_name) != NM_OK)
-        {
+        if (nm_net_iface_exists(l_name) != NM_OK) {
             if (info)
                 printf("\t[not found]\n");
 
@@ -472,9 +440,7 @@ void nm_lan_create_veth(int info)
             nm_net_link_up(r_name);
 
             veth_created++;
-        }
-        else
-        {
+        } else {
             if (info)
                 printf("\t[found]\n");
         }
@@ -521,8 +487,7 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
     nm_init_action(_(NM_MSG_EXPORT_MAP));
     nm_init_help_export();
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_SVG_FIELDS_NUM; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_SVG_FIELDS_NUM; n++) {
         mvwaddstr(form_data.form_window, y, x, nm_form_svg_msg[n]);
         y += 2;
     }
@@ -538,16 +503,13 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
     nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_TYPE]), type, err);
     nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_LAYT]), layout, err);
 
-    if (nm_print_empty_fields(&err) == NM_ERR)
-    {
+    if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
         goto out;
     }
 
-    for (size_t n = 0; *states; n++, states++)
-    {
-        if (nm_str_cmp_st(&type, *states) == NM_OK)
-        {
+    for (size_t n = 0; *states; n++, states++) {
+        if (nm_str_cmp_st(&type, *states) == NM_OK) {
             state = n;
             break;
         }

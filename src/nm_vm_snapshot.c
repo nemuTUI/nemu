@@ -73,8 +73,7 @@ void nm_vm_snapshot_create(const nm_str_t *name)
     set_field_type(fields[NM_FLD_VMLOAD], TYPE_ENUM, nm_form_yes_no, false, false);
     set_field_buffer(fields[NM_FLD_VMLOAD], 0, nm_form_yes_no[1]);
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++)
-    {
+    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
         mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
         y += 2;
     }
@@ -123,8 +122,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, name->data);
     nm_db_select(query.data, &snaps);
 
-    if (snaps.n_memb == 0)
-    {
+    if (snaps.n_memb == 0) {
         nm_warn(_(NM_MSG_NO_SNAPS));
         goto out;
     }
@@ -140,8 +138,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     nm_print_snapshots(&snaps);
 
     snaps_count = snaps.n_memb / 5;
-    for (size_t n = 0; n < snaps_count; n++)
-    {
+    for (size_t n = 0; n < snaps_count; n++) {
         size_t idx_shift = 5 * n;
 
         nm_vect_insert(&choices,
@@ -168,8 +165,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     nm_get_field_buf(fields[0], &buf);
     nm_form_check_data(_(NM_FORMSTR_SNAP), buf, err);
 
-    if (nm_print_empty_fields(&err) == NM_ERR)
-    {
+    if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
         goto clean_and_out;
     }
@@ -217,8 +213,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, name->data);
     nm_db_select(query.data, &snaps);
 
-    if (snaps.n_memb == 0)
-    {
+    if (snaps.n_memb == 0) {
         nm_warn(_(NM_MSG_NO_SNAPS));
         goto out;
     }
@@ -234,8 +229,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     nm_print_snapshots(&snaps);
 
     snaps_count = snaps.n_memb / 5;
-    for (size_t n = 0; n < snaps_count; n++)
-    {
+    for (size_t n = 0; n < snaps_count; n++) {
         size_t idx_shift = 5 * n;
 
         nm_vect_insert(&choices,
@@ -262,8 +256,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     nm_get_field_buf(fields[0], &buf);
     nm_form_check_data(_(NM_FORMSTR_SNAP), buf, err);
 
-    if (nm_print_empty_fields(&err) == NM_ERR)
-    {
+    if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
         goto clean_and_out;
     }
@@ -297,8 +290,7 @@ static void __nm_vm_snapshot_load(const nm_str_t *name, const nm_str_t *snap,
                                   int vm_status)
 {
     /* vm is not running, will load snapshot at next boot */
-    if (!vm_status)
-    {
+    if (!vm_status) {
         nm_str_t query = NM_INIT_STR;
 
         /* reset load flag for all snapshots for current vm */
@@ -322,8 +314,7 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
 {
     int rc = NM_ERR;
 
-    if (!vm_status)
-    {
+    if (!vm_status) {
         /* vm is not running, use
          * qemu-img snapshot -d snapshot_name path_to_drive system command */
         nm_str_t buf = NM_INIT_STR;
@@ -334,8 +325,7 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
         /* get first drive name */
         nm_str_format(&query, NM_GET_BOOT_DRIVE_SQL, name->data);
         nm_db_select(query.data, &drives);
-        if (drives.n_memb == 0)
-        {
+        if (drives.n_memb == 0) {
             nm_str_free(&query);
             return;
         }
@@ -360,16 +350,13 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
         nm_vect_free(&argv, NULL);
         nm_vect_free(&drives, nm_str_vect_free_cb);
         nm_str_free(&query);
-    }
-    else
-    {
+    } else {
         /* vm is running, delete snapshot using QMP command delvm */
         rc = nm_qmp_delvm(name, snap);
     }
 
 
-    if (rc == NM_OK)
-    {
+    if (rc == NM_OK) {
         /* delete snapshot from database */
         nm_str_t query = NM_INIT_STR;
 
@@ -393,8 +380,7 @@ static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data)
     nm_form_check_data(_(NM_FORMSTR_NAME), data->snap_name, err);
     nm_form_check_data(_(NM_FORMSTR_LOAD), data->load, err);
 
-    if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
-    {
+    if ((rc = nm_print_empty_fields(&err)) == NM_ERR) {
         nm_vect_free(&err, NULL);
         goto out;
     }
@@ -402,8 +388,7 @@ static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data)
     nm_str_format(&query, NM_SNAP_GET_NAME_SQL, name->data, data->snap_name.data);
     nm_db_select(query.data, &names);
 
-    if (names.n_memb != 0)
-    {
+    if (names.n_memb != 0) {
         curs_set(0);
         int ch = nm_notify(_(NM_MSG_SNAP_OVER));
 
@@ -427,13 +412,10 @@ static void nm_vm_snapshot_to_db(const nm_str_t *name, const nm_vmsnap_t *data)
     if (nm_str_cmp_st(&data->load, "yes") == NM_OK)
         load = 1;
 
-    if (!data->update)
-    {
+    if (!data->update) {
         nm_str_format(&query, NM_INSERT_SNAP_SQL,
             name->data, data->snap_name.data, load);
-    }
-    else
-    {
+    } else {
         nm_str_format(&query, NM_UPDATE_SNAP_SQL, load,
             name->data, data->snap_name.data);
     }

@@ -42,26 +42,23 @@ void nm_start_main_loop(void)
 
     init_pair(NM_COLOR_BLACK, COLOR_BLACK, COLOR_WHITE);
     init_pair(NM_COLOR_RED, COLOR_RED, COLOR_WHITE);
-    if (cfg->hl_is_set && can_change_color())
-    {
+    if (cfg->hl_is_set && can_change_color()) {
         init_color(COLOR_WHITE + 1,
                 cfg->hl_color.r, cfg->hl_color.g, cfg->hl_color.b);
         init_pair(NM_COLOR_HIGHLIGHT, COLOR_WHITE + 1, -1);
-    }
-    else
+    } else {
         init_pair(NM_COLOR_HIGHLIGHT, COLOR_GREEN, -1);
+    }
 
     nm_create_windows();
     nm_init_help_main();
     nm_init_side();
     nm_init_action(NULL);
 
-    for (;;)
-    {
+    for (;;) {
         int ch;
 
-        if (regen_data)
-        {
+        if (regen_data) {
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
             nm_vect_free(&vms_v, NULL);
             nm_db_select(NM_GET_VMS_SQL, &vm_list);
@@ -69,8 +66,7 @@ void nm_start_main_loop(void)
 
             vms.highlight = 1;
 
-            if (old_hl > 1)
-            {
+            if (old_hl > 1) {
                 if (vm_list.n_memb < old_hl)
                     vms.highlight = (old_hl - 1);
                 else
@@ -83,8 +79,7 @@ void nm_start_main_loop(void)
             else
                 vms.item_last = vm_list_len = vm_list.n_memb;
 
-            for (size_t n = 0; n < vm_list.n_memb; n++)
-            {
+            for (size_t n = 0; n < vm_list.n_memb; n++) {
                 nm_menu_item_t vm = NM_INIT_MENU_ITEM;
                 vm.name = (nm_str_t *) nm_vect_at(&vm_list, n);
                 nm_vect_insert(&vms_v, &vm, sizeof(vm), NULL);
@@ -95,13 +90,11 @@ void nm_start_main_loop(void)
             regen_data = 0;
         }
 
-        if (vm_list.n_memb > 0)
-        {
+        if (vm_list.n_memb > 0) {
             const nm_str_t *name = nm_vect_item_name_cur(&vms);
             int status = nm_vect_item_status_cur(&vms);
 
-            if (clear_action)
-            {
+            if (clear_action) {
                 nm_vmctl_free_data(&vm_props);
                 nm_vmctl_get_data(name, &vm_props);
                 werase(action_window);
@@ -113,11 +106,8 @@ void nm_start_main_loop(void)
             nm_print_vm_info(name, &vm_props, status);
             wrefresh(side_window);
             wrefresh(action_window);
-        }
-        else
-        {
-            if (clear_action)
-            {
+        } else {
+            if (clear_action) {
                 werase(action_window);
                 nm_init_action(NULL);
                 clear_action = 0;
@@ -134,8 +124,7 @@ void nm_start_main_loop(void)
         if (vm_list.n_memb > 0)
             nm_menu_scroll(&vms, vm_list_len, ch);
 
-        if (ch == NM_KEY_Q)
-        {
+        if (ch == NM_KEY_Q) {
             nm_destroy_windows();
             nm_curses_deinit();
             nm_db_close();
@@ -144,15 +133,13 @@ void nm_start_main_loop(void)
             break;
         }
 
-        if (vm_list.n_memb > 0)
-        {
+        if (vm_list.n_memb > 0) {
             const nm_str_t *name = nm_vect_item_name_cur(&vms);
             int vm_status = nm_vect_item_status_cur(&vms);
 
             switch (ch) {
             case NM_KEY_R:
-                if (vm_status)
-                {
+                if (vm_status) {
                     nm_warn(_(NM_MSG_RUNNING));
                     break;
                 }
@@ -160,8 +147,7 @@ void nm_start_main_loop(void)
                 break;
 
             case NM_KEY_T:
-                if (vm_status)
-                {
+                if (vm_status) {
                     nm_warn(_(NM_MSG_RUNNING));
                     break;
                 }
@@ -216,8 +202,7 @@ void nm_start_main_loop(void)
                 break;
 
             case NM_KEY_V:
-                if (vm_status)
-                {
+                if (vm_status) {
                     nm_warn(_(NM_MSG_MUST_STOP));
                     break;
                 }
@@ -252,8 +237,7 @@ void nm_start_main_loop(void)
 
 #ifdef NM_SAVEVM_SNAPSHOTS
             case NM_KEY_S_UP:
-                if (!vm_status)
-                {
+                if (!vm_status) {
                     nm_warn(NM_MSG_MUST_RUN);
                     break;
                 }
@@ -274,8 +258,7 @@ void nm_start_main_loop(void)
 #endif /* NM_SAVEVM_SNAPSHOTS */
 
             case NM_KEY_L:
-                if (vm_status)
-                {
+                if (vm_status) {
                     nm_warn(_(NM_MSG_MUST_STOP));
                     break;
                 }
@@ -287,20 +270,17 @@ void nm_start_main_loop(void)
                 break;
 
             case NM_KEY_D:
-                if (vm_status)
-                {
+                if (vm_status) {
                     nm_warn(_(NM_MSG_MUST_STOP));
                     break;
                 }
                 {
                     int ans = nm_notify(_(NM_MSG_DELETE));
-                    if (ans == 'y')
-                    {
+                    if (ans == 'y') {
                         nm_vmctl_delete(name);
                         regen_data = 1;
                         old_hl = vms.highlight;
-                        if (vms.item_first != 0)
-                        {
+                        if (vms.item_first != 0) {
                             vms.item_first--;
                             vms.item_last--;
                         }
@@ -329,20 +309,16 @@ void nm_start_main_loop(void)
                     size_t pos = nm_search_vm(&vm_list, &err);
                     int cols = getmaxx(side_window);
 
-                    if (err == NM_TRUE)
-                    {
+                    if (err == NM_TRUE) {
                         nm_warn(_(NM_MSG_SMALL_WIN));
                         break;
                     }
 
-                    if (pos > vm_list_len)
-                    {
+                    if (pos > vm_list_len) {
                         vms.highlight = vm_list_len;
                         vms.item_first = pos - vm_list_len;
                         vms.item_last = pos;
-                    }
-                    else if (pos != 0)
-                    {
+                    } else if (pos != 0) {
                         vms.item_first = 0;
                         vms.item_last = vm_list_len;
                         vms.highlight = pos;
@@ -354,59 +330,50 @@ void nm_start_main_loop(void)
             }
         }
 
-        if (ch == NM_KEY_I_UP)
-        {
+        if (ch == NM_KEY_I_UP) {
             nm_add_vm();
             regen_data = 1;
             nm_mon_ping();
         }
 
-        if (ch == NM_KEY_A_UP)
-        {
+        if (ch == NM_KEY_A_UP) {
             nm_import_vm();
             regen_data = 1;
             nm_mon_ping();
         }
 
-        if (ch == NM_KEY_U)
-        {
+        if (ch == NM_KEY_U) {
             nm_vmctl_clear_all_tap();
         }
 #if defined (NM_WITH_OVF_SUPPORT)
-        if (ch == NM_KEY_O_UP)
-        {
+        if (ch == NM_KEY_O_UP) {
             nm_ovf_import();
             regen_data = 1;
         }
 #endif
 
-        if (ch == NM_KEY_QUESTION)
-        {
+        if (ch == NM_KEY_QUESTION) {
             nm_print_help();
         }
 
-        if (ch == KEY_LEFT)
-        {
+        if (ch == KEY_LEFT) {
             if (nm_window_scale_inc() == NM_OK)
                 redraw_window = 1;
         }
 
-        if (ch == KEY_RIGHT)
-        {
+        if (ch == KEY_RIGHT) {
             if (nm_window_scale_dec() == NM_OK)
                 redraw_window = 1;
         }
 
-        if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55)
-        {
+        if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55) {
             if (ch == 0x6e && !nemu)
                  nemu++;
             if (ch == 0x45 && nemu == 1)
                  nemu++;
             if (ch == 0x4d && nemu == 2)
                  nemu++;
-            if (ch == 0x55 && nemu == 3)
-            {
+            if (ch == 0x55 && nemu == 3) {
                 werase(action_window);
                 nm_init_action("Nemu Kurotsuchi");
                 nm_print_nemu();
@@ -414,8 +381,7 @@ void nm_start_main_loop(void)
             }
         }
 
-        if (redraw_window)
-        {
+        if (redraw_window) {
             nm_destroy_windows();
             endwin();
             refresh();
@@ -426,8 +392,7 @@ void nm_start_main_loop(void)
 
             vm_list_len = (getmaxy(side_window) - 4);
             /* TODO save last pos */
-            if (vm_list_len < vm_list.n_memb)
-            {
+            if (vm_list_len < vm_list.n_memb) {
                 vms.item_last = vm_list_len;
                 vms.item_first = 0;
                 vms.highlight = 1;
@@ -459,8 +424,7 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
     int req_len = msg_len + 9;
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
 
-    if (req_len > cols)
-    {
+    if (req_len > cols) {
         *err = NM_TRUE;
         return 0;
     }
@@ -488,8 +452,7 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
 
     match = bsearch(&input, list->data, list->n_memb, sizeof(void *), nm_search_cmp_cb);
 
-    if (match != NULL)
-    {
+    if (match != NULL) {
         pos = (((unsigned char *)match - (unsigned char *)list->data) / sizeof(void *));
         pos++;
     }
@@ -501,8 +464,7 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
     if (pos <= 1)
         goto out;
 
-    for (uint32_t n = pos - 1; n != 0; n--)
-    {
+    for (uint32_t n = pos - 1; n != 0; n--) {
         char *fo = strstr(nm_vect_str_ctx(list, n - 1), input.data);
 
         if (fo != NULL && fo == nm_vect_str_ctx(list, n - 1))
@@ -526,8 +488,7 @@ static int nm_search_cmp_cb(const void *s1, const void *s2)
 
     rc = strcmp(str1->data, (*str2)->data);
 
-    if (rc != 0)
-    {
+    if (rc != 0) {
         char *fo = strstr((*str2)->data, str1->data);
         if (fo != NULL && fo == (*str2)->data)
             rc = 0;

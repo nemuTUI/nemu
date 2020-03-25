@@ -36,15 +36,13 @@ static void nm_mach_init(void)
 
     if (nm_cfg_get()->debug) {
         nm_debug("\n");
-        for (size_t n = 0; n < nm_machs.n_memb; n++)
-        {
+        for (size_t n = 0; n < nm_machs.n_memb; n++) {
             nm_vect_t *v = *nm_mach_list(nm_machs.data[n]);
             nm_debug("Get machine list for %s (default: %s)\n",
                     nm_mach_arch(nm_machs.data[n])->data,
                     nm_mach_def(nm_machs.data[n])->data);
 
-            for (size_t m = 0; m < v->n_memb; m++)
-            {
+            for (size_t m = 0; m < v->n_memb; m++) {
                 nm_debug(">> mach: %s\n", (char *) v->data[m]);
             }
         }
@@ -58,10 +56,8 @@ const char **nm_mach_get(const nm_str_t *arch)
     if (nm_machs.data == NULL)
         nm_mach_init();
 
-    for (size_t n = 0; n < nm_machs.n_memb; n++)
-    {
-        if (nm_str_cmp_ss(nm_machs.data[n], arch) == NM_OK)
-        {
+    for (size_t n = 0; n < nm_machs.n_memb; n++) {
+        if (nm_str_cmp_ss(nm_machs.data[n], arch) == NM_OK) {
             v = (const char **) (*nm_mach_list(nm_machs.data[n]))->data;
             break;
         }
@@ -77,10 +73,8 @@ const char *nm_mach_get_default(const nm_str_t *arch)
     if (nm_machs.data == NULL)
         nm_mach_init();
 
-    for (size_t n = 0; n < nm_machs.n_memb; n++)
-    {
-        if (nm_str_cmp_ss(nm_machs.data[n], arch) == NM_OK)
-        {
+    for (size_t n = 0; n < nm_machs.n_memb; n++) {
+        if (nm_str_cmp_ss(nm_machs.data[n], arch) == NM_OK) {
             def = nm_mach_def(nm_machs.data[n])->data;
             break;
         }
@@ -114,8 +108,7 @@ static void nm_mach_get_data(const char *arch)
     nm_vect_insert_cstr(&argv, "help");
 
     nm_vect_end_zero(&argv);
-    if (nm_spawn_process(&argv, &answer) != NM_OK)
-    {
+    if (nm_spawn_process(&argv, &answer) != NM_OK) {
         nm_str_t warn_msg = NM_INIT_STR;
         nm_str_format(&warn_msg,
             _("Cannot get mach for %-6s  . Error was logged"), arch);
@@ -155,19 +148,14 @@ static nm_vect_t *nm_mach_parse(const nm_str_t *buf, nm_str_t *def)
 
     bufp++;
 
-    while (*bufp != '\0')
-    {
-        if (lookup_mach && (!isblank(*bufp)))
-        {
+    while (*bufp != '\0') {
+        if (lookup_mach && (!isblank(*bufp))) {
             nm_str_add_char_opt(&mach, *bufp);
-        }
-        else if (lookup_mach && (isblank(*bufp)))
-        {
+        } else if (lookup_mach && (isblank(*bufp))) {
             lookup_mach = 0;
         }
 
-        if (!lookup_mach && (*bufp == '\n'))
-        {
+        if (!lookup_mach && (*bufp == '\n')) {
             nm_str_t item = NM_INIT_STR;
 
             nm_str_copy(&item, &mach);
