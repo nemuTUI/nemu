@@ -12,3 +12,5 @@ lang/nemu.mo
 install_manifest.txt
 build
 qemu
+.ycm_extra_conf.py
+.color_coded
