@@ -140,7 +140,9 @@ static int nm_db_update(void)
         nm_copy_file(&backup, &cfg->db_path);
     }
 
-    printf("%s\n", answer.data);
+    if (answer.len)
+        printf("%s\n", answer.data);
+
     unlink(backup.data);
 
     nm_vect_free(&argv, NULL);
