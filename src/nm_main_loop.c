@@ -544,11 +544,10 @@ out:
 
 static int nm_filter_check(const nm_str_t *input, nm_filter_t *filter)
 {
-    if (input->data[1] != ':')
+    if (input->len <= 2)
         return NM_ERR;
 
-    /* no payload in filter query */
-    if (input->len < 3)
+    if (input->data[1] != ':')
         return NM_ERR;
 
     if (input->data[0] == 'g') {
