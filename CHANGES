@@ -1,3 +1,9 @@
+v2.?.? - ?
+------------------------
+    - Feature: VM's groups. Usage: search menu (hotkey "/"):
+             "g:group_name"  - show VM's by group
+             "g:all"         - show all
+
 v2.4.0 - 13.04.2020
 ------------------------
     - Feature: add custom extra QEMU args

@@ -28,6 +28,7 @@ void nm_init_help_clone(void);
 void nm_init_help_export(void);
 void nm_init_help_delete(void);
 void nm_init_side(void);
+void nm_init_side_group(const nm_str_t *name);
 void nm_init_side_lan(void);
 void nm_init_side_if_list(void);
 void nm_init_side_drives(void);
@@ -52,6 +53,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_NO_IFACES  "No network configured" NM_MSG_ANY_KEY
 #define NM_MSG_HCPU_KVM   "Host CPU requires KVM enabled" NM_MSG_ANY_KEY
 #define NM_MSG_BAD_CTX    "Contents of field is invalid" NM_MSG_ANY_KEY
+#define NM_MSG_BAD_GROUP  "Group named \"all\" is reserved" NM_MSG_ANY_KEY
 #define NM_MSG_NULL_FLD   "These fields cannot be empty:"
 #define NM_MSG_NAME_BUSY  "This name is already used" NM_MSG_ANY_KEY
 #define NM_MSG_IF_PROP    "Interface properties"

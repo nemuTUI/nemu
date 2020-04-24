@@ -34,7 +34,7 @@ void nm_db_init(void)
             "mouse_override integer, kernel_append char, tty_path char, "
             "socket_path char, initrd char, machine char, fs9p_enable integer, "
             "fs9p_path char, fs9p_name char, usb_type char, spice integer, "
-            "debug_port integer, debug_freeze integer, cmdappend char)",
+            "debug_port integer, debug_freeze integer, cmdappend char, team char)",
         "CREATE TABLE ifaces(id integer primary key autoincrement, "
             "vm_name char, if_name char, mac_addr char, ipv4_addr char, "
             "if_drv char, vhost integer, macvtap integer, parent_eth char, altname char)",

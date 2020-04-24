@@ -75,6 +75,7 @@ typedef struct {
     nm_str_t vncp;
     nm_str_t mach;
     nm_str_t cmdappend;
+    nm_str_t group;
     nm_vm_drive_t drive;
     nm_vm_ifs_t ifs;
     nm_vm_kvm_t kvm;
@@ -85,8 +86,9 @@ typedef struct {
 #define NM_INIT_VM (nm_vm_t) { \
                     NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                     NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                    NM_INIT_STR, NM_INIT_STR, NM_INIT_VM_DRIVE, \
-                    NM_INIT_VM_IFS, NM_INIT_VM_KVM, 0, 0 }
+                    NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
+                    NM_INIT_VM_DRIVE, NM_INIT_VM_IFS,      \
+                    NM_INIT_VM_KVM, 0, 0 }
 
 typedef struct {
     const int *stop;

@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=11
+DB_ACTUAL_VERSION=12
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 RC=0
 
@@ -119,13 +119,15 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=11'
             ) || RC=1
             ;;
-        # ( 11 )
-        #     (
-        #     sqlite3 "$DB_PATH" -line 'DROP TABLE IF EXISTS lastval;' &&
-        #     db_update_machine &&
-        #     sqlite3 "$DB_PATH" -line 'PRAGMA user_version=12'
-        #     ) || RC=1
-        #     ;;
+
+         ( 11 )
+            (
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD team char;' &&
+            sqlite3 "$DB_PATH" -line 'DROP TABLE IF EXISTS lastval;' &&
+            db_update_machine &&
+            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=12'
+            ) || RC=1
+            ;;
 
         ( * )
             echo "Unsupported database user_version" >&2

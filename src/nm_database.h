@@ -3,17 +3,20 @@
 
 #include <nm_vector.h>
 
-#define NM_DB_VERSION "11"
+#define NM_DB_VERSION "12"
 
 //@TODO Those queries should have constant naming convention and some kind of sorting
 static const char NM_GET_VMS_SQL[] = \
     "SELECT name FROM vms ORDER BY name ASC";
 
+static const char NM_GET_VMS_FILTER_GROUP_SQL[] = \
+    "SELECT name FROM vms WHERE team='%s' ORDER BY name ASC";
+
 static const char NM_CLONE_VMS_SQL[] = \
     "INSERT INTO vms SELECT NULL, '%s', mem, smp, kvm, hcpu, '%d', arch, iso, " \
     "install, usb, usbid, bios, kernel, mouse_override, kernel_append, tty_path, " \
     "socket_path, initrd, machine, fs9p_enable, fs9p_path, fs9p_name, usb_type, " \
-    "spice, debug_port, debug_freeze, cmdappend FROM vms WHERE name='%s'";
+    "spice, debug_port, debug_freeze, cmdappend, team FROM vms WHERE name='%s'";
 
 static const char NM_RESET_LOAD_SQL[] = \
     "UPDATE vmsnapshots SET load='0' WHERE vm_name='%s'";
@@ -194,6 +197,7 @@ enum select_main_idx {
     NM_SQL_DEBP,
     NM_SQL_DEBF,
     NM_SQL_ARGS,
+    NM_SQL_GROUP,
     NM_VM_IDX_COUNT
 };
 

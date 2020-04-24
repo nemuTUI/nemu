@@ -129,6 +129,17 @@ void nm_init_side(void)
     wtimeout(side_window, 500);
 }
 
+void nm_init_side_group(const nm_str_t *name)
+{
+    nm_str_t title = NM_INIT_STR;
+
+    nm_str_format(&title, "VM list [%s]", name->data);
+    wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
+    nm_init_window__(side_window, _(title.data));
+    nm_str_free(&title);
+    wtimeout(side_window, 500);
+}
+
 void nm_init_side_lan(void)
 {
     wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
