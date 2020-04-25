@@ -445,7 +445,10 @@ void nm_start_main_loop(void)
             refresh();
             nm_create_windows();
             nm_init_help_main();
-            nm_init_side();
+            if (filter.type == NM_FILTER_GROUP)
+                nm_init_side_group(&filter.query);
+            else
+                nm_init_side();
             nm_init_action(NULL);
 
             vm_list_len = (getmaxy(side_window) - 4);
