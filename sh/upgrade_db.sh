@@ -1,14 +1,35 @@
 #!/bin/sh
 
-if [ -z "$1" ]; then
-    echo "Usage: $0 <database_path>" >&2
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+    echo "Usage: $0 <database_path> <qemu_bin_dir>" >&2
     exit 1
 fi
 
 DB_PATH="$1"
 DB_ACTUAL_VERSION=12
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
+USER=$(whoami)
 RC=0
+
+if [ "$#" -eq 2 ]; then
+    QEMU_BIN_PATH="$3"
+else
+    USER_DIR=$(grep ${USER} /etc/passwd | awk 'BEGIN { FS = ":" }; { printf "%s\n", $6 }')
+    if [ ! -d "$USER_DIR" ]; then
+        echo "Couldn't find user home directory" >&2
+        exit 1
+    fi
+    if [ ! -f ${USER_DIR}/.nemu.cfg ]; then
+        echo "Couldn't find .nemu.cfg in user home directory" >&2
+        exit 1
+    fi
+
+    QEMU_BIN_PATH=$(grep qemu_bin_path ${USER_DIR}/.nemu.cfg | awk '{ printf "%s\n", $3 }')
+    if [ -z "$QEMU_BIN_PATH" ]; then
+        echo "Couldn't get qemu_bin_path from .nemu.cfg" >&2
+        exit 1
+    fi
+fi
 
 if [ "$DB_CURRENT_VERSION" -lt 3 ]; then
     echo "Database version less then 3 is not supported"
@@ -28,7 +49,7 @@ db_update_machine()
     local archs=$(sqlite3 "$DB_PATH" -line 'SELECT DISTINCT arch FROM vms;' | awk '{print $NF}')
 
     for a in $archs; do
-        local def=$(qemu-system-"${a}" -M help | awk '/(default)/ {print $1}')
+        local def=$(${QEMU_BIN_PATH}/qemu-system-"${a}" -M help | awk '/(default)/ {print $1}')
         [ -z "$def" ] && rc=1
         sqlite3 "$DB_PATH" -line "UPDATE vms SET machine='${def}' WHERE machine IS NULL and arch='${a}'" || rc=1
     done
