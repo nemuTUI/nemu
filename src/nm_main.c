@@ -97,7 +97,9 @@ static void nm_process_args(int argc, char **argv)
         case 's':
             nm_init_core();
             nm_str_alloc_text(&vmname, optarg);
-            nm_vmctl_start(&vmname, 0);
+            if (nm_qmp_test_socket(&vmname) != NM_OK) {
+                nm_vmctl_start(&vmname, 0);
+            }
             nm_str_free(&vmname);
             nm_exit_core();
         case 'p':
