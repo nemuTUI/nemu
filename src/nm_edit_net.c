@@ -161,7 +161,6 @@ void nm_edit_net(const nm_str_t *name)
 
     werase(side_window);
     werase(help_window);
-    nm_init_side();
     nm_init_help_main();
 
 out:
