@@ -247,6 +247,95 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
     nm_vect_insert_cstr(argv, "-daemonize");
 
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBF), NM_ENABLE) == NM_OK) {
+        size_t usb_count = vm->usb.n_memb / NM_USB_IDX_COUNT;
+        nm_vect_t usb_list = NM_INIT_VECT;
+        nm_vect_t serial_cache = NM_INIT_VECT;
+        nm_str_t serial = NM_INIT_STR;
+
+        nm_vect_insert_cstr(argv, "-usb");
+        nm_vect_insert_cstr(argv, "-device");
+
+        if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBT), NM_DEFAULT_USBVER) == NM_OK)
+            nm_vect_insert_cstr(argv, "qemu-xhci,id=usbbus");
+        else
+            nm_vect_insert_cstr(argv, "usb-ehci,id=usbbus");
+
+        if (usb_count > 0)
+            nm_usb_get_devs(&usb_list);
+
+        for (size_t n = 0; n < usb_count; n++) {
+            int found_in_cache = 0;
+            int found_in_devs = 0;
+            size_t idx_shift = NM_USB_IDX_COUNT * n;
+            nm_usb_dev_t *usb = NULL;
+
+            const char *vid = nm_vect_str_ctx(&vm->usb, NM_SQL_USB_VID + idx_shift);
+            const char *pid = nm_vect_str_ctx(&vm->usb, NM_SQL_USB_PID + idx_shift);
+            const char *ser = nm_vect_str_ctx(&vm->usb, NM_SQL_USB_SERIAL + idx_shift);
+
+            /* look for cached data first, libusb_open() is very expensive */
+            for (size_t m = 0; m < serial_cache.n_memb; m++) {
+                usb = *nm_usb_data_dev(serial_cache.data[m]);
+                nm_str_t *ser_str = nm_usb_data_serial(serial_cache.data[m]);
+
+                if ((nm_str_cmp_st(nm_usb_vendor_id(usb), vid) == NM_OK) &&
+                    (nm_str_cmp_st(nm_usb_product_id(usb), pid) == NM_OK) &&
+                    (nm_str_cmp_st(ser_str, ser) == NM_OK)) {
+                    found_in_cache = 1;
+                    break;
+                }
+            }
+
+            if (found_in_cache && usb) {
+                nm_vect_insert_cstr(argv, "-device");
+                nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s,bus=usbbus.0",
+                    *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),
+                    nm_usb_vendor_id(usb)->data, nm_usb_product_id(usb)->data, ser);
+                nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
+
+                continue;
+            }
+
+            for (size_t m = 0; m < usb_list.n_memb; m++) {
+                usb = (nm_usb_dev_t *) usb_list.data[m];
+                if ((nm_str_cmp_st(nm_usb_vendor_id(usb), vid) == NM_OK) &&
+                    (nm_str_cmp_st(nm_usb_product_id(usb), pid) == NM_OK)) {
+                    if (serial.len)
+                        nm_str_trunc(&serial, 0);
+
+                    nm_usb_get_serial(usb, &serial);
+                    if (nm_str_cmp_st(&serial, ser) == NM_OK) {
+                        found_in_devs = 1;
+                        break;
+                    } else {
+                        /* save result in cache */
+                        nm_usb_data_t usb_data = NM_INIT_USB_DATA;
+                        nm_str_copy(&usb_data.serial, &serial);
+                        usb_data.dev = usb;
+                        nm_vect_insert(&serial_cache, &usb_data,
+                                sizeof(usb_data), nm_usb_data_vect_ins_cb);
+                        nm_str_free(&usb_data.serial);
+                    }
+                }
+            }
+
+            if (found_in_devs && usb) {
+                nm_vect_insert_cstr(argv, "-device");
+                nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s,bus=usbbus.0",
+                    *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),
+                    nm_usb_vendor_id(usb)->data, nm_usb_product_id(usb)->data, ser);
+                nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
+
+                continue;
+            }
+        }
+
+        nm_vect_free(&serial_cache, nm_usb_data_vect_free_cb);
+        nm_vect_free(&usb_list, nm_usb_vect_free_cb);
+        nm_str_free(&serial);
+    }
+
     /* setup install source */
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_INST), NM_ENABLE) == NM_OK) {
         const char *iso = nm_vect_str_ctx(&vm->main, NM_SQL_ISO);
@@ -265,9 +354,11 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             nm_vect_insert_cstr(argv, iso);
         } else {
             nm_vect_insert_cstr(argv, "-drive");
-
-            nm_str_format(&buf, "file=%s,media=disk,if=ide", iso);
+            nm_str_format(&buf, "id=usb0,if=none,file=%s", iso);
             nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
+
+            nm_vect_insert_cstr(argv, "-device");
+            nm_vect_insert_cstr(argv, "usb-storage,drive=usb0,bus=usbbus.0,bootindex=1");
         }
     } else { /* just mount cdrom */
         const char *iso = nm_vect_str_ctx(&vm->main, NM_SQL_ISO);
@@ -404,95 +495,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_str_free(&query);
     }
 
-    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBF), NM_ENABLE) == NM_OK) {
-        size_t usb_count = vm->usb.n_memb / NM_USB_IDX_COUNT;
-        nm_vect_t usb_list = NM_INIT_VECT;
-        nm_vect_t serial_cache = NM_INIT_VECT;
-        nm_str_t serial = NM_INIT_STR;
-
-        nm_vect_insert_cstr(argv, "-usb");
-        nm_vect_insert_cstr(argv, "-device");
-
-        if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBT), NM_DEFAULT_USBVER) == NM_OK)
-            nm_vect_insert_cstr(argv, "qemu-xhci");
-        else
-            nm_vect_insert_cstr(argv, "usb-ehci");
-
-        if (usb_count > 0)
-            nm_usb_get_devs(&usb_list);
-
-        for (size_t n = 0; n < usb_count; n++) {
-            int found_in_cache = 0;
-            int found_in_devs = 0;
-            size_t idx_shift = NM_USB_IDX_COUNT * n;
-            nm_usb_dev_t *usb = NULL;
-
-            const char *vid = nm_vect_str_ctx(&vm->usb, NM_SQL_USB_VID + idx_shift);
-            const char *pid = nm_vect_str_ctx(&vm->usb, NM_SQL_USB_PID + idx_shift);
-            const char *ser = nm_vect_str_ctx(&vm->usb, NM_SQL_USB_SERIAL + idx_shift);
-
-            /* look for cached data first, libusb_open() is very expensive */
-            for (size_t m = 0; m < serial_cache.n_memb; m++) {
-                usb = *nm_usb_data_dev(serial_cache.data[m]);
-                nm_str_t *ser_str = nm_usb_data_serial(serial_cache.data[m]);
-
-                if ((nm_str_cmp_st(nm_usb_vendor_id(usb), vid) == NM_OK) &&
-                    (nm_str_cmp_st(nm_usb_product_id(usb), pid) == NM_OK) &&
-                    (nm_str_cmp_st(ser_str, ser) == NM_OK)) {
-                    found_in_cache = 1;
-                    break;
-                }
-            }
-
-            if (found_in_cache && usb) {
-                nm_vect_insert_cstr(argv, "-device");
-                nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s",
-                    *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),
-                    nm_usb_vendor_id(usb)->data, nm_usb_product_id(usb)->data, ser);
-                nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
-
-                continue;
-            }
-
-            for (size_t m = 0; m < usb_list.n_memb; m++) {
-                usb = (nm_usb_dev_t *) usb_list.data[m];
-                if ((nm_str_cmp_st(nm_usb_vendor_id(usb), vid) == NM_OK) &&
-                    (nm_str_cmp_st(nm_usb_product_id(usb), pid) == NM_OK)) {
-                    if (serial.len)
-                        nm_str_trunc(&serial, 0);
-
-                    nm_usb_get_serial(usb, &serial);
-                    if (nm_str_cmp_st(&serial, ser) == NM_OK) {
-                        found_in_devs = 1;
-                        break;
-                    } else {
-                        /* save result in cache */
-                        nm_usb_data_t usb_data = NM_INIT_USB_DATA;
-                        nm_str_copy(&usb_data.serial, &serial);
-                        usb_data.dev = usb;
-                        nm_vect_insert(&serial_cache, &usb_data,
-                                sizeof(usb_data), nm_usb_data_vect_ins_cb);
-                        nm_str_free(&usb_data.serial);
-                    }
-                }
-            }
-
-            if (found_in_devs && usb) {
-                nm_vect_insert_cstr(argv, "-device");
-                nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s",
-                    *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),
-                    nm_usb_vendor_id(usb)->data, nm_usb_product_id(usb)->data, ser);
-                nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
-
-                continue;
-            }
-        }
-
-        nm_vect_free(&serial_cache, nm_usb_data_vect_free_cb);
-        nm_vect_free(&usb_list, nm_usb_vect_free_cb);
-        nm_str_free(&serial);
-    }
-
     if (nm_vect_str_len(&vm->main, NM_SQL_BIOS)) {
         nm_vect_insert_cstr(argv, "-bios");
         nm_vect_insert(argv,
@@ -529,8 +531,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     }
 
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_OVER), NM_ENABLE) == NM_OK) {
-        nm_vect_insert_cstr(argv, "-usbdevice");
-        nm_vect_insert_cstr(argv, "tablet");
+        nm_vect_insert_cstr(argv, "-device");
+        nm_vect_insert_cstr(argv, "usb-tablet,bus=usbbus.0");
     }
 
     /* setup serial socket */
