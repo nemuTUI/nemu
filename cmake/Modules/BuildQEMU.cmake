@@ -8,7 +8,7 @@ macro(build_qemu)
     URL_MD5 26ddfb869e6f842f4c7839baddef6312
     PATCH_COMMAND
       ${PATCH_COMMAND} -p1 -i
-      ${CMAKE_CURRENT_SOURCE_DIR}/patches/qemu-qmp-savevm-4.2.0.patch
+      ${CMAKE_CURRENT_SOURCE_DIR}/patches/qemu-qmp-savevm-4.2.0+.patch
     CONFIGURE_COMMAND
       ${CMAKE_CURRENT_SOURCE_DIR}/qemu/src/qemu/configure
       --prefix=${CMAKE_CURRENT_BINARY_DIR}/qemu/${CMAKE_INSTALL_DATAROOTDIR}/nemu/qemu
