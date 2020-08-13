@@ -4,6 +4,8 @@ v2.?.? - ?
              "g:group_name"  - show VM's by group
              "g:all"         - show all
     - Change: reworked USB bus and devices handling
+    - Update: builtin QEMU is now version 5.1.0
+    - Bugfix: USB device was added to DB even after failed attach attempt
 
 v2.4.0 - 13.04.2020
 ------------------------
