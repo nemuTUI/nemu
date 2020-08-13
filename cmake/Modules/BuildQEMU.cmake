@@ -89,7 +89,7 @@ macro(build_qemu)
       --disable-xkbcommon
       --target-list=${NM_QEMU_TARGET_LIST}
     INSTALL_COMMAND
-      make -j1
+      $(MAKE)
       prefix=${CMAKE_CURRENT_BINARY_DIR}/qemu/${CMAKE_INSTALL_DATAROOTDIR}/nemu/qemu
       install)
 
