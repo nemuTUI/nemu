@@ -85,7 +85,7 @@ void nm_str_free(nm_str_t *str)
 
 int nm_str_cmp_st(const nm_str_t *str, const char *text)
 {
-    if (!str)
+    if (!str || !str->data || !text)
         return NM_ERR;
 
     if (strcmp(str->data, text) != 0)
@@ -96,6 +96,9 @@ int nm_str_cmp_st(const nm_str_t *str, const char *text)
 
 int nm_str_cmp_tt(const char *text1, const char *text2)
 {
+    if (!text1 || !text2)
+        return NM_ERR;
+
     if (strcmp(text1, text2) != 0)
         return NM_ERR;
 
@@ -104,6 +107,9 @@ int nm_str_cmp_tt(const char *text1, const char *text2)
 
 int nm_str_case_cmp_tt(const char *text1, const char *text2)
 {
+    if (!text1 || !text2)
+        return NM_ERR;
+
     if (strcasecmp(text1, text2) != 0)
         return NM_ERR;
 
@@ -112,7 +118,7 @@ int nm_str_case_cmp_tt(const char *text1, const char *text2)
 
 int nm_str_cmp_ss(const nm_str_t *str1, const nm_str_t *str2)
 {
-    if (!str1 || !str2)
+    if (!str1 || !str2 || !str1->data || !str2->data)
         return NM_ERR;
 
     if (strcmp(str1->data, str2->data) != 0)
