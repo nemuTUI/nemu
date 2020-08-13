@@ -72,7 +72,8 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
         goto clean_and_out;
 
     if (vm_status)
-        (void) nm_qmp_usb_attach(name, &usb);
+        if (nm_qmp_usb_attach(name, &usb) != NM_OK)
+            goto clean_and_out;
 
     nm_usb_plug_update_db(name, &usb);
 
