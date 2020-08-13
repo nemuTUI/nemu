@@ -11,7 +11,7 @@ macro(build_qemu)
       ${CMAKE_CURRENT_SOURCE_DIR}/patches/qemu-qmp-savevm-5.0.0+.patch
     CONFIGURE_COMMAND
       ${CMAKE_CURRENT_SOURCE_DIR}/qemu/src/qemu/configure
-      --prefix=${CMAKE_CURRENT_BINARY_DIR}/qemu/${CMAKE_INSTALL_DATAROOTDIR}/nemu/qemu
+      --prefix=${CMAKE_INSTALL_FULL_DATAROOTDIR}/nemu/qemu
       --enable-system
       --disable-docs
       --disable-guest-agent
@@ -87,6 +87,10 @@ macro(build_qemu)
       --disable-debug-mutex
       --disable-libpmem
       --disable-xkbcommon
-      --target-list=${NM_QEMU_TARGET_LIST})
+      --target-list=${NM_QEMU_TARGET_LIST}
+    INSTALL_COMMAND
+      make -j1
+      prefix=${CMAKE_CURRENT_BINARY_DIR}/qemu/${CMAKE_INSTALL_DATAROOTDIR}/nemu/qemu
+      install)
 
 endmacro(build_qemu)
