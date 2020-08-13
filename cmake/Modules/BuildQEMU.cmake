@@ -4,11 +4,11 @@ macro(build_qemu)
   ExternalProject_Add(
     qemu
     PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/qemu
-    URL https://download.qemu.org/qemu-4.2.0.tar.bz2
-    URL_MD5 26ddfb869e6f842f4c7839baddef6312
+    URL https://download.qemu.org/qemu-5.1.0.tar.bz2
+    URL_MD5 3c501da3c18ae2eb28ea92891c6477f0
     PATCH_COMMAND
       ${PATCH_COMMAND} -p1 -i
-      ${CMAKE_CURRENT_SOURCE_DIR}/patches/qemu-qmp-savevm-4.2.0+.patch
+      ${CMAKE_CURRENT_SOURCE_DIR}/patches/qemu-qmp-savevm-5.0.0+.patch
     CONFIGURE_COMMAND
       ${CMAKE_CURRENT_SOURCE_DIR}/qemu/src/qemu/configure
       --prefix=${CMAKE_CURRENT_BINARY_DIR}/qemu/${CMAKE_INSTALL_DATAROOTDIR}/nemu/qemu
@@ -36,7 +36,6 @@ macro(build_qemu)
       --disable-brlapi
       --enable-curl
       --enable-fdt
-      --disable-bluez
       --enable-kvm
       --disable-rdma
       --disable-vde
@@ -74,7 +73,6 @@ macro(build_qemu)
       --disable-xfsctl
       --disable-qom-cast-debug
       --enable-tools
-      --disable-vxhs
       --enable-bochs
       --enable-cloop
       --enable-dmg
