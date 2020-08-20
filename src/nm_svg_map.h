@@ -10,7 +10,7 @@ enum {
 };
 
 void nm_svg_map(const char *path, const nm_vect_t *veths,
-        int state, const nm_str_t *layout);
+        int state, const nm_str_t *layout, const nm_str_t *group);
 
 #endif /* NM_SVG_MAP_H_ */
 /* vim:set ts=4 sw=4: */

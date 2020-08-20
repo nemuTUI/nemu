@@ -15,7 +15,7 @@
 
 enum {
     NM_LAN_FIELDS_NUM = 2,
-    NM_SVG_FIELDS_NUM = 3,
+    NM_SVG_FIELDS_NUM = 4,
 };
 
 const char *nm_form_svg_state[] = {
@@ -54,11 +54,12 @@ static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn);
 enum {
     NM_SVG_FLD_PATH = 0,
     NM_SVG_FLD_TYPE,
-    NM_SVG_FLD_LAYT
+    NM_SVG_FLD_LAYT,
+    NM_SVG_FLD_GROUP
 };
 
 static const char *nm_form_svg_msg[] = {
-    "Export path", "State", "Layout", NULL
+    "Export path", "State", "Layout", "Group",  NULL
 };
 
 static void nm_lan_export_svg(const nm_vect_t *veths);
@@ -461,12 +462,15 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
     nm_field_t *sfields[NM_SVG_FIELDS_NUM + 1] = {NULL};
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     nm_vect_t err = NM_INIT_VECT;
+    nm_vect_t vgroup = NM_INIT_VECT;
     nm_str_t path = NM_INIT_STR;
     nm_str_t type = NM_INIT_STR;
     nm_str_t layout = NM_INIT_STR;
+    nm_str_t group = NM_INIT_STR;
     int state = NM_SVG_STATE_ALL;
     size_t msg_len = nm_max_msg_len(nm_form_svg_msg);
     char **states = (char **) nm_form_svg_state;
+    const char **groups;
 
     if (nm_form_calc_size(msg_len, NM_SVG_FIELDS_NUM, &form_data) != NM_OK)
         return;
@@ -474,11 +478,19 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
     for (size_t n = 0; n < NM_SVG_FIELDS_NUM; ++n)
         sfields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
 
+    nm_db_select(NM_GET_GROUPS_SQL, &vgroup);
+    groups = nm_calloc(vgroup.n_memb + 1, sizeof(char *));
+    for (size_t n = 0; n < vgroup.n_memb; n++) {
+       groups[n] = nm_vect_str_ctx(&vgroup, n);
+    }
+    groups[vgroup.n_memb] = NULL;
+
     sfields[NM_SVG_FIELDS_NUM] = NULL;
 
     set_field_type(sfields[NM_SVG_FLD_PATH], TYPE_REGEXP, "^/.*");
     set_field_type(sfields[NM_SVG_FLD_TYPE], TYPE_ENUM, nm_form_svg_state, false, false);
     set_field_type(sfields[NM_SVG_FLD_LAYT], TYPE_ENUM, nm_form_svg_layout, false, false);
+    set_field_type(sfields[NM_SVG_FLD_GROUP], TYPE_ENUM, groups, false, false);
     set_field_buffer(sfields[NM_SVG_FLD_TYPE], 0, nm_form_svg_state[0]);
     set_field_buffer(sfields[NM_SVG_FLD_LAYT], 0, nm_form_svg_layout[0]);
 
@@ -499,6 +511,7 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
     nm_get_field_buf(sfields[NM_SVG_FLD_PATH], &path);
     nm_get_field_buf(sfields[NM_SVG_FLD_TYPE], &type);
     nm_get_field_buf(sfields[NM_SVG_FLD_LAYT], &layout);
+    nm_get_field_buf(sfields[NM_SVG_FLD_GROUP], &group);
     nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_PATH]), path, err);
     nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_TYPE]), type, err);
     nm_form_check_data(_(nm_form_svg_msg[NM_SVG_FLD_LAYT]), layout, err);
@@ -515,7 +528,7 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
         }
     }
 
-    nm_svg_map(path.data, veths, state, &layout);
+    nm_svg_map(path.data, veths, state, &layout, &group);
 
 out:
     wtimeout(action_window, -1);
@@ -525,6 +538,9 @@ out:
     nm_str_free(&path);
     nm_str_free(&type);
     nm_str_free(&layout);
+    nm_str_free(&group);
+    free(groups);
+    nm_vect_free(&vgroup, nm_str_vect_free_cb);
     nm_form_free(form, sfields);
     delwin(form_data.form_window);
 }

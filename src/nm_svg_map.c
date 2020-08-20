@@ -27,7 +27,7 @@ typedef Agedge_t nm_gvedge_t;
 typedef GVC_t    nm_gvctx_t;
 
 void nm_svg_map(const char *path, const nm_vect_t *veths,
-        int state, const nm_str_t *layout)
+        int state, const nm_str_t *layout, const nm_str_t *group)
 {
     nm_gvctx_t *gvc;
     nm_gvgraph_t *graph;
@@ -51,17 +51,20 @@ void nm_svg_map(const char *path, const nm_vect_t *veths,
 
         nm_lan_parse_name(nm_vect_str(veths, v), &lname, &rname);
 
-        switch (state) {
-        case NM_SVG_STATE_UP:
-            if (nm_net_link_status(&lname) != NM_OK)
-                goto next;
-            break;
-        case NM_SVG_STATE_DOWN:
-            if (nm_net_link_status(&lname) == NM_OK)
-                goto next;
-            break;
-        default:
-            break;
+        if (!group->len) {
+            switch (state) {
+                case NM_SVG_STATE_UP:
+                    if (nm_net_link_status(&lname) != NM_OK)
+                        goto next;
+                    break;
+                case NM_SVG_STATE_DOWN:
+                    if (nm_net_link_status(&lname) == NM_OK)
+                        goto next;
+                    break;
+                default:
+                    break;
+            }
+
         }
 
         vnode = agnode(graph, nm_vect_str_ctx(veths, v), NM_TRUE);
@@ -69,7 +72,11 @@ void nm_svg_map(const char *path, const nm_vect_t *veths,
         agsafeset(vnode, NM_GV_FCOL, NM_VE_COLOR, NM_EMPTY_STR);
         agsafeset(vnode, NM_GV_SHAPE, NM_GV_RECT, NM_EMPTY_STR);
 
-        nm_str_format(&query, NM_GET_IFMAP_SQL, lname.data, rname.data);
+        if (group->len) {
+            nm_str_format(&query, NM_GET_IFMAPGR_SQL, group->data, lname.data, rname.data);
+        } else {
+            nm_str_format(&query, NM_GET_IFMAP_SQL, lname.data, rname.data);
+        }
         nm_db_select(query.data, &vms);
 
         vms_count = vms.n_memb / 2;

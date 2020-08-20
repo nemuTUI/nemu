@@ -140,8 +140,15 @@ static const char NM_GET_IFACES_MACS[] = \
     "SELECT mac_addr FROM ifaces";
 
 static const char NM_GET_IFMAP_SQL[] = \
-    "SELECT vm_name, if_name FROM ifaces WHERE parent_eth='%s'" \
+    "SELECT vm_name, if_name FROM ifaces WHERE parent_eth='%s' " \
     "OR parent_eth='%s'";
+
+static const char NM_GET_IFMAPGR_SQL[] = \
+    "SELECT vm_name, if_name FROM ifaces JOIN vms ON " \
+    "vm_name=name WHERE team='%s' AND (parent_eth='%s' OR parent_eth='%s')";
+
+static const char NM_GET_GROUPS_SQL[] = \
+    "SELECT DISTINCT team FROM vms WHERE team IS NOT NULL";
 
 static const char NM_LAN_VETH_INF_SQL[] = \
     "SELECT if_name FROM ifaces WHERE parent_eth='%s'";
