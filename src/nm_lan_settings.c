@@ -197,7 +197,6 @@ void nm_lan_settings(void)
 
     werase(side_window);
     werase(help_window);
-    nm_init_side();
     nm_init_help_main();
     nm_vect_free(&veths, nm_str_vect_free_cb);
     nm_vect_free(&veths_list, NULL);

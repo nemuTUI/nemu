@@ -345,6 +345,10 @@ void nm_start_main_loop(void)
 #if defined (NM_OS_LINUX)
             case NM_KEY_N_UP:
                 nm_lan_settings();
+                if (filter.type == NM_FILTER_GROUP)
+                    nm_init_side_group(&filter.query);
+                else
+                    nm_init_side();
                 break;
 #endif
             }
