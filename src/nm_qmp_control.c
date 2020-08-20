@@ -17,8 +17,10 @@ static const char NM_QMP_CMD_VM_RESET[] = "{\"execute\":\"system_reset\"}";
 static const char NM_QMP_CMD_VM_STOP[]  = "{\"execute\":\"stop\"}";
 static const char NM_QMP_CMD_VM_CONT[]  = "{\"execute\":\"cont\"}";
 
+#if defined (NM_SAVEVM_SNAPSHOTS)
 static const char NM_QMP_CMD_EXECUTE[]  = \
     "{\"execute\":\"%s\",\"arguments\":{\"name\":\"%s\"}}";
+#endif
 
 static const char NM_QMP_CMD_USB_ADD[] = \
     "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"usb-host\"," \
@@ -54,8 +56,10 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h);
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path);
 static int nm_qmp_talk(int sd, const char *cmd,
                        size_t len, struct timeval *tv);
+#if defined (NM_SAVEVM_SNAPSHOTS)
 static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
                          const char *cmd);
+#endif
 static int nm_qmp_check_answer(const nm_str_t *answer);
 
 void nm_qmp_vm_shut(const nm_str_t *name)
@@ -93,6 +97,7 @@ void nm_qmp_vm_resume(const nm_str_t *name)
     nm_qmp_vm_exec(name, NM_QMP_CMD_VM_CONT, &tv);
 }
 
+#if defined (NM_SAVEVM_SNAPSHOTS)
 int nm_qmp_savevm(const nm_str_t *name, const nm_str_t *snap)
 {
     return nm_qmp_vmsnap(name, snap, "savevm");
@@ -107,6 +112,7 @@ int nm_qmp_delvm(const nm_str_t *name, const nm_str_t *snap)
 {
     return nm_qmp_vmsnap(name, snap, "delvm");
 }
+#endif
 
 int nm_qmp_usb_attach(const nm_str_t *name, const nm_usb_data_t *usb)
 {
@@ -172,6 +178,7 @@ out:
     return rc;
 }
 
+#if defined (NM_SAVEVM_SNAPSHOTS)
 static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
                          const char *cmd)
 {
@@ -180,8 +187,8 @@ static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
     int rc;
 
     /* this operation can take a long time */
-    tv.tv_sec = 300;
-    tv.tv_usec = 0; /* 5 m */
+    tv.tv_sec = nm_cfg_get()->snapshot_timeout;
+    tv.tv_usec = 0;
 
     nm_str_format(&qmp_query, NM_QMP_CMD_EXECUTE, cmd, snap->data);
 
@@ -192,6 +199,7 @@ static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
 
     return rc;
 }
+#endif
 
 static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
                           struct timeval *tv)

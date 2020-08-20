@@ -37,6 +37,9 @@ typedef struct {
     nm_rgb_t hl_color;
     nm_str_t debug_path;
     uint64_t daemon_sleep;
+#if defined (NM_SAVEVM_SNAPSHOTS)
+    int64_t snapshot_timeout;
+#endif
 #if defined (NM_WITH_DBUS)
     uint32_t dbus_enabled:1;
     int64_t dbus_timeout;

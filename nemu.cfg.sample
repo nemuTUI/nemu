@@ -43,6 +43,9 @@ enable_log = 1
 # Log path.
 log_cmd = /tmp/qemu_last_cmd.log
 
+# QMP snapshot timeout in seconds
+snapshot_timeout = 300
+
 [nemu-monitor]
 # Auto start monitoring daemon
 autostart = 1

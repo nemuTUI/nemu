@@ -59,7 +59,7 @@ enum {
 };
 
 static const char *nm_form_svg_msg[] = {
-    "Export path", "State", "Layout", "Group",  NULL
+    "Export path", "State", "Layout", "Group", NULL
 };
 
 static void nm_lan_export_svg(const nm_vect_t *veths);

@@ -49,6 +49,9 @@ static const char NM_INI_P_SLP[]        = "sleep";
 static const char NM_INI_P_DYES[]       = "dbus_enabled";
 static const char NM_INI_P_DTMT[]       = "dbus_timeout";
 #endif
+#if defined (NM_SAVEVM_SNAPSHOTS)
+static const char NM_INI_P_STMT[]       = "snapshot_timeout";
+#endif
 
 static nm_cfg_t cfg;
 
@@ -253,6 +256,16 @@ void nm_cfg_init(void)
         cfg.dbus_timeout = -1;
     }
 #endif
+#if defined (NM_SAVEVM_SNAPSHOTS)
+    nm_str_trunc(&tmp_buf, 0);
+    if (nm_get_opt_param(ini, NM_INI_S_QEMU, NM_INI_P_STMT, &tmp_buf) == NM_OK) {
+        cfg.snapshot_timeout = nm_str_stol(&tmp_buf, 10);
+        if (cfg.snapshot_timeout > INT32_MAX || cfg.snapshot_timeout < INT32_MIN)
+            nm_bug(_("cfg: incorrect QMP snapshot timeout value %ld"), cfg.snapshot_timeout);
+    } else {
+        cfg.snapshot_timeout = 300; /* 5 min */
+    }
+#endif
     nm_ini_parser_free(ini);
     nm_str_free(&cfg_path);
     nm_str_free(&tmp_buf);
@@ -400,6 +413,10 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                 "enable_log = 1\n\n");
             fprintf(cfg_file, "# Log path.\n"
                 "log_cmd = /tmp/qemu_last_cmd.log\n\n");
+#ifdef NM_SAVEVM_SNAPSHOTS
+            fprintf(cfg_file, "# QMP snapshot timeout in seconds\n"
+                "snapshot_timeout = 300\n\n");
+#endif
             fprintf(cfg_file, "[nemu-monitor]\n"
                     "# Auto start monitoring daemon\nautostart = 1\n\n"
                     "# Monitoring daemon pid file\npid = /tmp/nemu-monitor.pid"

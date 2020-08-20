@@ -64,7 +64,6 @@ void nm_svg_map(const char *path, const nm_vect_t *veths,
                 default:
                     break;
             }
-
         }
 
         vnode = agnode(graph, nm_vect_str_ctx(veths, v), NM_TRUE);

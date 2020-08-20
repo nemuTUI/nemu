@@ -4,6 +4,7 @@ v2.?.? - ?
              "g:group_name"  - show VM's by group
              "g:all"         - show all
     - Feature: export network map sorted by group
+    - Feature: QMP save|load|del wait timeout can be set in config file
     - Change: reworked USB bus and devices handling
     - Update: builtin QEMU is now version 5.1.0
     - Bugfix: USB device was added to DB even after failed attach attempt
