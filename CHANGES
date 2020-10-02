@@ -1,4 +1,4 @@
-v2.?.? - ?
+v2.5.0 - 02.10.2020
 ------------------------
     - Feature: VM's groups. Usage: search menu (hotkey "/"):
              "g:group_name"  - show VM's by group
