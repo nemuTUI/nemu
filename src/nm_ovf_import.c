@@ -22,18 +22,30 @@
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 
+const char *nm_ovf_version[] = {
+    "1.0",
+    "2.0",
+    NULL
+};
+
 enum {NM_BLOCK_SIZE = 10240};
 static const char NM_OVA_DIR_TEMPL[] = "/tmp/ova_extract_XXXXXX";
 
 static const char NM_OVF_FORM_PATH[] = "Path to OVA";
 static const char NM_OVF_FORM_ARCH[] = "Architecture";
 static const char NM_OVF_FORM_NAME[] = "Name (optional)";
+static const char NM_OVF_FORM_VER[]  = "OVF version";
 static const char NM_XML_OVF_NS[]    = "ovf";
 static const char NM_XML_RASD_NS[]   = "rasd";
-static const char NM_XML_OVF_HREF[]  = "http://schemas.dmtf.org/ovf/envelope/1";
+static const char NM_XML_SASD_NS[]   = "sasd";
+static const char NM_XML_OVF1_HREF[]  = "http://schemas.dmtf.org/ovf/envelope/1";
+static const char NM_XML_OVF2_HREF[]  = "http://schemas.dmtf.org/ovf/envelope/2";
 
 static const char NM_XML_RASD_HREF[] = \
     "http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData";
+
+static const char NM_XML_SASD_HREF[] = \
+    "http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_StorageAllocationSettingData.xsd";
 
 static const char NM_XPATH_NAME[] = \
     "/ovf:Envelope/ovf:VirtualSystem/ovf:Name/text()";
@@ -46,9 +58,13 @@ static const char NM_XPATH_NCPU[] = \
     "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
     "ovf:Item[rasd:ResourceType/text()=3]/rasd:VirtualQuantity/text()";
 
-static const char NM_XPATH_DRIVE_ID[] = \
+static const char NM_XPATH_DRIVE_ID1[] = \
     "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
     "ovf:Item[rasd:ResourceType/text()=17]/rasd:HostResource/text()";
+
+static const char NM_XPATH_DRIVE_ID2[] = \
+    "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
+    "ovf:StorageItem[sasd:ResourceType/text()=17]/sasd:HostResource/text()";
 
 static const char NM_XPATH_DRIVE_REF[] = \
     "/ovf:Envelope/ovf:DiskSection/" \
@@ -74,12 +90,13 @@ enum {
     NM_OVA_FLD_SRC = 0,
     NM_OVA_FLD_ARCH,
     NM_OVA_FLD_NAME,
+    NM_OVA_FLD_VER,
     NM_OVA_FLD_COUNT
 };
 
 static const char *nm_form_msg[] = {
     NM_OVF_FORM_PATH, NM_OVF_FORM_ARCH,
-    NM_OVF_FORM_NAME, NULL
+    NM_OVF_FORM_NAME, NM_OVF_FORM_VER, NULL
 };
 
 typedef struct archive nm_archive_t;
@@ -101,7 +118,7 @@ static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
                            nm_vect_t *files);
 static const char *nm_find_ovf(const nm_vect_t *files);
 static nm_xml_doc_pt nm_ovf_open(const char *tmp_dir, const char *ovf_file);
-static int nm_register_xml_ns(nm_xml_xpath_ctx_pt ctx);
+static int nm_register_xml_ns(nm_xml_xpath_ctx_pt ctx, int version);
 static int __nm_register_xml_ns(nm_xml_xpath_ctx_pt ctx, const char *ns,
                                 const char *href);
 static nm_xml_xpath_obj_pt nm_exec_xpath(const char *xpath,
@@ -109,7 +126,8 @@ static nm_xml_xpath_obj_pt nm_exec_xpath(const char *xpath,
 static void nm_ovf_get_name(nm_str_t *name, nm_xml_xpath_ctx_pt ctx);
 static void nm_ovf_get_ncpu(nm_str_t *ncpu, nm_xml_xpath_ctx_pt ctx);
 static void nm_ovf_get_mem(nm_str_t *mem, nm_xml_xpath_ctx_pt ctx);
-static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx);
+static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx,
+        int version);
 static uint32_t nm_ovf_get_neth(nm_xml_xpath_ctx_pt ctx);
 static uint32_t nm_ovf_get_usb(nm_xml_xpath_ctx_pt ctx);
 static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
@@ -118,7 +136,7 @@ static inline void nm_drive_free(nm_drive_t *d);
 static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
                                   const char *templ_path);
 static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives);
-static int nm_ova_get_data(nm_vm_t *vm);
+static int nm_ova_get_data(nm_vm_t *vm, int *version);
 
 static nm_field_t *fields[NM_OVA_FLD_COUNT + 1];
 
@@ -136,7 +154,7 @@ void nm_ovf_import(void)
     nm_form_data_t form_data = NM_INIT_FORM_DATA;
     size_t msg_len;
     pthread_t spin_th;
-    int done = 0;
+    int done = 0, version = 0;
 
     strncpy(templ_path, NM_OVA_DIR_TEMPL, sizeof(templ_path));
 
@@ -160,7 +178,10 @@ void nm_ovf_import(void)
                    nm_cfg_get_arch(), false, false);
     set_field_type(fields[NM_OVA_FLD_NAME], TYPE_REGEXP,
                    "^[a-zA-Z0-9_-]{1,30} *$");
+    set_field_type(fields[NM_OVA_FLD_VER], TYPE_ENUM,
+                   nm_ovf_version, false, false);
     set_field_buffer(fields[NM_OVA_FLD_ARCH], 0, *nm_cfg_get()->qemu_targets.data);
+    set_field_buffer(fields[NM_OVA_FLD_VER], 0, *nm_ovf_version);
     field_opts_off(fields[NM_OVA_FLD_SRC], O_STATIC);
     field_opts_off(fields[NM_OVA_FLD_NAME], O_STATIC);
 
@@ -173,7 +194,7 @@ void nm_ovf_import(void)
     if (nm_draw_form(action_window, form) != NM_OK)
         goto cancel;
 
-    if (nm_ova_get_data(&vm) != NM_OK)
+    if (nm_ova_get_data(&vm, &version) != NM_OK)
         goto cancel;
 
     sp_data.stop = &done;
@@ -203,7 +224,7 @@ void nm_ovf_import(void)
         goto out;
     }
 
-    if (nm_register_xml_ns(xpath_ctx) != NM_OK) {
+    if (nm_register_xml_ns(xpath_ctx, version) != NM_OK) {
         nm_warn(_(NM_MSG_ANY_KEY));
         goto out;
     }
@@ -212,7 +233,7 @@ void nm_ovf_import(void)
         nm_ovf_get_name(&vm.name, xpath_ctx);
     nm_ovf_get_ncpu(&vm.cpus, xpath_ctx);
     nm_ovf_get_mem(&vm.memo, xpath_ctx);
-    nm_ovf_get_drives(&drives, xpath_ctx);
+    nm_ovf_get_drives(&drives, xpath_ctx, version);
     vm.ifs.count = nm_ovf_get_neth(xpath_ctx);
     if (nm_ovf_get_usb(xpath_ctx))
         vm.usb_enable = 1;
@@ -381,10 +402,21 @@ static nm_xml_doc_pt nm_ovf_open(const char *tmp_dir, const char *ovf_file)
     return doc;
 }
 
-static int nm_register_xml_ns(nm_xml_xpath_ctx_pt ctx)
+static int nm_register_xml_ns(nm_xml_xpath_ctx_pt ctx, int version)
 {
-    if ((__nm_register_xml_ns(ctx, NM_XML_OVF_NS, NM_XML_OVF_HREF) == NM_ERR) ||
-        (__nm_register_xml_ns(ctx, NM_XML_RASD_NS, NM_XML_RASD_HREF) == NM_ERR)) {
+    if (version == 1) {
+        if ((__nm_register_xml_ns(ctx, NM_XML_OVF_NS, NM_XML_OVF1_HREF) == NM_ERR) ||
+                (__nm_register_xml_ns(ctx, NM_XML_RASD_NS, NM_XML_RASD_HREF) == NM_ERR)) {
+            return NM_ERR;
+        }
+    } else if (version == 2) {
+        if ((__nm_register_xml_ns(ctx, NM_XML_OVF_NS, NM_XML_OVF2_HREF) == NM_ERR) ||
+                (__nm_register_xml_ns(ctx, NM_XML_SASD_NS, NM_XML_SASD_HREF)) ||
+                (__nm_register_xml_ns(ctx, NM_XML_RASD_NS, NM_XML_RASD_HREF) == NM_ERR)) {
+            return NM_ERR;
+        }
+    } else {
+        nm_warn(_(NM_MSG_BAD_OVF));
         return NM_ERR;
     }
 
@@ -447,7 +479,8 @@ static void nm_ovf_get_ncpu(nm_str_t *ncpu, nm_xml_xpath_ctx_pt ctx)
     nm_ovf_get_text(ncpu, ctx, NM_XPATH_NCPU, "ncpu");
 }
 
-static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx)
+static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx,
+        int version)
 {
     nm_xml_xpath_obj_pt obj_id;
     nm_str_t xpath = NM_INIT_STR;
@@ -455,10 +488,15 @@ static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx)
     nm_drive_t drive = NM_INIT_DRIVE;
     size_t ndrives;
 
-    if ((obj_id = nm_exec_xpath(NM_XPATH_DRIVE_ID, ctx)) == NULL)
-        nm_bug("%s: cannot get drive_id from ovf file", __func__);
+    if (version == 1) {
+        if ((obj_id = nm_exec_xpath(NM_XPATH_DRIVE_ID1, ctx)) == NULL)
+            nm_bug("%s: cannot get drive_id from ovf file", __func__);
+    } else {
+        if ((obj_id = nm_exec_xpath(NM_XPATH_DRIVE_ID2, ctx)) == NULL)
+            nm_bug("%s: cannot get drive_id from ovf file", __func__);
+    }
 
-    if ((ndrives = obj_id->nodesetval->nodeNr) == 0)
+    if (!obj_id->nodesetval || ((ndrives = obj_id->nodesetval->nodeNr) == 0))
         nm_bug("%s: no drives was found", __func__);
 
     for (size_t n = 0; n < ndrives; n++) {
@@ -541,7 +579,7 @@ static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
     if ((obj = nm_exec_xpath(xpath, ctx)) == NULL)
         nm_bug("%s: cannot get %s from ovf file", __func__, param);
 
-    if (obj->nodesetval->nodeNr == 0)
+    if (!obj->nodesetval || !obj->nodesetval->nodeNr)
         nm_bug("%s: xpath return zero result", __func__);
 
     node = obj->nodesetval->nodeTab[0];
@@ -636,13 +674,15 @@ static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives)
     nm_add_vm_to_db(vm, last_mac, NM_IMPORT_VM, drives);
 }
 
-static int nm_ova_get_data(nm_vm_t *vm)
+static int nm_ova_get_data(nm_vm_t *vm, int *version)
 {
     int rc = NM_OK;
     nm_vect_t err = NM_INIT_VECT;
+    nm_str_t ver = NM_INIT_STR;
 
     nm_get_field_buf(fields[NM_OVA_FLD_SRC], &vm->srcp);
     nm_get_field_buf(fields[NM_OVA_FLD_ARCH], &vm->arch);
+    nm_get_field_buf(fields[NM_OVA_FLD_VER], &ver);
     if (field_status(fields[NM_OVA_FLD_NAME])) {
         nm_get_field_buf(fields[NM_OVA_FLD_NAME], &vm->name);
         nm_form_check_data(_(NM_OVF_FORM_NAME), vm->name, err);
@@ -650,10 +690,18 @@ static int nm_ova_get_data(nm_vm_t *vm)
 
     nm_form_check_data(_(NM_OVF_FORM_PATH), vm->srcp, err);
     nm_form_check_data(_(NM_OVF_FORM_ARCH), vm->arch, err);
+    nm_form_check_data(_(NM_OVF_FORM_VER), ver, err);
+
+    if (nm_str_cmp_st(&ver, nm_ovf_version[0]) == NM_OK) {
+        *version = 1;
+    } else if (nm_str_cmp_st(&ver, nm_ovf_version[1]) == NM_OK) {
+        *version = 2;
+    }
 
     rc = nm_print_empty_fields(&err);
 
     nm_vect_free(&err, NULL);
+    nm_str_free(&ver);
 
     return rc;
 }

@@ -119,6 +119,7 @@ extern sig_atomic_t redraw_window;
 #define NM_MSG_USB_EMPTY  "Empty device name" NM_MSG_ANY_KEY
 #define NM_MSG_USB_EDATA  "Malformed input data" NM_MSG_ANY_KEY
 #define NM_MSG_USB_ATTAC  "Already attached" NM_MSG_ANY_KEY
+#define NM_MSG_BAD_OVF    "Incorrect OVF version" NM_MSG_ANY_KEY
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)
