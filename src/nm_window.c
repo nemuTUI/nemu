@@ -491,22 +491,25 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         if ((status && (fd = open(pid_path.data, O_RDONLY)) != -1)) {
             char pid[10];
             ssize_t nread;
+            int pid_num = 0;
 
             if ((nread = read(fd, pid, sizeof(pid))) > 0) {
                 pid[nread - 1] = '\0';
-                int pid_num = atoi(pid);
+                pid_num = atoi(pid);
 
                 nm_str_format(&buf, "%-12s%d", "pid: ", pid_num);
                 NM_PR_VM_INFO();
+            }
+            close(fd);
+
 #if defined (NM_OS_LINUX)
+            if (pid_num) {
                 double usage = nm_stat_get_usage(pid_num);
                 nm_str_format(&buf, "%-12s%0.1f%%", "cpu usage: ", usage);
                 mvwhline(action_window, y, 1, ' ', cols - 4);
                 NM_PR_VM_INFO();
-#endif
             }
-            close(fd);
-
+#endif
         } else { /* clear PID file info and cpu usage data */
             if (y < (rows - 2)) {
                 mvwhline(action_window, y, 1, ' ', cols - 4);
