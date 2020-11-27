@@ -509,6 +509,8 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
                 mvwhline(action_window, y, 1, ' ', cols - 4);
                 NM_PR_VM_INFO();
             }
+#else
+            (void) pid_num;
 #endif
         } else { /* clear PID file info and cpu usage data */
             if (y < (rows - 2)) {
