@@ -649,9 +649,6 @@ nm_print_help__(const char **keys, const char **values,
                 n = shift;
                 werase(action_window);
 
-                if (last == hotkey_num)
-                    break;
-
                 for (size_t y = 3, l = 0; l < rows && n < hotkey_num; n++, y++, l++)
                     mvwprintw(action_window, y, 2, "%-10s%s", keys[n], values[n]);
 
@@ -664,9 +661,14 @@ nm_print_help__(const char **keys, const char **values,
                 }
 
                 nm_init_action(help_title.data);
-            }
-            else
+
+                if (last >= hotkey_num) {
+                    wgetch(action_window);
+                    break;
+                }
+            } else {
                 break;
+            }
         }
     } else {
         wgetch(action_window);
