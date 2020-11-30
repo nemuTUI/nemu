@@ -1,6 +1,7 @@
 v2.?.? - ?
 ------------------------
     - Feature: OVF version 2.0 support
+    - Bugfix: stop help menu scrolling upon reaching the end
 
 v2.5.0 - 02.10.2020
 ------------------------
