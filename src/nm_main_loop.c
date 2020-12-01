@@ -248,6 +248,10 @@ void nm_start_main_loop(void)
                     break;
                 }
                 nm_del_drive(name);
+                if (filter.type == NM_FILTER_GROUP)
+                    nm_init_side_group(&filter.query);
+                else
+                    nm_init_side();
                 break;
 
 #if defined (NM_OS_LINUX)

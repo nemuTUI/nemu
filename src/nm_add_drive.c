@@ -198,7 +198,6 @@ quit:
     nm_db_edit(query.data);
     werase(side_window);
     werase(help_window);
-    nm_init_side();
     nm_init_help_main();
 
 out:
