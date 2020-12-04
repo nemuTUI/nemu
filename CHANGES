@@ -1,6 +1,7 @@
 v2.?.? - ?
 ------------------------
     - Feature: OVF version 2.0 support
+    - Change: improved feature set output
     - Bugfix: stop help menu scrolling upon reaching the end
     - Bugfix: show group name after leaving "delete virtual drive" menu
 

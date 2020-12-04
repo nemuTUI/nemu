@@ -178,27 +178,63 @@ static void nm_print_feset(void)
     nm_vect_t feset = NM_INIT_VECT;
     nm_str_t msg = NM_INIT_STR;
 
-#if defined (NM_WITH_SPICE)
-    nm_vect_insert_cstr(&feset, "+ spice");
+#ifdef NM_USE_UTF
+  #define NM_FESET_YES "\u2611"
+  #define NM_FESET_NO  "\u2610"
+#else
+  #define NM_FESET_YES "+"
+  #define NM_FESET_NO  "-"
 #endif
+
+    nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_VNC_CLIENT)
-    nm_vect_insert_cstr(&feset, "+ vnc-client");
+            NM_FESET_YES
+#else
+            NM_FESET_NO
 #endif
+            " VNC");
+    nm_vect_insert_cstr(&feset,
+#if defined (NM_WITH_SPICE)
+            NM_FESET_YES
+#else
+            NM_FESET_NO
+#endif
+            " SPICE");
+    nm_vect_insert_cstr(&feset,
 #if defined (NM_SAVEVM_SNAPSHOTS)
-    nm_vect_insert_cstr(&feset, "+ savevm");
+            NM_FESET_YES
+#else
+            NM_FESET_NO
 #endif
+            " Snapshots");
+    nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_OVF_SUPPORT)
-    nm_vect_insert_cstr(&feset, "+ ovf");
+            NM_FESET_YES
+#else
+            NM_FESET_NO
 #endif
+            " OVF import");
+    nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_NETWORK_MAP)
-    nm_vect_insert_cstr(&feset, "+ svg");
+            NM_FESET_YES
+#else
+            NM_FESET_NO
 #endif
+            " SVG map");
+    nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_NEWLINKPROP)
-    nm_vect_insert_cstr(&feset, "+ linkprop");
+            NM_FESET_YES
+#else
+            NM_FESET_NO
 #endif
+            " Link alt names");
+    nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_DBUS)
-    nm_vect_insert_cstr(&feset, "+ dbus");
+            NM_FESET_YES
+#else
+            NM_FESET_NO
 #endif
+            " D-Bus support");
 
     for (size_t n = 0; n < feset.n_memb; n++)
         nm_str_append_format(&msg, " %s\n", (char *) nm_vect_at(&feset, n));

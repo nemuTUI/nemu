@@ -42,6 +42,7 @@ option(NM_WITH_SPICE "Build with Spice protocol support" ON)
 option(NM_WITH_NETWORK_MAP "Build with exporting network map to SVG" OFF)
 option(NM_WITH_DBUS "Build with D-Bus support" OFF)
 option(NM_WITH_QEMU "Build with embedded QEMU" OFF)
+option(NM_USE_UTF "Unicode support" OFF)
 
 include_directories(src)
 aux_source_directory(src SRC_LIST)
@@ -119,6 +120,10 @@ endif()
 
 if(NM_SAVEVM_SNAPSHOTS)
   add_definitions(-DNM_SAVEVM_SNAPSHOTS)
+endif()
+
+if (NM_USE_UTF)
+    add_definitions(-DNM_USE_UTF)
 endif()
 
 if(NM_WITH_OVF_SUPPORT)
