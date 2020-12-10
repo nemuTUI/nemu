@@ -1,0 +1,88 @@
+From ddb86e56e926206f8f31f2aa184cfe87d78eeed5 Mon Sep 17 00:00:00 2001
+From: 0x501D <mail@void.so>
+Date: Thu, 10 Dec 2020 13:28:50 +0300
+Subject: [PATCH] libnform: add get_field_value_list()
+
+Signed-off-by: 0x501D <mail@void.so>
+---
+ form/fld_type.c | 27 ++++++++++++++++++++++++++-
+ form/form.h     |  2 ++
+ 2 files changed, 28 insertions(+), 1 deletion(-)
+
+diff --git a/form/fld_type.c b/form/fld_type.c
+index a445fa4..71b2808 100644
+--- a/form/fld_type.c
++++ b/form/fld_type.c
+@@ -49,18 +49,23 @@ MODULE_ID("$Id: fld_type.c,v 1.17 2020/02/02 23:34:34 tom Exp $")
+ NCURSES_EXPORT(int)
+ set_field_type(FIELD *field, FIELDTYPE *type,...)
+ {
+-  va_list ap;
++  va_list ap, ap_copy;
+   int res = E_SYSTEM_ERROR;
+   int err = 0;
+ 
+   T((T_CALLED("set_field_type(%p,%p)"), (void *)field, (void *)type));
+ 
+   va_start(ap, type);
++  va_copy(ap_copy, ap);
+ 
+   Normalize_Field(field);
+   _nc_Free_Type(field);
+ 
+   field->type = type;
++  if (field->type == TYPE_ENUM)
++    {
++        field->value_list = va_arg(ap_copy, char **);
++    }
+   field->arg = (void *)_nc_Make_Argument(field->type, &ap, &err);
+ 
+   if (err)
+@@ -95,4 +100,24 @@ field_type(const FIELD *field)
+   returnFieldType(Normalize_Field(field)->type);
+ }
+ 
++/*---------------------------------------------------------------------------
++|   Facility      :  libnform
++|   Function      :  const void **get_field_value_list(const FIELD *field)
++|
++|   Description   :  Retrieve the associated value list for this field.
++|
++|   Return Values :  Pointer to value list of NULL if wrong field type.
+++--------------------------------------------------------------------------*/
++NCURSES_EXPORT(const void **)
++get_field_value_list(FIELD *field)
++{
++    if (field->type != TYPE_ENUM)
++      {
++        return NULL;
++      }
++
++    return field->value_list;
++}
++
++
+ /* fld_type.c ends here */
+diff --git a/form/form.h b/form/form.h
+index dabe676..7ea1481 100644
+--- a/form/form.h
++++ b/form/form.h
+@@ -100,6 +100,7 @@ typedef struct fieldnode
+   struct formnode *	form;		/* containing form		*/
+   struct typenode *	type;		/* field type			*/
+   void *		arg;		/* argument for type		*/
++  const void **		value_list;	/* user pointer to value list */
+   FIELD_CELL *		buf;		/* field buffers		*/
+   void *		usrptr;		/* user pointer			*/
+   /*
+@@ -336,6 +337,7 @@ extern NCURSES_EXPORT(int)	set_fieldtype_arg (FIELDTYPE *,
+ 		    void * (* const make_arg)(va_list *),
+ 		    void * (* const copy_arg)(const void *),
+ 		    void (* const free_arg)(void *));
++extern NCURSES_EXPORT(const void **)	 get_field_value_list(FIELD *field);
+ extern NCURSES_EXPORT(int)	 set_fieldtype_choice (FIELDTYPE *,
+ 		    bool (* const next_choice)(FIELD *,const void *),
+ 	      	    bool (* const prev_choice)(FIELD *,const void *));
+-- 
+2.28.0
+
