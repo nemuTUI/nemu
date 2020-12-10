@@ -1,5 +1,6 @@
 #include <nm_core.h>
 #include <nm_form.h>
+#include <nm_menu.h>
 #include <nm_utils.h>
 #include <nm_vector.h>
 #include <nm_window.h>
@@ -156,6 +157,17 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                 nm_str_trunc(&buf, 0);
             }
             break;
+#if 0
+        case KEY_PPAGE:
+        case KEY_NPAGE:
+            if (field_type(current_field(form)) == TYPE_ENUM) {
+                const char **list = (const char **) get_field_value_list(current_field(form));
+                nm_menu_data_t values = NM_INIT_MENU_DATA;
+                nm_window_t *drop = nm_print_dropdown_menu(&values);
+                rc = 42;
+            }
+            break;
+#endif
 
         case NM_KEY_ENTER:
             confirm = NM_OK;

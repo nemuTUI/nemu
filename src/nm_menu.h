@@ -25,6 +25,7 @@ void nm_print_base_menu(nm_menu_data_t *ifs);
 void nm_print_vm_menu(nm_menu_data_t *vm);
 void nm_print_veth_menu(nm_menu_data_t *veth, int get_status);
 void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch);
+nm_window_t *nm_print_dropdown_menu(nm_menu_data_t *values);
 
 static inline nm_menu_item_t *nm_vect_item(const nm_vect_t *v, const size_t index)
 {
