@@ -4,8 +4,8 @@ macro(build_qemu)
   ExternalProject_Add(
     qemu
     PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/qemu
-    URL https://download.qemu.org/qemu-5.1.0.tar.bz2
-    URL_MD5 3c501da3c18ae2eb28ea92891c6477f0
+    URL https://download.qemu.org/qemu-5.2.0.tar.bz2
+    URL_MD5 c887884bf336cf87feee30f6bcb52c6b
     PATCH_COMMAND
       ${PATCH_COMMAND} -p1 -i
       ${CMAKE_CURRENT_SOURCE_DIR}/patches/qemu-qmp-savevm-5.0.0+.patch
@@ -82,15 +82,14 @@ macro(build_qemu)
       --enable-vvfat
       --enable-qed
       --enable-parallels
-      --enable-sheepdog
       --disable-capstone
       --disable-debug-mutex
       --disable-libpmem
       --disable-xkbcommon
       --target-list=${NM_QEMU_TARGET_LIST}
     INSTALL_COMMAND
+      DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/qemu/${CMAKE_INSTALL_DATAROOTDIR}/nemu/qemu
       $(MAKE)
-      prefix=${CMAKE_CURRENT_BINARY_DIR}/qemu/${CMAKE_INSTALL_DATAROOTDIR}/nemu/qemu
       install)
 
 endmacro(build_qemu)
