@@ -1,20 +1,34 @@
-From 63e1df99aa3d55aecafea85c0be468b0c1c1cf34 Mon Sep 17 00:00:00 2001
-From: 0x501D <mail@void.so>
-Date: Tue, 4 Aug 2020 11:30:06 +0300
+From 864310442d0987f7a6819a43e304319ce463ee78 Mon Sep 17 00:00:00 2001
+From: Boris Stepanenko <boris.stepanenko@gmail.com>
+Date: Thu, 10 Dec 2020 20:17:15 +0300
 Subject: [PATCH] qmp: add {save|load|del}vm commands
 
-Signed-off-by: 0x501D <mail@void.so>
+Signed-off-by: Boris Stepanenko <boris.stepanenko@gmail.com>
 ---
- migration/savevm.c | 27 +++++++++++++++++++++++
- monitor/hmp-cmds.c | 22 ++++++++-----------
- qapi/misc.json     | 54 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 90 insertions(+), 13 deletions(-)
+ include/migration/snapshot.h |  4 +++
+ migration/savevm.c           | 27 ++++++++++++++++++
+ monitor/hmp-cmds.c           | 22 ++++++---------
+ qapi/misc.json               | 54 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 95 insertions(+), 13 deletions(-)
 
+diff --git a/include/migration/snapshot.h b/include/migration/snapshot.h
+index c85b6ec75b..5249d9027c 100644
+--- a/include/migration/snapshot.h
++++ b/include/migration/snapshot.h
+@@ -18,4 +18,8 @@
+ int save_snapshot(const char *name, Error **errp);
+ int load_snapshot(const char *name, Error **errp);
+ 
++void qmp_savevm(bool has_name, const char *name, Error **errp);
++void qmp_loadvm(const char *name, Error **errp);
++void qmp_delvm(const char *name, Error **errp);
++
+ #endif
 diff --git a/migration/savevm.c b/migration/savevm.c
-index c00a6807..b10958f1 100644
+index 5f937a2762..bfe310b8a1 100644
 --- a/migration/savevm.c
 +++ b/migration/savevm.c
-@@ -2747,6 +2747,33 @@ int save_snapshot(const char *name, Error **errp)
+@@ -2857,6 +2857,33 @@ int save_snapshot(const char *name, Error **errp)
      return ret;
  }
  
@@ -49,10 +63,10 @@ index c00a6807..b10958f1 100644
                                  Error **errp)
  {
 diff --git a/monitor/hmp-cmds.c b/monitor/hmp-cmds.c
-index 9b94e678..39775f5a 100644
+index 65d8ff4849..4c114cbc7c 100644
 --- a/monitor/hmp-cmds.c
 +++ b/monitor/hmp-cmds.c
-@@ -1081,37 +1081,33 @@ void hmp_balloon(Monitor *mon, const QDict *qdict)
+@@ -1124,37 +1124,33 @@ void hmp_balloon(Monitor *mon, const QDict *qdict)
  
  void hmp_loadvm(Monitor *mon, const QDict *qdict)
  {
@@ -100,12 +114,12 @@ index 9b94e678..39775f5a 100644
  }
  
 diff --git a/qapi/misc.json b/qapi/misc.json
-index 99b90ac8..e3df2091 100644
+index 40df513856..77176d97d1 100644
 --- a/qapi/misc.json
 +++ b/qapi/misc.json
-@@ -1509,6 +1509,60 @@
- { 'enum': 'ReplayMode',
-   'data': [ 'none', 'record', 'play' ] }
+@@ -530,6 +530,60 @@
+ { 'struct': 'CommandLineOptionInfo',
+   'data': { 'option': 'str', 'parameters': ['CommandLineParameterInfo'] } }
  
 +##
 +# @savevm:
@@ -162,8 +176,8 @@ index 99b90ac8..e3df2091 100644
 +{ 'command': 'delvm', 'data': {'name': 'str'} }
 +
  ##
- # @xen-load-devices-state:
+ # @query-command-line-options:
  #
 -- 
-2.26.2
+2.27.0
 
