@@ -2,8 +2,10 @@
 #define NM_NCURSES_H_
 
 #include <curses.h>
+#include <panel.h>
 
 typedef WINDOW nm_window_t;
+typedef PANEL nm_panel_t;
 
 typedef struct {
     int x;

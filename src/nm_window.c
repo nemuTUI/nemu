@@ -92,6 +92,10 @@ void nm_create_windows(void)
     help_window = nm_init_window(&help_size);
     side_window = nm_init_window(&side_size);
     action_window = nm_init_window(&action_size);
+
+    help_panel = new_panel(help_window);
+    side_panel = new_panel(side_window);
+    action_panel = new_panel(action_window);
 }
 
 void nm_init_help(const char *msg, int err)

@@ -47,6 +47,10 @@ extern nm_window_t *side_window;
 extern nm_window_t *action_window;
 /* Used in SIGWINCH signal handler */
 extern sig_atomic_t redraw_window;
+/* Panels */
+extern nm_panel_t *help_panel;
+extern nm_panel_t *side_panel;
+extern nm_panel_t *action_panel;
 
 #define NM_MSG_ANY_KEY    ", press any key"
 #define NM_MSG_SMALL_WIN  "Window size to small" NM_MSG_ANY_KEY

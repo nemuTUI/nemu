@@ -10,17 +10,16 @@
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
 
-#if 0
 nm_window_t *nm_print_dropdown_menu(nm_menu_data_t *values)
 {
     wtimeout(action_window, -1);
     nm_window_t *drop = derwin(action_window, 10, 20, 4, 2);
     box(drop, 0, 0);
-    wrefresh(drop);
+    //wrefresh(drop);
 
     return drop;
 }
-#endif
+
 void nm_print_base_menu(nm_menu_data_t *ifs)
 {
     int x = 2, y = 3;

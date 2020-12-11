@@ -24,6 +24,10 @@ nm_window_t *help_window;
 nm_window_t *side_window;
 nm_window_t *action_window;
 
+nm_panel_t *help_panel;
+nm_panel_t *side_panel;
+nm_panel_t *action_panel;
+
 int main(int argc, char **argv)
 {
     struct sigaction sa;
