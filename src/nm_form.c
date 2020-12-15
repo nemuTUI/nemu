@@ -168,12 +168,17 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                 nm_menu_data_t list = NM_INIT_MENU_DATA;
                 nm_vect_t values = NM_INIT_VECT;
                 ssize_t list_len = getmaxy(action_window) - 4;
+                size_t max_len = 0;
                 nm_str_t drop_buf = NM_INIT_STR;
 
                 nm_get_field_buf(current_field(form), &drop_buf);
 
                 for (ssize_t n = 0; n < args->count; n++) {
                     const char *keyword = args->kwds[n];
+                    size_t key_len = strlen(keyword);
+                    if (max_len < key_len) {
+                        max_len = key_len;
+                    }
                     nm_vect_insert_cstr(&values, keyword);
                 }
 
@@ -186,7 +191,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                     list.item_last = list_len = args->count;
                 list.v = &values;
 
-                drop = newwin(list_len + 2, 20, y + 1, x + 32 - drop_buf.len);
+                drop = newwin(list_len + 2, max_len + 4, y + 1, x + 32 - drop_buf.len);
                 keypad(drop, TRUE);
                 panel = new_panel(drop);
                 do {
