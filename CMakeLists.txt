@@ -43,7 +43,7 @@ option(NM_WITH_SPICE "Build with Spice protocol support" ON)
 option(NM_WITH_NETWORK_MAP "Build with exporting network map to SVG" OFF)
 option(NM_WITH_DBUS "Build with D-Bus support" OFF)
 option(NM_WITH_QEMU "Build with embedded QEMU" OFF)
-option(NM_WITH_NCURSES "Build with embedded statically linked ncurses" ON)
+option(NM_WITH_NCURSES "Build with embedded statically linked ncurses" OFF)
 option(NM_USE_UTF "Unicode support" OFF)
 
 include_directories(src)
