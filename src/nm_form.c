@@ -161,7 +161,50 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
         case KEY_PPAGE:
         case KEY_NPAGE:
             if (field_type(current_field(form)) == TYPE_ENUM) {
+                int drop_ch = 0, x, y;
+                nm_window_t *drop;
+                nm_panel_t *panel;
                 nm_args_t *args = field_arg(current_field(form));
+                nm_menu_data_t list = NM_INIT_MENU_DATA;
+                nm_vect_t values = NM_INIT_VECT;
+                ssize_t list_len = getmaxy(action_window) - 4;
+                nm_str_t drop_buf = NM_INIT_STR;
+
+                nm_get_field_buf(current_field(form), &drop_buf);
+
+                for (ssize_t n = 0; n < args->count; n++) {
+                    const char *keyword = args->kwds[n];
+                    nm_vect_insert_cstr(&values, keyword);
+                }
+
+                getyx(action_window, y, x);
+                list.highlight = 1;
+                list_len -= y;
+                if (list_len < args->count)
+                    list.item_last = list_len;
+                else
+                    list.item_last = list_len = args->count;
+                list.v = &values;
+
+                drop = newwin(list_len + 2, 20, y + 1, x + 32 - drop_buf.len);
+                keypad(drop, TRUE);
+                panel = new_panel(drop);
+                do {
+                    werase(drop);
+                    nm_menu_scroll(&list, list_len, drop_ch);
+                    nm_print_dropdown_menu(&list, drop);
+                } while ((drop_ch = wgetch(drop)) != NM_KEY_ENTER);
+
+                set_field_buffer(current_field(form), 0, args->kwds[list.highlight - 1]);
+
+                nm_vect_free(list.v, NULL);
+                hide_panel(panel);
+                update_panels();
+                doupdate();
+                curs_set(1);
+                del_panel(panel);
+                delwin(drop);
+                nm_str_free(&drop_buf);
             }
             break;
 

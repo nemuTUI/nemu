@@ -10,14 +10,26 @@
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
 
-nm_window_t *nm_print_dropdown_menu(nm_menu_data_t *values)
+void nm_print_dropdown_menu(nm_menu_data_t *values, nm_window_t *w)
 {
-    wtimeout(action_window, -1);
-    nm_window_t *drop = derwin(action_window, 10, 20, 4, 2);
-    box(drop, 0, 0);
-    //wrefresh(drop);
+    int x = 2, y = 1;
 
-    return drop;
+    box(w, 0, 0);
+    curs_set(0);
+    wattroff(w, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
+
+    for (size_t n = values->item_first, i = 0; n < values->item_last; n++, i++) {
+        if (values->highlight == i + 1) {
+            wattron(w, A_REVERSE);
+            mvwprintw(w, y, x, "%s", values->v->data[n]);
+            wattroff(w, A_REVERSE);
+        } else {
+            mvwprintw(w, y, x, "%s", values->v->data[n]);
+        }
+
+        y++;
+    }
+    wrefresh(w);
 }
 
 void nm_print_base_menu(nm_menu_data_t *ifs)
