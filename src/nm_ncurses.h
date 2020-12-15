@@ -14,6 +14,13 @@ typedef struct {
     int cols;
 } nm_cord_t;
 
+typedef struct {
+    char **kwds;
+    int count;
+    bool checkcase;
+    bool checkunique;
+} nm_args_t;
+
 #define NM_INIT_POS (nm_cord_t) { 0, 0, 0, 0 }
 #define NM_SET_POS(l, c, x_, y_) \
     (nm_cord_t) { .lines  = l, .cols = c, .x = x_, .y = y_ }

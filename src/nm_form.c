@@ -161,9 +161,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
         case KEY_PPAGE:
         case KEY_NPAGE:
             if (field_type(current_field(form)) == TYPE_ENUM) {
-                const char **list = (const char **) get_field_value_list(current_field(form));
-                nm_menu_data_t values = NM_INIT_MENU_DATA;
-                nm_window_t *drop = nm_print_dropdown_menu(&values);
+                nm_args_t *args = field_arg(current_field(form));
             }
             break;
 
