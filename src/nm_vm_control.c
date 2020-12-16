@@ -691,7 +691,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
                 nm_str_format(&tap_path, "/dev/tap%u", tap_idx);
 
-                /* wait for udev fixes permitions on /dev/tapN */
+                /* wait for udev fixes permissions on /dev/tapN */
                 if ((getuid() != 0) && wait_perm) {
                     struct timespec ts;
                     int tap_rw_ok = 0;
