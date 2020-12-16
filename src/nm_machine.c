@@ -128,6 +128,7 @@ out:
     nm_vect_free(&argv, NULL);
     nm_str_free(&answer);
     nm_str_free(&mach_list.arch);
+    nm_str_free(&mach_list.def);
 }
 
 static nm_vect_t *nm_mach_parse(const nm_str_t *buf, nm_str_t *def)
