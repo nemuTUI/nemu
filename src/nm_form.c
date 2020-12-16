@@ -169,9 +169,6 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                 nm_vect_t values = NM_INIT_VECT;
                 ssize_t list_len = getmaxy(action_window) - 4;
                 size_t max_len = 0;
-                nm_str_t drop_buf = NM_INIT_STR;
-
-                nm_get_field_buf(current_field(form), &drop_buf);
 
                 for (ssize_t n = 0; n < args->count; n++) {
                     const char *keyword = args->kwds[n];
@@ -183,6 +180,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                 }
 
                 getyx(action_window, y, x);
+                x = getbegx(form_sub(form));
                 list.highlight = 1;
                 list_len -= y;
                 if (list_len < args->count)
@@ -191,7 +189,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                     list.item_last = list_len = args->count;
                 list.v = &values;
 
-                drop = newwin(list_len + 2, max_len + 4, y + 1, x + 32 - drop_buf.len);
+                drop = newwin(list_len + 2, max_len + 4, y + 1, x);
                 keypad(drop, TRUE);
                 panel = new_panel(drop);
                 do {
@@ -210,7 +208,6 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                 curs_set(1);
                 del_panel(panel);
                 delwin(drop);
-                nm_str_free(&drop_buf);
             }
             break;
 
