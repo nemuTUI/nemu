@@ -185,6 +185,10 @@ static void nm_init_window__(nm_window_t *w, const char *msg)
 
 void nm_destroy_windows(void)
 {
+    del_panel(help_panel);
+    del_panel(side_panel);
+    del_panel(action_panel);
+
     delwin(help_window);
     delwin(side_window);
     delwin(action_window);
