@@ -13,7 +13,7 @@ SRC_URI=""
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="+vnc-client +ovf +spice dbus savevm svg"
+IUSE="+vnc-client +ovf +spice dbus savevm svg utf"
 
 RDEPEND="
 	sys-libs/ncurses:0=[unicode]
@@ -38,6 +38,7 @@ src_configure() {
 		-DNM_WITH_NETWORK_MAP=$(usex svg)
 		-DNM_WITH_SPICE=$(usex spice)
 		-DNM_WITH_DBUS=$(usex dbus)
+		-DNM_USE_UTF=$(usex utf)
 		-DCMAKE_INSTALL_PREFIX=/usr
 	)
 	cmake-utils_src_configure
