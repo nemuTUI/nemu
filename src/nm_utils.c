@@ -301,6 +301,7 @@ void nm_parse_smp(nm_cpu_t *cpu, const char *src)
     nm_str_free(&buf);
 }
 
+//@TODO call on SIGINT
 void nm_exit(int status)
 {
     if(nm_db_in_transaction())

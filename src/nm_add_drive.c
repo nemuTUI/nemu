@@ -79,6 +79,7 @@ void nm_add_drive(const nm_str_t *name)
     if (nm_draw_form(action_window, form) != NM_OK)
         goto out;
 
+    //@TODO Fix nm_bug call "nm_add_drive: cannot create image file" when size field is empty
     nm_get_field_buf(fields[NM_FLD_DRVSIZE], &drv_size);
     nm_get_field_buf(fields[NM_FLD_DRVTYPE], &drv_type);
     nm_form_check_data(_("Size"), buf, err);
