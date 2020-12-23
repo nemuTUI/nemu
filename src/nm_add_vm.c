@@ -137,7 +137,7 @@ static void nm_add_vm_field_setup(int import)
 {
     set_field_type(fields[NM_FLD_VMNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
     set_field_type(fields[NM_FLD_VMARCH], TYPE_ENUM, nm_cfg_get_arch(), false, false);
-    set_field_type(fields[NM_FLD_CPUNUM], TYPE_REGEXP, "^[0-9]{1}(:[0-9]{1})?(:[0-9]{1})?$");
+    set_field_type(fields[NM_FLD_CPUNUM], TYPE_REGEXP, "^[0-9]{1}(:[0-9]{1})?(:[0-9]{1})? *$");
     set_field_type(fields[NM_FLD_RAMTOT], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
     set_field_type(fields[NM_FLD_DISKSZ], TYPE_INTEGER, 0, 1, nm_hw_disk_free());
     set_field_type(fields[NM_FLD_DISKIN], TYPE_ENUM, nm_form_drive_drv, false, false);
