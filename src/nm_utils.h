@@ -31,13 +31,17 @@ void nm_unmap_file(const nm_file_map_t *file);
 int nm_spawn_process(const nm_vect_t *argv, nm_str_t *answer);
 
 void nm_bug(const char *fmt, ...)
-    __attribute__ ((format(printf, 1, 2)));
+    __attribute__ ((format(printf, 1, 2)))
+    __attribute__((noreturn));
 
 void nm_debug(const char *fmt, ...)
     __attribute__ ((format(printf, 1, 2)));
 
 void nm_cmd_str(nm_str_t *str, const nm_vect_t *argv);
 void nm_parse_smp(nm_cpu_t *cpu, const char *src);
+
+void nm_exit(int status)
+    __attribute__((noreturn));
 
 #endif /* NM_UTILS_H_ */
 /* vim:set ts=4 sw=4: */

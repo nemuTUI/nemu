@@ -33,7 +33,7 @@ void nm_bug(const char *fmt, ...)
     putc('\n', stderr);
     va_end(args);
 
-    exit(NM_ERR);
+    nm_exit(NM_ERR);
 }
 
 void *nm_alloc(size_t size)
@@ -299,6 +299,14 @@ void nm_parse_smp(nm_cpu_t *cpu, const char *src)
     }
 
     nm_str_free(&buf);
+}
+
+void nm_exit(int status)
+{
+    if(nm_db_in_transaction())
+        nm_db_rollback();
+
+    exit(status);
 }
 
 /* vim:set ts=4 sw=4: */

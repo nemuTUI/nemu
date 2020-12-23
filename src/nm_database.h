@@ -2,6 +2,7 @@
 #define NM_DATABASE_H_
 
 #include <nm_vector.h>
+#include <stdbool.h>
 
 #define NM_DB_VERSION "13"
 
@@ -173,6 +174,11 @@ static const char NM_GET_DB_VERSION_SQL[] = \
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
 void nm_db_edit(const char *query);
+bool nm_db_in_transaction();
+void nm_db_begin_transaction();
+void nm_db_atomic(const char *query);
+void nm_db_commit();
+void nm_db_rollback();
 void nm_db_close(void);
 
 enum select_main_idx {

@@ -362,7 +362,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                             while ((ch = getchar()) != '\n' && ch != EOF) {}
                             break;
                         default:
-                            exit(NM_OK);
+                            nm_exit(NM_OK);
                         }
                     } else {
                         dir_created = 1;
@@ -443,7 +443,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
         break;
 
     default:
-        exit(NM_OK);
+        nm_exit(NM_OK);
     }
 }
 

@@ -10,6 +10,7 @@
 typedef sqlite3 nm_sqlite_t;
 
 static nm_sqlite_t *db_handler = NULL;
+static bool db_in_transaction = false;
 static const char db_script[] = NM_FULL_DATAROOTDIR "/nemu/scripts/upgrade_db.sh";
 
 static void nm_db_check_version(void);
@@ -61,6 +62,9 @@ void nm_db_init(void)
     for (size_t n = 0; n < nm_arr_len(query); n++) {
         nm_debug("%s: \"%s\"\n", __func__, query[n]);
 
+        if (db_in_transaction)
+            nm_bug(_("%s: database in transaction"), __func__);
+
         if (sqlite3_exec(db_handler, query[n], NULL, NULL, &db_errmsg) != SQLITE_OK)
             nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
     }
@@ -69,6 +73,9 @@ void nm_db_init(void)
 void nm_db_select(const char *query, nm_vect_t *v)
 {
     char *db_errmsg;
+
+    if (db_in_transaction)
+        nm_bug(_("%s: database in transaction"), __func__);
 
     nm_debug("%s: \"%s\"\n", __func__, query);
 
@@ -82,10 +89,76 @@ void nm_db_edit(const char *query)
 {
     char *db_errmsg;
 
+    if (db_in_transaction)
+        nm_bug(_("%s: database in transaction"), __func__);
+
     nm_debug("%s: \"%s\"\n", __func__, query);
 
     if (sqlite3_exec(db_handler, query, NULL, NULL, &db_errmsg) != SQLITE_OK)
         nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
+}
+
+bool nm_db_in_transaction()
+{
+    return db_in_transaction;
+}
+
+void nm_db_begin_transaction()
+{
+    char *db_errmsg;
+
+    if (db_in_transaction)
+        nm_bug(_("%s: database already in transaction"), __func__);
+
+    nm_debug("%s: BEGIN TRANSACTION\n", __func__);
+
+    if (sqlite3_exec(db_handler, "BEGIN TRANSACTION", NULL, NULL, &db_errmsg) != SQLITE_OK)
+        nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
+
+    db_in_transaction = true;
+}
+
+void nm_db_atomic(const char *query)
+{
+    char *db_errmsg;
+
+    if (!db_in_transaction)
+        nm_bug(_("%s: database not in transaction"), __func__);
+
+    nm_debug("%s: \"%s\"\n", __func__, query);
+
+    if (sqlite3_exec(db_handler, query, NULL, NULL, &db_errmsg) != SQLITE_OK)
+        nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
+}
+
+void nm_db_commit()
+{
+    char *db_errmsg;
+
+    if (!db_in_transaction)
+        nm_bug(_("%s: database not in transaction"), __func__);
+
+    nm_debug("%s: COMMIT\n", __func__);
+
+    if (sqlite3_exec(db_handler, "COMMIT", NULL, NULL, &db_errmsg) != SQLITE_OK)
+        nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
+
+    db_in_transaction = false;
+}
+
+void nm_db_rollback()
+{
+    char *db_errmsg;
+
+    if (!db_in_transaction)
+        nm_bug(_("%s: database not in transaction"), __func__);
+
+    nm_debug("%s: ROLLBACK\n", __func__);
+
+    if (sqlite3_exec(db_handler, "ROLLBACK", NULL, NULL, &db_errmsg) != SQLITE_OK)
+        nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
+
+    db_in_transaction = false;
 }
 
 void nm_db_close(void)
@@ -126,6 +199,9 @@ static int nm_db_update(void)
     nm_str_t answer = NM_INIT_STR;
     nm_vect_t argv = NM_INIT_VECT;
     const nm_cfg_t *cfg = nm_cfg_get();
+
+    if (db_in_transaction)
+        nm_bug(_("%s: database in transaction"), __func__);
 
     nm_str_format(&backup, "%s-backup", cfg->db_path.data);
     nm_copy_file(&cfg->db_path, &backup);

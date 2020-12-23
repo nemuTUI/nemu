@@ -75,6 +75,9 @@ static inline void nm_init_core()
 }
 static inline void __attribute__((noreturn)) nm_exit_core()
 {
+    if (nm_db_in_transaction())
+        nm_db_rollback();
+
     nm_db_close();
     nm_cfg_free();
     exit(NM_OK);

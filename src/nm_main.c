@@ -1,4 +1,5 @@
 #include <nm_core.h>
+#include <nm_utils.h>
 #include <nm_menu.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
@@ -141,7 +142,7 @@ static void nm_process_args(int argc, char **argv)
         case 'd':
             nm_mon_loop();
             nm_cfg_free();
-            exit(NM_OK);
+            nm_exit(NM_OK);
         case 'l':
             nm_init_core();
             nm_db_select(NM_GET_VMS_SQL, &vm_list);
@@ -155,7 +156,7 @@ static void nm_process_args(int argc, char **argv)
         case 'v':
             printf("nEMU %s\n", NM_VERSION);
             nm_print_feset();
-            exit(NM_OK);
+            nm_exit(NM_OK);
         case 'h':
             printf("%s\n", _("-s, --start      <name> start vm"));
             printf("%s\n", _("-p, --powerdown  <name> powerdown vm"));
@@ -170,9 +171,9 @@ static void nm_process_args(int argc, char **argv)
 #endif
             printf("%s\n", _("-v, --version           show version"));
             printf("%s\n", _("-h, --help              show help"));
-            exit(NM_OK);
+            nm_exit(NM_OK);
         default:
-            exit(NM_ERR);
+            nm_exit(NM_ERR);
         }
     }
 }

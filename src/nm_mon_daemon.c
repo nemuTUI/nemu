@@ -87,17 +87,17 @@ void nm_mon_start(void)
     case 0: /* child */
         if (execlp(NM_PROGNAME, NM_PROGNAME, "--daemon", NULL) == -1) {
             fprintf(stderr, "%s: execlp error: %s\n", __func__, strerror(errno));
-            exit(EXIT_FAILURE);
+            nm_exit(EXIT_FAILURE);
         }
         break;
     case -1: /* error */
         fprintf(stderr, "%s: fork error: %s\n", __func__, strerror(errno));
-        exit(EXIT_FAILURE);
+        nm_exit(EXIT_FAILURE);
     default: /* parent */
         wpid = waitpid(pid, &wstatus, 0);
         if ((wpid == pid) && (WEXITSTATUS(wstatus) != 0)) {
             fprintf(stderr, "%s: failed to start daemon\n", __func__);
-            exit(EXIT_FAILURE);
+            nm_exit(EXIT_FAILURE);
         }
         break;
     }
@@ -164,19 +164,19 @@ void nm_mon_loop(void)
         break;
     case -1: /* error */
         fprintf(stderr, "%s: fork error: %s\n", __func__, strerror(errno));
-        exit(EXIT_FAILURE);
+        nm_exit(EXIT_FAILURE);
     default: /* parent */
         nm_exit_core();
     }
 
     if (setsid() < 0) {
         fprintf(stderr, "%s: setsid error: %s\n", __func__, strerror(errno));
-        exit(EXIT_FAILURE);
+        nm_exit(EXIT_FAILURE);
     }
 
     if (chdir("/") < 0) {
         fprintf(stderr, "%s: chdir error: %s\n", __func__, strerror(errno));
-        exit(EXIT_FAILURE);
+        nm_exit(EXIT_FAILURE);
     }
 
 #if defined (NM_OS_LINUX)
@@ -187,7 +187,7 @@ void nm_mon_loop(void)
 
     if (on_exit(nm_mon_cleanup, &clean) != 0) {
         fprintf(stderr, "%s: on_exit(3) failed\n", __func__);
-        exit(EXIT_FAILURE);
+        nm_exit(EXIT_FAILURE);
     }
 #endif
 
@@ -206,17 +206,17 @@ void nm_mon_loop(void)
     ts.tv_nsec = (cfg->daemon_sleep % 1000) * 1e+6;
 
     if (nm_mon_store_pid() != NM_OK) {
-        exit(EXIT_FAILURE);
+        nm_exit(EXIT_FAILURE);
     }
 
     nm_db_init();
     nm_mon_build_list(&mon_list, &vm_list);
 #if defined (NM_WITH_DBUS)
     if (nm_dbus_connect() != NM_OK) {
-        exit(EXIT_FAILURE);
+        nm_exit(EXIT_FAILURE);
     }
 #endif
-    
+
     for (;;) {
         if (nm_mon_rebuild) {
             nm_mon_build_list(&mon_list, &vm_list);
@@ -278,9 +278,9 @@ static void nm_mon_signals_handler(int signal)
         nm_mon_rebuild = 1;
         break;
     case SIGINT:
-        exit(EXIT_SUCCESS);
+        nm_exit(EXIT_SUCCESS);
     case SIGTERM:
-        exit(EXIT_FAILURE);
+        nm_exit(EXIT_FAILURE);
     }
 }
 
