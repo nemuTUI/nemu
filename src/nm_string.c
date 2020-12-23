@@ -408,6 +408,8 @@ void nm_str_replace_text(nm_str_t *str, const char *old, const char *new)
     if (buf.len != buf.alloc_bytes - 1)
         nm_bug(_("%s: string replace failed"), __func__);
 
+    buf.data[buf.len] = '\0';
+
     nm_str_free(str);
     str->alloc_bytes = buf.alloc_bytes;
     str->data = buf.data;
