@@ -42,6 +42,7 @@ void nm_str_format(nm_str_t *str, const char *fmt, ...)
     __attribute__ ((format(printf, 2, 3)));
 void nm_str_append_format(nm_str_t *str, const char *fmt, ...)
     __attribute__ ((format(printf, 2, 3)));
+void nm_str_replace_text(nm_str_t *str, const char *old, const char *new);
 
 void nm_str_vect_ins_cb(void *unit_p, const void *ctx);
 void nm_str_vect_free_cb(void *unit_p);

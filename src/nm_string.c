@@ -368,6 +368,53 @@ void nm_str_vect_free_cb(void *unit_p)
     nm_str_free((nm_str_t *) unit_p);
 }
 
+void nm_str_replace_text(nm_str_t *str, const char *old, const char *new)
+{
+    nm_str_t buf = NM_INIT_STR;
+    size_t count = 0;
+    char *ins = NULL;
+    char *prev = NULL;
+    char *cur = NULL;
+    size_t old_len = strlen(old);
+    size_t new_len = strlen(new);
+
+    ins = str->data;
+    for (count = 0; (cur = strstr(ins, old)); ++count)
+        ins = cur + old_len;
+
+    if (count == 0)
+        return;
+
+    nm_str_alloc_mem(&buf, NULL, str->len + (new_len * count) - (old_len * count));
+    buf.len = 0;
+
+    ins = buf.data;
+    prev = str->data;
+    while ((cur = strstr(prev, old)))
+    {
+        memcpy(ins, prev, cur - prev);
+        ins += cur - prev;
+        buf.len += cur - prev;
+
+        memcpy(ins, new, new_len);
+        ins += new_len;
+        buf.len += new_len;
+
+        prev += cur - prev + old_len;
+    }
+
+    memcpy(ins, prev, str->len - (prev - str->data));
+    buf.len += str->len - (prev - str->data);
+
+    if (buf.len != buf.alloc_bytes - 1)
+        nm_bug(_("%s: string replace failed"), __func__);
+
+    nm_str_free(str);
+    str->alloc_bytes = buf.alloc_bytes;
+    str->data = buf.data;
+    str->len = buf.len;
+}
+
 static void nm_str_alloc_mem(nm_str_t *str, const char *src, size_t len)
 {
     if (!str)
