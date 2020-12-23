@@ -372,13 +372,12 @@ void nm_str_replace_text(nm_str_t *str, const char *old, const char *new)
 {
     nm_str_t buf = NM_INIT_STR;
     size_t count = 0;
-    char *ins = NULL;
     char *prev = NULL;
     char *cur = NULL;
     size_t old_len = strlen(old);
     size_t new_len = strlen(new);
+    char *ins = str->data;
 
-    ins = str->data;
     for (count = 0; (cur = strstr(ins, old)); ++count)
         ins = cur + old_len;
 
