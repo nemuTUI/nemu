@@ -236,6 +236,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     size_t drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
     size_t ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
     int scsi_added = NM_FALSE;
+    nm_cpu_t cpu = NM_INIT_CPU;
     nm_str_t buf = NM_INIT_STR;
 
     nm_str_format(&vmdir, "%s/%s/", cfg->vm_dir.data, name->data);
@@ -451,11 +452,21 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_vect_str(&vm->main, NM_SQL_MEM)->data,
         nm_vect_str(&vm->main, NM_SQL_MEM)->len + 1, NULL);
 
-    if (nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_SMP), 10) > 1) {
+    nm_parse_smp(&cpu, nm_vect_str_ctx(&vm->main, NM_SQL_SMP));
+    if (cpu.smp > 1) {
+        nm_str_trunc(&buf, 0);
         nm_vect_insert_cstr(argv, "-smp");
-        nm_vect_insert(argv,
-            nm_vect_str(&vm->main, NM_SQL_SMP)->data,
-            nm_vect_str(&vm->main, NM_SQL_SMP)->len + 1, NULL);
+
+        if (!cpu.sockets) {
+            nm_str_format(&buf, "%zu", cpu.smp);
+        } else if (cpu.threads) {
+            nm_str_format(&buf, "%zu,sockets=%zu,cores=%zu,threads=%zu",
+                    cpu.smp, cpu.sockets, cpu.cores, cpu.threads);
+        } else {
+            nm_str_format(&buf, "%zu,sockets=%zu,cores=%zu",
+                    cpu.smp, cpu.sockets, cpu.cores);
+        }
+        nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
     }
 
     /* 9p sharing.

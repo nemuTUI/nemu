@@ -333,6 +333,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
     size_t cols, rows;
     size_t ifs_count, drives_count;
     chtype ch1, ch2;
+    nm_cpu_t cpu = NM_INIT_CPU;
     ch1 = ch2 = 0;
 
     getmaxyx(action_window, rows, cols);
@@ -341,8 +342,13 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         nm_vect_str_ctx(&vm->main, NM_SQL_ARCH));
     NM_PR_VM_INFO();
 
-    nm_str_format(&buf, "%-12s%s", "cores: ",
-        nm_vect_str_ctx(&vm->main, NM_SQL_SMP));
+    nm_parse_smp(&cpu, nm_vect_str_ctx(&vm->main, NM_SQL_SMP));
+    nm_str_format(&buf, "%-12s%zu %s (%zu %s), threads %zu", "cpu: ",
+            (cpu.sockets) ? cpu.sockets : cpu.smp,
+            (cpu.sockets > 1) ? "cpus" : "cpu",
+            (cpu.cores) ? cpu.cores : 1,
+            (cpu.cores > 1) ? "cores" : "core",
+            cpu.smp);
     NM_PR_VM_INFO();
 
     nm_str_format(&buf, "%-12s%s %s", "memory: ",

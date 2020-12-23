@@ -38,6 +38,7 @@ uint32_t nm_hw_total_ram(void)
     return ram;
 }
 
+#if 0
 uint32_t nm_hw_ncpus(void)
 {
     uint32_t ncpus = 0;
@@ -55,6 +56,7 @@ uint32_t nm_hw_ncpus(void)
 #endif
     return ncpus;
 }
+#endif
 
 uint32_t nm_hw_disk_free(void)
 {

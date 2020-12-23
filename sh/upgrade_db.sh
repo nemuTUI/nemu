@@ -6,7 +6,7 @@ if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=12
+DB_ACTUAL_VERSION=13
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 USER=$(whoami)
 RC=0
@@ -147,6 +147,23 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'DROP TABLE IF EXISTS lastval;' &&
             db_update_machine &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=12'
+            ) || RC=1
+            ;;
+
+         ( 12 )
+            (
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms RENAME TO tmp;' &&
+            sqlite3 "$DB_PATH" -line 'CREATE TABLE vms(id integer PRIMARY KEY AUTOINCREMENT, '`
+               `'name char(31), mem integer, smp char, kvm integer, '`
+               `'hcpu integer, vnc integer, arch char(32), iso char, '`
+               `'install integer, usb integer, usbid char, bios char, kernel char, '`
+               `'mouse_override integer, kernel_append char, tty_path char, '`
+               `'socket_path char, initrd char, machine char, fs9p_enable integer, '`
+               `'fs9p_path char, fs9p_name char, usb_type char, spice integer, '`
+               `'debug_port integer, debug_freeze integer, cmdappend char, team char);' &&
+            sqlite3 "$DB_PATH" -line 'INSERT INTO vms SELECT * FROM tmp;' &&
+            sqlite3 "$DB_PATH" -line 'DROP TABLE tmp;' &&
+            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=13'
             ) || RC=1
             ;;
 

@@ -3,7 +3,7 @@
 
 #include <nm_vector.h>
 
-#define NM_DB_VERSION "12"
+#define NM_DB_VERSION "13"
 
 //@TODO Those queries should have constant naming convention and some kind of sorting
 static const char NM_GET_VMS_SQL[] = \

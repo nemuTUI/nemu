@@ -13,8 +13,7 @@
 #include <nm_qmp_control.h>
 #include <nm_edit_vm.h>
 
-static const char NM_VM_FORM_CPU_BEGIN[] = "CPU cores [1-";
-static const char NM_VM_FORM_CPU_END[]   = "]";
+static const char NM_VM_FORM_CPU[]       = "CPU count";
 static const char NM_VM_FORM_MEM_BEGIN[] = "Memory [4-";
 static const char NM_VM_FORM_MEM_END[]   = "]Mb";
 static const char NM_VM_FORM_KVM[]       = "KVM [yes/no]";
@@ -110,7 +109,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     const char **machs = nm_mach_get(nm_vect_str(&cur->main, NM_SQL_ARCH));
     field_opts_off(fields[NM_FLD_ARGS], O_STATIC);
 
-    set_field_type(fields[NM_FLD_CPUNUM], TYPE_INTEGER, 0, 1, nm_hw_ncpus());
+    set_field_type(fields[NM_FLD_CPUNUM], TYPE_REGEXP, 0, "^[0-9]{1}(:[0-9]{1})?(:[0-9]{1})?$");
     set_field_type(fields[NM_FLD_RAMTOT], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
     set_field_type(fields[NM_FLD_KVMFLG], TYPE_ENUM, nm_form_yes_no, false, false);
     set_field_type(fields[NM_FLD_HOSCPU], TYPE_ENUM, nm_form_yes_no, false, false);
@@ -168,9 +167,7 @@ static void nm_edit_vm_field_names(nm_vect_t *msg)
 {
     nm_str_t buf = NM_INIT_STR;
 
-    nm_str_format(&buf, "%s%u%s",
-        _(NM_VM_FORM_CPU_BEGIN), nm_hw_ncpus(), _(NM_VM_FORM_CPU_END));
-    nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_CPU), strlen(_(NM_VM_FORM_CPU)) + 1, NULL);
 
     nm_str_format(&buf, "%s%u%s",
         _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));

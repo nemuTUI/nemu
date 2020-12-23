@@ -11,7 +11,15 @@ typedef struct {
     void *mp;
 } nm_file_map_t;
 
+typedef struct {
+    size_t smp;
+    size_t sockets;
+    size_t cores;
+    size_t threads;
+} nm_cpu_t;
+
 #define NM_INIT_FILE (nm_file_map_t) { NULL, -1, 0, NULL }
+#define NM_INIT_CPU (nm_cpu_t) { 0, 0, 0, 0 }
 
 void *nm_alloc(size_t size);
 void *nm_calloc(size_t nmemb, size_t size);
@@ -29,6 +37,7 @@ void nm_debug(const char *fmt, ...)
     __attribute__ ((format(printf, 1, 2)));
 
 void nm_cmd_str(nm_str_t *str, const nm_vect_t *argv);
+void nm_parse_smp(nm_cpu_t *cpu, const char *src);
 
 #endif /* NM_UTILS_H_ */
 /* vim:set ts=4 sw=4: */

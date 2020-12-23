@@ -263,4 +263,42 @@ void nm_cmd_str(nm_str_t *str, const nm_vect_t *argv)
     }
 }
 
+/* SMP format: sockets:cores?:threads?
+ * if only one value is specified we assume that
+ * N processors with one core are used */
+void nm_parse_smp(nm_cpu_t *cpu, const char *src)
+{
+    nm_str_t buf = NM_INIT_STR;
+    char *column;
+    char *saveptr;
+    size_t ncol = 0;
+
+    nm_str_format(&buf, "%s", src);
+    saveptr = buf.data;
+
+    while ((column = strtok_r(saveptr, ":", &saveptr))) {
+        switch (ncol) {
+        case 0: /* sockets */
+            cpu->sockets = nm_str_ttoul(column, 10);
+            break;
+        case 1: /* cores */
+            cpu->cores = nm_str_ttoul(column, 10);
+            break;
+        case 2: /* threads */
+            cpu->threads = nm_str_ttoul(column, 10);
+            break;
+        }
+        ncol++;
+    }
+
+    if (ncol == 1) {
+        cpu->smp = cpu->sockets;
+        cpu->sockets = 0;
+    } else {
+        cpu->smp = cpu->sockets * cpu->cores * ((cpu->threads) ? cpu->threads : 1);
+    }
+
+    nm_str_free(&buf);
+}
+
 /* vim:set ts=4 sw=4: */

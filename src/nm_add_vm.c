@@ -14,8 +14,7 @@
 
 static const char NM_VM_FORM_NAME[]      = "Name";
 static const char NM_VM_FORM_ARCH[]      = "Architecture";
-static const char NM_VM_FORM_CPU_BEGIN[] = "CPU cores [1-";
-static const char NM_VM_FORM_CPU_END[]   = "]";
+static const char NM_VM_FORM_CPU[]       = "CPU count";
 static const char NM_VM_FORM_MEM_BEGIN[] = "Memory [4-";
 static const char NM_VM_FORM_MEM_END[]   = "]Mb";
 static const char NM_VM_FORM_DRV_BEGIN[] = "Disk [1-";
@@ -138,7 +137,7 @@ static void nm_add_vm_field_setup(int import)
 {
     set_field_type(fields[NM_FLD_VMNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
     set_field_type(fields[NM_FLD_VMARCH], TYPE_ENUM, nm_cfg_get_arch(), false, false);
-    set_field_type(fields[NM_FLD_CPUNUM], TYPE_INTEGER, 0, 1, nm_hw_ncpus());
+    set_field_type(fields[NM_FLD_CPUNUM], TYPE_REGEXP, "^[0-9]{1}(:[0-9]{1})?(:[0-9]{1})?$");
     set_field_type(fields[NM_FLD_RAMTOT], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
     set_field_type(fields[NM_FLD_DISKSZ], TYPE_INTEGER, 0, 1, nm_hw_disk_free());
     set_field_type(fields[NM_FLD_DISKIN], TYPE_ENUM, nm_form_drive_drv, false, false);
@@ -166,10 +165,7 @@ static void nm_add_vm_field_names(nm_vect_t *msg, int import)
 
     nm_vect_insert(msg, _(NM_VM_FORM_NAME), strlen(_(NM_VM_FORM_NAME)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_ARCH), strlen(_(NM_VM_FORM_ARCH)) + 1, NULL);
-
-    nm_str_format(&buf, "%s%u%s",
-        _(NM_VM_FORM_CPU_BEGIN), nm_hw_ncpus(), _(NM_VM_FORM_CPU_END));
-    nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_CPU), strlen(_(NM_VM_FORM_CPU)) + 1, NULL);
 
     nm_str_format(&buf, "%s%u%s",
         _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
