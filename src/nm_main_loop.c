@@ -8,6 +8,7 @@
 #include <nm_add_vm.h>
 #include <nm_viewer.h>
 #include <nm_machine.h>
+#include <nm_rename_vm.h>
 #include <nm_edit_vm.h>
 #include <nm_clone_vm.h>
 #include <nm_database.h>
@@ -267,6 +268,17 @@ void nm_start_main_loop(void)
                 nm_9p_share(name);
                 break;
 #endif /* NM_OS_LINUX */
+
+            case NM_KEY_N:
+                if (vm_status) {
+                    nm_warn(_(NM_MSG_MUST_STOP));
+                    break;
+                }
+                nm_rename_vm(name);
+                regen_data = 1;
+                old_hl = vms.highlight;
+                nm_mon_ping();
+                break;
 
             case NM_KEY_E:
                 nm_edit_vm(name);

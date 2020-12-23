@@ -70,6 +70,7 @@ extern nm_panel_t *action_panel;
 #define NM_MSG_CLONE      "Clone VM"
 #define NM_MSG_EXPORT_MAP "Export network map to SVG"
 #define NM_MSG_LAN        "Connected VM's"
+#define NM_MSG_RENAME_VM  "Rename VM"
 #define NM_MSG_EDIT_VM    "Edit properties"
 #define NM_MSG_EDIT_BOOT  "Edit boot settings"
 #define NM_MSG_EDIT_VIEW  "Edit display settings"
@@ -153,6 +154,7 @@ enum nm_key {
     NM_KEY_K = 107,
     NM_KEY_L = 108,
     NM_KEY_M = 109,
+    NM_KEY_N = 110,
     NM_KEY_O = 111,
     NM_KEY_P = 112,
     NM_KEY_Q = 113,

@@ -567,9 +567,9 @@ void nm_print_help(void)
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
         "c",
 #endif
-        "p", "z", "f", "d", "e", "i",
-        "C", "a", "l", "b", "h", "m",
-        "v", "u", "P", "R",
+        "p", "z", "f", "d", "n", "e",
+        "i", "C", "a", "l", "b", "h",
+        "m", "v", "u", "P", "R",
 #if (NM_SAVEVM_SNAPSHOTS)
         "S", "X", "D",
 #endif
@@ -589,6 +589,7 @@ void nm_print_help(void)
         "reset vm",
         "force stop vm",
         "delete vm",
+        "rename vm",
         "edit vm settings",
         "edit network settings",
         "edit viewer settings",
