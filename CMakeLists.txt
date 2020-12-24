@@ -12,6 +12,29 @@ include(CheckSymbolExists)
 include(BuildQEMU)
 include(BuildNcurses)
 
+set(CMAKE_C_FLAGS_SANITIZER "-g -fsanitize=address -fno-omit-frame-pointer" CACHE STRING
+    "Flags used by the C compiler during sanitizer build."
+    FORCE)
+set(CMAKE_EXE_LINKER_FLAGS_SANITIZER
+    "" CACHE STRING
+    "Flags used for linking binaries during sanitizer build."
+    FORCE)
+set(CMAKE_SHARED_LINKER_FLAGS_SANITIZER
+    "" CACHE STRING
+    "Flags used by the shared libraries linker during sanitizer build."
+    FORCE)
+
+mark_as_advanced(
+    CMAKE_C_FLAGS_SANITIZER
+    CMAKE_EXE_LINKER_FLAGS_SANITIZER
+    CMAKE_SHARED_LINKER_FLAGS_SANITIZER)
+
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel Sanitizer)
+
+set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
+    "Build type, options are: Debug Release RelWithDebInfo MinSizeRel Sanitizer."
+    FORCE)
+
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(NM_OS_LINUX TRUE)
 elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
