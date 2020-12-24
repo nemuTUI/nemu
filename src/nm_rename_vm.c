@@ -72,6 +72,8 @@ void nm_rename_vm(const nm_str_t *name)
     if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
+    nm_vmctl_clear_tap(name);
+
     nm_db_begin_transaction();
     nm_rename_vm_in_db(&vm, &new_name);
     nm_rename_vm_in_fs(&vm, &new_name);
