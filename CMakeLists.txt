@@ -12,7 +12,7 @@ include(CheckSymbolExists)
 include(BuildQEMU)
 include(BuildNcurses)
 
-set(CMAKE_C_FLAGS_SANITIZER "-g -fsanitize=address -fno-omit-frame-pointer" CACHE STRING
+set(CMAKE_C_FLAGS_SANITIZER "-g -fsanitize=address -fsanitize=pointer-compare -fsanitize=pointer-subtract -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer" CACHE STRING
     "Flags used by the C compiler during sanitizer build."
     FORCE)
 set(CMAKE_EXE_LINKER_FLAGS_SANITIZER
