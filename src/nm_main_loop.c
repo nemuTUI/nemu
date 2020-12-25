@@ -269,7 +269,7 @@ void nm_start_main_loop(void)
                 break;
 #endif /* NM_OS_LINUX */
 
-            case NM_KEY_N:
+            case NM_KEY_Y:
                 if (vm_status) {
                     nm_warn(_(NM_MSG_MUST_STOP));
                     break;

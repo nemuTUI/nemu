@@ -567,7 +567,7 @@ void nm_print_help(void)
 #if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
         "c",
 #endif
-        "p", "z", "f", "d", "n", "e",
+        "p", "z", "f", "d", "y", "e",
         "i", "C", "a", "l", "b", "h",
         "m", "v", "u", "P", "R",
 #if (NM_SAVEVM_SNAPSHOTS)
