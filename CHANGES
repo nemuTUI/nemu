@@ -79,7 +79,7 @@ v2.2.1 - 16 May 2019
 v2.2.0 - 12 Feb 2019
 ------------------------
     - Feature: SPICE protocol support
-    - Feature: change size for action and prop windows with left/rigth arrow hotkey
+    - Feature: change size for action and prop windows with left/right arrow hotkey
     - Feature: ntty utility (connect to VM via serial socket)
     - Change: config file was changed. See nemu.cfg.sample for details
     - Change: SPICE set as default viewer protocol
@@ -170,7 +170,7 @@ v0.4.0 - 15 Mar 2017
 
 v0.3.0 - 04 Mar 2017
 ------------------------
-    - Change: form navigation improvments
+    - Change: form navigation improvements
     - Change: more symbols accepted for VM names
     - Cnahge: zero tap interfaces can be configured now
     - Feature: show QEMU PID in guest info window
@@ -215,7 +215,7 @@ v0.1.4 - 21 April 2014
 
 v0.1.3 - 18 April 2014
 ----------------------
-    - Feature: variuos network drivers support
+    - Feature: various network drivers support
 
 v0.1.2 - 15 April 2014
 ----------------------

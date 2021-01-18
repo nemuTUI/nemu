@@ -302,7 +302,7 @@ static int nm_qmp_talk(int sd, const char *cmd,
             if (nread > 1) {
                 buf[nread - 2] = '\0';
                 nm_str_add_text(&answer, buf);
-                /* check for command succesfully executed here
+                /* check for command successfully executed here
                  * and return if it done */
                 if ((rc = nm_qmp_check_answer(&answer)) == NM_OK)
                     goto out;

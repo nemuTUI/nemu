@@ -245,7 +245,7 @@ static void nm_mon_check_vms(const nm_vect_t *mon_list)
             nm_mon_item_set_status(mon_list, n, NM_TRUE);
         } else {
             if (status == 1) {
-                nm_str_format(&body, "%s stoped", name);
+                nm_str_format(&body, "%s stopped", name);
 #if defined (NM_WITH_DBUS)
                 nm_dbus_send_notify("VM status changed:", body.data);
 #endif

@@ -171,7 +171,7 @@ static void nm_copy_file_default(int in_fd, int out_fd)
     }
 
     if (nread != 0)
-        nm_bug("%s: copy was not compleete.", __func__);
+        nm_bug("%s: copy was not complete.", __func__);
 
     free(buf);
 }
