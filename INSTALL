@@ -19,7 +19,7 @@ How to install nEMU on Linux.
 Edit build parametrs
 ====================
 
-Executable and lang files directory prefix (defailt: "/usr")
+Executable and lang files directory prefix (default: "/usr")
   - % cmake -DUSR_PREFIX=/usr/local/ .
 
 
