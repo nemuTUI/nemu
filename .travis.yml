@@ -6,6 +6,7 @@ script:
     - mkdir build && cd build
     - cmake ../ -DNM_SAVEVM_SNAPSHOTS=ON -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON
     - cppcheck --error-exitcode=42 --enable=all --inline-suppr ../src
+    - codespell -q 3 -L 'fo,ser,ans,chello' ../*
     - make
 matrix:
   include:
@@ -15,4 +16,5 @@ matrix:
       before_install:
         - >
           sudo apt-get install -qq libdbus-1-dev libncursesw5-dev libsqlite3-dev
-          libusb-1.0-0-dev libarchive-dev libgraphviz-dev libudev-dev cppcheck
+          libusb-1.0-0-dev libarchive-dev libgraphviz-dev libudev-dev cppcheck &&
+          pip install codespell
