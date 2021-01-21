@@ -5,18 +5,17 @@
 [![Packaging status](https://repology.org/badge/tiny-repos/nemu.svg)](https://repology.org/project/nemu/versions)
 
 ## Features
- * Install VM
- * Delete VM
- * Clone VM
- * Show VM status
+ * Install/delete/clone/rename VM
+ * Show VM status, CPU usage
  * Start/stop/shutdown/reset VM
  * Connect to VM via VNC or SPICE protocol
- * Full VM snapshots (experimental)
+ * Full VM snapshots
  * Show/Edit VM settings
  * USB support
  * Network via tap/macvtap interfaces
  * VirtFS support (Plan 9 host files sharing)
- * Import OVA
+ * Import OVA (OVF 1.0/2.0)
+ * D-Bus support
 
 ## UI demo
 [![Alt New user interface](https://img.youtube.com/vi/y8RT6-AF1BA/3.jpg)](https://www.youtube.com/watch?v=y8RT6-AF1BA)
