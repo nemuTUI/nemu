@@ -15,41 +15,36 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err);
 static void nm_print_help__(const char **keys, const char **values,
                             size_t hotkey_num, size_t maxlen);
 
-static const char *nm_help_main_msg[] = {
-    "q:Quit", "I:Install VM",
 #if defined (NM_WITH_OVF_SUPPORT)
-    "O:Import OVA",
+  #define NM_HELP_MSG \
+    "q:Quit", "I:Install VM", "O:Import OVA", "A:Import image", "N:Network", "?:Help"
+#else
+  #define NM_HELP_MSG \
+    "q:Quit", "I:Install VM", "A:Import image", "N:Network", "?:Help"
 #endif
-    "A:Import image", "N:Network", "?:Help"
-};
 
-static const char *nm_help_lan_msg[] = {
-    "q:Back",
 #if defined (NM_WITH_NETWORK_MAP)
-    "e:Export SVG map",
+  #define NM_LAN_MSG \
+    "q:Back", "e:Export SVG map", "?:Help"
+#else
+  #define NM_LAN_MSG \
+    "q:Back", "?:Help"
 #endif
-    "?:Help"
-};
 
-#define X_NM_HELP_MSG_GEN \
-    X(iface, "q:Back", "enter:Edit")            \
-    X(edit, "esc:Cancel", "enter:Save")         \
-    X(import, "esc:Cancel", "enter:Import")     \
-    X(install, "esc:Cancel", "enter:Install")   \
-    X(clone, "esc:Cancel", "enter:Clone")       \
-    X(export, "esc:Cancel", "enter:Export")     \
+#define X_NM_HELP_GEN                         \
+    X(main, NM_HELP_MSG)                      \
+    X(lan, NM_LAN_MSG)                        \
+    X(edit, "esc:Cancel", "enter:Save")       \
+    X(import, "esc:Cancel", "enter:Import")   \
+    X(install, "esc:Cancel", "enter:Install") \
+    X(iface, "q:Back", "enter:Edit")          \
+    X(clone, "esc:Cancel", "enter:Clone")     \
+    X(export, "esc:Cancel", "enter:Export")   \
     X(delete, "q:Back", "enter:Delete")
 
-#define X(name, ...) static const char *nm_help_ ## name ## _msg[] \
-    = { __VA_ARGS__ };
-X_NM_HELP_MSG_GEN
-#undef X
-
-#define X_NM_HELP_GEN X(main) X(lan) X(edit) X(import) \
-                      X(install) X(iface) X(clone)     \
-                      X(export) X(delete)
-
-#define X(name)                                              \
+#define X(name, ...)                                         \
+    static const char *nm_help_ ## name ## _msg[]            \
+        = { __VA_ARGS__ };                                   \
     void nm_init_help_ ## name(void) {                       \
         nm_print_help_lines(nm_help_ ## name ## _msg,        \
             nm_arr_len(nm_help_ ## name ## _msg), NM_FALSE); \
