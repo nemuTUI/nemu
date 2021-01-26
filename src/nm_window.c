@@ -43,11 +43,9 @@ static void nm_print_help__(const char **keys, const char **values,
     X(delete, "q:Back", "enter:Delete")
 
 #define X(name, ...)                                         \
-    static const char *nm_help_ ## name ## _msg[]            \
-        = { __VA_ARGS__ };                                   \
     void nm_init_help_ ## name(void) {                       \
-        nm_print_help_lines(nm_help_ ## name ## _msg,        \
-            nm_arr_len(nm_help_ ## name ## _msg), NM_FALSE); \
+        const char *msg[] = { __VA_ARGS__ };                 \
+        nm_print_help_lines(msg, nm_arr_len(msg), NM_FALSE); \
     }
 X_NM_HELP_GEN
 #undef X
