@@ -415,12 +415,14 @@ void nm_start_main_loop(void)
         if (ch == NM_KEY_I_UP) {
             nm_add_vm();
             regen_data = 1;
+            old_hl = vms.highlight;
             nm_mon_ping();
         }
 
         if (ch == NM_KEY_A_UP) {
             nm_import_vm();
             regen_data = 1;
+            old_hl = vms.highlight;
             nm_mon_ping();
         }
 
@@ -431,6 +433,7 @@ void nm_start_main_loop(void)
         if (ch == NM_KEY_O_UP) {
             nm_ovf_import();
             regen_data = 1;
+            old_hl = vms.highlight;
         }
 #endif
 
