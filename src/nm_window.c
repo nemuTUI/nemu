@@ -33,7 +33,7 @@ static const char *nm_help_lan_msg[] = {
 
 #define X_NM_HELP_MSG_GEN \
     X(iface, "q:Back", "enter:Edit")            \
-    X(edit, "esc:Cancel", "enter:Import")       \
+    X(edit, "esc:Cancel", "enter:Save")         \
     X(import, "esc:Cancel", "enter:Import")     \
     X(install, "esc:Cancel", "enter:Install")   \
     X(clone, "esc:Cancel", "enter:Clone")       \
