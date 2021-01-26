@@ -8,12 +8,6 @@
 #include <nm_cfg_file.h>
 #include <nm_stat_usage.h>
 
-#define NM_HELP_GEN(name)                                    \
-    void nm_init_help_ ## name(void) {                       \
-        nm_print_help_lines(nm_help_ ## name ## _msg,        \
-            nm_arr_len(nm_help_ ## name ## _msg), NM_FALSE); \
-    }
-
 static float nm_window_scale = 0.7;
 
 static void nm_init_window__(nm_window_t *w, const char *msg);
@@ -37,43 +31,31 @@ static const char *nm_help_lan_msg[] = {
     "?:Help"
 };
 
-static const char *nm_help_iface_msg[] = {
-    "q:Back", "enter:Edit"
-};
+#define X_NM_HELP_MSG_GEN \
+    X(iface, "q:Back", "enter:Edit")            \
+    X(edit, "esc:Cancel", "enter:Import")       \
+    X(import, "esc:Cancel", "enter:Import")     \
+    X(install, "esc:Cancel", "enter:Install")   \
+    X(clone, "esc:Cancel", "enter:Clone")       \
+    X(export, "esc:Cancel", "enter:Export")     \
+    X(delete, "q:Back", "enter:Delete")
 
-static const char *nm_help_edit_msg[] = {
-    "esc:Cancel", "enter:Save"
-};
+#define X(name, ...) static const char *nm_help_ ## name ## _msg[] \
+    = { __VA_ARGS__ };
+X_NM_HELP_MSG_GEN
+#undef X
 
-static const char *nm_help_import_msg[] = {
-    "esc:Cancel", "enter:Import"
-};
+#define X_NM_HELP_GEN X(main) X(lan) X(edit) X(import) \
+                      X(install) X(iface) X(clone)     \
+                      X(export) X(delete)
 
-static const char *nm_help_install_msg[] = {
-    "esc:Cancel", "enter:Install"
-};
-
-static const char *nm_help_clone_msg[] = {
-    "esc:Cancel", "enter:Clone"
-};
-
-static const char *nm_help_export_msg[] = {
-    "esc:Cancel", "enter:Export"
-};
-
-static const char *nm_help_delete_msg[] = {
-    "q:Back", "enter:Delete"
-};
-
-NM_HELP_GEN(main)
-NM_HELP_GEN(lan)
-NM_HELP_GEN(edit)
-NM_HELP_GEN(import)
-NM_HELP_GEN(install)
-NM_HELP_GEN(iface)
-NM_HELP_GEN(clone)
-NM_HELP_GEN(export)
-NM_HELP_GEN(delete)
+#define X(name)                                              \
+    void nm_init_help_ ## name(void) {                       \
+        nm_print_help_lines(nm_help_ ## name ## _msg,        \
+            nm_arr_len(nm_help_ ## name ## _msg), NM_FALSE); \
+    }
+X_NM_HELP_GEN
+#undef X
 
 void nm_create_windows(void)
 {
