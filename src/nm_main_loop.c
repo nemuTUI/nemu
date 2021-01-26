@@ -434,6 +434,7 @@ void nm_start_main_loop(void)
             nm_ovf_import();
             regen_data = 1;
             old_hl = vms.highlight;
+            nm_mon_ping();
         }
 #endif
 
