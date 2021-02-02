@@ -6,6 +6,7 @@
 #include <nm_ncurses.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
+#include <nm_usb_plug.h>
 #include <nm_stat_usage.h>
 
 static float nm_window_scale = 0.7;
@@ -348,6 +349,26 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         nm_str_format(&buf, "%-12s%s", "usb: ", "disabled");
     }
     NM_PR_VM_INFO();
+
+    {
+        nm_vect_t db_result = NM_INIT_VECT;
+        nm_vect_t usb_names = NM_INIT_VECT;
+
+        nm_str_format(&buf, NM_USB_GET_SQL, name->data);
+        nm_db_select(buf.data, &db_result);
+        nm_usb_unplug_list(&db_result, &usb_names, false);
+
+        for (size_t n = 0; n < usb_names.n_memb; n++) {
+            ch1 = (n != (usb_names.n_memb - 1)) ? ACS_LTEE : ACS_LLCORNER;
+            ch2 = ACS_HLINE;
+            nm_str_format(&buf, "%s", (char *) usb_names.data[n]);
+            NM_PR_VM_INFO();
+        }
+
+        nm_vect_free(&usb_names, NULL);
+        nm_vect_free(&db_result, nm_str_vect_free_cb);
+        ch1 = ch2 = 0;
+    }
 
     nm_str_format(&buf, "%-12s%s [%u]", "vnc port: ",
              nm_vect_str_ctx(&vm->main, NM_SQL_VNC),

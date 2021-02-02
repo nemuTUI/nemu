@@ -3,6 +3,7 @@ v2.?.? - ?
     - Feature: CPU sockets, cores and threads settings
              (format: sockets:cores?:threads? in CPU count field)
     - Feature: VM rename (hotkey "y")
+    - Feature: show connected USB devices in VM info
 
 v2.5.1 - 22.12.2020
 ------------------------

@@ -12,7 +12,6 @@
 static const char NM_USB_FORM_MSG[] = "Device";
 
 static void nm_usb_plug_list(nm_vect_t *devs, nm_vect_t *names);
-static void nm_usb_unplug_list(const nm_vect_t *db_list, nm_vect_t *names);
 static int nm_usb_plug_get_data(const nm_str_t *name, nm_usb_data_t *usb,
         const nm_vect_t *usb_list);
 static int nm_usb_unplug_get_data(nm_usb_data_t *usb, const nm_vect_t *db_list);
@@ -122,7 +121,7 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
     nm_init_action(_(NM_MSG_USB_DETACH));
     nm_init_help_edit();
 
-    nm_usb_unplug_list(&db_result, &usb_names);
+    nm_usb_unplug_list(&db_result, &usb_names, true);
 
     fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
     fields[1] = NULL;
@@ -184,7 +183,7 @@ int nm_usb_check_plugged(const nm_str_t *name)
     return rc;
 }
 
-static void nm_usb_unplug_list(const nm_vect_t *db_list, nm_vect_t *names)
+void nm_usb_unplug_list(const nm_vect_t *db_list, nm_vect_t *names, bool num)
 {
     size_t dev_count = db_list->n_memb / NM_USB_IDX_COUNT;
     nm_str_t buf = NM_INIT_STR;
@@ -192,9 +191,15 @@ static void nm_usb_unplug_list(const nm_vect_t *db_list, nm_vect_t *names)
     for (size_t n = 0; n < dev_count; n++) {
         size_t idx_shift = NM_USB_IDX_COUNT * n;
 
-        nm_str_format(&buf, "%zu:%s [serial:%s]", n + 1,
-                nm_vect_str_ctx(db_list, NM_SQL_USB_NAME + idx_shift),
-                nm_vect_str_ctx(db_list, NM_SQL_USB_SERIAL + idx_shift));
+        if (num) {
+            nm_str_format(&buf, "%zu:%s [serial:%s]", n + 1,
+                    nm_vect_str_ctx(db_list, NM_SQL_USB_NAME + idx_shift),
+                    nm_vect_str_ctx(db_list, NM_SQL_USB_SERIAL + idx_shift));
+        } else {
+            nm_str_format(&buf, "%s [serial:%s]",
+                    nm_vect_str_ctx(db_list, NM_SQL_USB_NAME + idx_shift),
+                    nm_vect_str_ctx(db_list, NM_SQL_USB_SERIAL + idx_shift));
+        }
         nm_vect_insert(names, buf.data, buf.len + 1, NULL);
     }
 
