@@ -20,7 +20,7 @@
 #ACTION=="add", SUBSYSTEM=="net", KERNELS=="0000:04:12.5", NAME="igb_vf1.5"
 #ACTION=="add", SUBSYSTEM=="net", KERNELS=="0000:04:13.1", NAME="igb_vf1.6"
 
-MSG="used|free|add <pciid>|del <pciid>"
+MSG="init|used|free|add <pciid>|del <pciid>"
 
 oops()
 {
@@ -35,6 +35,17 @@ fi
 VENDOR="8086 1520"
 
 case $1 in
+  ( init ) # do this once
+    #  Esure SR-IOV and VT-d are enabled in BIOS.
+    #  Enable IOMMU in Linux by adding intel_iommu=on to the kernel parameters,
+    #  I prefer CONFIG_INTEL_IOMMU_DEFAULT_ON=y in kernel config
+    #  Then create VFs:
+    echo 1 > /sys/module/vfio_iommu_type1/parameters/allow_unsafe_interrupts
+    vfs_num=$(cat /sys/class/net/igb_sr0/device/sriov_totalvfs)
+    echo $vfs_num > /sys/class/net/igb_sr0/device/sriov_numvfs
+    echo $vfs_num > /sys/class/net/igb_sr1/device/sriov_numvfs
+    ;;
+
   ( used )
     vf_pci=($(ls -la /sys/bus/pci/drivers/vfio-pci \
       | awk '{ if ($9 ~ /^[0-9]+:[0-9]+:[0-9]+\.[0-9]+$/) print $9 }')
