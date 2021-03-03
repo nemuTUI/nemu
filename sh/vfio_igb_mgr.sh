@@ -2,7 +2,7 @@
 
 ## Intel Corporation I350 Ethernet Controller SR-IOV VFIO helper
 #
-## nEMU additional flags example: "-device vfio-pci,host=04:10.0"
+## nEMU extra args example: "-device vfio-pci,host=04:10.0"
 ## Udev rules (set your PCI numbers):
 
 #ACTION=="add", SUBSYSTEM=="net", KERNELS=="0000:04:00.0", NAME="igb_sr0"
