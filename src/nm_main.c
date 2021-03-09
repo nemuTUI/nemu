@@ -184,10 +184,9 @@ static void nm_process_args(int argc, char **argv)
 
             for (size_t n = 0; n < vm_list.n_memb; n++) {
                 nm_str_alloc_text(&vmname, vm_list.data[n]);
-                nm_vmctl_kill(&vmname);
-				nm_str_t info = nm_vmctl_info(&vmname);
-				printf(n < vm_list.n_memb - 1 ? "%s\n" : "%s", info.data);
-				nm_str_free(&info);
+                nm_str_t info = nm_vmctl_info(&vmname);
+                printf(n < vm_list.n_memb - 1 ? "%s\n" : "%s", info.data);
+                nm_str_free(&info);
             }
 
             nm_str_free(&vmnames);
