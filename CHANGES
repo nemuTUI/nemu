@@ -4,6 +4,7 @@ v2.?.? - ?
              (format: sockets:cores?:threads? in CPU count field)
     - Feature: VM rename (hotkey "y")
     - Feature: show connected USB devices in VM info
+    - Feature: start/powerdown/stop/reset/kill/info several VMs at once
 
 v2.5.1 - 22.12.2020
 ------------------------

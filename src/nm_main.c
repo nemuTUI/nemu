@@ -72,6 +72,7 @@ static void nm_process_args(int argc, char **argv)
     int opt;
     const char *optstr = NM_OPT_ARGS;
     nm_str_t vmname = NM_INIT_STR;
+    nm_str_t vmnames = NM_INIT_STR;
     nm_vect_t vm_list = NM_INIT_VECT;
 
     static const struct option longopts[] = {
@@ -101,42 +102,96 @@ static void nm_process_args(int argc, char **argv)
 #endif
         case 's':
             nm_init_core();
-            nm_str_alloc_text(&vmname, optarg);
-            if (nm_qmp_test_socket(&vmname) != NM_OK) {
-                nm_vmctl_start(&vmname, 0);
+
+            nm_str_alloc_text(&vmnames, optarg);
+            nm_str_append_to_vect(&vmnames, &vm_list, ",");
+
+            for (size_t n = 0; n < vm_list.n_memb; n++) {
+                nm_str_alloc_text(&vmname, vm_list.data[n]);
+                if (nm_qmp_test_socket(&vmname) != NM_OK)
+                    nm_vmctl_start(&vmname, 0);
             }
+
+            nm_str_free(&vmnames);
+            nm_vect_free(&vm_list, NULL);
             nm_str_free(&vmname);
             nm_exit_core();
         case 'p':
             nm_init_core();
-            nm_str_alloc_text(&vmname, optarg);
-            nm_qmp_vm_shut(&vmname);
+
+            nm_str_alloc_text(&vmnames, optarg);
+            nm_str_append_to_vect(&vmnames, &vm_list, ",");
+
+            for (size_t n = 0; n < vm_list.n_memb; n++) {
+                nm_str_alloc_text(&vmname, vm_list.data[n]);
+                nm_qmp_vm_shut(&vmname);
+            }
+
+            nm_str_free(&vmnames);
+            nm_vect_free(&vm_list, NULL);
             nm_str_free(&vmname);
             nm_exit_core();
         case 'f':
             nm_init_core();
-            nm_str_alloc_text(&vmname, optarg);
-            nm_qmp_vm_stop(&vmname);
+
+            nm_str_alloc_text(&vmnames, optarg);
+            nm_str_append_to_vect(&vmnames, &vm_list, ",");
+
+            for (size_t n = 0; n < vm_list.n_memb; n++) {
+                nm_str_alloc_text(&vmname, vm_list.data[n]);
+                nm_qmp_vm_stop(&vmname);
+            }
+
+            nm_str_free(&vmnames);
+            nm_vect_free(&vm_list, NULL);
             nm_str_free(&vmname);
             nm_exit_core();
         case 'z':
             nm_init_core();
-            nm_str_alloc_text(&vmname, optarg);
-            nm_qmp_vm_reset(&vmname);
+
+            nm_str_alloc_text(&vmnames, optarg);
+            nm_str_append_to_vect(&vmnames, &vm_list, ",");
+
+            for (size_t n = 0; n < vm_list.n_memb; n++) {
+                nm_str_alloc_text(&vmname, vm_list.data[n]);
+                nm_qmp_vm_reset(&vmname);
+            }
+
+            nm_str_free(&vmnames);
+            nm_vect_free(&vm_list, NULL);
             nm_str_free(&vmname);
             nm_exit_core();
         case 'k':
             nm_init_core();
-            nm_str_alloc_text(&vmname, optarg);
-            nm_vmctl_kill(&vmname);
+
+            nm_str_alloc_text(&vmnames, optarg);
+            nm_str_append_to_vect(&vmnames, &vm_list, ",");
+
+            for (size_t n = 0; n < vm_list.n_memb; n++) {
+                nm_str_alloc_text(&vmname, vm_list.data[n]);
+                nm_vmctl_kill(&vmname);
+            }
+
+            nm_str_free(&vmnames);
+            nm_vect_free(&vm_list, NULL);
             nm_str_free(&vmname);
             nm_exit_core();
         case 'i':
             nm_init_core();
-            nm_str_alloc_text(&vmname, optarg);
-            nm_str_t info = nm_vmctl_info(&vmname);
-            printf("%s", info.data);
-            nm_str_free(&info);
+
+            nm_str_alloc_text(&vmnames, optarg);
+            nm_str_append_to_vect(&vmnames, &vm_list, ",");
+
+            for (size_t n = 0; n < vm_list.n_memb; n++) {
+                nm_str_alloc_text(&vmname, vm_list.data[n]);
+                nm_vmctl_kill(&vmname);
+				nm_str_t info = nm_vmctl_info(&vmname);
+				printf(n < vm_list.n_memb - 1 ? "%s\n" : "%s", info.data);
+				nm_str_free(&info);
+            }
+
+            nm_str_free(&vmnames);
+            nm_vect_free(&vm_list, NULL);
             nm_str_free(&vmname);
             nm_exit_core();
         case 'd':
