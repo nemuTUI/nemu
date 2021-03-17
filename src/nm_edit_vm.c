@@ -144,11 +144,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     else
         set_field_buffer(fields[NM_FLD_USBUSE], 0, nm_form_yes_no[1]);
 
-    if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_USBT), NM_DEFAULT_USBVER) == NM_OK)
-        set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_form_usbtype[1]);
-    else
-        set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_form_usbtype[0]);
-
+    set_field_buffer(fields[NM_FLD_USBTYP], 0, nm_vect_str_ctx(&cur->main, NM_SQL_USBT));
     set_field_buffer(fields[NM_FLD_MACH], 0, nm_vect_str_ctx(&cur->main, NM_SQL_MACH));
     set_field_buffer(fields[NM_FLD_ARGS], 0, nm_vect_str_ctx(&cur->main, NM_SQL_ARGS));
     set_field_buffer(fields[NM_FLD_GROUP], 0, nm_vect_str_ctx(&cur->main, NM_SQL_GROUP));
@@ -194,7 +190,6 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
 
     nm_str_t ifs = NM_INIT_STR;
     nm_str_t usb = NM_INIT_STR;
-    nm_str_t usbv = NM_INIT_STR;
     nm_str_t kvm = NM_INIT_STR;
     nm_str_t hcpu = NM_INIT_STR;
 
@@ -205,7 +200,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     nm_get_field_buf(fields[NM_FLD_IFSCNT], &ifs);
     nm_get_field_buf(fields[NM_FLD_DISKIN], &vm->drive.driver);
     nm_get_field_buf(fields[NM_FLD_USBUSE], &usb);
-    nm_get_field_buf(fields[NM_FLD_USBTYP], &usbv);
+    nm_get_field_buf(fields[NM_FLD_USBTYP], &vm->usb_type);
     nm_get_field_buf(fields[NM_FLD_MACH], &vm->mach);
     nm_get_field_buf(fields[NM_FLD_ARGS], &vm->cmdappend);
     nm_get_field_buf(fields[NM_FLD_GROUP], &vm->group);
@@ -225,7 +220,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     if (field_status(fields[NM_FLD_USBUSE]))
         nm_form_check_data(_("USB"), usb, err);
     if (field_status(fields[NM_FLD_USBTYP]))
-        nm_form_check_data(_("USB version"), usbv, err);
+        nm_form_check_data(_("USB version"), vm->usb_type, err);
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
@@ -275,15 +270,9 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
             vm->usb_enable = 1;
     }
 
-    if (field_status(fields[NM_FLD_USBTYP])) {
-        if (nm_str_cmp_st(&usbv, NM_DEFAULT_USBVER) == NM_OK)
-            vm->usb_xhci = 1;
-    }
-
 out:
     nm_str_free(&ifs);
     nm_str_free(&usb);
-    nm_str_free(&usbv);
     nm_str_free(&kvm);
     nm_str_free(&hcpu);
     nm_vect_free(&err, NULL);
@@ -388,8 +377,7 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
 
     if (field_status(fields[NM_FLD_USBTYP])) {
         nm_str_format(&query, "UPDATE vms SET usb_type='%s' WHERE name='%s'",
-            vm->usb_xhci ? nm_form_usbtype[1] : nm_form_usbtype[0],
-            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+            vm->usb_type.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 

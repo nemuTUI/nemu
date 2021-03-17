@@ -43,6 +43,7 @@ const char *nm_form_macvtap[] = {
 const char *nm_form_usbtype[] = {
     "EHCI",
     "XHCI",
+    "NEC-XHCI",
     NULL
 };
 
@@ -531,6 +532,7 @@ void nm_vm_free(nm_vm_t *vm)
     nm_str_free(&vm->mach);
     nm_str_free(&vm->cmdappend);
     nm_str_free(&vm->group);
+    nm_str_free(&vm->usb_type);
     nm_str_free(&vm->ifs.driver);
     nm_str_free(&vm->drive.driver);
     nm_str_free(&vm->drive.size);

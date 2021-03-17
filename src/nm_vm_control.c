@@ -1,4 +1,5 @@
 #include <nm_core.h>
+#include <nm_form.h>
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
@@ -259,8 +260,10 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
         if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBT), NM_DEFAULT_USBVER) == NM_OK)
             nm_vect_insert_cstr(argv, "qemu-xhci,id=usbbus");
-        else
+        else if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBT), *nm_form_usbtype) == NM_OK)
             nm_vect_insert_cstr(argv, "usb-ehci,id=usbbus");
+        else
+            nm_vect_insert_cstr(argv, "nec-usb-xhci,id=usbbus");
 
         if (usb_count > 0)
             nm_usb_get_devs(&usb_list);
@@ -899,8 +902,7 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
 
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_USBF), "1") == NM_OK) {
         nm_str_append_format(&info, "%-12s%s [%s]\n", "usb: ", "enabled",
-            (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_USBT), NM_DEFAULT_USBVER) == NM_OK) ?
-            "XHCI" : "EHCI");
+            nm_vect_str_ctx(&vm.main, NM_SQL_USBT));
     } else {
         nm_str_append_format(&info, "%-12s%s\n", "usb: ", "disabled");
     }
