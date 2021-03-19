@@ -1,4 +1,4 @@
-v2.?.? - ?
+v2.6.0 - 19.03.2021
 ------------------------
     - Feature: CPU sockets, cores and threads settings
              (format: sockets:cores?:threads? in CPU count field)
