@@ -1,6 +1,6 @@
 # Maintainer: MaksVal <valmaxster@gmail.com> -> https://github.com/MaksVal
-# OLD:Maintainer: Fabio 'Lolix' Loli <fabio.loli@disroot.org> -> https://github.com/FabioLolix
-# OLD: Contributor: Sergey Malkin  <adresatt@gmail.com>
+# Contributor: Maintainer: Fabio 'Lolix' Loli <fabio.loli@disroot.org> -> https://github.com/FabioLolix
+# Contributor: Sergey Malkin  <adresatt@gmail.com>
 
 pkgname=nemu
 pkgver=2.6.0
