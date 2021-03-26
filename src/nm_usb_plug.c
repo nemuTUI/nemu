@@ -37,9 +37,11 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
     nm_str_format(&buf, NM_USB_CHECK_SQL, name->data);
     nm_db_select(buf.data, &db_result);
 
-    if (nm_str_cmp_st(nm_vect_str(&db_result, 0), NM_DISABLE) == NM_OK) {
-        nm_warn(_(NM_MSG_USB_DIS));
-        goto out;
+    if (vm_status) {
+        if (nm_str_cmp_st(nm_vect_str(&db_result, 0), NM_DISABLE) == NM_OK) {
+            nm_warn(_(NM_MSG_USB_DIS));
+            goto out;
+        }
     }
 
     nm_usb_plug_list(&usb_devs, &usb_names);
