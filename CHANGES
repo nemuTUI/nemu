@@ -1,3 +1,9 @@
+v2.?.? - ??.??.????
+------------------------
+    - Feature: Add the ability to change the display type
+    - Bugfix: cold USB attach was broken if USB was previously disabled
+    and VM is not running at least once
+
 v2.6.0 - 19.03.2021
 ------------------------
     - Feature: CPU sockets, cores and threads settings
