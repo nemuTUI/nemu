@@ -48,8 +48,8 @@ const char *nm_form_usbtype[] = {
 };
 
 const char *nm_form_displaytype[] = {
-    "QXL",
-    "VIRTIO",
+    "qxl",
+    "virtio",
     NULL
 };
 

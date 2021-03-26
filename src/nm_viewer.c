@@ -100,12 +100,9 @@ void nm_viewer(const nm_str_t *name)
     set_field_type(fields[NM_FLD_PORT], TYPE_INTEGER, 1, NM_STARTING_VNC_PORT, 0xffff);
     set_field_type(fields[NM_FLD_TTYP], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_SOCK], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[NM_FLD_DSP], TYPE_ENUM, nm_form_displaytype, false, false);
-    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_DISPLAY), NM_DEFAULT_DISPLAY) == NM_OK)
-        set_field_buffer(fields[NM_FLD_DSP], 0, nm_form_displaytype[0]);
-    else
-        set_field_buffer(fields[NM_FLD_DSP], 0, nm_form_displaytype[1]);
     set_field_type(fields[NM_FLD_SYNC], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_DSP], TYPE_ENUM, nm_form_displaytype, false, false);
+
     field_opts_off(fields[NM_FLD_TTYP], O_STATIC);
     field_opts_off(fields[NM_FLD_SOCK], O_STATIC);
 
@@ -115,6 +112,8 @@ void nm_viewer(const nm_str_t *name)
     set_field_buffer(fields[NM_FLD_PORT], 0, nm_vect_str_ctx(&vm.main, NM_SQL_VNC));
     set_field_buffer(fields[NM_FLD_TTYP], 0, nm_vect_str_ctx(&vm.main, NM_SQL_TTY));
     set_field_buffer(fields[NM_FLD_SOCK], 0, nm_vect_str_ctx(&vm.main, NM_SQL_SOCK));
+    set_field_buffer(fields[NM_FLD_DSP], 0, nm_vect_str_ctx(&vm.main, NM_SQL_DISPLAY));
+
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_OVER), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_SYNC], 0, nm_form_yes_no[0]);
     else
