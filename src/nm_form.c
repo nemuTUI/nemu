@@ -47,6 +47,12 @@ const char *nm_form_usbtype[] = {
     NULL
 };
 
+const char *nm_form_displaytype[] = {
+    "qxl",
+    "virtio",
+    NULL
+};
+
 static int nm_append_path(nm_str_t *path);
 
 void nm_form_free(nm_form_t *form, nm_field_t **fields)

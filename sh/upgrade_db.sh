@@ -6,7 +6,7 @@ if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=13
+DB_ACTUAL_VERSION=14
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 USER=$(whoami)
 RC=0
@@ -166,7 +166,13 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=13'
             ) || RC=1
             ;;
-
+         ( 13 )
+         (
+             sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD display_type char;' &&
+             sqlite3 "$DB_PATH" -line 'UPDATE vms SET display_type="qxl";' &&
+             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=13'
+         ) || RC=1
+            ;;
         ( * )
             echo "Unsupported database user_version" >&2
             exit 1

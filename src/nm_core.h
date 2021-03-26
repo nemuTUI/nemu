@@ -63,6 +63,7 @@ static const char NM_DEFAULT_DRVINT[] = "virtio";
 static const char NM_DEFAULT_USBVER[] = "XHCI";
 static const char NM_VM_PID_FILE[]    = "qemu.pid";
 static const char NM_VM_QMP_FILE[]    = "qmp.sock";
+static const char NM_DEFAULT_DISPLAY[] = "qxl";
 
 static inline char * __attribute__((format_arg (1))) _(const char *str)
 {

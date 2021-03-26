@@ -17,7 +17,7 @@ static const char NM_CLONE_VMS_SQL[] = \
     "INSERT INTO vms SELECT NULL, '%s', mem, smp, kvm, hcpu, '%d', arch, iso, " \
     "install, usb, usbid, bios, kernel, mouse_override, kernel_append, tty_path, " \
     "socket_path, initrd, machine, fs9p_enable, fs9p_path, fs9p_name, usb_type, " \
-    "spice, debug_port, debug_freeze, cmdappend, team FROM vms WHERE name='%s'";
+    "spice, display_type, debug_port, debug_freeze, cmdappend, team FROM vms WHERE name='%s'";
 
 static const char NM_RESET_LOAD_SQL[] = \
     "UPDATE vmsnapshots SET load='0' WHERE vm_name='%s'";
@@ -211,6 +211,7 @@ enum select_main_idx {
     NM_SQL_DEBF,
     NM_SQL_ARGS,
     NM_SQL_GROUP,
+    NM_SQL_DISPLAY,
     NM_VM_IDX_COUNT
 };
 
