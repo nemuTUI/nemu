@@ -13,11 +13,12 @@ typedef struct {
     nm_str_t tty;
     nm_str_t sock;
     nm_str_t sync;
+    nm_str_t display;
 } nm_view_data_t;
 
 #if defined(NM_WITH_SPICE)
 #define NM_INIT_VIEW_DATA (nm_view_data_t) { NM_INIT_STR, NM_INIT_STR, \
-    NM_INIT_STR,  NM_INIT_STR, NM_INIT_STR }
+        NM_INIT_STR,  NM_INIT_STR, NM_INIT_STR, NM_INIT_STR }
 #else
 #define NM_INIT_VIEW_DATA (nm_view_data_t) { NM_INIT_STR, NM_INIT_STR, \
     NM_INIT_STR, NM_INIT_STR }
@@ -32,6 +33,7 @@ static inline void nm_viewer_free(nm_view_data_t *data)
     nm_str_free(&data->tty);
     nm_str_free(&data->sock);
     nm_str_free(&data->sync);
+    nm_str_free(&data->display);
 }
 
 static int nm_viewer_get_data(nm_view_data_t *vm);
@@ -47,7 +49,8 @@ enum {
     NM_FLD_TTYP,
     NM_FLD_SOCK,
     NM_FLD_SYNC,
-    NM_FLD_COUNT
+    NM_FLD_DSP,
+    NM_FLD_COUNT,
 };
 
 static const char *nm_form_msg[] = {
@@ -58,7 +61,8 @@ static const char *nm_form_msg[] = {
     "VNC port",
 #endif
     "Serial TTY", "Serial socket",
-    "Sync mouse position", NULL
+    "Sync mouse position",
+    "Display type", NULL
 };
 
 static nm_field_t *fields[NM_FLD_COUNT + 1];
@@ -96,9 +100,15 @@ void nm_viewer(const nm_str_t *name)
     set_field_type(fields[NM_FLD_PORT], TYPE_INTEGER, 1, NM_STARTING_VNC_PORT, 0xffff);
     set_field_type(fields[NM_FLD_TTYP], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_SOCK], TYPE_REGEXP, "^/.*");
+    set_field_type(fields[NM_FLD_DSP], TYPE_ENUM, nm_form_displaytype, false, false);
+    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_DISPLAY), NM_DEFAULT_DISPLAY) == NM_OK)
+        set_field_buffer(fields[NM_FLD_DSP], 0, nm_form_displaytype[0]);
+    else
+        set_field_buffer(fields[NM_FLD_DSP], 0, nm_form_displaytype[1]);
     set_field_type(fields[NM_FLD_SYNC], TYPE_ENUM, nm_form_yes_no, false, false);
     field_opts_off(fields[NM_FLD_TTYP], O_STATIC);
     field_opts_off(fields[NM_FLD_SOCK], O_STATIC);
+
 
     vnc_port = nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT;
     nm_str_format(nm_vect_str(&vm.main, NM_SQL_VNC), "%u", vnc_port);
@@ -146,6 +156,7 @@ static int nm_viewer_get_data(nm_view_data_t *vm)
     nm_get_field_buf(fields[NM_FLD_TTYP], &vm->tty);
     nm_get_field_buf(fields[NM_FLD_SOCK], &vm->sock);
     nm_get_field_buf(fields[NM_FLD_SYNC], &vm->sync);
+    nm_get_field_buf(fields[NM_FLD_DSP],  &vm->display);
 
 #if defined(NM_WITH_SPICE)
     if (field_status(fields[NM_FLD_SPICE]))
@@ -155,6 +166,10 @@ static int nm_viewer_get_data(nm_view_data_t *vm)
         nm_form_check_data(nm_form_msg[NM_FLD_PORT], vm->port, err);
     if (field_status(fields[NM_FLD_SYNC]))
         nm_form_check_data(nm_form_msg[NM_FLD_SYNC], vm->sync, err);
+    if (field_status(fields[NM_FLD_SYNC]))
+        nm_form_check_data(nm_form_msg[NM_FLD_SYNC], vm->sync, err);
+    if (field_status(fields[NM_FLD_DSP]))
+        nm_form_check_data(nm_form_msg[NM_FLD_DSP], vm->display, err);
 
     rc = nm_print_empty_fields(&err);
 
@@ -205,6 +220,12 @@ static void nm_viewer_update_db(const nm_str_t *name, nm_view_data_t *vm)
             sync_on = 1;
         nm_str_format(&query, "UPDATE vms SET mouse_override='%s' WHERE name='%s'",
             sync_on ? NM_ENABLE : NM_DISABLE, name->data);
+        nm_db_edit(query.data);
+    }
+
+    if (field_status(fields[NM_FLD_DSP])) {
+        nm_str_format(&query, "UPDATE vms SET display_type='%s' WHERE name='%s'",
+            vm->display.data, name->data);
         nm_db_edit(query.data);
     }
 

@@ -261,9 +261,9 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     /* insert main VM data */
     nm_str_format(&query,
         "INSERT INTO vms(name, mem, smp, kvm, hcpu, vnc, arch, iso, install, machine, "
-        "mouse_override, usb, usb_type, fs9p_enable, spice, debug_port, debug_freeze) "
+        "mouse_override, usb, usb_type, fs9p_enable, spice, debug_port, debug_freeze, display_type) "
         "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "
-        "'%s', '%s', '%s', '%s', '%s')",
+        "'%s', '%s', '%s', '%s', '%s', '%s')",
         vm->name.data, vm->memo.data, vm->cpus.data,
 #if (NM_OS_LINUX)
         NM_ENABLE, NM_ENABLE, /* enable KVM and host CPU by default */
@@ -280,7 +280,9 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         NM_DISABLE, /* disable 9pfs by default */
         (nm_cfg_get()->spice_default) ? NM_ENABLE : NM_DISABLE, /* SPICE enabled */
         "", /* disable GDB debug by default */
-        NM_DISABLE);
+        NM_DISABLE,
+        NM_DEFAULT_DISPLAY                                     /* Display type */
+        );
 
     nm_db_edit(query.data);
 

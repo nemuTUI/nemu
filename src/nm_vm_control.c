@@ -828,7 +828,11 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 #if defined (NM_WITH_SPICE)
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_SPICE), NM_ENABLE) == NM_OK) {
         nm_vect_insert_cstr(argv, "-vga");
-        nm_vect_insert_cstr(argv, "qxl");
+        if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_DISPLAY), nm_form_displaytype[1]) == NM_OK)
+            nm_vect_insert_cstr(argv, "virtio");
+        else
+            nm_vect_insert_cstr(argv, "qxl");
+
         nm_vect_insert_cstr(argv, "-spice");
         nm_str_format(&buf, "port=%u,disable-ticketing",
             nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT);
