@@ -279,10 +279,10 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         NM_DEFAULT_USBVER, /* set USB 3.0 by default */
         NM_DISABLE, /* disable 9pfs by default */
         (nm_cfg_get()->spice_default) ? NM_ENABLE : NM_DISABLE, /* SPICE enabled */
-        "", /* disable GDB debug by default */
-        NM_DISABLE,
-        NM_DEFAULT_DISPLAY                                     /* Display type */
-        );
+        "", /* GDB debug port */
+        NM_DISABLE, /* disable GDB debug by default */
+        NM_DEFAULT_DISPLAY /* Display type */
+    );
 
     nm_db_edit(query.data);
 

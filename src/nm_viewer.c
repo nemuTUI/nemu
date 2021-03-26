@@ -18,7 +18,7 @@ typedef struct {
 
 #if defined(NM_WITH_SPICE)
 #define NM_INIT_VIEW_DATA (nm_view_data_t) { NM_INIT_STR, NM_INIT_STR, \
-        NM_INIT_STR,  NM_INIT_STR, NM_INIT_STR, NM_INIT_STR }
+    NM_INIT_STR,  NM_INIT_STR, NM_INIT_STR, NM_INIT_STR }
 #else
 #define NM_INIT_VIEW_DATA (nm_view_data_t) { NM_INIT_STR, NM_INIT_STR, \
     NM_INIT_STR, NM_INIT_STR }
@@ -105,7 +105,6 @@ void nm_viewer(const nm_str_t *name)
 
     field_opts_off(fields[NM_FLD_TTYP], O_STATIC);
     field_opts_off(fields[NM_FLD_SOCK], O_STATIC);
-
 
     vnc_port = nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT;
     nm_str_format(nm_vect_str(&vm.main, NM_SQL_VNC), "%u", vnc_port);
