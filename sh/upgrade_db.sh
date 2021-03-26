@@ -170,7 +170,7 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
          (
              sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD display_type char;' &&
              sqlite3 "$DB_PATH" -line 'UPDATE vms SET display_type="qxl";' &&
-             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=13'
+             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=14'
          ) || RC=1
             ;;
         ( * )
