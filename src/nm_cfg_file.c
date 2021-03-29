@@ -310,6 +310,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
     case 'y':
     case 'Y':
         {
+            nm_str_t tmp_dir_path = NM_INIT_STR;
             FILE *cfg_file;
             int ch;
             nm_str_t db = NM_INIT_STR;
@@ -325,6 +326,11 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             nm_str_t qemu_bin_path = NM_INIT_STR;
             nm_str_t targets = NM_INIT_STR;
             int dir_created = 0;
+
+            if (cfg_path->data[cfg_path->len - 1] == '/')
+                nm_bug(_("%s: config filepath \"%s\" ends with /"), __func__, cfg_path->data);
+            nm_str_dirname(cfg_path, &tmp_dir_path);
+            nm_mkdir_parent(&tmp_dir_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
             nm_str_alloc_text(&db, home);
 #ifdef NM_WITH_VNC_CLIENT
@@ -351,7 +357,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                 nm_get_input(_("VM storage directory"), &vmdir);
 
                 if (stat(vmdir.data, &file_info) != 0) {
-                    if (mkdir(vmdir.data, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
+                    if (nm_mkdir_parent(&vmdir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
                         printf(_("Cannot create VM storage directory %s: %s\n"),
                             vmdir.data, strerror(errno));
                         printf(_("Try again? (y/n)\n> "));
@@ -373,6 +379,10 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             } while (!dir_created);
 
             nm_get_input(_("VM settings database path"), &db);
+            if (db.data[db.len - 1] == '/')
+                nm_bug(_("%s: database filepath \"%s\" ends with /"), __func__, db.data);
+            nm_str_dirname(&db, &tmp_dir_path);
+            nm_mkdir_parent(&tmp_dir_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 #ifdef NM_WITH_VNC_CLIENT
             nm_get_input(_("VNC client path (enter \"/bin/false\" if you connect other way)"), &vnc_bin);
             nm_get_input(_("VNC client arguments"), &vnc_args);
@@ -427,6 +437,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                     "\n");
             fclose(cfg_file);
 
+            nm_str_free(&tmp_dir_path);
             nm_str_free(&db);
 #ifdef NM_WITH_VNC_CLIENT
             nm_str_free(&vnc_bin);
