@@ -43,5 +43,7 @@ void nm_parse_smp(nm_cpu_t *cpu, const char *src);
 void nm_exit(int status)
     __attribute__((noreturn));
 
+int nm_mkdir_parent(const nm_str_t *path, mode_t mode);
+
 #endif /* NM_UTILS_H_ */
 /* vim:set ts=4 sw=4: */
