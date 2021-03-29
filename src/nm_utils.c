@@ -1,11 +1,18 @@
 #include <nm_core.h>
 #include <nm_utils.h>
+#include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_ncurses.h>
 #include <nm_vm_control.h>
 
 #include <sys/wait.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <libgen.h>
+#include <string.h>
+#include <errno.h>
 
 enum {
     NM_BLKSIZE      = 131072, /* 128KiB */
@@ -308,6 +315,34 @@ void nm_exit(int status)
         nm_db_rollback();
 
     exit(status);
+}
+
+int nm_mkdir_parent(const nm_str_t *path, mode_t mode)
+{
+    int rc = NM_OK;
+    nm_vect_t path_tok = NM_INIT_VECT;
+    nm_str_t buf = NM_INIT_STR;
+
+    if (path->len > PATH_MAX)
+        nm_bug(_("%s: path \"%s\" too long"), __func__, path->data);
+
+    nm_str_append_to_vect(path, &path_tok, "/");
+
+    for (size_t n = 0; n < path_tok.n_memb; n++) {
+        nm_str_append_format(&buf, "/%s", (char *)path_tok.data[n]);
+        rc = mkdir(buf.data, mode);
+        if (rc < 0 && errno != EEXIST) {
+            nm_debug(_("%s: failed to create directory \"%s\" (%s)"), __func__, buf.data, strerror(errno));
+            fprintf(stderr, _("%s: failed to create directory \"%s\" (%s)"), __func__, buf.data, strerror(errno));
+            break;
+        } else {
+            rc = NM_OK;
+        }
+    }
+
+    nm_str_free(&buf);
+    nm_vect_free(&path_tok, NULL);
+    return rc;
 }
 
 /* vim:set ts=4 sw=4: */
