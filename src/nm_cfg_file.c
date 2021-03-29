@@ -8,6 +8,8 @@
 
 #include <dirent.h>
 
+static const char NM_DEFAULT_PLACEHOLDER[] = "DEFAULT";
+
 #ifndef NM_CFG_NAME
 static const char NM_CFG_NAME[]         = ".nemu.cfg";
 #endif /* NM_CFG_NAME */
@@ -72,7 +74,7 @@ static nm_cfg_t cfg;
 static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path);
 static void nm_get_input(const char *msg, nm_str_t *res);
 static inline void nm_get_param(const void *ini, const char *section,
-                                const char *value, nm_str_t *res);
+                                const char *value, nm_str_t *res, const char *default_value);
 static inline int nm_get_opt_param(const void *ini, const char *section,
                                    const char *value, nm_str_t *res);
 static inline void nm_cfg_get_color(size_t pos, short *color,
@@ -119,7 +121,9 @@ void nm_cfg_init(void)
     }
 
     /* Get VM storage directory path */
-    nm_get_param(ini, NM_INI_S_MAIN, NM_INI_P_VM, &cfg.vm_dir);
+    nm_str_format(&tmp_buf, "%s/%s", pw->pw_dir, NM_DEFAULT_VMDIR);
+    nm_get_param(ini, NM_INI_S_MAIN, NM_INI_P_VM, &cfg.vm_dir, tmp_buf.data);
+    nm_str_trunc(&tmp_buf, 0);
 
     if (stat(cfg.vm_dir.data, &file_info) == -1)
         nm_bug("cfg: %s: %s", cfg.vm_dir.data, strerror(errno));
@@ -129,7 +133,9 @@ void nm_cfg_init(void)
         nm_bug(_("cfg: no write access to %s"), cfg.vm_dir.data);
 
     /* Get database file path */
-    nm_get_param(ini, NM_INI_S_MAIN, NM_INI_P_DB, &cfg.db_path);
+    nm_str_format(&tmp_buf, "%s/%s", pw->pw_dir, NM_DEFAULT_DBFILE);
+    nm_get_param(ini, NM_INI_S_MAIN, NM_INI_P_DB, &cfg.db_path, tmp_buf.data);
+    nm_str_trunc(&tmp_buf, 0);
 
     nm_str_dirname(&cfg.db_path, &tmp_buf);
     if (access(tmp_buf.data, W_OK) != 0)
@@ -138,35 +144,36 @@ void nm_cfg_init(void)
 
 #ifdef NM_WITH_VNC_CLIENT
     /* Get the VNC client binary path */
-    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VBIN, &cfg.vnc_bin);
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VBIN, &cfg.vnc_bin, NM_DEFAULT_VNC);
 
     if (stat(cfg.vnc_bin.data, &file_info) == -1)
         nm_bug("cfg: %s: %s", cfg.vnc_bin.data, strerror(errno));
 
-    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VARG, &cfg.vnc_args);
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VARG, &cfg.vnc_args, NM_DEFAULT_VNCARG);
     nm_cfg_get_view(&cfg.vnc_view, &cfg.vnc_args);
 #endif /* NM_WITH_VNC_CLIENT */
 #ifdef NM_WITH_SPICE
     /* Get the SPICE client binary path */
-    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_SBIN, &cfg.spice_bin);
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_SBIN, &cfg.spice_bin, NM_DEFAULT_SPICE);
 
     if (stat(cfg.spice_bin.data, &file_info) == -1)
         nm_bug("cfg: %s: %s", cfg.spice_bin.data, strerror(errno));
 
-    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_SARG, &cfg.spice_args);
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_SARG, &cfg.spice_args, NM_DEFAULT_SPICEARG);
     nm_cfg_get_view(&cfg.spice_view, &cfg.spice_args);
 
-    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_PROT, &tmp_buf);
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_PROT, &tmp_buf, NULL);
     cfg.spice_default = !!nm_str_stoui(&tmp_buf, 10);
     nm_str_trunc(&tmp_buf, 0);
 #endif /* NM_WITH_SPICE */
     /* Get the VNC listen value */
-    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VANY, &tmp_buf);
+    nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VANY, &tmp_buf, NULL);
     cfg.listen_any = !!nm_str_stoui(&tmp_buf, 10);
     nm_str_trunc(&tmp_buf, 0);
 
     /* Get QEMU bin directory path */
-    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QEMUDIR, &cfg.qemu_bin_path);
+    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QEMUDIR, &cfg.qemu_bin_path, NM_DEFAULT_QEMUDIR);
+
     if (stat(cfg.qemu_bin_path.data, &file_info) == -1)
         nm_bug("cfg: %s: %s", cfg.qemu_bin_path.data, strerror(errno));
     if (!S_ISDIR(file_info.st_mode))
@@ -183,7 +190,7 @@ void nm_cfg_init(void)
     nm_str_trunc(&tmp_buf, 0);
 
     /* Get QEMU targets list */
-    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QTRG, &tmp_buf);
+    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QTRG, &tmp_buf, NM_DEFAULT_TARGET);
     {
         char *token;
         char *saveptr = tmp_buf.data;
@@ -213,13 +220,13 @@ void nm_cfg_init(void)
     }
 
     /* Get log enable flag */
-    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QENL, &tmp_buf);
+    nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QENL, &tmp_buf, NULL);
     cfg.log_enabled = !!nm_str_stoui(&tmp_buf, 10);
     nm_str_trunc(&tmp_buf, 0);
 
     if (cfg.log_enabled) {
         /* Get file log path */
-        nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QLOG, &cfg.log_path);
+        nm_get_param(ini, NM_INI_S_QEMU, NM_INI_P_QLOG, &cfg.log_path, NULL);
 
         nm_str_dirname(&cfg.log_path, &tmp_buf);
         if (access(tmp_buf.data, W_OK) != 0)
@@ -246,7 +253,7 @@ void nm_cfg_init(void)
         cfg.start_daemon = 0;
     }
 
-    nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_PID, &cfg.daemon_pid);
+    nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_PID, &cfg.daemon_pid, NULL);
     nm_str_trunc(&tmp_buf, 0);
     if (nm_get_opt_param(ini, NM_INI_S_DMON, NM_INI_P_SLP, &tmp_buf) == NM_OK) {
         cfg.daemon_sleep = nm_str_stoul(&tmp_buf, 10);
@@ -496,12 +503,15 @@ static void nm_get_input(const char *msg, nm_str_t *res)
 }
 
 static inline void nm_get_param(const void *ini, const char *section,
-                                const char *value, nm_str_t *res)
+                                const char *value, nm_str_t *res, const char *default_value)
 {
     if (nm_ini_parser_find(ini, section, value, res) != NM_OK)
         nm_bug(_("cfg error: %s->%s is missing"), section, value);
     if (res->len == 0)
         nm_bug(_("cfg error: %s->%s is empty"), section, value);
+
+    if (default_value && nm_str_cmp_st(res, NM_DEFAULT_PLACEHOLDER) == NM_OK)
+        nm_str_alloc_text(res, default_value);
 }
 
 static inline int nm_get_opt_param(const void *ini, const char *section,
