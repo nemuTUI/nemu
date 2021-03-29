@@ -112,6 +112,19 @@ set_property(
 
 set(NM_WITH_SENDFILE FALSE)
 
+set(NM_CFG_NAME ".nemu.cfg" CACHE STRING
+  "Config file name with subdirectories in users home dir")
+set(NM_DEFAULT_VMDIR "nemu_vm" CACHE STRING
+  "Default VM directory with subdirectories in users home dir")
+set(NM_DEFAULT_VNC "/usr/bin/vncviewer" CACHE STRING
+  "Default VNC client")
+set(NM_DEFAULT_DBFILE ".nemu.db" CACHE STRING
+  "Default database file name with subdirectories in users home dir")
+set(NM_DEFAULT_SPICE "/usr/bin/remote-viewer" CACHE STRING
+  "Default SPICE client")
+set(NM_DEFAULT_QEMUDIR "/usr/bin" CACHE STRING
+  "Default qemu binaries directory path")
+
 if(NM_OS_LINUX)
   add_definitions(-DNM_OS_LINUX)
 
@@ -195,6 +208,8 @@ if(NM_WITH_QEMU)
   if(NOT CPACK_RPM_PACKAGE_SOURCES)
     build_qemu()
   endif()
+  set(NM_DEFAULT_QEMUDIR "${CMAKE_INSTALL_FULL_DATAROOTDIR}/nemu/qemu/bin" CACHE STRING
+    "Default qemu binaries directory path" FORCE)
   add_definitions(-DNM_WITH_QEMU)
 endif()
 
@@ -207,6 +222,13 @@ if(NOT GIT_TAG_VERSION STREQUAL "")
   message(STATUS "Build from git, version:${GIT_TAG_VERSION}")
   add_definitions(-DNM_VERSION="${GIT_TAG_VERSION}")
 endif()
+
+add_definitions(-DNM_CFG_NAME="${NM_CFG_NAME}")
+add_definitions(-DNM_DEFAULT_VMDIR="${NM_DEFAULT_VMDIR}")
+add_definitions(-DNM_DEFAULT_VNC="${NM_DEFAULT_VNC}")
+add_definitions(-DNM_DEFAULT_DBFILE="${NM_DEFAULT_DBFILE}")
+add_definitions(-DNM_DEFAULT_SPICE="${NM_DEFAULT_SPICE}")
+add_definitions(-DNM_DEFAULT_QEMUDIR="${NM_DEFAULT_QEMUDIR}")
 
 add_subdirectory(lang)
 add_dependencies(${PROJECT_NAME} lang)
@@ -283,6 +305,12 @@ add_subdirectory(pkg/linux/rpm)
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Config name: ${NM_CFG_NAME}")
+message(STATUS "Default VM directory name: ${NM_DEFAULT_VMDIR}")
+message(STATUS "Default VNC client ${NM_DEFAULT_VNC}")
+message(STATUS "Default database name: ${NM_DEFAULT_DBFILE}")
+message(STATUS "Default SPICE client ${NM_DEFAULT_SPICE}")
+message(STATUS "Default qemu binaries directory path: ${NM_DEFAULT_QEMUDIR}")
 if(NM_CUSTOM_SYS_INCLUDE)
   message(
     STATUS "Additional system include directory: ${NM_CUSTOM_SYS_INCLUDE}")

@@ -8,18 +8,32 @@
 
 #include <dirent.h>
 
-static const char NM_CFG_NAME[]         = "nemu.cfg";
+#ifndef NM_CFG_NAME
+static const char NM_CFG_NAME[]         = ".nemu.cfg";
+#endif /* NM_CFG_NAME */
+
+#ifndef NM_DEFAULT_VMDIR
 static const char NM_DEFAULT_VMDIR[]    = "nemu_vm";
-static const char NM_DEFAULT_DBFILE[]   = "nemu.db";
+#endif /* NM_DEFAULT_VMDIR */
+
+#ifndef NM_DEFAULT_VNC
 static const char NM_DEFAULT_VNC[]      = "/usr/bin/vncviewer";
-static const char NM_DEFAULT_VNCARG[]   = ":%p";
+#endif /* NM_DEFAULT_VNC */
+
+#ifndef NM_DEFAULT_DBFILE
+static const char NM_DEFAULT_DBFILE[]   = ".nemu.db";
+#endif /* NM_DEFAULT_DBFILE */
+
+#ifndef NM_DEFAULT_SPICE
 static const char NM_DEFAULT_SPICE[]    = "/usr/bin/remote-viewer";
-static const char NM_DEFAULT_SPICEARG[] = "--title %t spice://127.0.0.1:%p";
-#ifndef NM_WITH_QEMU
+#endif /* NM_DEFAULT_SPICE */
+
+#ifndef NM_DEFAULT_QEMUDIR
 static const char NM_DEFAULT_QEMUDIR[]  = "/usr/bin";
-#else
-static const char NM_DEFAULT_QEMUDIR[]  = NM_FULL_DATAROOTDIR "/nemu/qemu/bin";
 #endif /* NM_WITH_QEMU */
+
+static const char NM_DEFAULT_VNCARG[]   = ":%p";
+static const char NM_DEFAULT_SPICEARG[] = "--title %t spice://127.0.0.1:%p";
 
 static const char NM_DEFAULT_TARGET[]   = "x86_64,i386";
 
@@ -88,7 +102,7 @@ void nm_cfg_init(void)
     if (!pw)
         nm_bug(_("Error get home directory: %s\n"), strerror(errno));
 
-    nm_str_format(&cfg_path, "%s/.%s", pw->pw_dir, NM_CFG_NAME);
+    nm_str_format(&cfg_path, "%s/%s", pw->pw_dir, NM_CFG_NAME);
 
     nm_generate_cfg(pw->pw_dir, &cfg_path);
     ini = nm_ini_parser_init(&cfg_path);
@@ -344,7 +358,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             nm_str_alloc_text(&vmdir, home);
             nm_str_alloc_text(&qemu_bin_path, NM_DEFAULT_QEMUDIR);
 
-            nm_str_append_format(&db, "/.%s", NM_DEFAULT_DBFILE);
+            nm_str_append_format(&db, "/%s", NM_DEFAULT_DBFILE);
             nm_str_append_format(&vmdir, "/%s", NM_DEFAULT_VMDIR);
 
             if ((cfg_file = fopen(cfg_path->data, "w+")) == NULL)
