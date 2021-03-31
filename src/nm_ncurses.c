@@ -14,6 +14,7 @@ inline void nm_ncurses_init(void)
     raw();
     noecho();
     curs_set(0);
+    puts("\033[1 q"); /* DECSCUSR 1 - set cursor to blinking block */
 #if NCURSES_REENTRANT
     set_escdelay(1);
 #else
@@ -25,6 +26,7 @@ inline void nm_ncurses_init(void)
 
 inline void nm_curses_deinit(void)
 {
+    puts("\033[0 q"); /* DECSCUSR 0 - set cursor to default (or blinking block) */
     clear();
     refresh();
     endwin();
