@@ -19,6 +19,7 @@
 
 ## UI demo
 [![Alt New user interface](https://img.youtube.com/vi/y8RT6-AF1BA/3.jpg)](https://www.youtube.com/watch?v=y8RT6-AF1BA)
+[![Form navigation](https://img.youtube.com/vi/KuLLnyLbcyw/3.jpg)](https://www.youtube.com/watch?v=KuLLnyLbcyw)
 ### Old user interface (versions < 2.0.0)
 [![Alt Install OpenBSD VM example](https://img.youtube.com/vi/GdqSk1cto50/1.jpg)](https://www.youtube.com/watch?v=GdqSk1cto50)
 [![Alt Redirecting serial line terminals to tty,socket](https://img.youtube.com/vi/j5jeFa9Pl9E/1.jpg)](https://www.youtube.com/watch?v=j5jeFa9Pl9E)
