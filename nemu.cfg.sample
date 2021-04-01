@@ -11,6 +11,11 @@ db = /home/user/.nemu.db
 # override highlight color of running VM's. Example:
 # hl_color = 00afd7
 
+# change cursor style for nemu
+# see https://terminalguide.namepad.de/seq/csi_sq_t_space/
+# if not set VTE's default cursor style will be used
+# cursor_style = 1
+
 [viewer]
 # default protocol (1 - spice, 0 - vnc)
 spice_default = 1

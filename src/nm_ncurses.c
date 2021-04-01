@@ -1,6 +1,7 @@
 #include <nm_core.h>
 #include <nm_utils.h>
 #include <nm_ncurses.h>
+#include <nm_cfg_file.h>
 
 /*
  * ncurses must be compiled with --disable-leaks option
@@ -10,11 +11,13 @@ void _nc_freeall(void);
 
 inline void nm_ncurses_init(void)
 {
+    uint32_t cursor_style = nm_cfg_get()->cursor_style;
     initscr();
     raw();
     noecho();
     curs_set(0);
-    puts("\033[1 q"); /* DECSCUSR 1 - set cursor to blinking block */
+    if (cursor_style)
+        printf("\033[%d q\n", cursor_style);
 #if NCURSES_REENTRANT
     set_escdelay(1);
 #else
@@ -26,7 +29,8 @@ inline void nm_ncurses_init(void)
 
 inline void nm_curses_deinit(void)
 {
-    puts("\033[0 q"); /* DECSCUSR 0 - set cursor to default (or blinking block) */
+    if (nm_cfg_get()->cursor_style)
+        puts("\033[0 q"); /* DECSCUSR 0 - set cursor to default (or blinking block) */
     clear();
     refresh();
     endwin();
