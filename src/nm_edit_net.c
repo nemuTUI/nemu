@@ -9,9 +9,9 @@
 #include <nm_edit_net.h>
 
 #if defined (NM_OS_LINUX)
-    enum {NM_NET_FIELDS_NUM = 6};
+    enum {NM_NET_FIELDS_NUM = 8};
 #else
-    enum {NM_NET_FIELDS_NUM = 3};
+    enum {NM_NET_FIELDS_NUM = 5};
 #endif
 
 
@@ -24,6 +24,8 @@ typedef struct {
     nm_str_t drv;
     nm_str_t maddr;
     nm_str_t ipv4;
+    nm_str_t netuser;
+    nm_str_t hostfwd;
 #if defined (NM_OS_LINUX)
     nm_str_t vhost;
     nm_str_t macvtap;
@@ -36,9 +38,11 @@ typedef struct {
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
+                        NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR }
 #else
 #define NM_INIT_NET_IF (nm_iface_t) { \
+                        NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR }
 #endif
@@ -54,6 +58,7 @@ static inline void nm_edit_net_iface_free(nm_iface_t *ifp);
 static int nm_edit_net_maddr_busy(const nm_str_t *mac);
 static int nm_edit_net_action(const nm_str_t *name,
                               const nm_vmctl_data_t *vm, size_t if_idx);
+static int nm_verify_portfwd(const nm_str_t *fwd);
 
 static const char *nm_form_msg[] = {
     "Net driver",
@@ -64,6 +69,8 @@ static const char *nm_form_msg[] = {
     "Enable MacVTap",
     "MacVTap iface",
 #endif
+    "User mode",
+    "Port forwarding",
     NULL
 };
 
@@ -73,9 +80,13 @@ enum {
     NM_FLD_NDRV = 0,
     NM_FLD_MADR,
     NM_FLD_IPV4,
+#if defined (NM_OS_LINUX)
     NM_FLD_VHST,
     NM_FLD_MTAP,
-    NM_FLD_PETH
+    NM_FLD_PETH,
+#endif
+    NM_FLD_USER,
+    NM_FLD_FWD
 };
 
 void nm_edit_net(const nm_str_t *name)
@@ -247,6 +258,8 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, size_t if_idx)
     set_field_type(fields[NM_FLD_MTAP], TYPE_ENUM, nm_form_macvtap, false, false);
     set_field_type(fields[NM_FLD_PETH], TYPE_REGEXP, ".*");
 #endif
+    set_field_type(fields[NM_FLD_USER], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_type(fields[NM_FLD_FWD], TYPE_REGEXP, ".*");
 
     field_opts_off(fields[NM_FLD_MADR], O_STATIC);
     field_opts_off(fields[NM_FLD_IPV4], O_STATIC);
@@ -278,6 +291,13 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, size_t if_idx)
 #else
     (void) mvtap_idx;
 #endif
+    set_field_buffer(fields[NM_FLD_USER], 0,
+        (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift), NM_ENABLE) == NM_OK) ?
+        nm_form_yes_no[0] : nm_form_yes_no[1]);
+    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_FWD + idx_shift) > 0) {
+        set_field_buffer(fields[NM_FLD_FWD], 0,
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_FWD + idx_shift));
+    }
 
     for (size_t n = 0; n < NM_NET_FIELDS_NUM; n++)
         set_field_status(fields[n], 0);
@@ -306,6 +326,8 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
     nm_get_field_buf(fields[NM_FLD_MTAP], &ifp->macvtap);
     nm_get_field_buf(fields[NM_FLD_PETH], &ifp->parent_eth);
 #endif
+    nm_get_field_buf(fields[NM_FLD_USER], &ifp->netuser);
+    nm_get_field_buf(fields[NM_FLD_FWD], &ifp->hostfwd);
 
     if (field_status(fields[NM_FLD_NDRV]))
         nm_form_check_data(_("Net driver"), ifp->drv, err);
@@ -317,6 +339,8 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
     if (field_status(fields[NM_FLD_MTAP]))
         nm_form_check_data(_("Enable MacVTap"), ifp->macvtap, err);
 #endif
+    if (field_status(fields[NM_FLD_USER]))
+        nm_form_check_data(_("User mode"), ifp->netuser, err);
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
@@ -330,6 +354,14 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
 
         if (nm_edit_net_maddr_busy(&ifp->maddr) != NM_OK) {
             nm_warn(_(NM_MSG_MAC_USED));
+            rc = NM_ERR;
+            goto out;
+        }
+    }
+
+    if (field_status(fields[NM_FLD_FWD])) {
+        if (nm_verify_portfwd(&ifp->hostfwd) != NM_OK) {
+            nm_warn(_(NM_MSF_FWD_INVAL));
             rc = NM_ERR;
             goto out;
         }
@@ -465,6 +497,21 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
     }
 #endif
 
+    if (field_status(fields[NM_FLD_USER])) {
+        nm_str_format(&query,
+            "UPDATE ifaces SET netuser='%s' WHERE vm_name='%s' AND if_name='%s'",
+            (nm_str_cmp_st(&ifp->netuser, "yes") == NM_OK) ?
+            NM_ENABLE : NM_DISABLE, name->data, ifp->name.data);
+        nm_db_edit(query.data);
+    }
+
+    if (field_status(fields[NM_FLD_FWD])) {
+        nm_str_format(&query,
+            "UPDATE ifaces SET hostfwd='%s' WHERE vm_name='%s' AND if_name='%s'",
+            ifp->hostfwd.data, name->data, ifp->name.data);
+        nm_db_edit(query.data);
+    }
+
     nm_str_free(&query);
 }
 
@@ -479,6 +526,8 @@ static inline void nm_edit_net_iface_free(nm_iface_t *ifp)
     nm_str_free(&ifp->macvtap);
     nm_str_free(&ifp->parent_eth);
 #endif
+    nm_str_free(&ifp->netuser);
+    nm_str_free(&ifp->hostfwd);
 }
 
 /* TODO add this check in all genmaddr points */
@@ -499,6 +548,87 @@ static int nm_edit_net_maddr_busy(const nm_str_t *mac)
     nm_vect_free(&maddrs, nm_str_vect_free_cb);
 
     return rc;
+}
+
+static int nm_verify_port(const char *port, size_t *len)
+{
+    size_t num_len = 0;
+    nm_str_t buf = NM_INIT_STR;
+    uint32_t port_num;
+    int rc = NM_OK;
+    const char *tmp = port;
+
+    while (*tmp) {
+        if (!isdigit(*tmp)) {
+            break;
+        }
+        num_len++;
+        tmp++;
+    }
+
+    *len = num_len;
+
+    nm_str_add_text_part(&buf, port, num_len);
+    port_num = nm_str_stoui(&buf, 10);
+
+    if (port_num < 1 || port_num > USHRT_MAX) {
+        rc = NM_ERR;
+    }
+
+    nm_str_free(&buf);
+
+    return rc;
+}
+
+/* Verify portfwd value
+ * Format: tcp|udp::[1-65535]-:[1-65535]  */
+static int nm_verify_portfwd(const nm_str_t *fwd)
+{
+    char proto[4] = {0};
+    const char *p = fwd->data;
+    size_t num_len = 0;
+
+    if (fwd->len == 0) {
+        return NM_OK;
+    }
+
+    if (fwd->len < 3) {
+        return NM_ERR;
+    }
+
+    memcpy(proto, p, 3);
+    p += 3;
+
+    if (nm_str_cmp_tt(proto, "tcp") != NM_OK &&
+        nm_str_cmp_tt(proto, "udp") != NM_OK) {
+        return NM_ERR;
+    }
+
+    if (*p != ':' || *(++p) != ':') {
+        return NM_ERR;
+    }
+
+    p++;
+    if (nm_verify_port(p, &num_len) != NM_OK) {
+        return NM_ERR;
+    }
+
+    p += num_len;
+    if (*p != '-' || *(++p) != ':') {
+        return NM_ERR;
+    }
+
+    p++;
+    if (nm_verify_port(p, &num_len) != NM_OK) {
+        return NM_ERR;
+    }
+
+    p += num_len;
+    if (*(p)) {
+        return NM_ERR;
+    }
+
+    return NM_OK;
 }
 
 /* vim:set ts=4 sw=4: */

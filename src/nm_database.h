@@ -4,7 +4,7 @@
 #include <nm_vector.h>
 #include <stdbool.h>
 
-#define NM_DB_VERSION "15"
+#define NM_DB_VERSION "16"
 
 //@TODO Those queries should have constant naming convention and some kind of sorting
 static const char NM_GET_VMS_SQL[] = \
@@ -63,7 +63,7 @@ static const char NM_VM_GET_LIST_SQL[] = \
 
 static const char NM_VM_GET_IFACES_SQL [] = \
     "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost, " \
-    "macvtap, parent_eth, altname FROM ifaces " \
+    "macvtap, parent_eth, altname, netuser, hostfwd FROM ifaces " \
     "WHERE vm_name='%s' ORDER BY if_name ASC";
 
 static const char NM_VM_GET_DRIVES_SQL[] = \
@@ -224,6 +224,8 @@ enum select_ifs_idx {
     NM_SQL_IF_MVT,
     NM_SQL_IF_PET,
     NM_SQL_IF_ALT,
+    NM_SQL_IF_USR,
+    NM_SQL_IF_FWD,
     NM_IFS_IDX_COUNT
 };
 

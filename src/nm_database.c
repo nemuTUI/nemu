@@ -38,7 +38,8 @@ void nm_db_init(void)
             "debug_port integer, debug_freeze integer, cmdappend char, team char, display_type char)",
         "CREATE TABLE ifaces(id integer primary key autoincrement, "
             "vm_name char, if_name char, mac_addr char, ipv4_addr char, "
-            "if_drv char, vhost integer, macvtap integer, parent_eth char, altname char)",
+            "if_drv char, vhost integer, macvtap integer, parent_eth char, altname char, "
+            "netuser integer, hostfwd char)",
         "CREATE TABLE drives(id integer primary key autoincrement, vm_name char, "
             "drive_name char, drive_drv char, capacity integer, boot integer, discard integer)",
         "CREATE TABLE vmsnapshots(id integer primary key autoincrement, "

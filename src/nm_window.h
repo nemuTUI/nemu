@@ -113,6 +113,7 @@ extern nm_panel_t *action_panel;
 #define NM_MSG_DRV_NONE   "No additional disks" NM_MSG_ANY_KEY
 #define NM_MSG_DRV_EDEL   "Cannot delete drive from filesystem" NM_MSG_ANY_KEY
 #define NM_MSG_MAC_INVAL  "Invalid mac address" NM_MSG_ANY_KEY
+#define NM_MSF_FWD_INVAL  "Invalid portfwd value, format: tcp|udp::[1-65535]-:[1-65535]" NM_MSG_ANY_KEY
 #define NM_MSG_MAC_USED   "This mac address is already used" NM_MSG_ANY_KEY
 #define NM_MSG_VHOST_ERR  "vhost can be enabled only on virtio-net" NM_MSG_ANY_KEY
 #define NM_MSG_VTAP_NOP   "MacVTap parent interface does not exists" NM_MSG_ANY_KEY
