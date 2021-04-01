@@ -74,7 +74,7 @@ in {
             type = types.bool;
             default = false;
             description = ''
-              Whether to automaticaly create veth interfaces for user
+              Whether to automatically create veth interfaces for user
               during system startup.
             '';
           };
@@ -84,8 +84,8 @@ in {
             default = [];
             example = [ "vm1" "vm2" "vm3" ];
             description = ''
-              List of VMs which will be started automaticaly for user
-              during system statup.
+              List of VMs which will be started automatically for user
+              during system startup.
             '';
           };
         };
