@@ -2,6 +2,8 @@ v2.?.? - ??.??.????
 ------------------------
     - Feature: Add the ability to change the display type
     - Feature: select cursor style for nemu in config file
+    - Feature: DEFAULT parameter in config will use value, hard-coded in nemu binary
+    - Change: reworked files and dirs handling
     - Bugfix: cold USB attach was broken if USB was previously disabled
     and VM is not running at least once
 
