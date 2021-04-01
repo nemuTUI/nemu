@@ -248,7 +248,7 @@ void nm_cfg_init(void)
         nm_debug("Cursor style: %s (%d)\n",
             CURSOR_STYLE_STR[cfg.cursor_style], cfg.cursor_style);
     } else {
-        cfg.cursor_style = -1;
+        cfg.cursor_style = 0;
     }
     nm_str_trunc(&tmp_buf, 0);
     if (nm_get_opt_param(ini, NM_INI_S_DMON, NM_INI_P_AUTO, &tmp_buf) == NM_OK) {
