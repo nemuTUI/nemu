@@ -392,6 +392,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
         const nm_str_t *drive_img = nm_vect_str(&vm->drives, NM_SQL_DRV_NAME + idx_shift);
         const nm_str_t *blk_drv = nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift);
+        const nm_str_t *discard = nm_vect_str(&vm->drives, NM_SQL_DRV_DISC + idx_shift);
         const char *blk_drv_type = blk_drv->data;
 
         if (nm_str_cmp_st(blk_drv, "nvme") == NM_OK) {
@@ -411,6 +412,10 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
         nm_str_format(&buf, "id=hd%zu,media=disk,if=%s,file=%s%s",
             n, blk_drv_type, vmdir.data, drive_img->data);
+        if (scsi_added && (nm_str_cmp_st(discard, NM_ENABLE) == NM_OK)) {
+            nm_str_append_format(&buf, "%s", ",discard=unmap,detect-zeroes=unmap");
+        }
+
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
         if (nvme_drv) {

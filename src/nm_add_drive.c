@@ -11,17 +11,20 @@
 #include <nm_vm_control.h>
 
 static const char NM_DRIVE_FORM_MSG[] = "Drive interface";
+static const char NM_DRIVE_FORM_DIS[] = "Discard mode";
 static const char NM_DRIVE_SZ_START[] = "Size [1-";
 static const char NM_DRIVE_SZ_END[] = "]Gb";
 
 enum {
     NM_FLD_DRVSIZE = 0,
     NM_FLD_DRVTYPE,
+    NM_FLD_DISCARD,
     NM_FLD_COUNT
 };
 
 static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
-                               const nm_str_t *type, const nm_vect_t *drives);
+                               const nm_str_t *type, const nm_vect_t *drives,
+                               const nm_str_t *discard);
 
 void nm_add_drive(const nm_str_t *name)
 {
@@ -30,6 +33,7 @@ void nm_add_drive(const nm_str_t *name)
     nm_str_t buf = NM_INIT_STR;
     nm_str_t drv_size = NM_INIT_STR;
     nm_str_t drv_type = NM_INIT_STR;
+    nm_str_t discard = NM_INIT_STR;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_vect_t err = NM_INIT_VECT;
     nm_vect_t msg_fields = NM_INIT_VECT;
@@ -56,6 +60,8 @@ void nm_add_drive(const nm_str_t *name)
     nm_vect_insert(&msg_fields, buf.data, buf.len + 1, NULL);
     nm_vect_insert(&msg_fields, _(NM_DRIVE_FORM_MSG),
             strlen(_(NM_DRIVE_FORM_MSG)) + 1, NULL);
+    nm_vect_insert(&msg_fields, _(NM_DRIVE_FORM_DIS),
+            strlen(_(NM_DRIVE_FORM_DIS)) + 1, NULL);
     nm_vect_end_zero(&msg_fields);
     msg_len = nm_max_msg_len((const char **) msg_fields.data);
 
@@ -67,8 +73,10 @@ void nm_add_drive(const nm_str_t *name)
 
     set_field_type(fields[NM_FLD_DRVSIZE], TYPE_INTEGER, 0, 1, nm_hw_disk_free());
     set_field_type(fields[NM_FLD_DRVTYPE], TYPE_ENUM, nm_form_drive_drv, false, false);
+    set_field_type(fields[NM_FLD_DISCARD], TYPE_ENUM, nm_form_yes_no, false, false);
 
     set_field_buffer(fields[NM_FLD_DRVTYPE], 0, NM_DEFAULT_DRVINT);
+    set_field_buffer(fields[NM_FLD_DISCARD], 0, nm_form_yes_no[1]);
 
     for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
         mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
@@ -82,6 +90,7 @@ void nm_add_drive(const nm_str_t *name)
     //@TODO Fix nm_bug call "nm_add_drive: cannot create image file" when size field is empty
     nm_get_field_buf(fields[NM_FLD_DRVSIZE], &drv_size);
     nm_get_field_buf(fields[NM_FLD_DRVTYPE], &drv_type);
+    nm_get_field_buf(fields[NM_FLD_DISCARD], &discard);
     nm_form_check_data(_("Size"), buf, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR) {
@@ -91,7 +100,7 @@ void nm_add_drive(const nm_str_t *name)
 
     if (nm_add_drive_to_fs(name, &drv_size, &vm.drives) != NM_OK)
         nm_bug(_("%s: cannot create image file"), __func__);
-    nm_add_drive_to_db(name, &drv_size, &drv_type, &vm.drives);
+    nm_add_drive_to_db(name, &drv_size, &drv_type, &vm.drives, &discard);
 
 out:
     NM_FORM_EXIT();
@@ -101,6 +110,7 @@ out:
     nm_str_free(&drv_size);
     nm_str_free(&drv_type);
     nm_str_free(&buf);
+    nm_str_free(&discard);
 }
 
 void nm_del_drive(const nm_str_t *name)
@@ -248,7 +258,8 @@ int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
 }
 
 static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
-                               const nm_str_t *type, const nm_vect_t *drives)
+                               const nm_str_t *type, const nm_vect_t *drives,
+                               const nm_str_t *discard)
 {
 //@TODO Fix conversion from size_t to char (might be a problem if there is too many drives)
     size_t drive_count = drives->n_memb / 4;
@@ -256,9 +267,10 @@ static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
     nm_str_t query = NM_INIT_STR;
 
     nm_str_format(&query, "INSERT INTO drives("
-        "vm_name, drive_name, drive_drv, capacity, boot) \
-        VALUES('%s', '%s_%c.img', '%s', '%s', '0')",
-        name->data, name->data, drv_ch, type->data, size->data);
+        "vm_name, drive_name, drive_drv, capacity, boot, discard) \
+VALUES('%s', '%s_%c.img', '%s', '%s', '0', '%s')",
+        name->data, name->data, drv_ch, type->data, size->data,
+        (nm_str_cmp_st(discard, "yes") == NM_OK) ? NM_ENABLE : NM_DISABLE);
     nm_db_edit(query.data);
 
     nm_str_free(&query);

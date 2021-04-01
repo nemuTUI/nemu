@@ -183,12 +183,13 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
 
         nm_str_format(&query,
-            "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot) "
-            "VALUES('%s', '%s_%c.img', '%s', '%s', '%s')",
+            "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot, discard) "
+            "VALUES('%s', '%s_%c.img', '%s', '%s', '%s', '%s')",
             dst->data, dst->data, drv_ch,
             nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift)->data,
             nm_vect_str(&vm->drives, NM_SQL_DRV_SIZE + idx_shift)->data,
-            nm_vect_str(&vm->drives, NM_SQL_DRV_BOOT + idx_shift)->data);
+            nm_vect_str(&vm->drives, NM_SQL_DRV_BOOT + idx_shift)->data,
+            nm_vect_str(&vm->drives, NM_SQL_DRV_DISC + idx_shift)->data);
         nm_db_edit(query.data);
 
         drv_ch++;

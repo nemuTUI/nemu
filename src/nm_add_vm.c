@@ -20,6 +20,7 @@ static const char NM_VM_FORM_MEM_END[]   = "]Mb";
 static const char NM_VM_FORM_DRV_BEGIN[] = "Disk [1-";
 static const char NM_VM_FORM_DRV_END[]   = "]Gb";
 static const char NM_VM_FORM_DRV_IF[]    = "Disk interface";
+static const char NM_VM_FORM_DRV_DIS[]   = "Discard mode";
 static const char NM_VM_FORM_IMP_PATH[]  = "Path to disk image";
 static const char NM_VM_FORM_INS_PATH[]  = "Path to ISO/IMG";
 static const char NM_VM_FORM_NET_IFS[]   = "Network interfaces";
@@ -38,6 +39,7 @@ enum {
     NM_FLD_RAMTOT,
     NM_FLD_DISKSZ,
     NM_FLD_DISKIN,
+    NM_FLD_DISCARD,
     NM_FLD_SOURCE,
     NM_FLD_IFSCNT,
     NM_FLD_IFSDRV,
@@ -141,6 +143,7 @@ static void nm_add_vm_field_setup(int import)
     set_field_type(fields[NM_FLD_RAMTOT], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
     set_field_type(fields[NM_FLD_DISKSZ], TYPE_INTEGER, 0, 1, nm_hw_disk_free());
     set_field_type(fields[NM_FLD_DISKIN], TYPE_ENUM, nm_form_drive_drv, false, false);
+    set_field_type(fields[NM_FLD_DISCARD], TYPE_ENUM, nm_form_yes_no, false, false);
     set_field_type(fields[NM_FLD_SOURCE], TYPE_REGEXP, "^/.*");
     set_field_type(fields[NM_FLD_IFSCNT], TYPE_INTEGER, 1, 0, 64);
     set_field_type(fields[NM_FLD_IFSDRV], TYPE_ENUM, nm_form_net_drv, false, false);
@@ -151,6 +154,7 @@ static void nm_add_vm_field_setup(int import)
     set_field_buffer(fields[NM_FLD_VMARCH], 0, *nm_cfg_get()->qemu_targets.data);
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, "1");
     set_field_buffer(fields[NM_FLD_DISKIN], 0, NM_DEFAULT_DRVINT);
+    set_field_buffer(fields[NM_FLD_DISCARD], 0, nm_form_yes_no[1]);
     set_field_buffer(fields[NM_FLD_IFSCNT], 0, "1");
     if (import)
         set_field_buffer(fields[NM_FLD_DISKSZ], 0, "unused");
@@ -176,6 +180,7 @@ static void nm_add_vm_field_names(nm_vect_t *msg, int import)
     nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
 
     nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)) + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_DRV_DIS), strlen(_(NM_VM_FORM_DRV_DIS)) + 1, NULL);
     if (import)
         nm_vect_insert(msg, _(NM_VM_FORM_IMP_PATH), strlen(_(NM_VM_FORM_IMP_PATH)) + 1, NULL);
     else
@@ -193,6 +198,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm, int import)
     int rc = NM_OK;
     nm_str_t ifs_buf = NM_INIT_STR;
     nm_vect_t err = NM_INIT_VECT;
+    nm_str_t discard = NM_INIT_STR;
 
     nm_get_field_buf(fields[NM_FLD_VMNAME], &vm->name);
     nm_get_field_buf(fields[NM_FLD_VMARCH], &vm->arch);
@@ -201,6 +207,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm, int import)
     nm_get_field_buf(fields[NM_FLD_SOURCE], &vm->srcp);
     if (!import)
         nm_get_field_buf(fields[NM_FLD_DISKSZ], &vm->drive.size);
+    nm_get_field_buf(fields[NM_FLD_DISCARD], &discard);
     nm_get_field_buf(fields[NM_FLD_DISKIN], &vm->drive.driver);
     nm_get_field_buf(fields[NM_FLD_IFSCNT], &ifs_buf);
     nm_get_field_buf(fields[NM_FLD_IFSDRV], &vm->ifs.driver);
@@ -212,9 +219,14 @@ static int nm_add_vm_get_data(nm_vm_t *vm, int import)
     if (!import)
         nm_form_check_data(_("Disk"), vm->drive.size, err);
     nm_form_check_data(_("Disk interface"), vm->drive.driver, err);
+    nm_form_check_data(_("Dicard mode"), discard, err);
     nm_form_check_data(_("Path to ISO/IMG"), vm->srcp, err);
     nm_form_check_data(_("Network interfaces"), vm->ifs.driver, err);
     nm_form_check_data(_("Net driver"), vm->ifs.driver, err);
+
+    if (nm_str_cmp_st(&discard, "yes") == NM_OK) {
+        vm->drive.discard = 1;
+    }
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
@@ -248,6 +260,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm, int import)
 
 out:
     nm_str_free(&ifs_buf);
+    nm_str_free(&discard);
     nm_vect_free(&err, NULL);
 
     return rc;
@@ -289,21 +302,23 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     /* insert drive info */
     if (drives == NULL) {
         nm_str_format(&query,
-            "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot) "
-            "VALUES('%s', '%s_a.img', '%s', '%s', '%s')",
+            "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot, discard) "
+            "VALUES('%s', '%s_a.img', '%s', '%s', '%s', '%s')",
             vm->name.data, vm->name.data, vm->drive.driver.data, vm->drive.size.data,
-            NM_ENABLE /* boot flag */
+            NM_ENABLE, /* boot flag */
+            vm->drive.discard ? NM_ENABLE : NM_DISABLE
             );
         nm_db_edit(query.data);
     } else { /* imported from OVF */
         for (size_t n = 0; n < drives->n_memb; n++) {
             nm_str_format(&query,
-                "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot) "
-                "VALUES('%s', '%s', '%s', '%s', '%s')",
+                "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot, discard) "
+                "VALUES('%s', '%s', '%s', '%s', '%s', '%s')",
                 vm->name.data,
                 nm_drive_file(drives->data[n])->data, NM_DEFAULT_DRVINT,
                 nm_drive_size(drives->data[n])->data,
-                n == 0 ? NM_ENABLE : NM_DISABLE /* boot flag */
+                n == 0 ? NM_ENABLE : NM_DISABLE, /* boot flag */
+                vm->drive.discard ? NM_ENABLE : NM_DISABLE
                 );
             nm_db_edit(query.data);
         }

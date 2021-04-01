@@ -15,9 +15,10 @@ typedef FIELD nm_field_t;
 typedef struct {
     nm_str_t driver;
     nm_str_t size;
+    uint32_t discard:1;
 } nm_vm_drive_t;
 
-#define NM_INIT_VM_DRIVE (nm_vm_drive_t) { NM_INIT_STR, NM_INIT_STR }
+#define NM_INIT_VM_DRIVE (nm_vm_drive_t) { NM_INIT_STR, NM_INIT_STR, 0 }
 
 typedef struct {
     size_t form_len;

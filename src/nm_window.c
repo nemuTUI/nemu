@@ -403,10 +403,12 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
             boot = 1;
         }
 
-        nm_str_format(&buf, "disk%zu%-7s%s [%sGb %s] %s", n, ":",
+        nm_str_format(&buf, "disk%zu%-7s%s [%sGb %s discard=%s] %s", n, ":",
                  nm_vect_str_ctx(&vm->drives, NM_SQL_DRV_NAME + idx_shift),
                  nm_vect_str_ctx(&vm->drives, NM_SQL_DRV_SIZE + idx_shift),
                  nm_vect_str_ctx(&vm->drives, NM_SQL_DRV_TYPE + idx_shift),
+                 (nm_str_cmp_st(nm_vect_str(&vm->drives, NM_SQL_DRV_DISC + idx_shift),
+                                NM_ENABLE) == NM_OK) ? "on" : "off",
                  boot ? "*" : "");
         NM_PR_VM_INFO();
     }

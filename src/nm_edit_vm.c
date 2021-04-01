@@ -20,6 +20,7 @@ static const char NM_VM_FORM_KVM[]       = "KVM [yes/no]";
 static const char NM_VM_FORM_HCPU[]      = "Host CPU [yes/no]";
 static const char NM_VM_FORM_NET_IFS[]   = "Network interfaces";
 static const char NM_VM_FORM_DRV_IF[]    = "Disk interface";
+static const char NM_VM_FORM_DRV_DIS[]   = "Discard mode";
 static const char NM_VM_FORM_USB[]       = "USB [yes/no]";
 static const char NM_VM_FORM_USBT[]      = "USB version";
 static const char NM_VM_FORM_MACH[]      = "Machine type";
@@ -38,6 +39,7 @@ enum {
     NM_FLD_HOSCPU,
     NM_FLD_IFSCNT,
     NM_FLD_DISKIN,
+    NM_FLD_DISCARD,
     NM_FLD_USBUSE,
     NM_FLD_USBTYP,
     NM_FLD_MACH,
@@ -115,6 +117,7 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     set_field_type(fields[NM_FLD_HOSCPU], TYPE_ENUM, nm_form_yes_no, false, false);
     set_field_type(fields[NM_FLD_IFSCNT], TYPE_INTEGER, 1, 0, 64);
     set_field_type(fields[NM_FLD_DISKIN], TYPE_ENUM, nm_form_drive_drv, false, false);
+    set_field_type(fields[NM_FLD_DISCARD], TYPE_ENUM, nm_form_yes_no, false, false);
     set_field_type(fields[NM_FLD_USBUSE], TYPE_ENUM, nm_form_yes_no, false, false);
     set_field_type(fields[NM_FLD_USBTYP], TYPE_ENUM, nm_form_usbtype, false, false);
     set_field_type(fields[NM_FLD_MACH], TYPE_ENUM, machs, false, false);
@@ -138,6 +141,10 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     nm_str_format(&buf, "%zu", cur->ifs.n_memb / NM_IFS_IDX_COUNT);
     set_field_buffer(fields[NM_FLD_IFSCNT], 0, buf.data);
     set_field_buffer(fields[NM_FLD_DISKIN], 0, nm_vect_str_ctx(&cur->drives, NM_SQL_DRV_TYPE));
+    if (nm_str_cmp_st(nm_vect_str(&cur->drives, NM_SQL_DRV_DISC), NM_ENABLE) == NM_OK)
+        set_field_buffer(fields[NM_FLD_DISCARD], 0, nm_form_yes_no[0]);
+    else
+        set_field_buffer(fields[NM_FLD_DISCARD], 0, nm_form_yes_no[1]);
 
     if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_USBF), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_USBUSE], 0, nm_form_yes_no[0]);
@@ -173,6 +180,7 @@ static void nm_edit_vm_field_names(nm_vect_t *msg)
     nm_vect_insert(msg, _(NM_VM_FORM_HCPU), strlen(_(NM_VM_FORM_HCPU)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_NET_IFS), strlen(_(NM_VM_FORM_NET_IFS)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)) + 1, NULL);
+    nm_vect_insert(msg, _(NM_VM_FORM_DRV_DIS), strlen(_(NM_VM_FORM_DRV_DIS)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_USB), strlen(_(NM_VM_FORM_USB)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_USBT), strlen(_(NM_VM_FORM_USBT)) + 1, NULL);
     nm_vect_insert(msg, _(NM_VM_FORM_MACH), strlen(_(NM_VM_FORM_MACH)) + 1, NULL);
@@ -192,6 +200,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     nm_str_t usb = NM_INIT_STR;
     nm_str_t kvm = NM_INIT_STR;
     nm_str_t hcpu = NM_INIT_STR;
+    nm_str_t discard = NM_INIT_STR;
 
     nm_get_field_buf(fields[NM_FLD_CPUNUM], &vm->cpus);
     nm_get_field_buf(fields[NM_FLD_RAMTOT], &vm->memo);
@@ -199,6 +208,7 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     nm_get_field_buf(fields[NM_FLD_HOSCPU], &hcpu);
     nm_get_field_buf(fields[NM_FLD_IFSCNT], &ifs);
     nm_get_field_buf(fields[NM_FLD_DISKIN], &vm->drive.driver);
+    nm_get_field_buf(fields[NM_FLD_DISCARD], &discard);
     nm_get_field_buf(fields[NM_FLD_USBUSE], &usb);
     nm_get_field_buf(fields[NM_FLD_USBTYP], &vm->usb_type);
     nm_get_field_buf(fields[NM_FLD_MACH], &vm->mach);
@@ -217,6 +227,8 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
         nm_form_check_data(_("Network interfaces"), ifs, err);
     if (field_status(fields[NM_FLD_DISKIN]))
         nm_form_check_data(_("Disk interface"), vm->drive.driver, err);
+    if (field_status(fields[NM_FLD_DISCARD]))
+        nm_form_check_data(_("Discard mode"), discard, err);
     if (field_status(fields[NM_FLD_USBUSE]))
         nm_form_check_data(_("USB"), usb, err);
     if (field_status(fields[NM_FLD_USBTYP]))
@@ -236,6 +248,12 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
                 nm_warn(_(NM_MSG_HCPU_KVM));
                 goto out;
             }
+        }
+    }
+
+    if (field_status(fields[NM_FLD_DISCARD])) {
+        if (nm_str_cmp_st(&discard, "yes") == NM_OK) {
+            vm->drive.discard = 1;
         }
     }
 
@@ -275,6 +293,7 @@ out:
     nm_str_free(&usb);
     nm_str_free(&kvm);
     nm_str_free(&hcpu);
+    nm_str_free(&discard);
     nm_vect_free(&err, NULL);
 
     return rc;
@@ -365,6 +384,13 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
     if (field_status(fields[NM_FLD_DISKIN])) {
         nm_str_format(&query, "UPDATE drives SET drive_drv='%s' WHERE vm_name='%s'",
             vm->drive.driver.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
+        nm_db_edit(query.data);
+    }
+
+    if (field_status(fields[NM_FLD_DISCARD])) {
+        nm_str_format(&query, "UPDATE drives SET discard='%s' WHERE vm_name='%s'",
+            vm->drive.discard ? NM_ENABLE : NM_DISABLE,
+            nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
