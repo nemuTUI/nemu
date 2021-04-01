@@ -263,7 +263,7 @@ void nm_cfg_init(void)
             nm_bug(_("cfg: incorrect cursor style value %s, example:1"), tmp_buf.data);
 
         cfg.cursor_style = nm_str_stoui(&tmp_buf, 10);
-        if (cfg.cursor_style > nm_arr_len(CURSOR_STYLE_STR))
+        if (cfg.cursor_style >= nm_arr_len(CURSOR_STYLE_STR))
             nm_bug(_("cfg: incorrect cursor style value %d"), cfg.cursor_style);
 
         nm_debug("Cursor style: %s (%d)\n",
