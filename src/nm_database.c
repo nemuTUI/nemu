@@ -208,6 +208,8 @@ static int nm_db_update(void)
 
     nm_vect_insert_cstr(&argv, db_script);
     nm_vect_insert_cstr(&argv, cfg->db_path.data);
+    nm_vect_insert_cstr(&argv, cfg->qemu_bin_path.data);
+
     nm_vect_end_zero(&argv);
 
     if (nm_spawn_process(&argv, &answer) != NM_OK) {

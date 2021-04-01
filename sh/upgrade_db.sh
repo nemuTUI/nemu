@@ -19,11 +19,13 @@ else
         echo "Couldn't find user home directory" >&2
         exit 1
     fi
+    #TODO we shouldn't expect to find .nemu.cfg in homedir
     if [ ! -f ${USER_DIR}/.nemu.cfg ]; then
         echo "Couldn't find .nemu.cfg in user home directory" >&2
         exit 1
     fi
 
+    #TODO we shouldn't expect to find .nemu.cfg in homedir
     QEMU_BIN_PATH=$(grep qemu_bin_path ${USER_DIR}/.nemu.cfg | awk '{ printf "%s\n", $3 }')
     if [ -z "$QEMU_BIN_PATH" ]; then
         echo "Couldn't get qemu_bin_path from .nemu.cfg" >&2
