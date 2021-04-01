@@ -38,8 +38,8 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "nemuTUI";
     repo = "nemu";
-    rev = "2a7a84b57f5daef00a5abc291ed2ce70e471de62";
-    sha256 = "0if5ijkzkrxl3vs1vyapxfb3bga19ghykh5gdc1xg57di1wsnw10";
+    rev = "9fff326adc1c5fc27cddeedc2c091e5bb2a24347";
+    sha256 = "10gis2fckjhj4ln9gb02qbcin82rx98fi6zh0wi5k1xpj8bmqcci";
   };
 
   qemu_ = if withSnapshots
