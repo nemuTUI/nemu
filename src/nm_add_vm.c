@@ -219,7 +219,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm, int import)
     if (!import)
         nm_form_check_data(_("Disk"), vm->drive.size, err);
     nm_form_check_data(_("Disk interface"), vm->drive.driver, err);
-    nm_form_check_data(_("Dicard mode"), discard, err);
+    nm_form_check_data(_("Discard mode"), discard, err);
     nm_form_check_data(_("Path to ISO/IMG"), vm->srcp, err);
     nm_form_check_data(_("Network interfaces"), vm->ifs.driver, err);
     nm_form_check_data(_("Net driver"), vm->ifs.driver, err);
