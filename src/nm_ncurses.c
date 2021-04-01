@@ -17,7 +17,7 @@ inline void nm_ncurses_init(void)
     noecho();
     curs_set(0);
     if (cursor_style)
-        printf("\033[%d q\n", cursor_style);
+        printf("\033[%u q\n", cursor_style);
 #if NCURSES_REENTRANT
     set_escdelay(1);
 #else
