@@ -629,7 +629,32 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
         if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
-            NM_ENABLE) == NM_OK) { /* XXX delete iface if exists */
+            NM_ENABLE) == NM_OK) {
+            if (!(flags & NM_VMCTL_INFO)) {
+                /* Delete iface if exists, we are in user mode */
+                uint32_t tap_idx = 0;
+                tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
+                            NM_SQL_IF_NAME + idx_shift));
+
+                if (tap_idx != 0) { /* iface exist */
+                    /* detect iface type */
+                    struct stat tap_info;
+                    nm_str_t tap_path = NM_INIT_STR;
+
+                    nm_str_format(&tap_path, "/dev/tap%u", tap_idx);
+                    if (stat(tap_path.data, &tap_info) == 0) {
+                        /* iface is macvtap, delete it */
+                        nm_net_del_iface(nm_vect_str(&vm->ifs,
+                                    NM_SQL_IF_NAME + idx_shift));
+                    } else {
+                        /* iface is simple tap, delete it */
+                        nm_net_del_tap(nm_vect_str(&vm->ifs,
+                                    NM_SQL_IF_NAME + idx_shift));
+                    }
+                    nm_str_free(&tap_path);
+                }
+            }
+
             nm_vect_insert_cstr(argv, "-netdev");
             nm_str_format(&buf, "user,id=netdev%zu", n);
 
