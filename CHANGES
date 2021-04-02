@@ -1,6 +1,7 @@
 v2.?.? - ??.??.????
 ------------------------
-    - Feature: Add the ability to change the display type
+    - Feature: internal QEMU network support (including hostfwd)
+    - Feature: add the ability to change the display type
     - Feature: select cursor style for nemu in config file
     - Feature: DEFAULT parameter in config will use value, hard-coded in nemu binary
     - Feature: SCSI block-devices discard mode support
