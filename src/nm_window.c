@@ -272,6 +272,20 @@ void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
 
     getmaxyx(action_window, rows, cols);
 
+    if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
+                NM_ENABLE) == NM_OK) {
+        nm_str_format(&buf, "%-12s%s", "User mode: ", "enabled");
+        NM_PR_VM_INFO();
+
+        if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_FWD + idx_shift) != 0) {
+            nm_str_format(&buf, "%-12s%s", "hostfwd: ",
+                    nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_FWD + idx_shift));
+            NM_PR_VM_INFO();
+        }
+
+        goto out;
+    }
+
     nm_str_format(&buf, "%-12s%s", "hwaddr: ",
             nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
     NM_PR_VM_INFO();
@@ -298,7 +312,7 @@ void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
         nm_str_format(&buf, "%-12s%s [iface: %s]", "MacVTap: ", nm_form_macvtap[mvtap_idx],
             nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_PET + idx_shift));
     NM_PR_VM_INFO();
-
+out:
     nm_str_free(&buf);
 }
 
@@ -375,14 +389,20 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
 
     for (size_t n = 0; n < ifs_count; n++) {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
-
-        nm_str_format(&buf, "eth%zu%-8s%s [%s %s%s]",
-                 n, ":",
-                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
-                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift),
-                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + idx_shift),
-                 (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift),
-                    NM_ENABLE) == NM_OK) ? "+vhost" : "");
+        if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
+                    NM_ENABLE) == NM_OK) {
+            nm_str_format(&buf, "eth%zu%-8s%s [user mode]",
+                    n, ":",
+                    nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+        } else {
+            nm_str_format(&buf, "eth%zu%-8s%s [%s %s%s]",
+                    n, ":",
+                    nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                    nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift),
+                    nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + idx_shift),
+                    (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift),
+                                   NM_ENABLE) == NM_OK) ? "+vhost" : "");
+        }
 
         NM_PR_VM_INFO();
     }
