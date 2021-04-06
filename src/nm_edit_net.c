@@ -566,6 +566,10 @@ static int nm_verify_port(const char *port, size_t *len)
         tmp++;
     }
 
+    if (!num_len) {
+        return NM_ERR;
+    }
+
     *len = num_len;
 
     nm_str_add_text_part(&buf, port, num_len);
