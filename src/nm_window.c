@@ -589,7 +589,7 @@ void nm_print_help(void)
 #if defined (NM_OS_LINUX)
         "+", "-",
 #endif
-        "k"
+        "k", "/"
 };
 
     const char *values[] = {
@@ -625,6 +625,7 @@ void nm_print_help(void)
         "detach usb device",
 #endif
         "kill vm process",
+        "search vm, filters",
         NULL
     };
 
