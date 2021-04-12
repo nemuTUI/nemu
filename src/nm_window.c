@@ -180,7 +180,7 @@ void nm_print_cmd(const nm_str_t *name)
     nm_vect_t argv = NM_INIT_VECT;
     nm_vect_t res = NM_INIT_VECT;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
-    int off = 0, start = 3;
+    int off, start = 3;
 
     int col = getmaxx(stdscr);
 
@@ -200,7 +200,6 @@ void nm_print_cmd(const nm_str_t *name)
             mvprintw(3, 0, "%s", buf.data);
             goto out;
         }
-        off = 0;
     }
 
     for (size_t n = 0; n < argv.n_memb; n++) {
