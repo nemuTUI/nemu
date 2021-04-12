@@ -178,7 +178,9 @@ void nm_print_cmd(const nm_str_t *name)
 {
     nm_str_t buf = NM_INIT_STR;
     nm_vect_t argv = NM_INIT_VECT;
+    nm_vect_t res = NM_INIT_VECT;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
+    int off = 0, start = 3;
 
     int col = getmaxx(stdscr);
 
@@ -186,14 +188,56 @@ void nm_print_cmd(const nm_str_t *name)
 
     nm_vmctl_gen_cmd(&argv, &vm, name, NM_VMCTL_INFO, NULL);
 
-    nm_cmd_str(&buf, &argv);
+    /* pre checking */
+    for (size_t n = 0; n < argv.n_memb; n++) {
+        off = strlen((char *) nm_vect_at(&argv, n));
+        off += 2; /* count ' \' */
+
+        if (off >= col) {
+            nm_str_format(&buf, "%s", _("window to small"));
+            nm_clear_screen();
+            mvprintw(1, (col - name->len) / 2, "%s", name->data);
+            mvprintw(3, 0, "%s", buf.data);
+            goto out;
+        }
+        off = 0;
+    }
+
+    for (size_t n = 0; n < argv.n_memb; n++) {
+        off = buf.len;
+        off += strlen((char *) nm_vect_at(&argv, n));
+        off += 2;
+
+        if (off > col) {
+            nm_str_t tmp = NM_INIT_STR;
+            nm_str_append_format(&tmp, "%s\\", buf.data);
+            nm_vect_insert_cstr(&res, tmp.data);
+            nm_str_trunc(&buf, 0);
+            if (n + 1 != argv.n_memb) {
+                nm_str_append_format(&buf, "%s ", (char *) nm_vect_at(&argv, n));
+            } else {
+                nm_vect_insert_cstr(&res, (char *) nm_vect_at(&argv, n));
+            }
+            nm_str_free(&tmp);
+        } else if (off <= col && n + 1 < argv.n_memb) {
+            nm_str_append_format(&buf, "%s ", (char *) nm_vect_at(&argv, n));
+        } else {
+            nm_str_append_format(&buf, "%s ", (char *) nm_vect_at(&argv, n));
+            nm_vect_insert_cstr(&res, buf.data);
+        }
+    }
 
     nm_clear_screen();
     mvprintw(1, (col - name->len) / 2, "%s", name->data);
-    mvprintw(3, 0, "%s", buf.data);
 
+    for (size_t n = 0; n < res.n_memb; n++) {
+        mvprintw(start + n, 0, "%s", (char *) nm_vect_at(&res, n));
+    }
+
+out:
     nm_str_free(&buf);
     nm_vect_free(&argv, NULL);
+    nm_vect_free(&res, NULL);
     nm_vmctl_free_data(&vm);
 
     refresh();
