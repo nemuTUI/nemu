@@ -203,8 +203,9 @@ void nm_print_cmd(const nm_str_t *name)
     }
 
     for (size_t n = 0; n < argv.n_memb; n++) {
+        const char *arg = nm_vect_at(&argv, n);
         off = buf.len;
-        off += strlen((char *) nm_vect_at(&argv, n));
+        off += strlen(arg);
         off += 2;
 
         if (off > col) {
@@ -213,15 +214,15 @@ void nm_print_cmd(const nm_str_t *name)
             nm_vect_insert_cstr(&res, tmp.data);
             nm_str_trunc(&buf, 0);
             if (n + 1 != argv.n_memb) {
-                nm_str_append_format(&buf, "%s ", (char *) nm_vect_at(&argv, n));
+                nm_str_append_format(&buf, "%s ", arg);
             } else {
-                nm_vect_insert_cstr(&res, (char *) nm_vect_at(&argv, n));
+                nm_vect_insert_cstr(&res, arg);
             }
             nm_str_free(&tmp);
         } else if (off <= col && n + 1 < argv.n_memb) {
-            nm_str_append_format(&buf, "%s ", (char *) nm_vect_at(&argv, n));
+            nm_str_append_format(&buf, "%s ", arg);
         } else {
-            nm_str_append_format(&buf, "%s ", (char *) nm_vect_at(&argv, n));
+            nm_str_append_format(&buf, "%s ", arg);
             nm_vect_insert_cstr(&res, buf.data);
         }
     }
