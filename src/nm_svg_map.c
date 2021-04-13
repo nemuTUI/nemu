@@ -66,17 +66,21 @@ void nm_svg_map(const char *path, const nm_vect_t *veths,
             }
         }
 
-        vnode = agnode(graph, nm_vect_str_ctx(veths, v), NM_TRUE);
-        agsafeset(vnode, NM_GV_STYLE, NM_GV_FILL, NM_EMPTY_STR);
-        agsafeset(vnode, NM_GV_FCOL, NM_VE_COLOR, NM_EMPTY_STR);
-        agsafeset(vnode, NM_GV_SHAPE, NM_GV_RECT, NM_EMPTY_STR);
-
         if (group->len) {
             nm_str_format(&query, NM_GET_IFMAPGR_SQL, group->data, lname.data, rname.data);
         } else {
             nm_str_format(&query, NM_GET_IFMAP_SQL, lname.data, rname.data);
         }
         nm_db_select(query.data, &vms);
+
+        if (group->len && !vms.n_memb) {
+            goto next;
+        }
+
+        vnode = agnode(graph, nm_vect_str_ctx(veths, v), NM_TRUE);
+        agsafeset(vnode, NM_GV_STYLE, NM_GV_FILL, NM_EMPTY_STR);
+        agsafeset(vnode, NM_GV_FCOL, NM_VE_COLOR, NM_EMPTY_STR);
+        agsafeset(vnode, NM_GV_SHAPE, NM_GV_RECT, NM_EMPTY_STR);
 
         vms_count = vms.n_memb / 2;
         for (size_t n = 0; n < vms_count; n++) {
