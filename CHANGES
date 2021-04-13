@@ -7,6 +7,7 @@ v2.?.? - ??.??.????
     - Feature: SCSI block-devices discard mode support
     - Change: reworked files and dirs handling
     - Change: show cmd is copy-paste friendly now
+    - Bugfix: incorrect SVG map export, sorted by group 
     - Bugfix: cold USB attach was broken if USB was previously disabled
     and VM is not running at least once
 
