@@ -352,8 +352,6 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
 #endif
     if (field_status(fields[NM_FLD_USER]))
         nm_form_check_data(_("User mode"), ifp->netuser, err);
-    if (field_status(fields[NM_FLD_SMB]))
-        nm_form_check_data(_("Share folder"), ifp->smb, err);
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
