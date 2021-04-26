@@ -1,6 +1,6 @@
 v2.?.? - ??.??.????
 ------------------------
-    - Feature: internal QEMU network support (including hostfwd)
+    - Feature: internal QEMU network support (including hostfwd, smb)
     - Feature: add the ability to change the display type
     - Feature: select cursor style for nemu in config file
     - Feature: DEFAULT parameter in config will use value, hard-coded in nemu binary
