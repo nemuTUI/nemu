@@ -74,7 +74,7 @@ extern nm_panel_t *action_panel;
 #define NM_MSG_EDIT_VM    "Edit properties"
 #define NM_MSG_EDIT_BOOT  "Edit boot settings"
 #define NM_MSG_EDIT_VIEW  "Edit display settings"
-#define NM_MSG_9P_SHARE   "Share host filesystem"
+#define NM_MSG_9P_SHARE   "Share host filesystem (9pfs)"
 #define NM_MSG_USB_ATTACH "Attach USB device"
 #define NM_MSG_USB_DETACH "Detach USB device"
 #define NM_MSG_SNAP_CRT   "Create VM snapshot"
