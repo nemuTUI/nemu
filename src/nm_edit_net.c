@@ -223,6 +223,7 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
     nm_edit_net_field_names(form_data.form_window);
 
     form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    mvwhline(form_data.form_window, 12, 0, ACS_HLINE, getmaxx(form_data.form_window));
 
     if (nm_draw_form(action_window, form) != NM_OK) {
         rc = NM_ERR;
