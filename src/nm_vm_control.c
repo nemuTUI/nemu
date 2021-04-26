@@ -662,6 +662,10 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                 nm_str_append_format(&buf, ",hostfwd=%s",
                         nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_FWD + idx_shift));
             }
+            if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_SMB + idx_shift) != 0) {
+                nm_str_append_format(&buf, ",smb=%s",
+                        nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_SMB + idx_shift));
+            }
 
         } else if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift),
             NM_DISABLE) == NM_OK) {

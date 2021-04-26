@@ -9,9 +9,9 @@
 #include <nm_edit_net.h>
 
 #if defined (NM_OS_LINUX)
-    enum {NM_NET_FIELDS_NUM = 8};
+    enum {NM_NET_FIELDS_NUM = 9};
 #else
-    enum {NM_NET_FIELDS_NUM = 5};
+    enum {NM_NET_FIELDS_NUM = 6};
 #endif
 
 
@@ -26,6 +26,7 @@ typedef struct {
     nm_str_t ipv4;
     nm_str_t netuser;
     nm_str_t hostfwd;
+    nm_str_t smb;
 #if defined (NM_OS_LINUX)
     nm_str_t vhost;
     nm_str_t macvtap;
@@ -39,12 +40,13 @@ typedef struct {
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
-                        NM_INIT_STR }
+                        NM_INIT_STR, NM_INIT_STR }
 #else
 #define NM_INIT_NET_IF (nm_iface_t) { \
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
-                        NM_INIT_STR, NM_INIT_STR }
+                        NM_INIT_STR, NM_INIT_STR, \
+                        NM_INIT_STR }
 #endif
 
 static nm_field_t *fields[NM_NET_FIELDS_NUM + 1];
@@ -71,6 +73,7 @@ static const char *nm_form_msg[] = {
 #endif
     "User mode",
     "Port forwarding",
+    "Share folder",
     NULL
 };
 
@@ -86,7 +89,8 @@ enum {
     NM_FLD_PETH,
 #endif
     NM_FLD_USER,
-    NM_FLD_FWD
+    NM_FLD_FWD,
+    NM_FLD_SMB
 };
 
 void nm_edit_net(const nm_str_t *name)
@@ -260,9 +264,11 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, size_t if_idx)
 #endif
     set_field_type(fields[NM_FLD_USER], TYPE_ENUM, nm_form_yes_no, false, false);
     set_field_type(fields[NM_FLD_FWD], TYPE_REGEXP, ".*");
+    set_field_type(fields[NM_FLD_SMB], TYPE_REGEXP, "^/.*");
 
     field_opts_off(fields[NM_FLD_MADR], O_STATIC);
     field_opts_off(fields[NM_FLD_IPV4], O_STATIC);
+    field_opts_off(fields[NM_FLD_SMB], O_STATIC);
 #if defined (NM_OS_LINUX)
     field_opts_off(fields[NM_FLD_PETH], O_STATIC);
 #endif
@@ -298,6 +304,10 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, size_t if_idx)
         set_field_buffer(fields[NM_FLD_FWD], 0,
             nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_FWD + idx_shift));
     }
+    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_SMB + idx_shift) > 0) {
+        set_field_buffer(fields[NM_FLD_SMB], 0,
+            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_SMB + idx_shift));
+    }
 
     for (size_t n = 0; n < NM_NET_FIELDS_NUM; n++)
         set_field_status(fields[n], 0);
@@ -328,6 +338,7 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
 #endif
     nm_get_field_buf(fields[NM_FLD_USER], &ifp->netuser);
     nm_get_field_buf(fields[NM_FLD_FWD], &ifp->hostfwd);
+    nm_get_field_buf(fields[NM_FLD_SMB], &ifp->smb);
 
     if (field_status(fields[NM_FLD_NDRV]))
         nm_form_check_data(_("Net driver"), ifp->drv, err);
@@ -341,6 +352,8 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
 #endif
     if (field_status(fields[NM_FLD_USER]))
         nm_form_check_data(_("User mode"), ifp->netuser, err);
+    if (field_status(fields[NM_FLD_SMB]))
+        nm_form_check_data(_("Share folder"), ifp->smb, err);
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         goto out;
@@ -509,6 +522,13 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
         nm_str_format(&query,
             "UPDATE ifaces SET hostfwd='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->hostfwd.data, name->data, ifp->name.data);
+        nm_db_edit(query.data);
+    }
+
+    if (field_status(fields[NM_FLD_SMB])) {
+        nm_str_format(&query,
+            "UPDATE ifaces SET smb='%s' WHERE vm_name='%s' AND if_name='%s'",
+            ifp->smb.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
 

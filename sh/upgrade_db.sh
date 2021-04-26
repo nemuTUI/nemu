@@ -6,7 +6,7 @@ if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=16
+DB_ACTUAL_VERSION=17
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 USER=$(whoami)
 RC=0
@@ -191,6 +191,13 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
              sqlite3 "$DB_PATH" -line 'ALTER TABLE ifaces ADD hostfwd char;' &&
              sqlite3 "$DB_PATH" -line 'UPDATE ifaces SET netuser="0";' &&
              sqlite3 "$DB_PATH" -line 'PRAGMA user_version=16'
+             ) || RC=1
+            ;;
+
+         ( 16 )
+             (
+             sqlite3 "$DB_PATH" -line 'ALTER TABLE ifaces ADD smb char;' &&
+             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=17'
              ) || RC=1
             ;;
 

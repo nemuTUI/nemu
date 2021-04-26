@@ -326,6 +326,11 @@ void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
                     nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_FWD + idx_shift));
             NM_PR_VM_INFO();
         }
+        if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_SMB + idx_shift) != 0) {
+            nm_str_format(&buf, "%-12s%s", "smb: ",
+                    nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_SMB + idx_shift));
+            NM_PR_VM_INFO();
+        }
 
         goto out;
     }
