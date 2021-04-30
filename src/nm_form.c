@@ -199,14 +199,20 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                 drop = newwin(list_len + 2, max_len + 4, y + 1, x);
                 keypad(drop, TRUE);
                 panel = new_panel(drop);
-                do {
+                for(;;) {
                     werase(drop);
                     nm_menu_scroll(&list, list_len, drop_ch);
                     nm_print_dropdown_menu(&list, drop);
-                } while ((drop_ch = wgetch(drop)) != NM_KEY_ENTER);
+                    drop_ch =  wgetch(drop);
+                    if (drop_ch == NM_KEY_ENTER || drop_ch == NM_KEY_ESC) {
+                        break;
+                    }
+                }
 
-                set_field_buffer(current_field(form), 0,
-                        args->kwds[(list.item_first + list.highlight) - 1]);
+                if (drop_ch == NM_KEY_ENTER) {
+                    set_field_buffer(current_field(form), 0,
+                            args->kwds[(list.item_first + list.highlight) - 1]);
+                }
 
                 nm_vect_free(list.v, NULL);
                 hide_panel(panel);
