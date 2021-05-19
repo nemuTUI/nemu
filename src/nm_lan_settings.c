@@ -493,6 +493,10 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
     set_field_buffer(sfields[NM_SVG_FLD_TYPE], 0, nm_form_svg_state[0]);
     set_field_buffer(sfields[NM_SVG_FLD_LAYT], 0, nm_form_svg_layout[0]);
 
+    if (vgroup.n_memb == 1) {
+        field_opts_off(sfields[NM_SVG_FLD_GROUP], O_ACTIVE);
+    }
+
     werase(action_window);
     werase(help_window);
     nm_init_action(_(NM_MSG_EXPORT_MAP));
