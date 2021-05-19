@@ -17,4 +17,4 @@ matrix:
         - >
           sudo apt-get install -qq libdbus-1-dev libncursesw5-dev libsqlite3-dev
           libusb-1.0-0-dev libarchive-dev libgraphviz-dev libudev-dev cppcheck &&
-          sudo pip install codespell
+          sudo pip install codespell && sudo apt upgrade cmake
