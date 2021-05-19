@@ -13,9 +13,10 @@ SRC_URI=""
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="+vnc-client +ovf +spice dbus savevm svg utf"
+IUSE="+vnc-client +ovf +spice dbus svg utf"
 
 RDEPEND="
+	dev-libs/json-c
 	sys-libs/ncurses:0=[unicode]
 	dev-db/sqlite:3=
 	dev-libs/libusb:1=
@@ -33,7 +34,6 @@ DEPEND="${RDEPEND}
 src_configure() {
 	local mycmakeargs=(
 		-DNM_WITH_VNC_CLIENT=$(usex vnc-client)
-		-DNM_SAVEVM_SNAPSHOTS=$(usex savevm)
 		-DNM_WITH_OVF_SUPPORT=$(usex ovf)
 		-DNM_WITH_NETWORK_MAP=$(usex svg)
 		-DNM_WITH_SPICE=$(usex spice)
@@ -65,9 +65,4 @@ pkg_postinst() {
 	elog "/usr/share/nemu/scripts/setup_nemu_nonroot.sh linux <username>"
 	elog "and add udev rule:"
 	elog "cp /usr/share/nemu/scripts/42-net-macvtap-perm.rules /lib/udev/rules.d"
-	if use savevm; then
-		elog ""
-		elog "QEMU must be patched with qemu-qmp-savevm-VERSION.patch"
-		elog "Get this patch from nEMU repository"
-	fi
 }
