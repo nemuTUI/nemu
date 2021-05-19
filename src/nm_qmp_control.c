@@ -580,7 +580,7 @@ static void nm_qmp_talk_async(int sd, const char *cmd,
     fd_set readset;
     ssize_t nread;
 
-    tv.tv_sec = 5;
+    tv.tv_sec = 300;
     tv.tv_usec = 0;
 
     FD_ZERO(&readset);
