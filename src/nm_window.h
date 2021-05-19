@@ -84,7 +84,7 @@ extern nm_panel_t *action_panel;
 #define NM_MSG_VDRIVE_DEL "Delete virtual drive"
 #define NM_MSG_ADD_VETH   "Create VETH interface"
 #define NM_MSG_INST_CONF  "Already installed (y/n)"
-#define NM_MSG_SNAP_OVER  "Override snapshot? (y/n)"
+#define NM_MSG_SNAP_OVER  "This name is already used, delete it first" NM_MSG_ANY_KEY
 #define NM_MSG_RUNNING    "Already running" NM_MSG_ANY_KEY
 #define NM_MSG_NO_SPACE   "No space left for importing drive image" NM_MSG_ANY_KEY
 #define NM_MSG_IFCLR_DONE "Unused ifaces deleted" NM_MSG_ANY_KEY
@@ -126,6 +126,7 @@ extern nm_panel_t *action_panel;
 #define NM_MSG_USB_EDATA  "Malformed input data" NM_MSG_ANY_KEY
 #define NM_MSG_USB_ATTAC  "Already attached" NM_MSG_ANY_KEY
 #define NM_MSG_BAD_OVF    "Incorrect OVF version" NM_MSG_ANY_KEY
+#define NM_MSG_NO_DAEMON  "Start daemon: nemu --daemon" NM_MSG_ANY_KEY
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)

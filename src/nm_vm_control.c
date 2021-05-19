@@ -410,7 +410,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
         nm_vect_insert_cstr(argv, "-drive");
 
-        nm_str_format(&buf, "id=hd%zu,media=disk,if=%s,file=%s%s",
+        nm_str_format(&buf, "node-name=hd%zu,media=disk,if=%s,file=%s%s",
             n, blk_drv_type, vmdir.data, drive_img->data);
         if (scsi_added && (nm_str_cmp_st(discard, NM_ENABLE) == NM_OK)) {
             nm_str_append_format(&buf, "%s", ",discard=unmap,detect-zeroes=unmap");
@@ -430,7 +430,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         }
     }
 
-#ifdef NM_SAVEVM_SNAPSHOTS
     /* load vm snapshot if exists */
     {
         nm_str_t query = NM_INIT_STR;
@@ -453,7 +452,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_str_free(&query);
         nm_vect_free(&snap_res, nm_str_vect_free_cb);
     }
-#endif /* NM_SAVEVM_SNAPSHOTS */
 
     nm_vect_insert_cstr(argv, "-m");
     nm_vect_insert(argv,

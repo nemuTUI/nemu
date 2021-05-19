@@ -8,8 +8,6 @@
 #include <nm_qmp_control.h>
 #include <nm_vm_snapshot.h>
 
-#if defined (NM_SAVEVM_SNAPSHOTS)
-
 static const char NM_FORMSTR_NAME[] = "Snapshot name";
 static const char NM_FORMSTR_LOAD[] = "Load at next boot";
 static const char NM_FORMSTR_SNAP[] = "Snapshot";
@@ -392,12 +390,8 @@ static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data)
 
     if (names.n_memb != 0) {
         curs_set(0);
-        int ch = nm_notify(_(NM_MSG_SNAP_OVER));
-
-        if (ch == 'y')
-            data->update = 1;
-        else
-            rc = NM_ERR;
+        nm_warn(_(NM_MSG_SNAP_OVER));
+        rc = NM_ERR;
     }
 
 out:
@@ -426,6 +420,4 @@ static void nm_vm_snapshot_to_db(const nm_str_t *name, const nm_vmsnap_t *data)
 
     nm_str_free(&query);
 }
-#endif
-
 /* vim:set ts=4 sw=4: */

@@ -260,13 +260,6 @@ static void nm_print_feset(void)
 #endif
             " SPICE");
     nm_vect_insert_cstr(&feset,
-#if defined (NM_SAVEVM_SNAPSHOTS)
-            NM_FESET_YES
-#else
-            NM_FESET_NO
-#endif
-            " Snapshots");
-    nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_OVF_SUPPORT)
             NM_FESET_YES
 #else

@@ -292,8 +292,11 @@ void nm_start_main_loop(void)
                 nm_viewer(name);
                 break;
 
-#ifdef NM_SAVEVM_SNAPSHOTS
             case NM_KEY_S_UP:
+                if (access(cfg->daemon_pid.data, R_OK) == -1) {
+                    nm_warn(_(NM_MSG_NO_DAEMON));
+                    break;
+                }
                 if (!vm_status) {
                     nm_warn(NM_MSG_MUST_RUN);
                     break;
@@ -306,13 +309,20 @@ void nm_start_main_loop(void)
                 break;
 
             case NM_KEY_X_UP:
+                if (access(cfg->daemon_pid.data, R_OK) == -1) {
+                    nm_warn(_(NM_MSG_NO_DAEMON));
+                    break;
+                }
                 nm_vm_snapshot_load(name, vm_status);
                 break;
 
             case NM_KEY_D_UP:
+                if (access(cfg->daemon_pid.data, R_OK) == -1) {
+                    nm_warn(_(NM_MSG_NO_DAEMON));
+                    break;
+                }
                 nm_vm_snapshot_delete(name, vm_status);
                 break;
-#endif /* NM_SAVEVM_SNAPSHOTS */
 
             case NM_KEY_L:
                 if (vm_status) {

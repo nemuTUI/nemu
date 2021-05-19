@@ -631,10 +631,8 @@ void nm_print_help(void)
 #endif
         "p", "z", "f", "d", "y", "e",
         "i", "C", "a", "l", "b", "h",
-        "m", "v", "u", "P", "R",
-#if (NM_SAVEVM_SNAPSHOTS)
-        "S", "X", "D",
-#endif
+        "m", "v", "u", "P", "R", "S",
+        "X", "D",
 #if defined (NM_OS_LINUX)
         "+", "-",
 #endif
@@ -664,11 +662,9 @@ void nm_print_help(void)
         "delete unused tap interfaces",
         "pause vm",
         "resume vm",
-#if (NM_SAVEVM_SNAPSHOTS)
         "take vm snapshot",
         "revert vm snapshot",
         "delete vm snapshot",
-#endif
 #if defined (NM_OS_LINUX)
         "attach usb device",
         "detach usb device",

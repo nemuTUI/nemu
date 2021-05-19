@@ -1,3 +1,6 @@
+#if defined (NM_OS_LINUX)
+# define _GNU_SOURCE
+#endif
 #include <nm_core.h>
 #include <nm_dbus.h>
 #include <nm_utils.h>
@@ -6,6 +9,13 @@
 
 #include <sys/wait.h> /* waitpid(2) */
 #include <time.h> /* nanosleep(2) */
+#include <pthread.h>
+#include <mqueue.h>
+
+#include <json.h>
+
+/* TODO get len from /proc/sys/fs/mqueue/msgsize_max */
+#define MQ_LEN 8192
 
 static volatile sig_atomic_t nm_mon_rebuild = 0;
 
@@ -19,15 +29,26 @@ typedef struct nm_mon_item {
     int8_t state;
 } nm_mon_item_t;
 
-#if defined (NM_OS_LINUX)
+typedef struct nm_qmp_data {
+    bool stop;
+} nm_qmp_data_t;
+
+typedef struct nm_qmp_w_data {
+    nm_str_t *cmd;
+    pthread_barrier_t *barrier;
+} nm_qmp_w_data_t;
+
 typedef struct nm_clean_data {
     nm_vect_t *mon_list;
     nm_vect_t *vm_list;
+    pthread_t *qmp_worker;
+    nm_qmp_data_t qmp_data;
 } nm_clean_data_t;
-#endif
 
 #define NM_ITEM_INIT (nm_mon_item_t) { NULL, -1 }
-#define NM_CLEAN_INIT (nm_clean_data_t) { NULL, NULL }
+#define NM_QMP_INIT (nm_qmp_data_t) { false }
+#define NM_QMP_W_INIT (nm_qmp_w_data_t) { NULL, NULL }
+#define NM_CLEAN_INIT (nm_clean_data_t) { NULL, NULL, NULL, NM_QMP_INIT }
 
 static inline int8_t nm_mon_item_get_status(const nm_vect_t *v, const size_t idx)
 {
@@ -63,16 +84,128 @@ static void nm_mon_cleanup(int rc, void *arg)
     nm_dbus_disconnect();
 #endif
 
+    data->qmp_data.stop = true;
+    pthread_join(*data->qmp_worker, NULL);
+
     unlink(nm_cfg_get()->daemon_pid.data);
     nm_exit_core();
 }
 #endif /* NM_OS_LINUX */
 
+void *nm_qmp_worker(void *data)
+{
+    struct json_object *parsed, *args, *jobid;
+    nm_str_t vmname = NM_INIT_STR;
+    nm_qmp_w_data_t *arg = data;
+    nm_str_t cmd = NM_INIT_STR;
+    const char *jobid_str, *it;
+    bool get_name = false;
+
+    nm_str_copy(&cmd, arg->cmd);
+    pthread_barrier_wait(arg->barrier);
+
+    pthread_detach(pthread_self());
+
+    /* TODO error handling */
+    /* extract VM name */
+    parsed = json_tokener_parse(cmd.data);
+    json_object_object_get_ex(parsed, "arguments", &args);
+    json_object_object_get_ex(args, "job-id", &jobid);
+    jobid_str = json_object_get_string(jobid);
+
+    it = jobid_str;
+
+    while (*it) {
+        if (*it == '-' && !get_name) {
+            get_name = true;
+            it++;
+        } else if (*it == '-' && get_name) {
+            break;
+        }
+
+        if (get_name) {
+            nm_str_add_char_opt(&vmname, *it);
+        }
+
+        it++;
+    }
+
+    nm_qmp_vm_exec_async(&vmname, cmd.data, jobid_str);
+
+    json_object_put(parsed);
+
+    nm_str_free(&cmd);
+    nm_str_free(&vmname);
+
+    pthread_exit(NULL);
+}
+
+void *nm_qmp_dispatcher(void *thr)
+{
+    const nm_cfg_t *cfg = nm_cfg_get();
+    nm_qmp_data_t *args = thr;
+    struct timespec ts;
+    ssize_t rcv_len;
+    FILE *log;
+    mqd_t mq;
+
+    if ((log = fopen(cfg->log_path.data, "w")) == NULL) {
+        pthread_exit(NULL);
+    }
+
+    if ((mq = mq_open("/nemu-qmp", O_RDWR | O_CREAT,
+                    0600, NULL)) == -1) {
+        fprintf(log, "%s:cannot open mq: %s\n", __func__, strerror(errno));
+        fflush(log);
+        goto out;
+    }
+
+    ts.tv_sec = 1;
+    ts.tv_nsec = 0;
+
+    while (!args->stop) {
+        char msg[MQ_LEN + 1] = {0};
+
+        rcv_len = mq_timedreceive(mq, msg, MQ_LEN, NULL, &ts);
+        if (rcv_len > 0) {
+            nm_qmp_w_data_t data = NM_QMP_W_INIT;
+            nm_str_t cmd = NM_INIT_STR;
+            pthread_barrier_t barr;
+            pthread_t thr;
+
+            if (pthread_barrier_init(&barr, NULL, 2) != 0) {
+                fprintf(log, "%s:cannot init barrier\n", __func__);
+                fflush(log);
+            }
+
+            data.barrier = &barr;
+            data.cmd = &cmd;
+
+            nm_str_format(&cmd, "%s", msg);
+
+            if (pthread_create(&thr, NULL, nm_qmp_worker, &data) != 0) {
+                nm_exit(EXIT_FAILURE);
+            }
+#if defined (NM_OS_LINUX)
+            pthread_setname_np(thr, "nemu-qmp-worker");
+#endif
+            pthread_barrier_wait(&barr);
+            pthread_barrier_destroy(&barr);
+            nm_str_free(&cmd);
+        }
+    }
+
+out:
+    fclose(log);
+    mq_close(mq);
+    pthread_exit(NULL);
+}
+
 void nm_mon_start(void)
 {
+    const nm_cfg_t *cfg = nm_cfg_get();
     pid_t pid, wpid;
     int wstatus = 0;
-    const nm_cfg_t *cfg = nm_cfg_get();
 
     if (!cfg->start_daemon)
         return;
@@ -144,12 +277,14 @@ out:
 
 void nm_mon_loop(void)
 {
-    struct timespec ts;
-    struct sigaction sa;
-    pid_t pid;
+    nm_clean_data_t clean = NM_CLEAN_INIT;
     nm_vect_t mon_list = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
     const nm_cfg_t *cfg;
+    struct sigaction sa;
+    struct timespec ts;
+    pthread_t qmp_thr;
+    pid_t pid;
 
     nm_cfg_init();
     cfg = nm_cfg_get();
@@ -180,10 +315,10 @@ void nm_mon_loop(void)
     }
 
 #if defined (NM_OS_LINUX)
-    nm_clean_data_t clean = NM_CLEAN_INIT;
 
     clean.mon_list = &mon_list;
     clean.vm_list = &vm_list;
+    clean.qmp_worker = &qmp_thr;
 
     if (on_exit(nm_mon_cleanup, &clean) != 0) {
         fprintf(stderr, "%s: on_exit(3) failed\n", __func__);
@@ -215,6 +350,12 @@ void nm_mon_loop(void)
     if (nm_dbus_connect() != NM_OK) {
         nm_exit(EXIT_FAILURE);
     }
+#endif
+    if (pthread_create(&qmp_thr, NULL, nm_qmp_dispatcher, &clean.qmp_data) != 0) {
+        nm_exit(EXIT_FAILURE);
+    }
+#if defined (NM_OS_LINUX)
+    pthread_setname_np(qmp_thr, "nemu-qmp-dsp");
 #endif
 
     for (;;) {

@@ -5,14 +5,15 @@
 #include <nm_ncurses.h>
 #include <nm_vm_control.h>
 
-#include <sys/wait.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <libgen.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 
 enum {
     NM_BLKSIZE      = 131072, /* 128KiB */
@@ -332,8 +333,10 @@ int nm_mkdir_parent(const nm_str_t *path, mode_t mode)
         nm_str_append_format(&buf, "/%s", (char *)path_tok.data[n]);
         rc = mkdir(buf.data, mode);
         if (rc < 0 && errno != EEXIST) {
-            nm_debug(_("%s: failed to create directory \"%s\" (%s)"), __func__, buf.data, strerror(errno));
-            fprintf(stderr, _("%s: failed to create directory \"%s\" (%s)"), __func__, buf.data, strerror(errno));
+            nm_debug(_("%s: failed to create directory \"%s\" (%s)"),
+                    __func__, buf.data, strerror(errno));
+            fprintf(stderr, _("%s: failed to create directory \"%s\" (%s)"),
+                    __func__, buf.data, strerror(errno));
             break;
         } else {
             rc = NM_OK;
@@ -343,6 +346,114 @@ int nm_mkdir_parent(const nm_str_t *path, mode_t mode)
     nm_str_free(&buf);
     nm_vect_free(&path_tok, NULL);
     return rc;
+}
+
+void nm_get_time(nm_str_t *res, const char *fmt)
+{
+    struct tm tm;
+    time_t now;
+
+    if (!res || !fmt) {
+        return;
+    }
+
+    if (time(&now) == -1) {
+        nm_bug(_("%s: cannot get time"), __func__);
+    }
+
+    if (localtime_r(&now, &tm) == NULL) {
+        nm_bug(_("%s: cannot transform time"), __func__);
+    }
+
+    if (res->len) {
+        nm_str_trunc(res, 0);
+    }
+
+    /* strftime(3) is bad desined, so we write own... */
+    while (*fmt) {
+        char ch = *fmt;
+        char ch_next = *(fmt + 1);
+
+        if (ch == '%' && ch_next != '\0') {
+            fmt++;
+            switch (ch_next) {
+            case 'Y':
+                nm_str_append_format(res, "%d", tm.tm_year + 1900);
+                break;
+            case 'm':
+                nm_str_append_format(res, "%02d", tm.tm_mon + 1);
+                break;
+            case 'd':
+                nm_str_append_format(res, "%02d", tm.tm_mday);
+                break;
+            case 'H':
+                nm_str_append_format(res, "%02d", tm.tm_hour);
+                break;
+            case 'M':
+                nm_str_append_format(res, "%02d", tm.tm_min);
+                break;
+            case 'S':
+                nm_str_append_format(res, "%02d", tm.tm_sec);
+                break;
+            case '%':
+                nm_str_add_char_opt(res, '%');
+                break;
+            default:
+                nm_bug(_("%s: bad format: %%%c"), __func__, ch_next);
+            }
+        } else {
+            nm_str_add_char_opt(res, ch);
+        }
+
+        fmt++;
+    }
+}
+
+void nm_gen_rand_str(nm_str_t *res, size_t len)
+{
+    const char rnd[] = "0123456789"
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    struct timespec ts;
+
+    if (!res) {
+        return;
+    }
+
+    if (res->len) {
+        nm_str_trunc(res, 0);
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    srand((time_t) ts.tv_nsec);
+
+    while (len) {
+        nm_str_add_char_opt(res, rnd[rand() % (sizeof(rnd) - 1)]);
+        len--;
+    }
+}
+
+void nm_gen_uid(nm_str_t *res)
+{
+    const char fmt[] = "%Y-%m-%d-%H-%M-%S";
+    nm_str_t time = NM_INIT_STR;
+    nm_str_t rnd = NM_INIT_STR;
+
+    if (!res) {
+        return;
+    }
+
+    if (res->len) {
+        nm_str_trunc(res, 0);
+    }
+
+    nm_get_time(&time, fmt);
+    nm_gen_rand_str(&rnd, 8);
+
+    nm_str_format(res, "%s-%s", time.data, rnd.data);
+
+    nm_str_free(&time);
+    nm_str_free(&rnd);
 }
 
 /* vim:set ts=4 sw=4: */

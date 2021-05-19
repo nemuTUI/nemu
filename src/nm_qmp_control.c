@@ -1,4 +1,5 @@
 #include <nm_core.h>
+#include <nm_dbus.h>
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
@@ -6,9 +7,19 @@
 #include <nm_usb_devices.h>
 #include <nm_qmp_control.h>
 
-#include <sys/time.h>
-#include <sys/un.h>
 #include <sys/socket.h>
+#include <sys/un.h>
+#include <mqueue.h>
+
+#include <json.h>
+
+enum {
+    NM_QMP_STATE_DONE = 0,
+    NM_QMP_STATE_MORE,
+    NM_QMP_STATE_NEXT,
+    NM_QMP_STATE_REPEAT,
+    NM_QMP_STATE_UNDEF
+};
 
 static const char NM_QMP_CMD_INIT[]     = "{\"execute\":\"qmp_capabilities\"}";
 static const char NM_QMP_CMD_VM_SHUT[]  = "{\"execute\":\"system_powerdown\"}";
@@ -16,17 +27,25 @@ static const char NM_QMP_CMD_VM_QUIT[]  = "{\"execute\":\"quit\"}";
 static const char NM_QMP_CMD_VM_RESET[] = "{\"execute\":\"system_reset\"}";
 static const char NM_QMP_CMD_VM_STOP[]  = "{\"execute\":\"stop\"}";
 static const char NM_QMP_CMD_VM_CONT[]  = "{\"execute\":\"cont\"}";
+static const char NM_QMP_CMD_JOBS[]     = "{\"execute\":\"query-jobs\"}";
 
-#if defined (NM_SAVEVM_SNAPSHOTS)
-static const char NM_QMP_CMD_EXECUTE[]  = \
-    "{\"execute\":\"%s\",\"arguments\":{\"name\":\"%s\"}}";
-#endif
+static const char NM_QMP_CMD_SAVEVM[]   = \
+    "{\"execute\":\"snapshot-save\",\"arguments\":{\"job-id\":" \
+    "\"vmsave-%s-%s\",\"tag\":\"%s\",\"vmstate\":\"%s\",\"devices\":[%s]}}";
 
-static const char NM_QMP_CMD_USB_ADD[] = \
+static const char NM_QMP_CMD_LOADVM[]   = \
+    "{\"execute\":\"snapshot-load\",\"arguments\":{\"job-id\":" \
+    "\"vmload-%s-%s\",\"tag\":\"%s\",\"vmstate\":\"%s\",\"devices\":[%s]}}";
+
+static const char NM_QMP_CMD_DELVM[]    = \
+    "{\"execute\":\"snapshot-delete\",\"arguments\":{\"job-id\":" \
+    "\"vmdel-%s-%s\",\"tag\":\"%s\",\"devices\":[%s]}}";
+
+static const char NM_QMP_CMD_USB_ADD[]  = \
     "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"usb-host\"," \
     "\"hostbus\":\"%u\",\"hostaddr\":\"%u\",\"id\":\"usb-%s-%s-%s\"}}";
 
-static const char NM_QMP_CMD_USB_DEL[] = \
+static const char NM_QMP_CMD_USB_DEL[]  = \
     "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"usb-%s-%s-%s\"}}";
 
 /* Get peripheral qmp command example
@@ -56,11 +75,12 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h);
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path);
 static int nm_qmp_talk(int sd, const char *cmd,
                        size_t len, struct timeval *tv);
-#if defined (NM_SAVEVM_SNAPSHOTS)
-static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
-                         const char *cmd);
-#endif
+static void nm_qmp_talk_async(int sd, const char *cmd,
+        size_t len, const char *jobid);
+static int nm_qmp_send(const nm_str_t *cmd);
 static int nm_qmp_check_answer(const nm_str_t *answer);
+static int nm_qmp_parse(const char *jobid, const nm_str_t *answer);
+static int nm_qmp_check_job(const char *jobid, const nm_str_t *answer);
 
 void nm_qmp_vm_shut(const nm_str_t *name)
 {
@@ -97,22 +117,104 @@ void nm_qmp_vm_resume(const nm_str_t *name)
     nm_qmp_vm_exec(name, NM_QMP_CMD_VM_CONT, &tv);
 }
 
-#if defined (NM_SAVEVM_SNAPSHOTS)
 int nm_qmp_savevm(const nm_str_t *name, const nm_str_t *snap)
 {
-    return nm_qmp_vmsnap(name, snap, "savevm");
+    nm_vect_t drives = NM_INIT_VECT;
+    nm_str_t query = NM_INIT_STR;
+    nm_str_t devs = NM_INIT_STR;
+    nm_str_t uid = NM_INIT_STR;
+    nm_str_t cmd = NM_INIT_STR;
+    size_t drives_count;
+    int rc;
+
+    nm_str_format(&query, NM_VM_GET_DRIVES_SQL, name->data);
+    nm_db_select(query.data, &drives);
+    drives_count = drives.n_memb / NM_DRV_IDX_COUNT;
+
+    for (size_t n = 0; n < drives_count; n++) {
+        nm_str_append_format(&devs, "%s\"hd%zu\"", (!n) ? "" : ", ", n);
+    }
+
+    nm_gen_uid(&uid);
+
+    nm_str_format(&cmd, NM_QMP_CMD_SAVEVM, name->data, uid.data, snap->data,
+            "hd0", devs.data);
+    rc = nm_qmp_send(&cmd);
+
+    nm_vect_free(&drives, nm_str_vect_free_cb);
+    nm_str_free(&devs);
+    nm_str_free(&cmd);
+    nm_str_free(&query);
+    nm_str_free(&uid);
+
+    return rc;
 }
 
 int nm_qmp_loadvm(const nm_str_t *name, const nm_str_t *snap)
 {
-    return nm_qmp_vmsnap(name, snap, "loadvm");
+    nm_vect_t drives = NM_INIT_VECT;
+    nm_str_t query = NM_INIT_STR;
+    nm_str_t devs = NM_INIT_STR;
+    nm_str_t uid = NM_INIT_STR;
+    nm_str_t cmd = NM_INIT_STR;
+    size_t drives_count;
+    int rc;
+
+    nm_str_format(&query, NM_VM_GET_DRIVES_SQL, name->data);
+    nm_db_select(query.data, &drives);
+    drives_count = drives.n_memb / NM_DRV_IDX_COUNT;
+
+    for (size_t n = 0; n < drives_count; n++) {
+        nm_str_append_format(&devs, "%s\"hd%zu\"", (!n) ? "" : ", ", n);
+    }
+
+    nm_gen_uid(&uid);
+
+    nm_str_format(&cmd, NM_QMP_CMD_LOADVM, name->data, uid.data, snap->data,
+            "hd0", devs.data);
+    rc = nm_qmp_send(&cmd);
+
+    nm_vect_free(&drives, nm_str_vect_free_cb);
+    nm_str_free(&devs);
+    nm_str_free(&cmd);
+    nm_str_free(&query);
+    nm_str_free(&uid);
+
+    return rc;
 }
 
 int nm_qmp_delvm(const nm_str_t *name, const nm_str_t *snap)
 {
-    return nm_qmp_vmsnap(name, snap, "delvm");
+    nm_vect_t drives = NM_INIT_VECT;
+    nm_str_t query = NM_INIT_STR;
+    nm_str_t devs = NM_INIT_STR;
+    nm_str_t uid = NM_INIT_STR;
+    nm_str_t cmd = NM_INIT_STR;
+    size_t drives_count;
+    int rc;
+
+    nm_str_format(&query, NM_VM_GET_DRIVES_SQL, name->data);
+    nm_db_select(query.data, &drives);
+    drives_count = drives.n_memb / NM_DRV_IDX_COUNT;
+
+    for (size_t n = 0; n < drives_count; n++) {
+        nm_str_append_format(&devs, "%s\"hd%zu\"", (!n) ? "" : ", ", n);
+    }
+
+    nm_gen_uid(&uid);
+
+    nm_str_format(&cmd, NM_QMP_CMD_DELVM, name->data, uid.data,
+            snap->data, devs.data);
+    rc = nm_qmp_send(&cmd);
+
+    nm_vect_free(&drives, nm_str_vect_free_cb);
+    nm_str_free(&devs);
+    nm_str_free(&cmd);
+    nm_str_free(&query);
+    nm_str_free(&uid);
+
+    return rc;
 }
-#endif
 
 int nm_qmp_usb_attach(const nm_str_t *name, const nm_usb_data_t *usb)
 {
@@ -178,28 +280,23 @@ out:
     return rc;
 }
 
-#if defined (NM_SAVEVM_SNAPSHOTS)
-static int nm_qmp_vmsnap(const nm_str_t *name, const nm_str_t *snap,
-                         const char *cmd)
+static int nm_qmp_send(const nm_str_t *cmd)
 {
-    nm_str_t qmp_query = NM_INIT_STR;
-    struct timeval tv;
-    int rc;
+    mqd_t mq;
 
-    /* this operation can take a long time */
-    tv.tv_sec = nm_cfg_get()->snapshot_timeout;
-    tv.tv_usec = 0;
+    if ((mq = mq_open("/nemu-qmp", O_WRONLY | O_CREAT | O_NONBLOCK,
+                    0600, NULL)) == -1) {
+        return NM_ERR;
+    }
 
-    nm_str_format(&qmp_query, NM_QMP_CMD_EXECUTE, cmd, snap->data);
+    if (mq_send(mq, cmd->data, cmd->len, 0) == EAGAIN) {
+        return NM_ERR;
+    }
 
-    nm_debug("exec qmp: %s\n", qmp_query.data);
-    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+    mq_close(mq);
 
-    nm_str_free(&qmp_query);
-
-    return rc;
+    return NM_OK;
 }
-#endif
 
 static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
                           struct timeval *tv)
@@ -222,6 +319,27 @@ static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
 out:
     nm_str_free(&sock_path);
     return rc;
+}
+
+void nm_qmp_vm_exec_async(const nm_str_t *name, const char *cmd,
+        const char *jobid)
+{
+    nm_str_t sock_path = NM_INIT_STR;
+    nm_qmp_handle_t qmp = NM_INIT_QMP;
+
+    nm_qmp_sock_path(name, &sock_path);
+
+    qmp.sock.sun_family = AF_UNIX;
+    nm_strlcpy(qmp.sock.sun_path, sock_path.data, sizeof(qmp.sock.sun_path));
+
+    if (nm_qmp_init_cmd(&qmp) == NM_ERR)
+        goto out;
+
+    nm_qmp_talk_async(qmp.sd, cmd, strlen(cmd), jobid);
+    close(qmp.sd);
+
+out:
+    nm_str_free(&sock_path);
 }
 
 static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
@@ -271,6 +389,127 @@ static int nm_qmp_check_answer(const nm_str_t *answer)
     regfree(&reg);
 
     return rc;
+}
+
+static int nm_qmp_parse(const char *jobid, const nm_str_t *answer)
+{
+    int state = NM_QMP_STATE_UNDEF;
+    nm_vect_t json = NM_INIT_VECT;
+    char *saveptr;
+    char *token;
+
+    saveptr = answer->data;
+
+    while ((token = strtok_r(saveptr, "\n", &saveptr))) {
+        nm_str_t js = NM_INIT_STR;
+        nm_str_format(&js, "%s", token);
+        nm_vect_insert(&json, &js, sizeof(nm_str_t), nm_str_vect_ins_cb);
+        nm_str_free(&js);
+    }
+
+    if (json.n_memb == 1) {
+        nm_debug("%s: single json\n", __func__);
+        state = nm_qmp_check_job(jobid, nm_vect_at(&json, 0));
+        goto out;
+    }
+
+    nm_debug("%s: multiple json: %zu\n", __func__, json.n_memb);
+    for (size_t n = 0; n < json.n_memb; n++) {
+        if ((state = nm_qmp_check_job(jobid, nm_vect_at(&json, n)))
+                == NM_QMP_STATE_DONE) {
+            break;
+        }
+    }
+
+out:
+    nm_vect_free(&json, nm_str_vect_free_cb);
+
+    return state;
+}
+
+static int nm_qmp_check_job(const char *jobid, const nm_str_t *answer)
+{
+    struct json_object *parsed, *ret, *job, *id, *err, *status;
+    int state = NM_QMP_STATE_DONE;
+    nm_str_t body = NM_INIT_STR;
+    int jobs = 0;
+
+    nm_debug("%s: checking job: %s\n", __func__, jobid);
+    nm_debug("%s: answer: %s\n", __func__, answer->data);
+
+    parsed = json_tokener_parse(answer->data);
+    if (!parsed) {
+        nm_debug("%s: [more] need more data\n", __func__);
+        return NM_QMP_STATE_MORE;
+    }
+
+    json_object_object_get_ex(parsed, "return", &ret);
+    if (ret == NULL) {
+        nm_debug("%s: [next] need more data\n", __func__);
+        return NM_QMP_STATE_NEXT;
+    }
+
+    /* skip {"return": {}} */
+    if (json_object_get_type(ret) != json_type_array) {
+        nm_debug("%s: [ret next] need more data\n", __func__);
+        state = NM_QMP_STATE_NEXT;
+        goto out;
+    }
+
+    jobs = json_object_array_length(ret);
+    if (!jobs) {
+        nm_debug("%s: [ret next] need more data\n", __func__);
+        state = NM_QMP_STATE_REPEAT;
+        goto out;
+    }
+
+    nm_debug("%s: got %d jobs\n", __func__, jobs);
+    for (int i = 0; i < jobs; i++) {
+        const char *id_str;
+
+        job = json_object_array_get_idx(ret, i);
+        json_object_object_get_ex(job, "id", &id);
+        id_str = json_object_get_string(id);
+
+        if (nm_str_cmp_tt(id_str, jobid) == NM_OK) {
+            const char *status_str;
+            nm_debug("%s: job found: %s, checking status\n", __func__, id_str);
+
+            json_object_object_get_ex(job, "status", &status);
+            status_str = json_object_get_string(status);
+            if (nm_str_cmp_tt(status_str, "concluded") != NM_OK) {
+                nm_debug("%s: job %s is not finished yet\n", __func__, id_str);
+                state = NM_QMP_STATE_REPEAT;
+                break;
+            }
+
+            json_object_object_get_ex(job, "error", &err);
+            if (err) { /* job executed with errors */
+                const char *err_str;
+                err_str = json_object_get_string(err);
+                nm_debug("%s: job %s executed with error: %s\n",
+                        __func__, id_str, err_str);
+#if defined (NM_WITH_DBUS)
+                nm_str_format(&body, "%s - %s", id_str, err_str);
+                nm_dbus_send_notify("Job finished with error:", body.data);
+#endif
+                break;
+            }
+
+            /*job finished successfully */
+            nm_debug("%s: job %s executed successfully\n", __func__, id_str);
+#if defined (NM_WITH_DBUS)
+            nm_str_format(&body, "%s", id_str);
+            nm_dbus_send_notify("Job finished successfully:", body.data);
+#endif
+            break;
+        }
+    }
+out:
+    json_object_put(parsed);
+    nm_str_free(&body);
+
+    return state;
 }
 
 static int nm_qmp_talk(int sd, const char *cmd,
@@ -328,6 +567,81 @@ err:
     nm_str_free(&answer);
 
     return rc;
+}
+
+static void nm_qmp_talk_async(int sd, const char *cmd,
+                       size_t len, const char *jobid)
+{
+    char buf[NM_QMP_READLEN + 1] = {0};
+    nm_str_t answer = NM_INIT_STR;
+    int ret, read_done = 0;
+    struct timeval tv;
+    int state = NM_QMP_STATE_UNDEF;
+    fd_set readset;
+    ssize_t nread;
+
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+
+    FD_ZERO(&readset);
+    FD_SET(sd, &readset);
+
+    if (write(sd, cmd, len) == -1) {
+        close(sd);
+        //nm_warn(_(NM_MSG_Q_SE_ERR));
+        return;
+    }
+
+    if (write(sd, NM_QMP_CMD_JOBS, sizeof(NM_QMP_CMD_JOBS) - 1) == -1) {
+        close(sd);
+        //nm_warn(_(NM_MSG_Q_SE_ERR));
+        return;
+    }
+
+    while (!read_done) {
+        /* query jobs */
+        if (state == NM_QMP_STATE_REPEAT) {
+            if (write(sd, NM_QMP_CMD_JOBS, sizeof(NM_QMP_CMD_JOBS) - 1) == -1) {
+                close(sd);
+                //nm_warn(_(NM_MSG_Q_SE_ERR));
+                return;
+            }
+            state = NM_QMP_STATE_UNDEF;
+        }
+
+        ret = select(sd + 1, &readset, NULL, NULL, &tv);
+        if (ret == -1) {
+            nm_bug("%s: select error: %s", __func__, strerror(errno));
+        } else if (ret && FD_ISSET(sd, &readset)) { /* data is available */
+            memset(buf, 0, NM_QMP_READLEN);
+            nread = read(sd, buf, NM_QMP_READLEN);
+            if (nread > 1) {
+                if (buf[nread - 2] == '\r') {
+                    buf[nread - 2] = '\0';
+                }
+                if (state == NM_QMP_STATE_MORE) {
+                    nm_str_add_text(&answer, buf);
+                } else {
+                    nm_str_format(&answer, "%s", buf);
+                }
+                /* check for job successfully finished
+                 * and return if it done */
+                if ((state = nm_qmp_parse(jobid, &answer)) == NM_QMP_STATE_DONE)
+                    goto out;
+            } else if (nread == 0) { /* socket closed */
+                read_done = 1;
+            }
+        } else { /* timeout, nothing happens */
+            read_done = 1;
+        }
+    }
+
+    if (answer.len == 0) {
+        //nm_warn(_(NM_MSG_Q_NO_ANS));
+    }
+
+out:
+    nm_str_free(&answer);
 }
 
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path)

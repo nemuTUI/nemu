@@ -45,5 +45,20 @@ void nm_exit(int status)
 
 int nm_mkdir_parent(const nm_str_t *path, mode_t mode);
 
+/*
+ * get date and time, format:
+ *
+ * %Y - year
+ * %m - month
+ * %d - day of the month
+ * %H - hours
+ * %M - minutes
+ * %S - seconds
+ * %% - '%'
+ */
+void nm_get_time(nm_str_t *res, const char *fmt);
+void nm_gen_rand_str(nm_str_t *res, size_t len);
+void nm_gen_uid(nm_str_t *res);
+
 #endif /* NM_UTILS_H_ */
 /* vim:set ts=4 sw=4: */

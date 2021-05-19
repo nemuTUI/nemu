@@ -11,6 +11,7 @@ include(GetGLibcVersion)
 include(CheckSymbolExists)
 include(BuildQEMU)
 include(BuildNcurses)
+include(FindPkgConfig)
 
 set(CMAKE_C_FLAGS_SANITIZER "-g -fsanitize=address -fsanitize=pointer-compare -fsanitize=pointer-subtract -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer" CACHE STRING
     "Flags used by the C compiler during sanitizer build."
@@ -60,7 +61,6 @@ else()
 endif()
 
 option(NM_WITH_OVF_SUPPORT "Build with OVF support" ON)
-option(NM_SAVEVM_SNAPSHOTS "Build with QEMU savevm snapshots" OFF)
 option(NM_WITH_VNC_CLIENT "Build with usage of external VNC client" ON)
 option(NM_WITH_SPICE "Build with Spice protocol support" ON)
 option(NM_WITH_NETWORK_MAP "Build with exporting network map to SVG" OFF)
@@ -90,14 +90,17 @@ endif()
 
 find_package(Sqlite3 REQUIRED)
 find_package(Threads REQUIRED)
+find_package(RT REQUIRED)
 find_package(libusb-1.0 REQUIRED)
 find_package(UDev REQUIRED)
+pkg_check_modules(JSONC REQUIRED json-c)
 
 target_link_libraries(
-  ${PROJECT_NAME} ${CURSES_LIBRARIES} ${SQLITE3_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT} ${LIBUSB_1_LIBRARIES} ${UDEV_LIBRARIES})
+  ${PROJECT_NAME} ${CURSES_LIBRARIES} ${SQLITE3_LIBRARIES} ${JSONC_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT} ${LIBUSB_1_LIBRARIES} ${UDEV_LIBRARIES}
+  ${RT_LIBRARY})
 include_directories(${CURSES_INCLUDE_PATH} ${SQLITE3_INCLUDE_DIR}
-                    ${UDEV_INCLUDE_DIR})
+                    ${UDEV_INCLUDE_DIR} ${JSONC_INCLUDE_DIRS})
 include_directories(SYSTEM ${LIBUSB_1_INCLUDE_DIRS})
 
 add_definitions(-DNM_FULL_DATAROOTDIR="${CMAKE_INSTALL_FULL_DATAROOTDIR}")
@@ -165,10 +168,6 @@ endif()
 
 if(NM_WITH_SPICE)
   add_definitions(-DNM_WITH_SPICE)
-endif()
-
-if(NM_SAVEVM_SNAPSHOTS)
-  add_definitions(-DNM_SAVEVM_SNAPSHOTS)
 endif()
 
 if (NM_USE_UTF)
@@ -320,7 +319,6 @@ message(
   STATUS
     "Using alternative names for network interfaces: ${NM_WITH_NEWLINKPROP}")
 message(STATUS "OVF support: ${NM_WITH_OVF_SUPPORT}")
-message(STATUS "QEMU snapshots: ${NM_SAVEVM_SNAPSHOTS}")
 message(STATUS "VNC/Spice support: ${NM_WITH_VNC_CLIENT}")
 message(STATUS "Spice support: ${NM_WITH_SPICE}")
 message(STATUS "Network map export: ${NM_WITH_NETWORK_MAP}")
