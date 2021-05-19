@@ -338,8 +338,9 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         altname = nm_net_fix_tap_name(&if_name, &maddr);
 
         nm_str_format(&query,
-            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap, altname) "
-            "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, "
+            "vhost, macvtap, altname, netuser) "
+            "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '0')",
             vm->name.data, if_name.data, maddr.data, vm->ifs.driver.data,
 #if defined (NM_OS_LINUX)
             nm_str_cmp_st(&vm->ifs.driver, NM_DEFAULT_NETDRV) == NM_OK ?

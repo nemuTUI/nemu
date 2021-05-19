@@ -161,8 +161,9 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         altname = nm_net_fix_tap_name(&if_name, &maddr);
 
         nm_str_format(&query,
-            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, macvtap, parent_eth, altname) "
-            "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, "
+            "macvtap, parent_eth, altname, netuser) "
+            "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 0)",
             dst->data, if_name.data, maddr.data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift)->data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift)->data,
