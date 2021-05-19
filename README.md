@@ -28,7 +28,7 @@
 
 ## Environment Requirements
  * Linux/FreeBSD host
- * QEMU (>= 2.12.0)
+ * QEMU (>= 2.12.0 [minimum] >= 6.0.0 [all features])
 
 ## Packages
  * Debian and Ubuntu [packages](https://software.opensuse.org/download.html?project=home%3ASmartFinn%3AnEMU&package=nemu)
