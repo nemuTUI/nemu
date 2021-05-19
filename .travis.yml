@@ -10,15 +10,15 @@ script:
     - make
 matrix:
   include:
-    - addons:
-      apt:
-        packages:
-          - cmake
-      sources:
-        - kalakris-cmake
     - os: linux
       dist: bionic
       compiler: gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+      sources:
+        - kalakris-cmake
       before_install:
         - >
           sudo apt-get install -qq libdbus-1-dev libncursesw5-dev libsqlite3-dev
