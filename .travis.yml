@@ -13,14 +13,8 @@ matrix:
     - os: linux
       dist: bionic
       compiler: gcc
-      addons:
-        apt:
-          packages:
-            - cmake
-      sources:
-        - kalakris-cmake
       before_install:
         - >
           sudo apt-get install -qq libdbus-1-dev libncursesw5-dev libsqlite3-dev
-          libusb-1.0-0-dev libarchive-dev libgraphviz-dev libudev-dev cppcheck &&
+          libusb-1.0-0-dev libarchive-dev libgraphviz-dev libudev-dev libjson-c-dev cppcheck &&
           sudo pip install codespell
