@@ -136,9 +136,9 @@ void *nm_qmp_worker(void *data)
      *  result: vmdel-vmname
      */
     for (size_t sep = 0; sep < 7; sep++) {
-        char *m = strrchr(jobid_copy.data, '-');
-        if (m) {
-            *m = '\0';
+        char *dash = strrchr(jobid_copy.data, '-');
+        if (dash) {
+            *dash = '\0';
         } else {
             break;
         }
