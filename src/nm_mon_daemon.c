@@ -98,8 +98,9 @@ void *nm_qmp_worker(void *data)
     nm_str_t vmname = NM_INIT_STR;
     nm_qmp_w_data_t *arg = data;
     nm_str_t cmd = NM_INIT_STR;
-    const char *jobid_str, *it;
-    bool get_name = false;
+    nm_str_t jobid_copy = NM_INIT_STR;
+    const char *jobid_str;
+    char *name_start;
 
     nm_str_copy(&cmd, arg->cmd);
     pthread_barrier_wait(arg->barrier);
@@ -113,22 +114,24 @@ void *nm_qmp_worker(void *data)
     json_object_object_get_ex(args, "job-id", &jobid);
     jobid_str = json_object_get_string(jobid);
 
-    it = jobid_str;
+    nm_str_format(&jobid_copy, "%s", jobid_str);
 
-    while (*it) {
-        if (*it == '-' && !get_name) {
-            get_name = true;
-            it++;
-        } else if (*it == '-' && get_name) {
+    for (size_t sep = 0; sep < 7; sep++) {
+        char *m = strrchr(jobid_copy.data, '-');
+        if (m) {
+            *m = '\0';
+        } else {
             break;
         }
-
-        if (get_name) {
-            nm_str_add_char_opt(&vmname, *it);
-        }
-
-        it++;
     }
+
+    name_start = strchr(jobid_copy.data, '-');
+    if (!name_start) {
+        nm_debug("%s: error get VM name from job-id\n", __func__);
+        pthread_exit(NULL);
+    }
+    name_start++;
+    nm_str_format(&vmname, "%s", name_start);
 
     nm_qmp_vm_exec_async(&vmname, cmd.data, jobid_str);
 
@@ -136,6 +139,7 @@ void *nm_qmp_worker(void *data)
 
     nm_str_free(&cmd);
     nm_str_free(&vmname);
+    nm_str_free(&jobid_copy);
 
     pthread_exit(NULL);
 }
