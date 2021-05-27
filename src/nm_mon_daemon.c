@@ -107,11 +107,19 @@ void *nm_qmp_worker(void *data)
 
     pthread_detach(pthread_self());
 
-    /* TODO error handling */
-    /* extract VM name */
     parsed = json_tokener_parse(cmd.data);
+
+    if (!parsed) {
+        nm_debug("%s: cannot parse json\n", __func__);
+        pthread_exit(NULL);
+    }
     json_object_object_get_ex(parsed, "arguments", &args);
     json_object_object_get_ex(args, "job-id", &jobid);
+
+    if (!args || !jobid) {
+        nm_debug("%s: malformed json\n", __func__);
+        pthread_exit(NULL);
+    }
     jobid_str = json_object_get_string(jobid);
 
     /*
@@ -148,8 +156,7 @@ void *nm_qmp_worker(void *data)
         pthread_exit(NULL);
     }
 
-    /* skip dash */
-    name_start++;
+    name_start++; /* skip dash */
     nm_str_format(&vmname, "%s", name_start);
 
     nm_qmp_vm_exec_async(&vmname, cmd.data, jobid_str);
