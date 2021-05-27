@@ -95,10 +95,10 @@ static void nm_mon_cleanup(int rc, void *arg)
 void *nm_qmp_worker(void *data)
 {
     struct json_object *parsed, *args, *jobid;
+    nm_str_t jobid_copy = NM_INIT_STR;
     nm_str_t vmname = NM_INIT_STR;
     nm_qmp_w_data_t *arg = data;
     nm_str_t cmd = NM_INIT_STR;
-    nm_str_t jobid_copy = NM_INIT_STR;
     const char *jobid_str;
     char *name_start;
 
@@ -114,8 +114,19 @@ void *nm_qmp_worker(void *data)
     json_object_object_get_ex(args, "job-id", &jobid);
     jobid_str = json_object_get_string(jobid);
 
+    /*
+     *  Get VM name from job-id
+     *  input string example: vmdel-vmname-2021-05-27-15-14-12-tVusSMWY
+     */
     nm_str_format(&jobid_copy, "%s", jobid_str);
 
+    /*
+     *  Cut job-id, we have 7 dashes in UID.
+     *  input:  vmdel-vmname-2021-05-27-15-14-12-tVusSMWY
+     *                      <----<--<--<--<--<--<--------
+     *                      7    6  5  4  3  2  1
+     *  result: vmdel-vmname
+     */
     for (size_t sep = 0; sep < 7; sep++) {
         char *m = strrchr(jobid_copy.data, '-');
         if (m) {
@@ -125,11 +136,19 @@ void *nm_qmp_worker(void *data)
         }
     }
 
+    /*
+     *  Cut VM name:
+     *  input:  vmdel-vmname
+     *          ----->
+     *  result: -vmname
+     */
     name_start = strchr(jobid_copy.data, '-');
     if (!name_start) {
         nm_debug("%s: error get VM name from job-id\n", __func__);
         pthread_exit(NULL);
     }
+
+    /* skip dash */
     name_start++;
     nm_str_format(&vmname, "%s", name_start);
 
