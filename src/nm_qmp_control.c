@@ -270,8 +270,18 @@ int nm_qmp_test_socket(const nm_str_t *name)
     if ((qmp.sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
         goto out;
 
-    if (connect(qmp.sd, (struct sockaddr *) &qmp.sock, sizeof(qmp.sock)) == 0)
+    if (fcntl(qmp.sd, F_SETFL, O_NONBLOCK) == -1) {
+        close(qmp.sd);
+        goto out;
+    }
+
+    if (connect(qmp.sd, (struct sockaddr *) &qmp.sock, sizeof(qmp.sock)) != 0) {
+        if (errno == EAGAIN) {
+            rc = NM_OK;
+        }
+    } else {
         rc = NM_OK;
+    }
 
     close(qmp.sd);
 out:
