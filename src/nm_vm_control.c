@@ -628,6 +628,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
         if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
             NM_ENABLE) == NM_OK) {
+#if defined (NM_OS_LINUX)
             if (!(flags & NM_VMCTL_INFO)) {
                 /* Delete iface if exists, we are in user mode */
                 uint32_t tap_idx = 0;
@@ -652,6 +653,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                     nm_str_free(&tap_path);
                 }
             }
+#endif /* NM_OS_LINUX */
 
             nm_vect_insert_cstr(argv, "-netdev");
             nm_str_format(&buf, "user,id=netdev%zu", n);

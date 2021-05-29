@@ -184,7 +184,7 @@ void *nm_qmp_dispatcher(void *thr)
     }
 
     if ((mq = mq_open("/nemu-qmp", O_RDWR | O_CREAT,
-                    0600, NULL)) == -1) {
+                    0600, NULL)) == (mqd_t) -1) {
         fprintf(log, "%s:cannot open mq: %s\n", __func__, strerror(errno));
         fflush(log);
         goto out;
