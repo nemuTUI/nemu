@@ -172,6 +172,7 @@ void *nm_qmp_dispatcher(void *thr)
     const nm_cfg_t *cfg = nm_cfg_get();
     nm_qmp_data_t *args = thr;
     struct mq_attr mq_attr;
+    char *msg = NULL;
     ssize_t rcv_len;
     FILE *log;
     mqd_t mq;
@@ -195,10 +196,12 @@ void *nm_qmp_dispatcher(void *thr)
         goto out;
     }
 
+    msg = nm_calloc(1, mq_attr.mq_msgsize + 1);
+
     while (!args->stop) {
-        char *msg = nm_calloc(1, mq_attr.mq_msgsize + 1);
         struct timespec ts;
 
+        memset(msg, 0, mq_attr.mq_msgsize + 1);
         memset(&ts, 0, sizeof(ts));
         clock_gettime(CLOCK_REALTIME, &ts);
         ts.tv_sec += 1;
@@ -230,10 +233,10 @@ void *nm_qmp_dispatcher(void *thr)
             pthread_barrier_destroy(&barr);
             nm_str_free(&cmd);
         }
-        free(msg);
     }
 
 out:
+    free(msg);
     fclose(log);
     mq_close(mq);
     pthread_exit(NULL);
