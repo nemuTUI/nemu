@@ -14,9 +14,6 @@
 
 #include <json.h>
 
-/* TODO get len from /proc/sys/fs/mqueue/msgsize_max */
-#define MQ_LEN 8192
-
 static volatile sig_atomic_t nm_mon_rebuild = 0;
 
 static void nm_mon_check_vms(const nm_vect_t *mon_list);
@@ -174,7 +171,7 @@ void *nm_qmp_dispatcher(void *thr)
 {
     const nm_cfg_t *cfg = nm_cfg_get();
     nm_qmp_data_t *args = thr;
-    struct timespec ts;
+    struct mq_attr mq_attr;
     ssize_t rcv_len;
     FILE *log;
     mqd_t mq;
@@ -190,13 +187,23 @@ void *nm_qmp_dispatcher(void *thr)
         goto out;
     }
 
-    ts.tv_sec = 1;
-    ts.tv_nsec = 0;
+    memset(&mq_attr, 0, sizeof(mq_attr));
+    if (mq_getattr(mq, &mq_attr) == -1) {
+        fprintf(log, "%s:cannot get mq attrs: %s\n", __func__, strerror(errno));
+        fflush(log);
+        close(mq);
+        goto out;
+    }
 
     while (!args->stop) {
-        char msg[MQ_LEN + 1] = {0};
+        char *msg = nm_calloc(1, mq_attr.mq_msgsize + 1);
+        struct timespec ts;
 
-        rcv_len = mq_timedreceive(mq, msg, MQ_LEN, NULL, &ts);
+        memset(&ts, 0, sizeof(ts));
+        clock_gettime(CLOCK_REALTIME, &ts);
+        ts.tv_sec += 1;
+
+        rcv_len = mq_timedreceive(mq, msg, mq_attr.mq_msgsize, NULL, &ts);
         if (rcv_len > 0) {
             nm_qmp_w_data_t data = NM_QMP_W_INIT;
             nm_str_t cmd = NM_INIT_STR;
@@ -223,6 +230,7 @@ void *nm_qmp_dispatcher(void *thr)
             pthread_barrier_destroy(&barr);
             nm_str_free(&cmd);
         }
+        free(msg);
     }
 
 out:
