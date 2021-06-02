@@ -4,7 +4,7 @@
 
 pkgname=nemu-git
 _name=nemu
-pkgver=v2.6.0.r24.g0f67d61
+pkgver=v2.6.0.r76.gbdc4650
 pkgrel=1
 pkgdesc="ncurses interface for QEMU"
 arch=(i686 x86_64)
