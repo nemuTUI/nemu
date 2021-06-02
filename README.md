@@ -33,5 +33,5 @@
 ## Packages
  * Debian and Ubuntu [packages](https://software.opensuse.org/download.html?project=home%3ASmartFinn%3AnEMU&package=nemu)
  * Gentoo: `emerge app-emulation/nemu`
- * FreeBSD: `pkg install nemu` or `make -C /usr/ports/emualtors/nemu install clean`
+ * FreeBSD: `pkg install nemu` or `make -C /usr/ports/emulators/nemu install clean`
  * RPMs: [stable](https://copr.fedorainfracloud.org/coprs/grafin1992/nEMU/), [latest](https://copr.fedorainfracloud.org/coprs/grafin1992/nEMU-latest/)
