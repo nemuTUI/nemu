@@ -1,41 +1,41 @@
-# Maintainer: MaksVal <valmaxster@gmail.com> -> https://github.com/MaksVal
-# Contributor: Fabio 'Lolix' Loli <fabio.loli@disroot.org> -> https://github.com/FabioLolix
+# Maintainer: Stefan Husmann <stefan-husmann@t-online.de>
 # Contributor: Sergey Malkin  <adresatt@gmail.com>
 
 pkgname=nemu-git
-_name=nemu
-pkgver=v2.6.0.r76.gbdc4650
+pkgver=2.6.0.r78.g18f79a4
 pkgrel=1
 pkgdesc="ncurses interface for QEMU"
-arch=(i686 x86_64)
+arch=('i686' 'x86_64')
 url="https://github.com/nemuTUI/nemu"
-license=(BSD)
-depends=(qemu ncurses sqlite udev libusb)
-makedepends=(cmake)
-source=("git+https://github.com/nemuTUI/nemu.git"
-		"https://raw.githubusercontent.com/nemuTUI/nemu/master/LICENSE")
-sha256sums=('SKIP'
-            '0fdc74f6ec229b373f65c5b4621d914151562cd674780d1606f04d24854b2f8c')
+license=('custom:BSD')
+depends=('libarchive' 'libxml2' 'qemu-headless')
+makedepends=('git')
+optdepends=('tigervnc: for vncviewer' 'virt-viewer: for remote-viewer')
+provides=('nemu')
+conflicts=('nemu')
+source=("git+$url.git")
+md5sums=('SKIP')
 
 pkgver() {
-  cd "${srcdir}/${_name}"
-  git describe --long | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
-}
-
-prepare() {
-  echo "${pkgname}-${pkgver}"
-  cd "${srcdir}/${_name}"
-  install -d build
+  cd "${pkgname%-git}"
+  git describe | tr -d v |sed 's+-+.r+' | tr - .
 }
 
 build() {
-  cd "${srcdir}/${_name}/build"
-  cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON
+  cd "${pkgname%-git}"
+  [[ -d build ]] || mkdir build
+  cd build
+  cmake ../
   make
 }
 
 package() {
-  cd "${srcdir}/${_name}/build"
+  cd "${pkgname%-git}"/build
   make DESTDIR="$pkgdir/" install
-  install -D -m644 ../LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  mv "$pkgdir"/usr/local/* "$pkgdir"/usr
+  rmdir "$pkgdir"/usr/local
+  install -Dm644 ../LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
 }
+# Maintainer: MaksVal <valmaxster@gmail.com> -> https://github.com/MaksVal
+# Contributor: Fabio 'Lolix' Loli <fabio.loli@disroot.org> -> https://github.com/FabioLolix
+# Contributor: Sergey Malkin  <adresatt@gmail.com>
