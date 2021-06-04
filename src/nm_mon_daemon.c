@@ -185,14 +185,12 @@ void *nm_qmp_dispatcher(void *thr)
                     0600, NULL)) == (mqd_t) -1) {
         fprintf(log, "%s:cannot open mq: %s\n", __func__, strerror(errno));
         fflush(log);
-        goto out;
+        pthread_exit(NULL);
     }
 
     memset(&mq_attr, 0, sizeof(mq_attr));
     if (mq_getattr(mq, &mq_attr) == -1) {
         fprintf(log, "%s:cannot get mq attrs: %s\n", __func__, strerror(errno));
-        fflush(log);
-        close(mq);
         goto out;
     }
 
