@@ -1,0 +1,13 @@
+API for remote control.
+
+Get VM list.
+request: {"exec": "vm_list"}
+reply:   {"return": [{"name": "_name_", "status": "_status_"}]}
+
+Start VM.
+request: {"exec": "vm_start", "name": "_name_"}
+reply:   {"return": "ok"} or {"return": "err", "error":"_error_"}
+
+Stop VM.
+request: {"exec": "vm_stop", "name": "_name_"}
+reply:   {"return": "ok"} or {"return": "err", "error":"_error_"}

@@ -60,3 +60,9 @@ dbus_enabled = 1
 
 # Message timeout (ms)
 dbus_timeout = 2000
+
+# Enable remote control (default: disabled)
+#remote_control = 0
+
+# Remote control port (default: 20509)
+#remote_listen = 20509
