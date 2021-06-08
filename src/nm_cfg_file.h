@@ -42,6 +42,13 @@ typedef struct {
     uint32_t dbus_enabled:1;
     int64_t dbus_timeout;
 #endif
+#if defined (NM_WITH_REMOTE)
+    nm_str_t api_cert_path;
+    nm_str_t api_key_path;
+    nm_str_t api_hash;
+    uint16_t api_port;
+    uint32_t api_server:1;
+#endif
     uint32_t start_daemon:1;
     uint32_t listen_any:1;
     uint32_t spice_default:1;

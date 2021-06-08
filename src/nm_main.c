@@ -287,6 +287,13 @@ static void nm_print_feset(void)
             NM_FESET_NO
 #endif
             " D-Bus support");
+    nm_vect_insert_cstr(&feset,
+#if defined (NM_WITH_REMOTE)
+            NM_FESET_YES
+#else
+            NM_FESET_NO
+#endif
+            " Remote control");
 
     for (size_t n = 0; n < feset.n_memb; n++)
         nm_str_append_format(&msg, " %s\n", (char *) nm_vect_at(&feset, n));

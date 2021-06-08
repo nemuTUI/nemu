@@ -65,4 +65,13 @@ dbus_timeout = 2000
 #remote_control = 0
 
 # Remote control port (default: 20509)
-#remote_listen = 20509
+#remote_port = 20509
+
+# Remote control public certificate path
+#remote_tls_cert = /path
+
+# Remote control private key path
+#remote_tls_key = /path
+
+# Remote control password hash (sha256)
+#remote_hash = hash

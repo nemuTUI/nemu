@@ -4,6 +4,7 @@
 #include <nm_vector.h>
 #include <nm_cfg_file.h>
 #include <nm_mon_daemon.h>
+#include <nm_remote_api.h>
 #include <nm_ini_parser.h>
 
 #include <dirent.h>
@@ -62,6 +63,13 @@ static const char NM_INI_P_QLOG[]       = "log_cmd";
 static const char NM_INI_P_PID[]        = "pid";
 static const char NM_INI_P_AUTO[]       = "autostart";
 static const char NM_INI_P_SLP[]        = "sleep";
+#if defined (NM_WITH_REMOTE)
+static const char NM_INI_P_API_SRV[]    = "remote_control";
+static const char NM_INI_P_API_PORT[]   = "remote_port";
+static const char NM_INI_P_API_CERT[]   = "remote_tls_cert";
+static const char NM_INI_P_API_KEY[]    = "remote_tls_key";
+static const char NM_INI_P_API_HASH[]   = "remote_hash";
+#endif
 #if defined (NM_WITH_DBUS)
 static const char NM_INI_P_DYES[]       = "dbus_enabled";
 static const char NM_INI_P_DTMT[]       = "dbus_timeout";
@@ -282,6 +290,27 @@ void nm_cfg_init(void)
     } else {
         cfg.daemon_sleep = NM_MON_SLEEP;
     }
+
+#if defined (NM_WITH_REMOTE)
+    nm_str_trunc(&tmp_buf, 0);
+    cfg.api_server = 0;
+    if (nm_get_opt_param(ini, NM_INI_S_DMON, NM_INI_P_API_SRV, &tmp_buf) == NM_OK) {
+        cfg.api_server = !!nm_str_stoui(&tmp_buf, 10);
+    }
+
+    nm_str_trunc(&tmp_buf, 0);
+    cfg.api_port = NM_API_PORT;
+    if (nm_get_opt_param(ini, NM_INI_S_DMON, NM_INI_P_API_PORT, &tmp_buf) == NM_OK) {
+        cfg.api_port = nm_str_stoul(&tmp_buf, 10);
+    }
+
+    if (cfg.api_server) {
+        nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_API_CERT, &cfg.api_cert_path, NULL);
+        nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_API_KEY, &cfg.api_key_path, NULL);
+        nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_API_HASH, &cfg.api_hash, NULL);
+    }
+#endif
+
 #if defined (NM_WITH_DBUS)
     nm_str_trunc(&tmp_buf, 0);
     if (nm_get_opt_param(ini, NM_INI_S_DMON, NM_INI_P_DYES, &tmp_buf) == NM_OK) {
@@ -324,6 +353,11 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.daemon_pid);
     nm_str_free(&cfg.qemu_bin_path);
     nm_vect_free(&cfg.qemu_targets, NULL);
+#if defined (NM_WITH_REMOTE)
+    nm_str_free(&cfg.api_cert_path);
+    nm_str_free(&cfg.api_key_path);
+    nm_str_free(&cfg.api_hash);
+#endif
 }
 
 static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
@@ -469,6 +503,18 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                     "# Message timeout (ms)\ndbus_timeout = 2000"
 #endif
                     "\n");
+#ifdef NM_WITH_REMOTE
+            fprintf(cfg_file, "\n# Enable remote control (default: disabled)\n"
+                "#remote_control = 0\n\n");
+            fprintf(cfg_file, "# Remote control port (default: %d)\n"
+                "#remote_port= %d\n\n", NM_API_PORT, NM_API_PORT);
+            fprintf(cfg_file, "# Remote control public certificate path\n"
+                "#remote_tls_cert = /path\n\n");
+            fprintf(cfg_file, "# Remote control private key path\n"
+                "#remote_tls_key = /path\n\n");
+            fprintf(cfg_file, "# Remote control password hash (sha256)\n"
+                "#remote_hash = hash\n");
+#endif
             fclose(cfg_file);
 
             nm_str_free(&tmp_dir_path);

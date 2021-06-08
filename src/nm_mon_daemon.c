@@ -5,6 +5,8 @@
 #include <nm_dbus.h>
 #include <nm_utils.h>
 #include <nm_cfg_file.h>
+#include <nm_mon_daemon.h>
+#include <nm_remote_api.h>
 #include <nm_qmp_control.h>
 
 #include <sys/wait.h> /* waitpid(2) */
@@ -21,51 +23,23 @@ static void nm_mon_build_list(nm_vect_t *list, nm_vect_t *vms);
 static void nm_mon_signals_handler(int signal);
 static int nm_mon_store_pid(void);
 
-typedef struct nm_mon_item {
-    nm_str_t *name;
-    int8_t state;
-} nm_mon_item_t;
-
-typedef struct nm_qmp_data {
-    bool stop;
-} nm_qmp_data_t;
-
 typedef struct nm_qmp_w_data {
     nm_str_t *cmd;
     pthread_barrier_t *barrier;
 } nm_qmp_w_data_t;
 
 typedef struct nm_clean_data {
-    nm_vect_t *mon_list;
+    nm_mon_vms_t vms;
     nm_vect_t *vm_list;
     pthread_t *qmp_worker;
-    nm_qmp_data_t qmp_data;
+    pthread_t *api_server;
+    nm_thr_ctrl_t qmp_ctrl;
+    nm_thr_ctrl_t api_ctrl;
 } nm_clean_data_t;
 
-#define NM_ITEM_INIT (nm_mon_item_t) { NULL, -1 }
-#define NM_QMP_INIT (nm_qmp_data_t) { false }
 #define NM_QMP_W_INIT (nm_qmp_w_data_t) { NULL, NULL }
-#define NM_CLEAN_INIT (nm_clean_data_t) { NULL, NULL, NULL, NM_QMP_INIT }
-
-static inline int8_t nm_mon_item_get_status(const nm_vect_t *v, const size_t idx)
-{
-    return ((nm_mon_item_t *) nm_vect_at(v, idx))->state;
-}
-
-static inline void nm_mon_item_set_status(const nm_vect_t *v, const size_t idx, int8_t s)
-{
-    ((nm_mon_item_t *) nm_vect_at(v, idx))->state = s;
-}
-
-static inline nm_str_t *nm_mon_item_get_name(const nm_vect_t *v, const size_t idx)
-{
-    return ((nm_mon_item_t *) nm_vect_at(v, idx))->name;
-}
-
-static inline char *nm_mon_item_get_name_cstr(const nm_vect_t *v, const size_t idx)
-{
-    return ((nm_mon_item_t *) nm_vect_at(v, idx))->name->data;
-}
+#define NM_CLEAN_INIT (nm_clean_data_t) \
+    { NM_MON_VMS_INIT, NULL, NULL, NULL, NM_THR_CTRL_INIT, NM_THR_CTRL_INIT }
 
 #if defined (NM_OS_LINUX)
 static void nm_mon_cleanup(int rc, void *arg)
@@ -74,15 +48,17 @@ static void nm_mon_cleanup(int rc, void *arg)
 
     nm_debug("mon daemon exited: %d\n", rc);
 
-    nm_vect_free(data->mon_list, NULL);
+    nm_vect_free(data->vms.list, NULL);
     nm_vect_free(data->vm_list, nm_str_vect_free_cb);
 
 #if defined (NM_WITH_DBUS)
     nm_dbus_disconnect();
 #endif
 
-    data->qmp_data.stop = true;
+    data->qmp_ctrl.stop = true;
+    data->api_ctrl.stop = true;
     pthread_join(*data->qmp_worker, NULL);
+    pthread_join(*data->api_server, NULL);
 
     unlink(nm_cfg_get()->daemon_pid.data);
     nm_exit_core();
@@ -167,10 +143,10 @@ void *nm_qmp_worker(void *data)
     pthread_exit(NULL);
 }
 
-void *nm_qmp_dispatcher(void *thr)
+void *nm_qmp_dispatcher(void *ctx)
 {
     const nm_cfg_t *cfg = nm_cfg_get();
-    nm_qmp_data_t *args = thr;
+    nm_thr_ctrl_t *args = ctx;
     struct mq_attr mq_attr;
     char *msg = NULL;
     ssize_t rcv_len;
@@ -316,13 +292,14 @@ out:
 
 void nm_mon_loop(void)
 {
+    nm_api_ctx_t api_ctx = NM_API_CTX_INIT;
     nm_clean_data_t clean = NM_CLEAN_INIT;
     nm_vect_t mon_list = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
+    pthread_t qmp_thr, api_srv;
     const nm_cfg_t *cfg;
     struct sigaction sa;
     struct timespec ts;
-    pthread_t qmp_thr;
     pid_t pid;
 
     nm_cfg_init();
@@ -355,9 +332,10 @@ void nm_mon_loop(void)
 
 #if defined (NM_OS_LINUX)
 
-    clean.mon_list = &mon_list;
+    clean.vms.list = &mon_list;
     clean.vm_list = &vm_list;
     clean.qmp_worker = &qmp_thr;
+    clean.api_server = &api_srv;
 
     if (on_exit(nm_mon_cleanup, &clean) != 0) {
         fprintf(stderr, "%s: on_exit(3) failed\n", __func__);
@@ -390,16 +368,31 @@ void nm_mon_loop(void)
         nm_exit(EXIT_FAILURE);
     }
 #endif
-    if (pthread_create(&qmp_thr, NULL, nm_qmp_dispatcher, &clean.qmp_data) != 0) {
+    if (pthread_create(&qmp_thr, NULL, nm_qmp_dispatcher, &clean.qmp_ctrl) != 0) {
         nm_exit(EXIT_FAILURE);
     }
 #if defined (NM_OS_LINUX)
     pthread_setname_np(qmp_thr, "nemu-qmp-dsp");
 #endif
 
+#if defined (NM_WITH_REMOTE)
+    if (cfg->api_server) {
+        api_ctx.vms = &clean.vms;
+        api_ctx.ctrl = &clean.api_ctrl;
+        if (pthread_create(&api_srv, NULL, nm_api_server, &api_ctx) != 0) {
+            nm_exit(EXIT_FAILURE);
+        }
+#if defined (NM_OS_LINUX)
+        pthread_setname_np(api_srv, "nemu-api");
+#endif
+    }
+#endif /* NM_WITH_REMOTE */
+
     for (;;) {
         if (nm_mon_rebuild) {
+            pthread_mutex_lock(&clean.vms.mtx);
             nm_mon_build_list(&mon_list, &vm_list);
+            pthread_mutex_unlock(&clean.vms.mtx);
             nm_mon_rebuild = 0;
         }
         nm_mon_check_vms(&mon_list);
