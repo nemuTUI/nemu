@@ -23,9 +23,9 @@ static int nm_api_socket(int *sock);
 static SSL_CTX *nm_api_tls_setup(void);
 static void nm_api_serve(SSL *tls);
 static int nm_api_check_auth(struct json_object *request, nm_str_t *reply);
+static void nm_api_reply(const char *request, nm_str_t *reply);
 
 /* API methods */
-static void nm_api_reply(const char *request, nm_str_t *reply);
 static void nm_api_md_version(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_auth(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmlist(struct json_object *request, nm_str_t *reply);
