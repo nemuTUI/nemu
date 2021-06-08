@@ -13,7 +13,7 @@ SRC_URI=""
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="+vnc-client +ovf +spice dbus svg utf"
+IUSE="+vnc-client +ovf +spice dbus svg utf remote-api"
 
 RDEPEND="
 	dev-libs/json-c
@@ -27,6 +27,7 @@ RDEPEND="
 		app-arch/libarchive
 	)
 	dbus? ( sys-apps/dbus )
+	remote-api?  ( dev-libs/openssl )
 	svg? ( media-gfx/graphviz[svg] )"
 DEPEND="${RDEPEND}
 	sys-devel/gettext"
@@ -36,6 +37,7 @@ src_configure() {
 		-DNM_WITH_VNC_CLIENT=$(usex vnc-client)
 		-DNM_WITH_OVF_SUPPORT=$(usex ovf)
 		-DNM_WITH_NETWORK_MAP=$(usex svg)
+		-DNM_WITH_REMOTE=$(usex remote-api)
 		-DNM_WITH_SPICE=$(usex spice)
 		-DNM_WITH_DBUS=$(usex dbus)
 		-DNM_USE_UTF=$(usex utf)

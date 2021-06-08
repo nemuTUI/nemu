@@ -6,6 +6,7 @@ v2.?.? - ??.??.????
     - Feature: DEFAULT parameter in config will use value, hard-coded in nemu binary
     - Feature: SCSI block-devices discard mode support
     - Feature: native QEMU-6.0.0 snapshot-{save, load, delete} QMP commands support
+    - Feature: remote control API
     - Change: reworked files and dirs handling
     - Change: show cmd is copy-paste friendly now
     - Change: escape key action for dropdown windows;

@@ -292,7 +292,9 @@ out:
 
 void nm_mon_loop(void)
 {
+#if defined (NM_WITH_REMOTE)
     nm_api_ctx_t api_ctx = NM_API_CTX_INIT;
+#endif
     nm_clean_data_t clean = NM_CLEAN_INIT;
     nm_vect_t mon_list = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
@@ -331,7 +333,6 @@ void nm_mon_loop(void)
     }
 
 #if defined (NM_OS_LINUX)
-
     clean.vms.list = &mon_list;
     clean.vm_list = &vm_list;
     clean.qmp_worker = &qmp_thr;
