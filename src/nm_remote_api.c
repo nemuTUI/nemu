@@ -281,11 +281,6 @@ static int nm_api_socket(int *sock)
         return NM_ERR;
     }
 
-    if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) == -1) {
-        nm_debug("%s: error set socket opts: %s\n", __func__, strerror(errno));
-        return NM_ERR;
-    }
-
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(nm_cfg_get()->api_port);
