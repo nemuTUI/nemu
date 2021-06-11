@@ -3,6 +3,7 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_menu.h>
 #include <nm_machine.h>
 #include <nm_add_drive.h>
 #include <nm_add_vm.h>
@@ -26,59 +27,52 @@ static const char NM_VM_FORM_INS_PATH[]  = "Path to ISO/IMG";
 static const char NM_VM_FORM_NET_IFS[]   = "Network interfaces";
 static const char NM_VM_FORM_NET_DRV[]   = "Net driver";
 
-static void nm_add_vm_field_setup(int import);
-static void nm_add_vm_field_names(nm_vect_t *msg, int import);
-static int nm_add_vm_get_data(nm_vm_t *vm, int import);
-static void nm_add_vm_to_fs(nm_vm_t *vm, int import);
-static void nm_add_vm_main(int import);
+static void nm_add_vm_init_windows(nm_form_t *form);
+static void nm_add_vm_fields_setup();
+static size_t nm_add_vm_labels_setup();
+static int nm_add_vm_get_data(nm_vm_t *vm);
+static void nm_add_vm_to_fs(nm_vm_t *vm);
+static void nm_add_vm_main();
 
 enum {
-    NM_FLD_VMNAME = 0,
-    NM_FLD_VMARCH,
-    NM_FLD_CPUNUM,
-    NM_FLD_RAMTOT,
-    NM_FLD_DISKSZ,
-    NM_FLD_DISKIN,
-    NM_FLD_DISCARD,
-    NM_FLD_SOURCE,
-    NM_FLD_IFSCNT,
-    NM_FLD_IFSDRV,
+    NM_LBL_VMNAME = 0, NM_FLD_VMNAME,
+    NM_LBL_VMARCH, NM_FLD_VMARCH,
+    NM_LBL_CPUNUM, NM_FLD_CPUNUM,
+    NM_LBL_RAMTOT, NM_FLD_RAMTOT,
+    NM_LBL_DISKSZ, NM_FLD_DISKSZ,
+    NM_LBL_DISKIN, NM_FLD_DISKIN,
+    NM_LBL_DISCARD, NM_FLD_DISCARD,
+    NM_LBL_SOURCE, NM_FLD_SOURCE,
+    NM_LBL_IFSCNT, NM_FLD_IFSCNT,
+    NM_LBL_IFSDRV, NM_FLD_IFSDRV,
     NM_FLD_COUNT
 };
 
-static nm_form_t *form = NULL;
+static int import;
 static nm_field_t *fields[NM_FLD_COUNT + 1];
 
 void nm_import_vm(void)
 {
-    nm_add_vm_main(NM_IMPORT_VM);
+    import = NM_IMPORT_VM;
+    nm_add_vm_main();
 }
 
 void nm_add_vm(void)
 {
+    import = NM_INSTALL_VM;
     nm_add_vm_main(NM_INSTALL_VM);
 }
 
-static void nm_add_vm_main(int import)
+static void nm_add_vm_init_windows(nm_form_t *form)
 {
-    nm_vm_t vm = NM_INIT_VM;
-    nm_vect_t msg_fields = NM_INIT_VECT;
-    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
-    uint64_t last_mac;
-    uint32_t last_vnc;
-    size_t msg_len;
-    pthread_t spin_th = pthread_self();
-    int done = 0;
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
 
-    nm_add_vm_field_names(&msg_fields, import);
-    msg_len = nm_max_msg_len((const char **) msg_fields.data);
-
-    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
-        return;
-
-    werase(action_window);
-    werase(help_window);
+    nm_init_side();
     if (import == NM_INSTALL_VM) {
         nm_init_action(_(NM_MSG_INSTALL));
         nm_init_help_install();
@@ -87,19 +81,44 @@ static void nm_add_vm_main(int import)
         nm_init_help_import();
     }
 
-    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
-        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+    nm_print_vm_menu(NULL);
+}
 
+static void nm_add_vm_main()
+{
+    nm_form_data_t *form_data = NULL;
+    nm_form_t *form = NULL;
+    nm_vm_t vm = NM_INIT_VM;
+    nm_spinner_data_t sp_data = NM_INIT_SPINNER;
+    uint64_t last_mac;
+    uint32_t last_vnc;
+    size_t msg_len;
+    pthread_t spin_th = pthread_self();
+    int done = 0;
+
+    nm_add_vm_init_windows(NULL);
+
+    msg_len = nm_add_vm_labels_setup();
+
+    form_data = nm_form_data_new(
+        action_window, nm_add_vm_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
+
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
+
+    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
+        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
+        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    }
     fields[NM_FLD_COUNT] = NULL;
 
-    nm_add_vm_field_setup(import);
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
-        mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
-        y += 2;
-    }
+    nm_add_vm_labels_setup();
+    nm_add_vm_fields_setup();
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    if (nm_draw_form(action_window, form) != NM_OK)
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
+
+    if (nm_form_draw(&form) != NM_OK)
         goto out;
 
     last_mac = nm_form_get_last_mac();
@@ -107,7 +126,7 @@ static void nm_add_vm_main(int import)
 
     nm_str_format(&vm.vncp, "%u", last_vnc);
 
-    if (nm_add_vm_get_data(&vm, import) != NM_OK)
+    if (nm_add_vm_get_data(&vm) != NM_OK)
         goto out;
 
     if (import) {
@@ -118,7 +137,7 @@ static void nm_add_vm_main(int import)
             nm_bug(_("%s: cannot create thread"), __func__);
     }
 
-    nm_add_vm_to_fs(&vm, import);
+    nm_add_vm_to_fs(&vm);
     nm_add_vm_to_db(&vm, last_mac, import, NULL);
 
     if (import) {
@@ -129,13 +148,13 @@ static void nm_add_vm_main(int import)
 
 out:
     NM_FORM_EXIT();
-    nm_vect_free(&msg_fields, NULL);
     nm_vm_free(&vm);
-    nm_form_free(form, fields);
-    delwin(form_data.form_window);
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
 }
 
-static void nm_add_vm_field_setup(int import)
+static void nm_add_vm_fields_setup()
 {
     set_field_type(fields[NM_FLD_VMNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
     set_field_type(fields[NM_FLD_VMARCH], TYPE_ENUM, nm_cfg_get_arch(), false, false);
@@ -148,54 +167,80 @@ static void nm_add_vm_field_setup(int import)
     set_field_type(fields[NM_FLD_IFSCNT], TYPE_INTEGER, 1, 0, 64);
     set_field_type(fields[NM_FLD_IFSDRV], TYPE_ENUM, nm_form_net_drv, false, false);
 
-    if (import)
-        field_opts_off(fields[NM_FLD_DISKSZ], O_ACTIVE);
-
     set_field_buffer(fields[NM_FLD_VMARCH], 0, *nm_cfg_get()->qemu_targets.data);
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, "1");
     set_field_buffer(fields[NM_FLD_DISKIN], 0, NM_DEFAULT_DRVINT);
     set_field_buffer(fields[NM_FLD_DISCARD], 0, nm_form_yes_no[1]);
     set_field_buffer(fields[NM_FLD_IFSCNT], 0, "1");
-    if (import)
+    if (import) {
+        field_opts_off(fields[NM_FLD_DISKSZ], O_ACTIVE);
         set_field_buffer(fields[NM_FLD_DISKSZ], 0, "unused");
+    }
     set_field_buffer(fields[NM_FLD_IFSDRV], 0, NM_DEFAULT_NETDRV);
     field_opts_off(fields[NM_FLD_VMNAME], O_STATIC);
     field_opts_off(fields[NM_FLD_SOURCE], O_STATIC);
 }
 
-static void nm_add_vm_field_names(nm_vect_t *msg, int import)
+static size_t nm_add_vm_labels_setup()
 {
     nm_str_t buf = NM_INIT_STR;
+    size_t max_label_len = 0;
 
-    nm_vect_insert(msg, _(NM_VM_FORM_NAME), strlen(_(NM_VM_FORM_NAME)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_ARCH), strlen(_(NM_VM_FORM_ARCH)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_CPU), strlen(_(NM_VM_FORM_CPU)) + 1, NULL);
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+        case NM_LBL_VMNAME:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_NAME));
+            break;
+        case NM_LBL_VMARCH:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_ARCH));
+            break;
+        case NM_LBL_CPUNUM:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_CPU));
+            break;
+        case NM_LBL_RAMTOT:
+            nm_str_format(&buf, "%s%u%s",
+                _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
+            break;
+        case NM_LBL_DISKSZ:
+            nm_str_format(&buf, "%s%u%s",
+                _(NM_VM_FORM_DRV_BEGIN), nm_hw_disk_free(), _(NM_VM_FORM_DRV_END));
+            break;
+        case NM_LBL_DISKIN:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_DRV_IF));
+            break;
+        case NM_LBL_DISCARD:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_DRV_DIS));
+            break;
+        case NM_LBL_SOURCE:
+            if (import)
+                nm_str_format(&buf, "%s", _(NM_VM_FORM_IMP_PATH));
+            else
+                nm_str_format(&buf, "%s", _(NM_VM_FORM_INS_PATH));
+            break;
+        case NM_LBL_IFSCNT:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_NET_IFS));
+            break;
+        case NM_LBL_IFSDRV:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_NET_DRV));
+            break;
+        default:
+            continue;
+        }
 
-    nm_str_format(&buf, "%s%u%s",
-        _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
-    nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
+        if (buf.len > max_label_len)
+            max_label_len = buf.len;
 
-    nm_str_format(&buf, "%s%u%s",
-        _(NM_VM_FORM_DRV_BEGIN), nm_hw_disk_free(), _(NM_VM_FORM_DRV_END));
-    nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
-
-    nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_DRV_DIS), strlen(_(NM_VM_FORM_DRV_DIS)) + 1, NULL);
-    if (import)
-        nm_vect_insert(msg, _(NM_VM_FORM_IMP_PATH), strlen(_(NM_VM_FORM_IMP_PATH)) + 1, NULL);
-    else
-        nm_vect_insert(msg, _(NM_VM_FORM_INS_PATH), strlen(_(NM_VM_FORM_INS_PATH)) + 1, NULL);
-
-    nm_vect_insert(msg, _(NM_VM_FORM_NET_IFS), strlen(_(NM_VM_FORM_NET_IFS)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_NET_DRV), strlen(_(NM_VM_FORM_NET_DRV)) + 1, NULL);
-    nm_vect_end_zero(msg);
+        if (fields[n])
+            set_field_buffer(fields[n], 0, buf.data);
+    }
 
     nm_str_free(&buf);
+    return max_label_len;
 }
 
-static int nm_add_vm_get_data(nm_vm_t *vm, int import)
+static int nm_add_vm_get_data(nm_vm_t *vm)
 {
-    int rc = NM_OK;
+    int rc;
     nm_str_t ifs_buf = NM_INIT_STR;
     nm_vect_t err = NM_INIT_VECT;
     nm_str_t discard = NM_INIT_STR;
@@ -361,7 +406,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     nm_str_free(&query);
 }
 
-static void nm_add_vm_to_fs(nm_vm_t *vm, int import)
+static void nm_add_vm_to_fs(nm_vm_t *vm)
 {
     nm_str_t vm_dir = NM_INIT_STR;
     nm_str_t buf = NM_INIT_STR;

@@ -6,6 +6,8 @@
 
 #include <signal.h>
 
+static const size_t NM_WINDOW_HEADER_HEIGHT = 3;
+
 void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status);
 void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx);
 void nm_print_drive_info(const nm_vect_t *v, size_t idx);
@@ -57,7 +59,6 @@ extern nm_panel_t *action_panel;
 #define NM_MSG_NO_IFACES  "No network configured" NM_MSG_ANY_KEY
 #define NM_MSG_HCPU_KVM   "Host CPU requires KVM enabled" NM_MSG_ANY_KEY
 #define NM_MSG_BAD_CTX    "Contents of field is invalid" NM_MSG_ANY_KEY
-#define NM_MSG_BAD_GROUP  "Group named \"all\" is reserved" NM_MSG_ANY_KEY
 #define NM_MSG_NULL_FLD   "These fields cannot be empty:"
 #define NM_MSG_NAME_BUSY  "This name is already used" NM_MSG_ANY_KEY
 #define NM_MSG_IF_PROP    "Interface properties"
@@ -112,6 +113,7 @@ extern nm_panel_t *action_panel;
 #define NM_NSG_DRV_LIM    "disks limit reached" NM_MSG_ANY_KEY
 #define NM_MSG_DRV_NONE   "No additional disks" NM_MSG_ANY_KEY
 #define NM_MSG_DRV_EDEL   "Cannot delete drive from filesystem" NM_MSG_ANY_KEY
+#define NM_MSG_DRV_SIZE   "Incorrect drive size" NM_MSG_ANY_KEY
 #define NM_MSG_MAC_INVAL  "Invalid mac address" NM_MSG_ANY_KEY
 #define NM_MSF_FWD_INVAL  "Invalid portfwd value, format: tcp|udp::[1-65535]-:[1-65535]" NM_MSG_ANY_KEY
 #define NM_MSG_MAC_USED   "This mac address is already used" NM_MSG_ANY_KEY

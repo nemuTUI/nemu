@@ -10,9 +10,11 @@ v2.?.? - ??.??.????
     - Change: reworked files and dirs handling
     - Change: show cmd is copy-paste friendly now
     - Change: escape key action for dropdown windows;
+    - Change: group search ("g:" for show all groups)
     - Bugfix: incorrect SVG map export, sorted by group
     - Bugfix: cold USB attach was broken if USB was previously disabled
-    and VM is not running at least once
+            and VM is not running at least once
+    - Bugfix: form resizing:)
 
 v2.6.0 - 19.03.2021
 ------------------------

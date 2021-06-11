@@ -3,6 +3,7 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_menu.h>
 #include <nm_vector.h>
 #include <nm_database.h>
 #include <nm_usb_devices.h>
@@ -11,27 +12,63 @@
 
 static const char NM_USB_FORM_MSG[] = "Device";
 
+static void nm_usb_attach_init_windows(nm_form_t *form);
+static void nm_usb_detach_init_windows(nm_form_t *form);
 static void nm_usb_plug_list(nm_vect_t *devs, nm_vect_t *names);
 static int nm_usb_plug_get_data(const nm_str_t *name, nm_usb_data_t *usb,
         const nm_vect_t *usb_list);
 static int nm_usb_unplug_get_data(nm_usb_data_t *usb, const nm_vect_t *db_list);
 static void nm_usb_plug_update_db(const nm_str_t *name, const nm_usb_data_t *usb);
 
-static nm_field_t *fields[2];
+enum {
+    NM_LBL_USB_DEV = 0, NM_FLD_USB_DEV,
+    NM_FLD_COUNT
+};
+
+static nm_field_t *fields[NM_FLD_COUNT + 1];
+
+static void nm_usb_attach_init_windows(nm_form_t *form)
+{
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
+
+    nm_init_side();
+    nm_init_action(_(NM_MSG_USB_ATTACH));
+    nm_init_help_edit();
+
+    nm_print_vm_menu(NULL);
+}
+
+static void nm_usb_detach_init_windows(nm_form_t *form)
+{
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
+
+    nm_init_side();
+    nm_init_action(_(NM_MSG_USB_DETACH));
+    nm_init_help_edit();
+
+    nm_print_vm_menu(NULL);
+}
 
 void nm_usb_plug(const nm_str_t *name, int vm_status)
 {
+    nm_form_data_t *form_data = NULL;
     nm_form_t *form = NULL;
     nm_str_t buf = NM_INIT_STR;
     nm_vect_t usb_devs = NM_INIT_VECT;
     nm_vect_t usb_names = NM_INIT_VECT;
     nm_vect_t db_result = NM_INIT_VECT;
     nm_usb_data_t usb = NM_INIT_USB_DATA;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
-    size_t msg_len = mbstowcs(NULL, NM_USB_FORM_MSG, strlen(NM_USB_FORM_MSG));
-
-    if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
-        return;
+    size_t msg_len = mbstowcs(NULL, _(NM_USB_FORM_MSG), strlen(_(NM_USB_FORM_MSG)));
 
     /* check for usb enabled first */
     nm_str_format(&buf, NM_USB_CHECK_SQL, name->data);
@@ -49,62 +86,60 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
         goto out;
     }
 
-    werase(action_window);
-    werase(help_window);
-    nm_init_action(_(NM_MSG_USB_ATTACH));
-    nm_init_help_edit();
+    nm_usb_attach_init_windows(NULL);
 
-    fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
-    fields[1] = NULL;
+    form_data = nm_form_data_new(
+        action_window, nm_usb_attach_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
 
-    set_field_type(fields[0], TYPE_ENUM, usb_names.data, false, false);
-    field_opts_off(fields[0], O_STATIC);
-    set_field_buffer(fields[0], 0, *usb_names.data);
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
 
-    mvwaddstr(form_data.form_window, 1, 2, _(NM_USB_FORM_MSG));
+    fields[0] = nm_field_new(NM_FIELD_LABEL, 0, form_data);
+    fields[1] = nm_field_new(NM_FIELD_EDIT, 0, form_data);
+    fields[2] = NULL;
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    if (nm_draw_form(action_window, form) != NM_OK)
-        goto clean_and_out;
+    set_field_buffer(fields[0], 0, _(NM_USB_FORM_MSG));
+    set_field_type(fields[1], TYPE_ENUM, usb_names.data, false, false);
+    field_opts_off(fields[1], O_STATIC);
+    set_field_buffer(fields[1], 0, *usb_names.data);
+
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
+
+    if (nm_form_draw(&form) != NM_OK)
+        goto out;
 
     if ((nm_usb_plug_get_data(name, &usb, &usb_devs)) != NM_OK)
-        goto clean_and_out;
+        goto out;
 
     if (vm_status)
         if (nm_qmp_usb_attach(name, &usb) != NM_OK)
-            goto clean_and_out;
+            goto out;
 
     nm_usb_plug_update_db(name, &usb);
 
-clean_and_out:
-    werase(help_window);
-    nm_init_help_main();
-
 out:
-    wtimeout(action_window, -1);
-    delwin(form_data.form_window);
+    NM_FORM_EXIT();
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
     nm_vect_free(&usb_names, NULL);
     nm_vect_free(&usb_devs, nm_usb_vect_free_cb);
     nm_vect_free(&db_result, nm_str_vect_free_cb);
-
-    nm_form_free(form, fields);
     nm_str_free(&buf);
     nm_str_free(&usb.serial);
 }
 
 void nm_usb_unplug(const nm_str_t *name, int vm_status)
 {
+    nm_form_data_t *form_data = NULL;
     nm_form_t *form = NULL;
     nm_str_t buf = NM_INIT_STR;
     nm_usb_data_t usb_data = NM_INIT_USB_DATA;
     nm_usb_dev_t usb_dev = NM_INIT_USB;
     nm_vect_t usb_names = NM_INIT_VECT;
     nm_vect_t db_result = NM_INIT_VECT;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
-    size_t msg_len = mbstowcs(NULL, NM_USB_FORM_MSG, strlen(NM_USB_FORM_MSG));
-
-    if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
-        return;
+    size_t msg_len = mbstowcs(NULL, _(NM_USB_FORM_MSG), strlen(_(NM_USB_FORM_MSG)));
 
     usb_data.dev = &usb_dev;
 
@@ -116,28 +151,33 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
         goto out;
     }
 
-    werase(action_window);
-    werase(help_window);
-    nm_init_action(_(NM_MSG_USB_DETACH));
-    nm_init_help_edit();
-
     nm_usb_unplug_list(&db_result, &usb_names, true);
 
-    fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
-    fields[1] = NULL;
+    nm_usb_detach_init_windows(NULL);
 
-    set_field_type(fields[0], TYPE_ENUM, usb_names.data, false, false);
-    field_opts_off(fields[0], O_STATIC);
-    set_field_buffer(fields[0], 0, *usb_names.data);
+    form_data = nm_form_data_new(
+        action_window, nm_usb_detach_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
 
-    mvwaddstr(form_data.form_window, 1, 2, _(NM_USB_FORM_MSG));
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    if (nm_draw_form(action_window, form) != NM_OK)
-        goto clean_and_out;
+    fields[0] = nm_field_new(NM_FIELD_LABEL, 0, form_data);
+    fields[1] = nm_field_new(NM_FIELD_EDIT, 0, form_data);
+    fields[2] = NULL;
+
+    set_field_buffer(fields[0], 0, _(NM_USB_FORM_MSG));
+    set_field_type(fields[1], TYPE_ENUM, usb_names.data, false, false);
+    field_opts_off(fields[1], O_STATIC);
+    set_field_buffer(fields[1], 0, *usb_names.data);
+
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
+
+    if (nm_form_draw(&form) != NM_OK)
+        goto out;
 
     if (nm_usb_unplug_get_data(&usb_data, &db_result) != NM_OK)
-        goto clean_and_out;
+        goto out;
 
     if (vm_status)
         (void) nm_qmp_usb_detach(name, &usb_data);
@@ -150,16 +190,13 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
             usb_data.serial.data);
     nm_db_edit(buf.data);
 
-clean_and_out:
-    werase(help_window);
-    nm_init_help_main();
-
 out:
-    wtimeout(action_window, -1);
-    delwin(form_data.form_window);
+    NM_FORM_EXIT();
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
     nm_vect_free(&usb_names, NULL);
     nm_vect_free(&db_result, nm_str_vect_free_cb);
-    nm_form_free(form, fields);
     nm_usb_data_free(&usb_data);
     nm_str_free(&buf);
 }
@@ -237,7 +274,7 @@ static int nm_usb_plug_get_data(const nm_str_t *name, nm_usb_data_t *usb,
     uint32_t idx;
     char *fo;
 
-    nm_get_field_buf(fields[0], &input);
+    nm_get_field_buf(fields[1], &input);
     if (!input.len) {
         nm_warn(_(NM_MSG_USB_EMPTY));
         goto out;
@@ -290,7 +327,7 @@ static int nm_usb_unplug_get_data(nm_usb_data_t *usb, const nm_vect_t *db_list)
     uint32_t idx, idx_shift;
     char *fo;
 
-    nm_get_field_buf(fields[0], &input);
+    nm_get_field_buf(fields[1], &input);
     if (!input.len) {
         nm_warn(_(NM_MSG_USB_EMPTY));
         goto out;

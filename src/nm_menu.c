@@ -36,6 +36,13 @@ void nm_print_base_menu(nm_menu_data_t *ifs)
 {
     int x = 2, y = 3;
     size_t screen_x;
+    static nm_menu_data_t *ifs_ = NULL;
+
+    if (ifs)
+        ifs_ = ifs;
+
+    if (!ifs_)
+        return;
 
     wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
@@ -46,14 +53,14 @@ void nm_print_base_menu(nm_menu_data_t *ifs)
         return;
     }
 
-    for (size_t n = ifs->item_first, i = 0; n < ifs->item_last; n++, i++) {
+    for (size_t n = ifs_->item_first, i = 0; n < ifs_->item_last; n++, i++) {
         nm_str_t if_name = NM_INIT_STR;
         int space_num;
 
-        if (n >= ifs->v->n_memb)
+        if (n >= ifs_->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
-        nm_str_alloc_text(&if_name, (char *) ifs->v->data[n]);
+        nm_str_alloc_text(&if_name, (char *) ifs_->v->data[n]);
         nm_align2line(&if_name, screen_x);
 
         space_num = (screen_x - if_name.len - 4);
@@ -62,7 +69,7 @@ void nm_print_base_menu(nm_menu_data_t *ifs)
                 nm_str_add_char_opt(&if_name, ' ');
         }
 
-        if (ifs->highlight == i + 1) {
+        if (ifs_->highlight == i + 1) {
             wattron(side_window, A_REVERSE);
             mvwprintw(side_window, y, x, "%s", if_name.data);
             wattroff(side_window, A_REVERSE);
@@ -80,6 +87,13 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
 {
     int x = 2, y = 3;
     size_t screen_x;
+    static nm_menu_data_t *vm_ = NULL;
+
+    if (vm)
+        vm_ = vm;
+
+    if(!vm_)
+        return;
 
     screen_x = getmaxx(side_window);
     if (screen_x < 20) { /* window to small */
@@ -90,14 +104,14 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
 
     wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
-    for (size_t n = vm->item_first, i = 0; n < vm->item_last; n++, i++) {
+    for (size_t n = vm_->item_first, i = 0; n < vm_->item_last; n++, i++) {
         int space_num;
         nm_str_t vm_name = NM_INIT_STR;
 
-        if (n >= vm->v->n_memb)
+        if (n >= vm_->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
-        nm_str_alloc_text(&vm_name, nm_vect_item_name_ctx(vm->v, n));
+        nm_str_alloc_text(&vm_name, nm_vect_item_name_ctx(vm_->v, n));
         nm_align2line(&vm_name, screen_x);
 
         space_num = (screen_x - vm_name.len - 4);
@@ -106,15 +120,15 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
                 nm_str_add_char_opt(&vm_name, ' ');
         }
 
-        if (nm_qmp_test_socket(nm_vect_item_name(vm->v, n)) == NM_OK) {
-            nm_vect_set_item_status(vm->v, n, 1);
+        if (nm_qmp_test_socket(nm_vect_item_name(vm_->v, n)) == NM_OK) {
+            nm_vect_set_item_status(vm_->v, n, 1);
             wattron(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         } else {
-            nm_vect_set_item_status(vm->v, n, 0);
+            nm_vect_set_item_status(vm_->v, n, 0);
             wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         }
 
-        if (vm->highlight == i + 1) {
+        if (vm_->highlight == i + 1) {
             wattron(side_window, A_REVERSE);
             mvwprintw(side_window, y, x, "%s", vm_name.data);
             wattroff(side_window, A_REVERSE);
@@ -181,6 +195,13 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
     nm_str_t veth_copy = NM_INIT_STR;
     nm_str_t veth_lname = NM_INIT_STR;
     nm_str_t veth_rname = NM_INIT_STR;
+    static nm_menu_data_t *veth_ = NULL;
+
+    if (veth)
+        veth_ = veth;
+
+    if (!veth_)
+        return;
 
     screen_x = getmaxx(side_window);
     if (screen_x < 20) { /* window to small */
@@ -191,13 +212,13 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
 
     wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
-    for (size_t n = veth->item_first, i = 0; n < veth->item_last; n++, i++) {
+    for (size_t n = veth_->item_first, i = 0; n < veth_->item_last; n++, i++) {
         int space_num;
 
-        if (n >= veth->v->n_memb)
+        if (n >= veth_->v->n_memb)
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
 
-        nm_str_alloc_text(&veth_name, nm_vect_item_name_ctx(veth->v, n));
+        nm_str_alloc_text(&veth_name, nm_vect_item_name_ctx(veth_->v, n));
         nm_str_copy(&veth_copy, &veth_name);
         nm_align2line(&veth_name, screen_x);
         nm_lan_parse_name(&veth_copy, &veth_lname, &veth_rname);
@@ -210,17 +231,17 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
 
         if (get_status) {
             if (nm_net_link_status(&veth_lname) == NM_OK)
-                nm_vect_set_item_status(veth->v, n, 1);
+                nm_vect_set_item_status(veth_->v, n, 1);
             else
-                nm_vect_set_item_status(veth->v, n, 0);
+                nm_vect_set_item_status(veth_->v, n, 0);
         }
 
-        if (nm_vect_item_status(veth->v, n))
+        if (nm_vect_item_status(veth_->v, n))
             wattron(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         else
             wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
-        if (veth->highlight == i + 1) {
+        if (veth_->highlight == i + 1) {
             wattron(side_window, A_REVERSE);
             mvwprintw(side_window, y, x, "%s", veth_name.data);
             wattroff(side_window, A_REVERSE);

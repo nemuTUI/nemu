@@ -3,6 +3,7 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_menu.h>
 #include <nm_database.h>
 
 typedef struct {
@@ -24,75 +25,112 @@ typedef struct {
     NM_INIT_STR, NM_INIT_STR }
 #endif
 
-static inline void nm_viewer_free(nm_view_data_t *data)
-{
 #if defined(NM_WITH_SPICE)
-    nm_str_free(&data->spice);
+static const char NM_VIEWER_FORM_SPICE[] = "Spice server";
+static const char NM_VIEWER_FORM_PORT[]  = "VNC/Spice port";
+#else
+static const char NM_VIEWER_FORM_PORT[]  = "VNC port";
 #endif
-    nm_str_free(&data->port);
-    nm_str_free(&data->tty);
-    nm_str_free(&data->sock);
-    nm_str_free(&data->sync);
-    nm_str_free(&data->display);
-}
+static const char NM_VIEWER_FORM_TTYP[]  = "Serial TTY";
+static const char NM_VIEWER_FORM_SOCK[]  = "Serial socket";
+static const char NM_VIEWER_FORM_SYNC[]  = "Sync mouse position";
+static const char NM_VIEWER_FORM_DSP[]   = "Display type";
 
+static void nm_viewer_init_windows(nm_form_t *form);
+static void nm_viewer_fields_setup(const nm_vmctl_data_t *vm);
+static size_t nm_viewer_labels_setup();
+static inline void nm_viewer_free(nm_view_data_t *data);
 static int nm_viewer_get_data(nm_view_data_t *vm);
 static void nm_viewer_update_db(const nm_str_t *name, nm_view_data_t *vm);
 
 enum {
 #if defined(NM_WITH_SPICE)
-    NM_FLD_SPICE = 0,
-    NM_FLD_PORT,
+    NM_LBL_SPICE = 0, NM_FLD_SPICE,
+    NM_LBL_PORT, NM_FLD_PORT,
 #else
-    NM_FLD_PORT = 0,
+    NM_LBL_PORT = 0, NM_FLD_PORT,
 #endif
-    NM_FLD_TTYP,
-    NM_FLD_SOCK,
-    NM_FLD_SYNC,
-    NM_FLD_DSP,
+    NM_LBL_TTYP, NM_FLD_TTYP,
+    NM_LBL_SOCK, NM_FLD_SOCK,
+    NM_LBL_SYNC, NM_FLD_SYNC,
+    NM_LBL_DSP, NM_FLD_DSP,
     NM_FLD_COUNT,
-};
-
-static const char *nm_form_msg[] = {
-#if defined(NM_WITH_SPICE)
-    "Spice server",
-    "VNC/Spice port",
-#else
-    "VNC port",
-#endif
-    "Serial TTY", "Serial socket",
-    "Sync mouse position",
-    "Display type", NULL
 };
 
 static nm_field_t *fields[NM_FLD_COUNT + 1];
 
-void nm_viewer(const nm_str_t *name)
+static void nm_viewer_init_windows(nm_form_t *form)
 {
-    nm_form_t *form = NULL;
-    nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
-    nm_view_data_t vm_new = NM_INIT_VIEW_DATA;
-    uint32_t vnc_port;
-    size_t msg_len = nm_max_msg_len(nm_form_msg);
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
 
-    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
-        return;
-
-    werase(action_window);
-    werase(help_window);
+    nm_init_side();
     nm_init_action(_(NM_MSG_EDIT_VIEW));
     nm_init_help_edit();
 
+    nm_print_vm_menu(NULL);
+}
+
+void nm_viewer(const nm_str_t *name)
+{
+    nm_form_data_t *form_data = NULL;
+    nm_form_t *form = NULL;
+    nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
+    nm_view_data_t vm_new = NM_INIT_VIEW_DATA;
+    size_t msg_len;
+
+    nm_viewer_init_windows(NULL);
+
     nm_vmctl_get_data(name, &vm);
 
-    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
-        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+    msg_len = nm_viewer_labels_setup();
 
+    form_data = nm_form_data_new(
+        action_window, nm_viewer_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
+
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
+
+    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
+        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
+        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    }
     fields[NM_FLD_COUNT] = NULL;
+
+    nm_viewer_labels_setup();
+    nm_viewer_fields_setup(&vm);
+
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
+
+    if (nm_form_draw(&form) != NM_OK)
+        goto out;
+
+    if (nm_viewer_get_data(&vm_new) != NM_OK)
+        goto out;
+
+    nm_viewer_update_db(name, &vm_new);
+
+out:
+    NM_FORM_EXIT();
+    nm_viewer_free(&vm_new);
+    nm_vmctl_free_data(&vm);
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
+}
+
+static void nm_viewer_fields_setup(const nm_vmctl_data_t *vm)
+{
+    uint32_t vnc_port;
+
 #if defined(NM_WITH_SPICE)
     set_field_type(fields[NM_FLD_SPICE], TYPE_ENUM, nm_form_yes_no, false, false);
-    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_SPICE), NM_ENABLE) == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_SPICE), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_SPICE], 0, nm_form_yes_no[0]);
     else
         set_field_buffer(fields[NM_FLD_SPICE], 0, nm_form_yes_no[1]);
@@ -106,40 +144,71 @@ void nm_viewer(const nm_str_t *name)
     field_opts_off(fields[NM_FLD_TTYP], O_STATIC);
     field_opts_off(fields[NM_FLD_SOCK], O_STATIC);
 
-    vnc_port = nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT;
-    nm_str_format(nm_vect_str(&vm.main, NM_SQL_VNC), "%u", vnc_port);
-    set_field_buffer(fields[NM_FLD_PORT], 0, nm_vect_str_ctx(&vm.main, NM_SQL_VNC));
-    set_field_buffer(fields[NM_FLD_TTYP], 0, nm_vect_str_ctx(&vm.main, NM_SQL_TTY));
-    set_field_buffer(fields[NM_FLD_SOCK], 0, nm_vect_str_ctx(&vm.main, NM_SQL_SOCK));
-    set_field_buffer(fields[NM_FLD_DSP], 0, nm_vect_str_ctx(&vm.main, NM_SQL_DISPLAY));
+    vnc_port = nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT;
+    nm_str_format(nm_vect_str(&vm->main, NM_SQL_VNC), "%u", vnc_port);
+    set_field_buffer(fields[NM_FLD_PORT], 0, nm_vect_str_ctx(&vm->main, NM_SQL_VNC));
+    set_field_buffer(fields[NM_FLD_TTYP], 0, nm_vect_str_ctx(&vm->main, NM_SQL_TTY));
+    set_field_buffer(fields[NM_FLD_SOCK], 0, nm_vect_str_ctx(&vm->main, NM_SQL_SOCK));
+    set_field_buffer(fields[NM_FLD_DSP], 0, nm_vect_str_ctx(&vm->main, NM_SQL_DISPLAY));
 
-    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_OVER), NM_ENABLE) == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_OVER), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_SYNC], 0, nm_form_yes_no[0]);
     else
         set_field_buffer(fields[NM_FLD_SYNC], 0, nm_form_yes_no[1]);
+}
 
-    for (size_t n = 0; n < NM_FLD_COUNT; n++)
-        set_field_status(fields[n], 0);
+static size_t nm_viewer_labels_setup()
+{
+    nm_str_t buf = NM_INIT_STR;
+    size_t max_label_len = 0;
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
-        mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
-        y += 2;
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+#if defined(NM_WITH_SPICE)
+        case NM_LBL_SPICE:
+            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_SPICE));
+            break;
+#endif
+        case NM_LBL_PORT:
+            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_PORT));
+            break;
+        case NM_LBL_TTYP:
+            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_TTYP));
+            break;
+        case NM_LBL_SOCK:
+            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_SOCK));
+            break;
+        case NM_LBL_SYNC:
+            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_SYNC));
+            break;
+        case NM_LBL_DSP:
+            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_DSP));
+            break;
+        default:
+            continue;
+        }
+
+        if (buf.len > max_label_len)
+            max_label_len = buf.len;
+
+        if (fields[n])
+            set_field_buffer(fields[n], 0, buf.data);
     }
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    if (nm_draw_form(action_window, form) != NM_OK)
-        goto out;
+    nm_str_free(&buf);
+    return max_label_len;
+}
 
-    if (nm_viewer_get_data(&vm_new) != NM_OK)
-        goto out;
-
-    nm_viewer_update_db(name, &vm_new);
-
-out:
-    NM_FORM_EXIT();
-    nm_viewer_free(&vm_new);
-    nm_vmctl_free_data(&vm);
-    nm_form_free(form, fields);
+static inline void nm_viewer_free(nm_view_data_t *data)
+{
+#if defined(NM_WITH_SPICE)
+    nm_str_free(&data->spice);
+#endif
+    nm_str_free(&data->port);
+    nm_str_free(&data->tty);
+    nm_str_free(&data->sock);
+    nm_str_free(&data->sync);
+    nm_str_free(&data->display);
 }
 
 static int nm_viewer_get_data(nm_view_data_t *vm)
@@ -158,16 +227,16 @@ static int nm_viewer_get_data(nm_view_data_t *vm)
 
 #if defined(NM_WITH_SPICE)
     if (field_status(fields[NM_FLD_SPICE]))
-        nm_form_check_data(nm_form_msg[NM_FLD_SPICE], vm->spice, err);
+        nm_form_check_data(_(NM_VIEWER_FORM_SPICE), vm->spice, err);
 #endif
     if (field_status(fields[NM_FLD_PORT]))
-        nm_form_check_data(nm_form_msg[NM_FLD_PORT], vm->port, err);
+        nm_form_check_data(_(NM_VIEWER_FORM_PORT), vm->port, err);
+    if (field_status(fields[NM_FLD_SOCK]))
+        nm_form_check_data(_(NM_VIEWER_FORM_SOCK), vm->sock, err);
     if (field_status(fields[NM_FLD_SYNC]))
-        nm_form_check_data(nm_form_msg[NM_FLD_SYNC], vm->sync, err);
-    if (field_status(fields[NM_FLD_SYNC]))
-        nm_form_check_data(nm_form_msg[NM_FLD_SYNC], vm->sync, err);
+        nm_form_check_data(_(NM_VIEWER_FORM_SYNC), vm->sync, err);
     if (field_status(fields[NM_FLD_DSP]))
-        nm_form_check_data(nm_form_msg[NM_FLD_DSP], vm->display, err);
+        nm_form_check_data(_(NM_VIEWER_FORM_DSP), vm->display, err);
 
     rc = nm_print_empty_fields(&err);
 

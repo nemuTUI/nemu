@@ -4,6 +4,7 @@
 #include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_window.h>
+#include <nm_menu.h>
 #include <nm_machine.h>
 #include <nm_hw_info.h>
 #include <nm_network.h>
@@ -27,66 +28,80 @@ static const char NM_VM_FORM_MACH[]      = "Machine type";
 static const char NM_VM_FORM_ARGS[]      = "Extra QEMU args";
 static const char NM_VM_FORM_GROUP[]     = "Group";
 
-static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur);
-static void nm_edit_vm_field_names(nm_vect_t *msg);
+static void nm_edit_vm_init_windows(nm_form_t *form);
+static void nm_edit_vm_fields_setup(const nm_vmctl_data_t *cur);
+static size_t nm_edit_vm_labels_setup();
 static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur);
 static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac);
 
 enum {
-    NM_FLD_CPUNUM = 0,
-    NM_FLD_RAMTOT,
-    NM_FLD_KVMFLG,
-    NM_FLD_HOSCPU,
-    NM_FLD_IFSCNT,
-    NM_FLD_DISKIN,
-    NM_FLD_DISCARD,
-    NM_FLD_USBUSE,
-    NM_FLD_USBTYP,
-    NM_FLD_MACH,
-    NM_FLD_ARGS,
-    NM_FLD_GROUP,
+    NM_LBL_CPUNUM = 0, NM_FLD_CPUNUM,
+    NM_LBL_RAMTOT, NM_FLD_RAMTOT,
+    NM_LBL_KVMFLG, NM_FLD_KVMFLG,
+    NM_LBL_HOSCPU, NM_FLD_HOSCPU,
+    NM_LBL_IFSCNT, NM_FLD_IFSCNT,
+    NM_LBL_DISKIN, NM_FLD_DISKIN,
+    NM_LBL_DISCARD, NM_FLD_DISCARD,
+    NM_LBL_USBUSE, NM_FLD_USBUSE,
+    NM_LBL_USBTYP, NM_FLD_USBTYP,
+    NM_LBL_MACH, NM_FLD_MACH,
+    NM_LBL_ARGS, NM_FLD_ARGS,
+    NM_LBL_GROUP, NM_FLD_GROUP,
     NM_FLD_COUNT
 };
 
-static nm_form_t *form = NULL;
 static nm_field_t *fields[NM_FLD_COUNT + 1];
 
-void nm_edit_vm(const nm_str_t *name)
+static void nm_edit_vm_init_windows(nm_form_t *form)
 {
-    nm_vm_t vm = NM_INIT_VM;
-    nm_vect_t msg_fields = NM_INIT_VECT;
-    nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
-    uint64_t last_mac;
-    size_t msg_len;
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
 
-    nm_edit_vm_field_names(&msg_fields);
-    msg_len = nm_max_msg_len((const char **) msg_fields.data);
-
-    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
-        return;
-
-    werase(action_window);
-    werase(help_window);
+    nm_init_side();
     nm_init_action(_(NM_MSG_EDIT_VM));
     nm_init_help_edit();
 
+    nm_print_vm_menu(NULL);
+}
+
+void nm_edit_vm(const nm_str_t *name)
+{
+    nm_form_data_t *form_data = NULL;
+    nm_form_t *form = NULL;
+    nm_vm_t vm = NM_INIT_VM;
+    nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
+    uint64_t last_mac;
+    size_t msg_len;
+
+    nm_edit_vm_init_windows(NULL);
+
     nm_vmctl_get_data(name, &cur_settings);
 
-    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
-        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+    msg_len = nm_edit_vm_labels_setup();
 
+    form_data = nm_form_data_new(
+        action_window, nm_edit_vm_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
+
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
+
+    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
+        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
+        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    }
     fields[NM_FLD_COUNT] = NULL;
 
-    nm_edit_vm_field_setup(&cur_settings);
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
-        mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
-        y += 2;
-    }
+    nm_edit_vm_labels_setup();
+    nm_edit_vm_fields_setup(&cur_settings);
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
 
-    if (nm_draw_form(action_window, form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK)
         goto out;
 
     last_mac = nm_form_get_last_mac();
@@ -99,12 +114,13 @@ void nm_edit_vm(const nm_str_t *name)
 out:
     NM_FORM_EXIT();
     nm_vm_free(&vm);
-    nm_vect_free(&msg_fields, NULL);
-    nm_form_free(form, fields);
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
     nm_vmctl_free_data(&cur_settings);
 }
 
-static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
+static void nm_edit_vm_fields_setup(const nm_vmctl_data_t *cur)
 {
     nm_str_t buf = NM_INIT_STR;
 
@@ -156,9 +172,6 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     set_field_buffer(fields[NM_FLD_ARGS], 0, nm_vect_str_ctx(&cur->main, NM_SQL_ARGS));
     set_field_buffer(fields[NM_FLD_GROUP], 0, nm_vect_str_ctx(&cur->main, NM_SQL_GROUP));
 
-    for (size_t n = 0; n < NM_FLD_COUNT; n++)
-        set_field_status(fields[n], 0);
-
 #if defined (NM_OS_FREEBSD)
     field_opts_off(fields[NM_FLD_USBUSE], O_ACTIVE);
 #endif
@@ -166,34 +179,68 @@ static void nm_edit_vm_field_setup(const nm_vmctl_data_t *cur)
     nm_str_free(&buf);
 }
 
-static void nm_edit_vm_field_names(nm_vect_t *msg)
+static size_t nm_edit_vm_labels_setup()
 {
     nm_str_t buf = NM_INIT_STR;
+    size_t max_label_len = 0;
 
-    nm_vect_insert(msg, _(NM_VM_FORM_CPU), strlen(_(NM_VM_FORM_CPU)) + 1, NULL);
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+        case NM_LBL_CPUNUM:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_CPU));
+            break;
+        case NM_LBL_RAMTOT:
+            nm_str_format(&buf, "%s%u%s",
+                _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
+            break;
+        case NM_LBL_KVMFLG:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_KVM));
+            break;
+        case NM_LBL_HOSCPU:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_HCPU));
+            break;
+        case NM_LBL_IFSCNT:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_NET_IFS));
+            break;
+        case NM_LBL_DISKIN:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_DRV_IF));
+            break;
+        case NM_LBL_DISCARD:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_DRV_DIS));
+            break;
+        case NM_LBL_USBUSE:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_USB));
+            break;
+        case NM_LBL_USBTYP:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_USBT));
+            break;
+        case NM_LBL_MACH:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_MACH));
+            break;
+        case NM_LBL_ARGS:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_ARGS));
+            break;
+        case NM_LBL_GROUP:
+            nm_str_format(&buf, "%s", _(NM_VM_FORM_GROUP));
+            break;
+        default:
+            continue;
+        }
 
-    nm_str_format(&buf, "%s%u%s",
-        _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
-    nm_vect_insert(msg, buf.data, buf.len + 1, NULL);
+        if (buf.len > max_label_len)
+            max_label_len = buf.len;
 
-    nm_vect_insert(msg, _(NM_VM_FORM_KVM), strlen(_(NM_VM_FORM_KVM)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_HCPU), strlen(_(NM_VM_FORM_HCPU)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_NET_IFS), strlen(_(NM_VM_FORM_NET_IFS)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_DRV_IF), strlen(_(NM_VM_FORM_DRV_IF)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_DRV_DIS), strlen(_(NM_VM_FORM_DRV_DIS)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_USB), strlen(_(NM_VM_FORM_USB)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_USBT), strlen(_(NM_VM_FORM_USBT)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_MACH), strlen(_(NM_VM_FORM_MACH)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_ARGS), strlen(_(NM_VM_FORM_ARGS)) + 1, NULL);
-    nm_vect_insert(msg, _(NM_VM_FORM_GROUP), strlen(_(NM_VM_FORM_GROUP)) + 1, NULL);
-    nm_vect_end_zero(msg);
+        if (fields[n])
+            set_field_buffer(fields[n], 0, buf.data);
+    }
 
     nm_str_free(&buf);
+    return max_label_len;
 }
 
 static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
 {
-    int rc = NM_OK;
+    int rc;
     nm_vect_t err = NM_INIT_VECT;
 
     nm_str_t ifs = NM_INIT_STR;
@@ -254,15 +301,6 @@ static int nm_edit_vm_get_data(nm_vm_t *vm, const nm_vmctl_data_t *cur)
     if (field_status(fields[NM_FLD_DISCARD])) {
         if (nm_str_cmp_st(&discard, "yes") == NM_OK) {
             vm->drive.discard = 1;
-        }
-    }
-
-    if (field_status(fields[NM_FLD_GROUP])) {
-        if (nm_str_cmp_st(&vm->group, "all") == NM_OK) {
-            rc = NM_ERR;
-            NM_FORM_RESET();
-            nm_warn(_(NM_MSG_BAD_GROUP));
-            goto out;
         }
     }
 

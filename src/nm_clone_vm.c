@@ -3,25 +3,44 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_menu.h>
 #include <nm_network.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_vm_control.h>
 #include <nm_clone_vm.h>
 
+#define NM_FLD_COUNT 2
 static const char NM_CLONE_NAME_MSG[] = "Name";
 
+static void nm_clone_vm_init_windows(nm_form_t *form);
 static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
                               const nm_vect_t *drives);
 static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
                               const nm_vmctl_data_t *vm);
 
+static void nm_clone_vm_init_windows(nm_form_t *form)
+{
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
+
+    nm_init_side();
+    nm_init_action(_(NM_MSG_CLONE));
+    nm_init_help_clone();
+
+    nm_print_vm_menu(NULL);
+}
+
 void nm_clone_vm(const nm_str_t *name)
 {
+    nm_form_data_t *form_data = NULL;
     nm_form_t *form = NULL;
-    nm_field_t *fields[2];
+    nm_field_t *fields[NM_FLD_COUNT + 1];
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     nm_str_t buf = NM_INIT_STR;
     nm_str_t cl_name = NM_INIT_STR;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
@@ -30,29 +49,31 @@ void nm_clone_vm(const nm_str_t *name)
     pthread_t spin_th;
     int done = 0;
 
-    msg_len = mbstowcs(NULL, NM_CLONE_NAME_MSG, strlen(NM_CLONE_NAME_MSG));
-    if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
-        return;
-
-    werase(action_window);
-    werase(help_window);
-    nm_init_action(_(NM_MSG_CLONE));
-    nm_init_help_clone();
+    nm_clone_vm_init_windows(NULL);
 
     nm_vmctl_get_data(name, &vm);
 
-    fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
-    fields[1] = NULL;
+    msg_len = mbstowcs(NULL, _(NM_CLONE_NAME_MSG), strlen(_(NM_CLONE_NAME_MSG)));
 
-    set_field_type(fields[0], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
+    form_data = nm_form_data_new(
+        action_window, nm_clone_vm_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
 
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
+
+    fields[0] = nm_field_new(NM_FIELD_LABEL, 0, form_data);
+    fields[1] = nm_field_new(NM_FIELD_EDIT, 0, form_data);
+    fields[2] = NULL;
+
+    set_field_buffer(fields[0], 0, _(NM_CLONE_NAME_MSG));
+    set_field_type(fields[1], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
     nm_str_format(&buf, "%s-clone", name->data);
-    set_field_buffer(fields[0], 0, buf.data);
+    set_field_buffer(fields[1], 0, buf.data);
 
-    mvwaddstr(form_data.form_window, 1, 2, _(NM_CLONE_NAME_MSG));
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    if (nm_draw_form(action_window, form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK)
         goto out;
 
     nm_get_field_buf(fields[0], &cl_name);
@@ -81,7 +102,9 @@ void nm_clone_vm(const nm_str_t *name)
 out:
     NM_FORM_EXIT();
     nm_vmctl_free_data(&vm);
-    nm_form_free(form, fields);
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
     nm_str_free(&buf);
     nm_str_free(&cl_name);
 }
