@@ -347,8 +347,8 @@ static void nm_api_md_nemu_version(struct json_object *request, nm_str_t *reply)
 {
     int rc = nm_api_check_auth(request, reply);
 
-    if (rc == NM_OK) {
-        nm_str_format(reply, "%s", NM_API_RET_OK);
+    if (rc != NM_OK) {
+        goto out;
     }
 
     nm_str_format(reply, NM_API_RET_VAL, NM_VERSION);
