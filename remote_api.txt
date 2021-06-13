@@ -3,8 +3,13 @@ Current version: 0.1
 
 Get API version (no auth required).
 APIv: >= 0.1
-request: {"exec": "version"}
+request: {"exec": "api_version"}
 reply:   {"return": "_version_"}
+
+Get nEMU version.
+APIv: >= 0.1
+request: {"exec": "nemu_version", "auth": "_pass_"};
+reply:   {"return": "_version_"} or {"return": "err", "error":"_error_"}
 
 Check authentication.
 APIv: >= 0.1

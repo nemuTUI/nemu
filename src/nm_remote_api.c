@@ -27,17 +27,19 @@ static void nm_api_reply(const char *request, nm_str_t *reply);
 
 /* API methods */
 static void nm_api_md_version(struct json_object *request, nm_str_t *reply);
+static void nm_api_md_nemu_version(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_auth(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmlist(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmstart(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmstop(struct json_object *request, nm_str_t *reply);
 
 static nm_api_ops_t nm_api[] = {
-    { .method = "auth",     .run = nm_api_md_auth    },
-    { .method = "version",  .run = nm_api_md_version },
-    { .method = "vm_list",  .run = nm_api_md_vmlist  },
-    { .method = "vm_start", .run = nm_api_md_vmstart },
-    { .method = "vm_stop",  .run = nm_api_md_vmstop  }
+    { .method = "nemu_version", .run = nm_api_md_nemu_version },
+    { .method = "api_version",  .run = nm_api_md_version      },
+    { .method = "auth",         .run = nm_api_md_auth         },
+    { .method = "vm_list",      .run = nm_api_md_vmlist       },
+    { .method = "vm_start",     .run = nm_api_md_vmstart      },
+    { .method = "vm_stop",      .run = nm_api_md_vmstop       }
 };
 
 void *nm_api_server(void *ctx)
@@ -338,6 +340,18 @@ out:
 static void nm_api_md_version(struct json_object *request, nm_str_t *reply)
 {
     nm_str_format(reply, NM_API_RET_VAL, NM_API_VERSION);
+    json_object_put(request);
+}
+
+static void nm_api_md_nemu_version(struct json_object *request, nm_str_t *reply)
+{
+    int rc = nm_api_check_auth(request, reply);
+
+    if (rc == NM_OK) {
+        nm_str_format(reply, "%s", NM_API_RET_OK);
+    }
+
+    nm_str_format(reply, NM_API_RET_VAL, NM_VERSION);
     json_object_put(request);
 }
 
