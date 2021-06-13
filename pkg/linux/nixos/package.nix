@@ -15,16 +15,18 @@
 , graphviz
 , libxml2
 , libarchive
+, json_c
 , virtviewer
 , tigervnc
+, openssl
 
 , withDbus ? false
 , withNetworkMap ? false
 , withOVF ? true
-, withSnapshots ? false
 , withSpice ? true
 , withUTF ? false
 , withVNC ? true
+, withRemote ? false
 
 , configName ? ".config/nemu/nemu.cfg"
 , vmDir ? ".local/share/nemu/vms"
@@ -33,25 +35,14 @@
 
 stdenv.mkDerivation rec {
   pname = "nemu";
-  version = "2021-04-01";
+  version = "2021-06-13";
 
   src = fetchFromGitHub {
     owner = "nemuTUI";
     repo = "nemu";
-    rev = "9fff326adc1c5fc27cddeedc2c091e5bb2a24347";
-    sha256 = "10gis2fckjhj4ln9gb02qbcin82rx98fi6zh0wi5k1xpj8bmqcci";
+    rev = "31d7ca8075a2c70268d7a1d977e9908383bc4e27";
+    sha256 = "13yx63qhwm7lbnjlyzpakxc708xm8g0yhjznlq4hcnamqk8i38hh";
   };
-
-  qemu_ = if withSnapshots
-    then qemu.overrideAttrs (attrs: {
-      patches = attrs.patches ++ [
-        (fetchpatch {
-          url = "https://raw.githubusercontent.com/nemuTUI/nemu/master/patches/qemu-qmp-savevm-5.0.0+.patch";
-          sha256 = "07w18h61m282f2nllxjxzv92lnvz61y9la6p8w7haj6a00kyispn";
-        })
-      ];
-    })
-    else qemu;
 
   system.requiredKernelConfig = with config.lib.kernelConfig; [
     (isEnabled "VETH")
@@ -66,16 +57,18 @@ stdenv.mkDerivation rec {
     libudev
     libusb1
     sqlite
-    qemu_
+    qemu
     ncurses
     socat
     picocom
+    json_c
   ]
     ++ lib.optional withDbus dbus
     ++ lib.optional withNetworkMap graphviz
     ++ lib.optionals withOVF [ libxml2 libarchive ]
     ++ lib.optional withSpice virtviewer
-    ++ lib.optional withVNC tigervnc;
+    ++ lib.optional withVNC tigervnc
+    ++ lib.optional withRemote openssl;
 
   cmakeFlags = [
     "-DNM_CFG_NAME=${configName}"
@@ -83,15 +76,15 @@ stdenv.mkDerivation rec {
     "-DNM_DEFAULT_VNC=${tigervnc}/bin/vncviewer"
     "-DNM_DEFAULT_DBFILE=${databaseName}"
     "-DNM_DEFAULT_SPICE=${virtviewer}/bin/remote-viewer"
-    "-DNM_DEFAULT_QEMUDIR=${qemu_}/bin"
+    "-DNM_DEFAULT_QEMUDIR=${qemu}/bin"
   ]
     ++ lib.optional withDbus "-DNM_WITH_DBUS=ON"
     ++ lib.optional withNetworkMap "-DNM_WITH_NETWORK_MAP=ON"
     ++ lib.optional withOVF "-DNM_WITH_OVF_SUPPORT=ON"
-    ++ lib.optional withSnapshots "-DNM_SAVEVM_SNAPSHOTS=ON"
     ++ lib.optional withSpice "-DNM_WITH_SPICE=ON"
     ++ lib.optional withUTF "-DNM_USE_UTF=ON"
-    ++ lib.optional withVNC "-DNM_WITH_VNC_CLIENT=ON";
+    ++ lib.optional withVNC "-DNM_WITH_VNC_CLIENT=ON"
+    ++ lib.optional withRemote "-DNM_WITH_REMOTE=ON";
 
   preConfigure = ''
     patchShebangs .
@@ -106,7 +99,7 @@ stdenv.mkDerivation rec {
       /usr/bin/remote-viewer ${virtviewer}/bin/remote-viewer
 
     substituteInPlace nemu.cfg.sample --replace \
-      "qemu_bin_path = /usr/bin" "qemu_bin_path = ${qemu_}/bin"
+      "qemu_bin_path = /usr/bin" "qemu_bin_path = ${qemu}/bin"
 
     substituteInPlace sh/ntty --replace \
       /usr/bin/socat ${socat}/bin/socat
