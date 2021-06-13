@@ -352,6 +352,7 @@ static void nm_api_md_nemu_version(struct json_object *request, nm_str_t *reply)
     }
 
     nm_str_format(reply, NM_API_RET_VAL, NM_VERSION);
+out:
     json_object_put(request);
 }
 
