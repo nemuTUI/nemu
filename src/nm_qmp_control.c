@@ -294,7 +294,7 @@ static int nm_qmp_send(const nm_str_t *cmd)
 {
     mqd_t mq;
 
-    if ((mq = mq_open("/nemu-qmp", O_WRONLY | O_CREAT | O_NONBLOCK,
+    if ((mq = mq_open(NM_MQ_PATH, O_WRONLY | O_CREAT | O_NONBLOCK,
                     0600, NULL)) == (mqd_t) -1) {
         return NM_ERR;
     }
