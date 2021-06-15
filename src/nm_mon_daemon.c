@@ -45,6 +45,7 @@ typedef struct nm_clean_data {
 static void nm_mon_cleanup(int rc, void *arg)
 {
     nm_clean_data_t *data = arg;
+    const nm_cfg_t *cfg = nm_cfg_get();
 
     nm_debug("mon daemon exited: %d\n", rc);
 
@@ -54,13 +55,18 @@ static void nm_mon_cleanup(int rc, void *arg)
 #if defined (NM_WITH_DBUS)
     nm_dbus_disconnect();
 #endif
-
     data->qmp_ctrl.stop = true;
-    data->api_ctrl.stop = true;
     pthread_join(*data->qmp_worker, NULL);
-    pthread_join(*data->api_server, NULL);
+#if defined (NM_WITH_REMOTE)
+    if (cfg->api_server) {
+        data->api_ctrl.stop = true;
+        pthread_join(*data->api_server, NULL);
+    }
+#endif
 
-    unlink(nm_cfg_get()->daemon_pid.data);
+    if (unlink(cfg->daemon_pid.data) != 0) {
+        nm_debug("error delete mon daemon pidfile: %s\n", strerror(rc));
+    }
     nm_exit_core();
 }
 #endif /* NM_OS_LINUX */
