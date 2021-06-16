@@ -5,6 +5,7 @@
 #include <nm_remote_api.h>
 #include <nm_mon_daemon.h>
 #include <nm_vm_control.h>
+#include <nm_database.h>
 #include <nm_utils.h>
 
 #include <netinet/in.h>
@@ -62,6 +63,8 @@ void *nm_api_server(void *ctx)
     fds[0].fd = sd;
     fds[0].events = POLLIN;
     timeout = 1000; /* 1 second */
+
+    nm_db_init();
 
     while (!mon_data->ctrl->stop) {
         struct sockaddr_in cl_addr;
