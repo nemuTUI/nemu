@@ -232,6 +232,7 @@ void nm_db_close(void)
 
     sqlite3_close(db->handler);
     pthread_key_delete(db_conn_key);
+    free(db);
 }
 
 static void nm_db_check_version(void)
