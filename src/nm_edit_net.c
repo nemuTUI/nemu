@@ -339,6 +339,7 @@ static size_t nm_edit_net_labels_setup()
 {
     nm_str_t buf = NM_INIT_STR;
     size_t max_label_len = 0;
+    size_t msg_len = 0;
 
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
@@ -375,8 +376,9 @@ static size_t nm_edit_net_labels_setup()
             continue;
         }
 
-        if (buf.len > max_label_len)
-            max_label_len = buf.len;
+        msg_len = mbstowcs(NULL, buf.data, buf.len);
+        if (msg_len > max_label_len)
+            max_label_len = msg_len;
 
         if (fields[n])
             set_field_buffer(fields[n], 0, buf.data);

@@ -291,6 +291,7 @@ static size_t nm_lan_labels_setup()
 {
     nm_str_t buf = NM_INIT_STR;
     size_t max_label_len = 0;
+    size_t msg_len = 0;
 
     for (size_t n = 0; n < NM_LAN_FLD_COUNT; n++) {
         switch (n) {
@@ -304,8 +305,9 @@ static size_t nm_lan_labels_setup()
             continue;
         }
 
-        if (buf.len > max_label_len)
-            max_label_len = buf.len;
+        msg_len = mbstowcs(NULL, buf.data, buf.len);
+        if (msg_len > max_label_len)
+            max_label_len = msg_len;
 
         if (fields_lan[n])
             set_field_buffer(fields_lan[n], 0, buf.data);
@@ -639,6 +641,7 @@ static size_t nm_svg_labels_setup()
 {
     nm_str_t buf = NM_INIT_STR;
     size_t max_label_len = 0;
+    size_t msg_len = 0;
 
     for (size_t n = 0; n < NM_SVG_FLD_COUNT; n++) {
         switch (n) {
@@ -658,8 +661,9 @@ static size_t nm_svg_labels_setup()
             continue;
         }
 
-        if (buf.len > max_label_len)
-            max_label_len = buf.len;
+        msg_len = mbstowcs(NULL, buf.data, buf.len);
+        if (msg_len > max_label_len)
+            max_label_len = msg_len;
 
         if (fields_svg[n])
             set_field_buffer(fields_svg[n], 0, buf.data);
