@@ -202,6 +202,7 @@ nm_form_data_t *nm_form_data_new(
 {
     nm_form_data_t *form_data = nm_alloc(sizeof(nm_form_data_t));
     form_data->parent_window = parent;
+    form_data->form_window = NULL;
     form_data->on_redraw = on_redraw;
     form_data->msg_len = msg_len;
     form_data->field_lines = field_lines;
