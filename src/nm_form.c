@@ -500,6 +500,7 @@ static nm_form_t *nm_form_redraw(nm_form_t *form)
     nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
     nm_field_t **fields = form_fields(form);
     nm_field_t *cur_field = current_field(form);
+    int maxfield = form->maxfield;
 
     form_driver(form, REQ_VALIDATION);
 
@@ -509,7 +510,10 @@ static nm_form_t *nm_form_redraw(nm_form_t *form)
         return form;
     }
 
-    for (int n = 0; n < form->maxfield; n++) {
+    unpost_form(form);
+    free_form(form);
+
+    for (int n = 0; n < maxfield; n++) {
         if(fields[n] == cur_field) {
             fields[n] = nm_field_resize(fields[n], form_data);
             cur_field = fields[n];
@@ -517,9 +521,6 @@ static nm_form_t *nm_form_redraw(nm_form_t *form)
             fields[n] = nm_field_resize(fields[n], form_data);
         }
     }
-
-    unpost_form(form);
-    free_form(form);
 
     form_ = nm_form_new(form_data, fields);
     if (form_ == NULL)
