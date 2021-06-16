@@ -40,8 +40,8 @@ int main(int argc, char **argv)
     nm_process_args(argc, argv);
 
     nm_cfg_init();
-    nm_mon_start();
     nm_db_init();
+    nm_mon_start();
 #if defined (NM_OS_LINUX)
     nm_lan_create_veth(NM_FALSE);
 #endif

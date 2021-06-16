@@ -4,6 +4,8 @@
 #include <nm_vector.h>
 #include <stdbool.h>
 
+#include <sqlite3.h>
+
 #define NM_DB_VERSION "17"
 
 //@TODO Those queries should have constant naming convention and some kind of sorting
@@ -170,6 +172,15 @@ static const char NM_VMCTL_GET_VNC_PORT_SQL[] = \
 
 static const char NM_GET_DB_VERSION_SQL[] = \
     "PRAGMA user_version";
+
+typedef sqlite3 nm_sqlite_t;
+
+typedef struct {
+    nm_sqlite_t *handler;
+    bool in_transaction;
+} db_conn_t;
+
+#define NM_INIT_DB_CONN (db_conn_t) {NULL, false}
 
 void nm_db_init(void);
 void nm_db_select(const char *query, nm_vect_t *v);
