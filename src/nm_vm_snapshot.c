@@ -116,6 +116,7 @@ void nm_vm_snapshot_create(const nm_str_t *name)
 
     nm_vm_snapshot_create_labels_setup();
     nm_vm_snapshot_create_fields_setup();
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
@@ -236,6 +237,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     set_field_buffer(fields[0], 0, _(NM_VMSNAP_FORM_SNAP));
     set_field_type(fields[1], TYPE_ENUM, choices.data, false, false);
     set_field_buffer(fields[1], 0, *choices.data);
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
@@ -325,6 +327,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     set_field_buffer(fields[0], 0, _(NM_VMSNAP_FORM_SNAP));
     set_field_type(fields[1], TYPE_ENUM, choices.data, false, false);
     set_field_buffer(fields[1], 0, *choices.data);
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);

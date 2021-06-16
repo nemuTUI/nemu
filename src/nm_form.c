@@ -168,6 +168,7 @@ static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data)
     set_field_back(field_, field_back(field));
     _nc_Free_Type(field_);
     _nc_Copy_Type(field_, field);
+    set_field_status(field_, field_status(field));
     //@TODO update children somehow
 
     free_field(field);
@@ -194,6 +195,12 @@ void nm_fields_free(nm_field_t **fields)
         nm_field_free(*fields);
         *fields = NULL;
     }
+}
+
+void nm_fields_unset_status(nm_field_t **fields)
+{
+    for (; *fields; fields++)
+        set_field_status(*fields, 0);
 }
 
 nm_form_data_t *nm_form_data_new(

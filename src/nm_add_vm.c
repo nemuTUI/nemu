@@ -114,6 +114,7 @@ static void nm_add_vm_main()
 
     nm_add_vm_labels_setup();
     nm_add_vm_fields_setup();
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);

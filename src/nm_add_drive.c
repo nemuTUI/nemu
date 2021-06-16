@@ -90,6 +90,7 @@ void nm_add_drive(const nm_str_t *name)
 
     set_field_buffer(fields[NM_FLD_DRVTYPE], 0, NM_DEFAULT_DRVINT);
     set_field_buffer(fields[NM_FLD_DISCARD], 0, nm_form_yes_no[1]);
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);

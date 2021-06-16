@@ -191,6 +191,7 @@ void nm_ovf_import(void)
 
     nm_ovf_labels_setup();
     nm_ovf_fields_setup();
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);

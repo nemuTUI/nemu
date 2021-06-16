@@ -69,6 +69,7 @@ void nm_clone_vm(const nm_str_t *name)
     set_field_type(fields[1], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
     nm_str_format(&buf, "%s-clone", name->data);
     set_field_buffer(fields[1], 0, buf.data);
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);

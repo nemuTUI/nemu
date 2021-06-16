@@ -252,6 +252,7 @@ static void nm_lan_add_veth(void)
 
     nm_lan_labels_setup();
     nm_lan_fields_setup();
+    nm_fields_unset_status(fields_lan);
 
     form = nm_form_new(form_data, fields_lan);
     nm_form_post(form);
@@ -567,6 +568,7 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
 
     nm_svg_labels_setup();
     nm_svg_fields_setup();
+    nm_fields_unset_status(fields_svg);
 
     form = nm_form_new(form_data, fields_svg);
     nm_form_post(form);

@@ -127,6 +127,7 @@ typedef struct {
 nm_field_t *nm_field_new(nm_field_type_t type, int row, nm_form_data_t *form_data);
 void nm_field_free(nm_field_t *field);
 void nm_fields_free(nm_field_t **fields);
+void nm_fields_unset_status(nm_field_t **fields);
 
 nm_form_data_t *nm_form_data_new(
     nm_window_t *parent, void (*on_redraw)(nm_form_t *),

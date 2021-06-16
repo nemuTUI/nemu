@@ -87,6 +87,7 @@ void nm_9p_share(const nm_str_t *name)
 
     nm_9p_labels_setup();
     nm_9p_fields_setup(&vm);
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);

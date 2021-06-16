@@ -81,6 +81,7 @@ void nm_edit_boot(const nm_str_t *name)
 
     nm_edit_boot_labels_setup();
     nm_edit_boot_fields_setup(&cur_settings);
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);

@@ -566,6 +566,7 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err, nm_filter_t *filter)
     set_field_back(fields[1], A_UNDERLINE);
     field_opts_off(fields[1], O_STATIC);
     set_field_buffer(fields[0], 0, _(NM_SEARCH_STR));
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);

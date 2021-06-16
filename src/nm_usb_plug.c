@@ -102,6 +102,7 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
     set_field_type(fields[1], TYPE_ENUM, usb_names.data, false, false);
     field_opts_off(fields[1], O_STATIC);
     set_field_buffer(fields[1], 0, *usb_names.data);
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
@@ -169,6 +170,7 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
     set_field_type(fields[1], TYPE_ENUM, usb_names.data, false, false);
     field_opts_off(fields[1], O_STATIC);
     set_field_buffer(fields[1], 0, *usb_names.data);
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);

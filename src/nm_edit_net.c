@@ -238,6 +238,7 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
 
     nm_edit_net_labels_setup();
     nm_edit_net_fields_setup(vm, if_idx);
+    nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
