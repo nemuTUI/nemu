@@ -605,6 +605,7 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err, nm_filter_t *filter)
 
 out:
     nm_form_free(form);
+    nm_form_data_free(form_data);
     nm_fields_free(fields);
     nm_str_free(&input);
 
