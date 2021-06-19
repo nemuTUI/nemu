@@ -19,7 +19,8 @@ reply:   {"return": "ok"} or {"return": "err", "error":"_error_"}
 Get VM list.
 APIv: >= 0.1
 request: {"exec": "vm_list", "auth": "_pass_"}
-reply:   {"return": [{"name": "_name_", "status": "_status_"}]}
+reply:   {"return": [{"name": "_name_", "status": _status_}]}
+typeof:  name: string, status: bool (true: running, false: stopped)
 
 Start VM.
 APIv: >= 0.1
