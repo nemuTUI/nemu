@@ -382,11 +382,11 @@ static void nm_api_md_vmlist(struct json_object *request, nm_str_t *reply)
 
     pthread_mutex_lock(&vms->mtx);
     for (size_t n = 0; n < vms->list->n_memb; n++) {
-        nm_str_append_format(&list, "%s{\"name\":\"%s\",\"status\":\"%s\"}",
+        nm_str_append_format(&list, "%s{\"name\":\"%s\",\"status\":%s}",
                 (n) ? "," : "",
                 nm_mon_item_get_name_cstr(vms->list, n),
                 (nm_mon_item_get_status(vms->list, n) == NM_TRUE) ?
-                "running" : "stopped");
+                "true" : "false");
     }
     pthread_mutex_unlock(&vms->mtx);
     nm_str_format(reply, NM_API_RET_ARRAY, list.data);
