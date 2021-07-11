@@ -72,7 +72,9 @@ void nm_lan_settings(void)
     nm_vect_t veths = NM_INIT_VECT;
     nm_vect_t veths_list = NM_INIT_VECT;
     nm_menu_data_t veths_data = NM_INIT_MENU_DATA;
-    size_t veth_list_len, old_hl = 0;
+    size_t veth_list_len, old_hl;
+
+    veth_list_len = old_hl = 0;
 
     nm_lan_create_veth(NM_FALSE);
 
