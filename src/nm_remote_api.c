@@ -33,14 +33,16 @@ static void nm_api_md_auth(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmlist(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmstart(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmstop(struct json_object *request, nm_str_t *reply);
+static void nm_api_md_vmforcestop(struct json_object *request, nm_str_t *reply);
 
 static nm_api_ops_t nm_api[] = {
-    { .method = "nemu_version", .run = nm_api_md_nemu_version },
-    { .method = "api_version",  .run = nm_api_md_version      },
-    { .method = "auth",         .run = nm_api_md_auth         },
-    { .method = "vm_list",      .run = nm_api_md_vmlist       },
-    { .method = "vm_start",     .run = nm_api_md_vmstart      },
-    { .method = "vm_stop",      .run = nm_api_md_vmstop       }
+    { .method = "nemu_version",  .run = nm_api_md_nemu_version },
+    { .method = "api_version",   .run = nm_api_md_version      },
+    { .method = "auth",          .run = nm_api_md_auth         },
+    { .method = "vm_list",       .run = nm_api_md_vmlist       },
+    { .method = "vm_start",      .run = nm_api_md_vmstart      },
+    { .method = "vm_stop",       .run = nm_api_md_vmstop       },
+    { .method = "vm_force_stop", .run = nm_api_md_vmforcestop  }
 };
 
 void *nm_api_server(void *ctx)
@@ -478,6 +480,47 @@ static void nm_api_md_vmstop(struct json_object *request, nm_str_t *reply)
 
     nm_str_format(&vmname, "%s", name_str);
     nm_qmp_vm_shut(&vmname);
+    nm_str_format(reply, "%s", NM_API_RET_OK);
+out:
+    nm_str_free(&vmname);
+    json_object_put(request);
+}
+
+static void nm_api_md_vmforcestop(struct json_object *request, nm_str_t *reply)
+{
+    int rc = nm_api_check_auth(request, reply);
+    nm_mon_vms_t *vms = mon_data->vms;
+    nm_str_t vmname = NM_INIT_STR;
+    struct json_object *name;
+    bool vm_exist = false;
+    const char *name_str;
+
+    if (rc != NM_OK) {
+        goto out;
+    }
+
+    json_object_object_get_ex(request, "name", &name);
+    if (!name) {
+        nm_str_format(reply, NM_API_RET_ERR, "name param is missing");
+        goto out;
+    }
+
+    name_str = json_object_get_string(name);
+    for (size_t n = 0; n < vms->list->n_memb; n++) {
+        if (nm_str_cmp_st(nm_mon_item_get_name(vms->list, n),
+                    name_str) ==  NM_OK) {
+            vm_exist = true;
+            break;
+        }
+    }
+
+    if (!vm_exist) {
+        nm_str_format(reply, NM_API_RET_ERR, "VM does not exists");
+        goto out;
+    }
+
+    nm_str_format(&vmname, "%s", name_str);
+    nm_qmp_vm_stop(&vmname);
     nm_str_format(reply, "%s", NM_API_RET_OK);
 out:
     nm_str_free(&vmname);
