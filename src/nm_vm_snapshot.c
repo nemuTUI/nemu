@@ -3,32 +3,11 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_menu.h>
 #include <nm_database.h>
 #include <nm_cfg_file.h>
 #include <nm_qmp_control.h>
 #include <nm_vm_snapshot.h>
-
-static const char NM_FORMSTR_NAME[] = "Snapshot name";
-static const char NM_FORMSTR_LOAD[] = "Load at next boot";
-static const char NM_FORMSTR_SNAP[] = "Snapshot";
-
-enum {
-    NM_FLD_VMSNAPNAME = 0,
-    NM_FLD_VMLOAD,
-    NM_FLD_COUNT
-};
-
-static const char *nm_form_msg[] = {
-    NM_FORMSTR_NAME, NM_FORMSTR_LOAD, NULL
-};
-
-enum {
-    NM_SQL_VMSNAP_ID = 0,
-    NM_SQL_VMSNAP_VM,
-    NM_SQL_VMSNAP_NAME,
-    NM_SQL_VMSNAP_LOAD,
-    NM_SQL_VMSNAP_TIME
-};
 
 typedef struct {
     nm_str_t snap_name;
@@ -38,6 +17,16 @@ typedef struct {
 
 #define NM_INIT_VMSNAP (nm_vmsnap_t) { NM_INIT_STR, NM_INIT_STR, 0 }
 
+static const char NM_VMSNAP_FORM_NAME[] = "Snapshot name";
+static const char NM_VMSNAP_FORM_LOAD[] = "Load at next boot";
+static const char NM_VMSNAP_FORM_SNAP[] = "Snapshot";
+
+static void nm_vm_snapshot_init_windows(nm_form_t *form);
+static void nm_vm_snapshot_create_init_windows(nm_form_t *form);
+static void nm_vm_snapshot_revert_init_windows(nm_form_t *form);
+static void nm_vm_snapshot_delete_init_windows(nm_form_t *form);
+static void nm_vm_snapshot_create_fields_setup();
+static size_t nm_vm_snapshot_create_labels_setup();
 static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data);
 static void nm_vm_snapshot_to_db(const nm_str_t *name, const nm_vmsnap_t *data);
 static void __nm_vm_snapshot_load(const nm_str_t *name, const nm_str_t *snap,
@@ -45,41 +34,94 @@ static void __nm_vm_snapshot_load(const nm_str_t *name, const nm_str_t *snap,
 static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
                                     int vm_status);
 
+enum {
+    NM_SQL_VMSNAP_ID = 0,
+    NM_SQL_VMSNAP_VM,
+    NM_SQL_VMSNAP_NAME,
+    NM_SQL_VMSNAP_LOAD,
+    NM_SQL_VMSNAP_TIME
+};
+
+enum {
+    NM_LBL_VMSNAPNAME = 0, NM_FLD_VMSNAPNAME,
+    NM_LBL_VMLOAD, NM_FLD_VMLOAD,
+    NM_FLD_COUNT
+};
+
 static nm_field_t *fields[NM_FLD_COUNT + 1];
+static nm_vect_t snaps = NM_INIT_VECT;
+
+static void nm_vm_snapshot_init_windows(nm_form_t *form)
+{
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
+
+    nm_init_side();
+    nm_init_help_edit();
+
+    nm_print_vm_menu(NULL);
+}
+
+static void nm_vm_snapshot_create_init_windows(nm_form_t *form)
+{
+    nm_vm_snapshot_init_windows(form);
+    nm_init_action(_(NM_MSG_SNAP_CRT));
+}
+
+static void nm_vm_snapshot_revert_init_windows(nm_form_t *form)
+{
+    nm_vm_snapshot_init_windows(form);
+    nm_init_action(_(NM_MSG_SNAP_REV));
+    nm_print_snapshots(&snaps);
+}
+
+static void nm_vm_snapshot_delete_init_windows(nm_form_t *form)
+{
+    nm_vm_snapshot_init_windows(form);
+    nm_init_action(_(NM_MSG_SNAP_DEL));
+    nm_print_snapshots(&snaps);
+}
 
 void nm_vm_snapshot_create(const nm_str_t *name)
 {
+    nm_form_data_t *form_data = NULL;
     nm_form_t *form = NULL;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     nm_vmsnap_t data = NM_INIT_VMSNAP;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     pthread_t spin_th;
     int done = 0;
-    size_t msg_len = nm_max_msg_len(nm_form_msg);
+    size_t msg_len;
 
-    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
-        return;
+    nm_vm_snapshot_create_init_windows(NULL);
 
-    werase(action_window);
-    werase(help_window);
-    nm_init_action(_(NM_MSG_SNAP_CRT));
-    nm_init_help_edit();
+    msg_len = nm_vm_snapshot_create_labels_setup();
 
-    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
-        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+    form_data = nm_form_data_new(
+        action_window, nm_vm_snapshot_create_init_windows,
+        msg_len, NM_FLD_COUNT / 2, NM_TRUE
+    );
 
-    fields[NM_FLD_COUNT] = NULL;
-    field_opts_off(fields[NM_FLD_VMSNAPNAME], O_STATIC);
-    set_field_type(fields[NM_FLD_VMLOAD], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_buffer(fields[NM_FLD_VMLOAD], 0, nm_form_yes_no[1]);
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
-        mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
-        y += 2;
+    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
+        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
+        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
     }
+    fields[NM_FLD_COUNT] = NULL;
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    if (nm_draw_form(action_window, form) != NM_OK)
+    nm_vm_snapshot_create_labels_setup();
+    nm_vm_snapshot_create_fields_setup();
+    nm_fields_unset_status(fields);
+
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
+
+    if (nm_form_draw(&form) != NM_OK)
         goto out;
 
     if (nm_vm_snapshot_get_data(name, &data) != NM_OK)
@@ -99,25 +141,63 @@ void nm_vm_snapshot_create(const nm_str_t *name)
 
 out:
     NM_FORM_EXIT();
-    nm_form_free(form, fields);
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
     nm_str_free(&data.snap_name);
     nm_str_free(&data.load);
 }
 
+static void nm_vm_snapshot_create_fields_setup()
+{
+    field_opts_off(fields[NM_FLD_VMSNAPNAME], O_STATIC);
+    set_field_type(fields[NM_FLD_VMLOAD], TYPE_ENUM, nm_form_yes_no, false, false);
+    set_field_buffer(fields[NM_FLD_VMLOAD], 0, nm_form_yes_no[1]);
+}
+
+static size_t nm_vm_snapshot_create_labels_setup()
+{
+    nm_str_t buf = NM_INIT_STR;
+    size_t max_label_len = 0;
+    size_t msg_len = 0;
+
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+        case NM_LBL_VMSNAPNAME:
+            nm_str_format(&buf, "%s", _(NM_VMSNAP_FORM_NAME));
+            break;
+        case NM_LBL_VMLOAD:
+            nm_str_format(&buf, "%s", _(NM_VMSNAP_FORM_LOAD));
+            break;
+        default:
+            continue;
+        }
+
+        msg_len = mbstowcs(NULL, buf.data, buf.len);
+        if (msg_len > max_label_len)
+            max_label_len = msg_len;
+
+        if (fields[n])
+            set_field_buffer(fields[n], 0, buf.data);
+    }
+
+    nm_str_free(&buf);
+    return max_label_len;
+}
+
 void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
 {
+    nm_form_data_t *form_data = NULL;
     nm_form_t *form = NULL;
     nm_vect_t err = NM_INIT_VECT;
     nm_str_t query = NM_INIT_STR;
     nm_str_t buf = NM_INIT_STR;
-    nm_vect_t snaps = NM_INIT_VECT;
     nm_vect_t choices = NM_INIT_VECT;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     int done = 0;
     pthread_t spin_th;
     size_t snaps_count = 0;
-    size_t msg_len = mbstowcs(NULL, _(NM_FORMSTR_SNAP), strlen(_(NM_FORMSTR_SNAP)));
+    size_t msg_len;
 
     nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, name->data);
     nm_db_select(query.data, &snaps);
@@ -126,16 +206,6 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
         nm_warn(_(NM_MSG_NO_SNAPS));
         goto out;
     }
-
-    if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
-        goto out;
-
-    werase(action_window);
-    werase(help_window);
-    nm_init_action(_(NM_MSG_SNAP_DEL));
-    nm_init_help_edit();
-
-    nm_print_snapshots(&snaps);
 
     snaps_count = snaps.n_memb / 5;
     for (size_t n = 0; n < snaps_count; n++) {
@@ -146,28 +216,41 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
             nm_vect_str_len(&snaps, NM_SQL_VMSNAP_NAME + idx_shift) + 1,
             NULL);
     }
-
     nm_vect_end_zero(&choices);
 
-    fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
-    fields[1] = NULL;
+    nm_vm_snapshot_delete_init_windows(NULL);
 
-    set_field_type(fields[0], TYPE_ENUM, choices.data, false, false);
-    set_field_buffer(fields[0], 0, *choices.data);
+    msg_len = mbstowcs(NULL, _(NM_VMSNAP_FORM_SNAP), strlen(_(NM_VMSNAP_FORM_SNAP)));
 
-    mvwaddstr(form_data.form_window, 1, 2, _(NM_FORMSTR_SNAP));
+    form_data = nm_form_data_new(
+        action_window, nm_vm_snapshot_delete_init_windows,
+        msg_len, 1, NM_TRUE
+    );
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    curs_set(0);
-    if (nm_draw_form(action_window, form) != NM_OK)
-        goto clean_and_out;
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
 
-    nm_get_field_buf(fields[0], &buf);
-    nm_form_check_data(_(NM_FORMSTR_SNAP), buf, err);
+    fields[0] = nm_field_new(NM_FIELD_LABEL, 0, form_data);
+    fields[1] = nm_field_new(NM_FIELD_EDIT, 0, form_data);
+    fields[2] = NULL;
+
+    set_field_buffer(fields[0], 0, _(NM_VMSNAP_FORM_SNAP));
+    set_field_type(fields[1], TYPE_ENUM, choices.data, false, false);
+    set_field_buffer(fields[1], 0, *choices.data);
+    nm_fields_unset_status(fields);
+
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
+
+    if (nm_form_draw(&form) != NM_OK)
+        goto out;
+
+    nm_get_field_buf(fields[1], &buf);
+    nm_form_check_data(_(NM_VMSNAP_FORM_SNAP), buf, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
-        goto clean_and_out;
+        goto out;
     }
 
     sp_data.stop = &done;
@@ -181,34 +264,30 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     if (pthread_join(spin_th, NULL) != 0)
         nm_bug(_("%s: cannot join thread"), __func__);
 
-clean_and_out:
-    werase(help_window);
-    nm_init_help_main();
-
 out:
-    wtimeout(action_window, -1);
-    delwin(form_data.form_window);
+    NM_FORM_EXIT();
     nm_vect_free(&snaps, nm_str_vect_free_cb);
     nm_vect_free(&choices, NULL);
-    nm_form_free(form, fields);
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
     nm_str_free(&query);
     nm_str_free(&buf);
 }
 
 void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
 {
-    nm_vect_t snaps = NM_INIT_VECT;
+    nm_form_data_t *form_data = NULL;
+    nm_form_t *form = NULL;
     nm_vect_t choices = NM_INIT_VECT;
     nm_vect_t err = NM_INIT_VECT;
-    nm_form_t *snap_form = NULL;
     nm_str_t query = NM_INIT_STR;
     nm_str_t buf = NM_INIT_STR;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     size_t snaps_count = 0;
     int done = 0;
     pthread_t spin_th;
-    size_t msg_len = mbstowcs(NULL, NM_FORMSTR_SNAP, strlen(NM_FORMSTR_SNAP));
+    size_t msg_len;
 
     nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, name->data);
     nm_db_select(query.data, &snaps);
@@ -217,16 +296,6 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
         nm_warn(_(NM_MSG_NO_SNAPS));
         goto out;
     }
-
-    if (nm_form_calc_size(msg_len, 1, &form_data) != NM_OK)
-        goto out;
-
-    werase(action_window);
-    werase(help_window);
-    nm_init_action(_(NM_MSG_SNAP_REV));
-    nm_init_help_edit();
-
-    nm_print_snapshots(&snaps);
 
     snaps_count = snaps.n_memb / 5;
     for (size_t n = 0; n < snaps_count; n++) {
@@ -237,28 +306,41 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
             nm_vect_str_len(&snaps, NM_SQL_VMSNAP_NAME + idx_shift) + 1,
             NULL);
     }
-
     nm_vect_end_zero(&choices);
 
-    fields[0] = new_field(1, form_data.form_len, 0, 0, 0, 0);
-    fields[1] = NULL;
+    nm_vm_snapshot_revert_init_windows(NULL);
 
-    set_field_type(fields[0], TYPE_ENUM, choices.data, false, false);
-    set_field_buffer(fields[0], 0, *choices.data);
+    msg_len = mbstowcs(NULL, _(NM_VMSNAP_FORM_SNAP), strlen(_(NM_VMSNAP_FORM_SNAP)));
 
-    mvwaddstr(form_data.form_window, 1, 2, _(NM_FORMSTR_SNAP));
+    form_data = nm_form_data_new(
+        action_window, nm_vm_snapshot_delete_init_windows,
+        msg_len, 1, NM_TRUE
+    );
 
-    snap_form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    curs_set(0);
-    if (nm_draw_form(action_window, snap_form) != NM_OK)
-        goto clean_and_out;
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
 
-    nm_get_field_buf(fields[0], &buf);
-    nm_form_check_data(_(NM_FORMSTR_SNAP), buf, err);
+    fields[0] = nm_field_new(NM_FIELD_LABEL, 0, form_data);
+    fields[1] = nm_field_new(NM_FIELD_EDIT, 0, form_data);
+    fields[2] = NULL;
+
+    set_field_buffer(fields[0], 0, _(NM_VMSNAP_FORM_SNAP));
+    set_field_type(fields[1], TYPE_ENUM, choices.data, false, false);
+    set_field_buffer(fields[1], 0, *choices.data);
+    nm_fields_unset_status(fields);
+
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
+
+    if (nm_form_draw(&form) != NM_OK)
+        goto out;
+
+    nm_get_field_buf(fields[1], &buf);
+    nm_form_check_data(_(NM_VMSNAP_FORM_SNAP), buf, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
-        goto clean_and_out;
+        goto out;
     }
 
     sp_data.stop = &done;
@@ -272,14 +354,11 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     if (pthread_join(spin_th, NULL) != 0)
         nm_bug(_("%s: cannot join thread"), __func__);
 
-clean_and_out:
-    werase(help_window);
-    nm_init_help_main();
-
 out:
-    wtimeout(action_window, -1);
-    delwin(form_data.form_window);
-    nm_form_free(snap_form, fields);
+    NM_FORM_EXIT();
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
     nm_vect_free(&snaps, nm_str_vect_free_cb);
     nm_vect_free(&choices, NULL);
     nm_str_free(&query);
@@ -312,7 +391,7 @@ static void __nm_vm_snapshot_load(const nm_str_t *name, const nm_str_t *snap,
 static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
                                     int vm_status)
 {
-    int rc = NM_ERR;
+    int rc;
 
     if (!vm_status) {
         /* vm is not running, use
@@ -369,7 +448,7 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
 
 static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data)
 {
-    int rc = NM_OK;
+    int rc;
     nm_str_t query = NM_INIT_STR;
     nm_vect_t names = NM_INIT_VECT;
     nm_vect_t err = NM_INIT_VECT;
@@ -377,8 +456,8 @@ static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data)
     nm_get_field_buf(fields[NM_FLD_VMSNAPNAME], &data->snap_name);
     nm_get_field_buf(fields[NM_FLD_VMLOAD], &data->load);
 
-    nm_form_check_data(_(NM_FORMSTR_NAME), data->snap_name, err);
-    nm_form_check_data(_(NM_FORMSTR_LOAD), data->load, err);
+    nm_form_check_data(_(NM_VMSNAP_FORM_NAME), data->snap_name, err);
+    nm_form_check_data(_(NM_VMSNAP_FORM_LOAD), data->load, err);
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR) {
         nm_vect_free(&err, NULL);

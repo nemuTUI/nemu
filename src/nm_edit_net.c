@@ -9,13 +9,6 @@
 #include <nm_edit_net.h>
 
 #if defined (NM_OS_LINUX)
-    enum {NM_NET_FIELDS_NUM = 9};
-#else
-    enum {NM_NET_FIELDS_NUM = 6};
-#endif
-
-
-#if defined (NM_OS_LINUX)
 static const size_t NM_NET_MACVTAP_NUM = 2;
 #endif
 
@@ -49,11 +42,22 @@ typedef struct {
                         NM_INIT_STR }
 #endif
 
-static nm_field_t *fields[NM_NET_FIELDS_NUM + 1];
+static const char NM_EDIT_NET_FORM_NDRV[] = "Net driver";
+static const char NM_EDIT_NET_FORM_MADR[] = "Mac address";
+static const char NM_EDIT_NET_FORM_IPV4[] = "IPv4 address";
+#if defined (NM_OS_LINUX)
+static const char NM_EDIT_NET_FORM_VHST[] = "Enable vhost";
+static const char NM_EDIT_NET_FORM_MTAP[] = "Enable MacVTap";
+static const char NM_EDIT_NET_FORM_PETH[] = "MacVTap iface";
+#endif
+static const char NM_EDIT_NET_FORM_USER[] = "User mode";
+static const char NM_EDIT_NET_FORM_FWD[]  = "Port forwarding";
+static const char NM_EDIT_NET_FORM_SMB[]  = "Share folder";
 
-static void nm_edit_net_field_names(nm_window_t *w);
-static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm,
-                                    size_t if_idx);
+static void nm_edit_net_init_main_windows(nm_form_t *form);
+static void nm_edit_net_init_edit_windows(nm_form_t *form);
+static void nm_edit_net_fields_setup(const nm_vmctl_data_t *vm, size_t if_idx);
+static size_t nm_edit_net_labels_setup();
 static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp);
 static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp);
 static inline void nm_edit_net_iface_free(nm_iface_t *ifp);
@@ -62,36 +66,54 @@ static int nm_edit_net_action(const nm_str_t *name,
                               const nm_vmctl_data_t *vm, size_t if_idx);
 static int nm_verify_portfwd(const nm_str_t *fwd);
 
-static const char *nm_form_msg[] = {
-    "Net driver",
-    "Mac address",
-    "IPv4 address",
-#if defined (NM_OS_LINUX)
-    "Enable vhost",
-    "Enable MacVTap",
-    "MacVTap iface",
-#endif
-    "User mode",
-    "Port forwarding",
-    "Share folder",
-    NULL
-};
-
-static nm_form_t *form = NULL;
-
 enum {
-    NM_FLD_NDRV = 0,
-    NM_FLD_MADR,
-    NM_FLD_IPV4,
+    NM_LBL_NDRV, NM_FLD_NDRV,
+    NM_LBL_MADR, NM_FLD_MADR,
+    NM_LBL_IPV4, NM_FLD_IPV4,
 #if defined (NM_OS_LINUX)
-    NM_FLD_VHST,
-    NM_FLD_MTAP,
-    NM_FLD_PETH,
+    NM_LBL_VHST, NM_FLD_VHST,
+    NM_LBL_MTAP, NM_FLD_MTAP,
+    NM_LBL_PETH, NM_FLD_PETH,
 #endif
-    NM_FLD_USER,
-    NM_FLD_FWD,
-    NM_FLD_SMB
+    NM_LBL_USER, NM_FLD_USER,
+    NM_LBL_FWD, NM_FLD_FWD,
+    NM_LBL_SMB, NM_FLD_SMB,
+    NM_FLD_COUNT
 };
+
+static nm_field_t *fields[NM_FLD_COUNT + 1];
+
+static void nm_edit_net_init_main_windows(nm_form_t *form)
+{
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
+
+    nm_init_help_iface();
+    nm_init_action(_(NM_MSG_IF_PROP));
+    nm_init_side_if_list();
+
+    nm_print_base_menu(NULL);
+}
+
+static void nm_edit_net_init_edit_windows(nm_form_t *form)
+{
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
+
+    nm_init_help_edit();
+    nm_init_action(_(NM_MSG_IF_PROP));
+    nm_init_side_if_list();
+
+    nm_print_base_menu(NULL);
+}
 
 void nm_edit_net(const nm_str_t *name)
 {
@@ -109,12 +131,7 @@ void nm_edit_net(const nm_str_t *name)
         goto out;
     }
 
-    werase(side_window);
-    werase(action_window);
-    werase(help_window);
-    nm_init_help_iface();
-    nm_init_action(_(NM_MSG_IF_PROP));
-    nm_init_side_if_list();
+    nm_edit_net_init_main_windows(NULL);
 
     iface_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
 
@@ -137,13 +154,11 @@ void nm_edit_net(const nm_str_t *name)
         nm_menu_scroll(&ifs, vm_list_len, ch);
 
         if (ch == NM_KEY_ENTER) {
-            werase(action_window);
-            nm_init_action(_(NM_MSG_IF_PROP));
-
             if (nm_edit_net_action(name, &vm, ifs.highlight) == NM_OK) {
                 nm_vmctl_free_data(&vm);
                 nm_vmctl_get_data(name, &vm);
             }
+            nm_init_help_iface();
         }
 
         nm_print_base_menu(&ifs);
@@ -152,13 +167,7 @@ void nm_edit_net(const nm_str_t *name)
         nm_print_iface_info(&vm, ifs.highlight);
 
         if (redraw_window) {
-            nm_destroy_windows();
-            endwin();
-            refresh();
-            nm_create_windows();
-            nm_init_help_iface();
-            nm_init_side_if_list();
-            nm_init_action(_(NM_MSG_IF_PROP));
+            nm_edit_net_init_main_windows(NULL);
 
             vm_list_len = (getmaxy(side_window) - 4);
             /* TODO save last pos */
@@ -186,11 +195,12 @@ out:
 static int
 nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_idx)
 {
+    nm_form_data_t *form_data = NULL;
+    nm_form_t *form = NULL;
     int rc = NM_OK;
-    size_t msg_len = nm_max_msg_len(nm_form_msg);
     nm_iface_t iface_data = NM_INIT_NET_IF;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     size_t idx_shift;
+    size_t msg_len;
 
     if (!if_idx) {
         rc = NM_ERR;
@@ -208,46 +218,60 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
         goto out;
     }
 
-    werase(help_window);
-    nm_init_help_edit();
+    nm_edit_net_init_edit_windows(NULL);
 
-    if (nm_form_calc_size(msg_len, NM_NET_FIELDS_NUM, &form_data) != NM_OK)
-        return NM_ERR;
+    msg_len = nm_edit_net_labels_setup();
 
-    for (size_t n = 0; n < NM_NET_FIELDS_NUM; ++n)
-        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+    form_data = nm_form_data_new(
+        action_window, nm_edit_net_init_edit_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
 
-    fields[NM_NET_FIELDS_NUM] = NULL;
-
-    nm_edit_net_field_setup(vm, if_idx);
-    nm_edit_net_field_names(form_data.form_window);
-
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    mvwhline(form_data.form_window, (NM_NET_FIELDS_NUM - 3) * 2,
-            0, ACS_HLINE, getmaxx(form_data.form_window));
-
-    if (nm_draw_form(action_window, form) != NM_OK) {
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK) {
         rc = NM_ERR;
         goto out;
     }
 
-    if (nm_edit_net_get_data(name, &iface_data) != NM_OK)
+    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
+        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
+        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    }
+    fields[NM_FLD_COUNT] = NULL;
+
+    nm_edit_net_labels_setup();
+    nm_edit_net_fields_setup(vm, if_idx);
+    nm_fields_unset_status(fields);
+
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
+
+    /* Add horisontal line before usernet related stuff */
+    mvwhline(form_data->form_window,
+        NM_LBL_USER, 0, ACS_HLINE, getmaxx(form_data->form_window));
+
+    if (nm_form_draw(&form) != NM_OK) {
+        rc = NM_ERR;
         goto out;
+    }
+
+    if (nm_edit_net_get_data(name, &iface_data) != NM_OK) {
+        rc = NM_ERR;
+        goto out;
+    }
 
     nm_edit_net_update_db(name, &iface_data);
 
 out:
     wtimeout(action_window, -1);
-    delwin(form_data.form_window);
+    delwin(form_data->form_window);
     werase(help_window);
-    nm_init_help_iface();
     nm_edit_net_iface_free(&iface_data);
-    nm_form_free(form, fields);
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
 
     return rc;
 }
 
-static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, size_t if_idx)
+static void nm_edit_net_fields_setup(const nm_vmctl_data_t *vm, size_t if_idx)
 {
     size_t mvtap_idx = 0;
     size_t idx_shift;
@@ -310,24 +334,64 @@ static void nm_edit_net_field_setup(const nm_vmctl_data_t *vm, size_t if_idx)
         set_field_buffer(fields[NM_FLD_SMB], 0,
             nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_SMB + idx_shift));
     }
-
-    for (size_t n = 0; n < NM_NET_FIELDS_NUM; n++)
-        set_field_status(fields[n], 0);
 }
 
-static void nm_edit_net_field_names(nm_window_t *w)
+static size_t nm_edit_net_labels_setup()
 {
-    int y = 1, x = 2, mult = 2;
+    nm_str_t buf = NM_INIT_STR;
+    size_t max_label_len = 0;
+    size_t msg_len = 0;
 
-    for (size_t n = 0; n < NM_NET_FIELDS_NUM; n++) {
-        mvwaddstr(w, y, x, _(nm_form_msg[n]));
-        y += mult;
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+        case NM_LBL_NDRV:
+            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_NDRV));
+            break;
+        case NM_LBL_MADR:
+            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_MADR));
+            break;
+        case NM_LBL_IPV4:
+            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_IPV4));
+            break;
+#if defined (NM_OS_LINUX)
+        case NM_LBL_VHST:
+            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_VHST));
+            break;
+        case NM_LBL_MTAP:
+            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_MTAP));
+            break;
+        case NM_LBL_PETH:
+            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_PETH));
+            break;
+#endif
+        case NM_LBL_USER:
+            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_USER));
+            break;
+        case NM_LBL_FWD:
+            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_FWD));
+            break;
+        case NM_LBL_SMB:
+            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_SMB));
+            break;
+        default:
+            continue;
+        }
+
+        msg_len = mbstowcs(NULL, buf.data, buf.len);
+        if (msg_len > max_label_len)
+            max_label_len = msg_len;
+
+        if (fields[n])
+            set_field_buffer(fields[n], 0, buf.data);
     }
+
+    nm_str_free(&buf);
+    return max_label_len;
 }
 
 static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
 {
-    int rc = NM_OK;
+    int rc;
     nm_vect_t err = NM_INIT_VECT;
 
     nm_get_field_buf(fields[NM_FLD_NDRV], &ifp->drv);

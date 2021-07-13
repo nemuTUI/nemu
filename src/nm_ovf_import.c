@@ -6,6 +6,7 @@
 #include <nm_string.h>
 #include <nm_vector.h>
 #include <nm_window.h>
+#include <nm_menu.h>
 #include <nm_add_vm.h>
 #include <nm_cfg_file.h>
 #include <nm_ovf_import.h>
@@ -86,19 +87,6 @@ static const char NM_XPATH_USB_EHCI[] = \
     "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/" \
     "ovf:Item[rasd:ResourceType/text()=23]";
 
-enum {
-    NM_OVA_FLD_SRC = 0,
-    NM_OVA_FLD_ARCH,
-    NM_OVA_FLD_NAME,
-    NM_OVA_FLD_VER,
-    NM_OVA_FLD_COUNT
-};
-
-static const char *nm_form_msg[] = {
-    NM_OVF_FORM_PATH, NM_OVF_FORM_ARCH,
-    NM_OVF_FORM_NAME, NM_OVF_FORM_VER, NULL
-};
-
 typedef struct archive nm_archive_t;
 typedef struct archive_entry nm_archive_entry_t;
 
@@ -112,6 +100,9 @@ typedef xmlXPathContextPtr nm_xml_xpath_ctx_pt;
 void nm_drive_vect_ins_cb(void *unit_p, const void *ctx);
 void nm_drive_vect_free_cb(void *unit_p);
 
+static void nm_ovf_init_windows(nm_form_t *form);
+static void nm_ovf_fields_setup();
+static size_t nm_ovf_labels_setup();
 static int nm_clean_temp_dir(const char *tmp_dir, const nm_vect_t *files);
 static void nm_archive_copy_data(nm_archive_t *in, nm_archive_t *out);
 static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
@@ -138,10 +129,36 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
 static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives);
 static int nm_ova_get_data(nm_vm_t *vm, int *version);
 
-static nm_field_t *fields[NM_OVA_FLD_COUNT + 1];
+enum {
+    NM_OVA_LBL_SRC = 0, NM_OVA_FLD_SRC,
+    NM_OVA_LBL_ARCH, NM_OVA_FLD_ARCH,
+    NM_OVA_LBL_NAME, NM_OVA_FLD_NAME,
+    NM_OVA_LBL_VER, NM_OVA_FLD_VER,
+    NM_FLD_COUNT
+};
+
+static nm_field_t *fields[NM_FLD_COUNT + 1];
+
+static void nm_ovf_init_windows(nm_form_t *form)
+{
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
+
+    nm_init_side();
+    nm_init_action(_(NM_MSG_OVA_HEADER));
+    nm_init_help_import();
+
+    nm_print_vm_menu(NULL);
+}
 
 void nm_ovf_import(void)
 {
+    nm_form_data_t *form_data = NULL;
+    nm_form_t *form = NULL;
     char templ_path[sizeof(NM_OVA_DIR_TEMPL)];
     const char *ovf_file;
     nm_vect_t files = NM_INIT_VECT;
@@ -149,49 +166,37 @@ void nm_ovf_import(void)
     nm_vm_t vm = NM_INIT_VM;
     nm_xml_doc_pt doc = NULL;
     nm_xml_xpath_ctx_pt xpath_ctx = NULL;
-    nm_form_t *form = NULL;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     size_t msg_len;
     pthread_t spin_th;
     int done = 0, version = 0;
 
     strncpy(templ_path, NM_OVA_DIR_TEMPL, sizeof(templ_path));
 
-    msg_len = nm_max_msg_len(nm_form_msg);
+    nm_ovf_init_windows(NULL);
 
-    if (nm_form_calc_size(msg_len, NM_OVA_FLD_COUNT, &form_data) != NM_OK)
-        return;
+    msg_len = nm_ovf_labels_setup();
 
-    werase(action_window);
-    werase(help_window);
-    nm_init_action(_(NM_MSG_OVA_HEADER));
-    nm_init_help_import();
+    form_data = nm_form_data_new(
+        action_window, nm_ovf_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
 
-    for (size_t n = 0; n < NM_OVA_FLD_COUNT; ++n)
-        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
 
-    fields[NM_OVA_FLD_COUNT] = NULL;
-
-    set_field_type(fields[NM_OVA_FLD_SRC], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[NM_OVA_FLD_ARCH], TYPE_ENUM,
-                   nm_cfg_get_arch(), false, false);
-    set_field_type(fields[NM_OVA_FLD_NAME], TYPE_REGEXP,
-                   "^[a-zA-Z0-9_-]{1,30} *$");
-    set_field_type(fields[NM_OVA_FLD_VER], TYPE_ENUM,
-                   nm_ovf_version, false, false);
-    set_field_buffer(fields[NM_OVA_FLD_ARCH], 0, *nm_cfg_get()->qemu_targets.data);
-    set_field_buffer(fields[NM_OVA_FLD_VER], 0, *nm_ovf_version);
-    field_opts_off(fields[NM_OVA_FLD_SRC], O_STATIC);
-    field_opts_off(fields[NM_OVA_FLD_NAME], O_STATIC);
-
-    for (size_t n = 0, y = 1, x = 2; n < NM_OVA_FLD_COUNT; n++) {
-        mvwaddstr(form_data.form_window, y, x, _(nm_form_msg[n]));
-        y += 2;
+    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
+        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
+        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
     }
+    fields[NM_FLD_COUNT] = NULL;
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    if (nm_draw_form(action_window, form) != NM_OK)
+    nm_ovf_labels_setup();
+    nm_ovf_fields_setup();
+    nm_fields_unset_status(fields);
+
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
+
+    if (nm_form_draw(&form) != NM_OK)
         goto cancel;
 
     if (nm_ova_get_data(&vm, &version) != NM_OK)
@@ -261,9 +266,61 @@ out:
 
 cancel:
     NM_FORM_EXIT();
-    nm_form_free(form, fields);
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
     nm_vm_free(&vm);
-    delwin(form_data.form_window);
+}
+
+static void nm_ovf_fields_setup()
+{
+    set_field_type(fields[NM_OVA_FLD_SRC], TYPE_REGEXP, "^/.*");
+    set_field_type(fields[NM_OVA_FLD_ARCH], TYPE_ENUM,
+                   nm_cfg_get_arch(), false, false);
+    set_field_type(fields[NM_OVA_FLD_NAME], TYPE_REGEXP,
+                   "^[a-zA-Z0-9_-]{1,30} *$");
+    set_field_type(fields[NM_OVA_FLD_VER], TYPE_ENUM,
+                   nm_ovf_version, false, false);
+    set_field_buffer(fields[NM_OVA_FLD_ARCH], 0, *nm_cfg_get()->qemu_targets.data);
+    set_field_buffer(fields[NM_OVA_FLD_VER], 0, *nm_ovf_version);
+    field_opts_off(fields[NM_OVA_FLD_SRC], O_STATIC);
+    field_opts_off(fields[NM_OVA_FLD_NAME], O_STATIC);
+}
+
+static size_t nm_ovf_labels_setup()
+{
+    nm_str_t buf = NM_INIT_STR;
+    size_t max_label_len = 0;
+    size_t msg_len = 0;
+
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+        case NM_OVA_LBL_SRC:
+            nm_str_format(&buf, "%s", _(NM_OVF_FORM_PATH));
+            break;
+        case NM_OVA_LBL_ARCH:
+            nm_str_format(&buf, "%s", _(NM_OVF_FORM_ARCH));
+            break;
+        case NM_OVA_LBL_NAME:
+            nm_str_format(&buf, "%s", _(NM_OVF_FORM_NAME));
+            break;
+        case NM_OVA_LBL_VER:
+            nm_str_format(&buf, "%s", _(NM_OVF_FORM_VER));
+            break;
+        default:
+            continue;
+        }
+
+        msg_len = mbstowcs(NULL, buf.data, buf.len);
+        if (msg_len > max_label_len)
+            max_label_len = msg_len;
+
+        if (fields[n])
+            set_field_buffer(fields[n], 0, buf.data);
+    }
+
+    nm_str_free(&buf);
+    return max_label_len;
 }
 
 static void nm_ovf_extract(const nm_str_t *ova_path, const char *tmp_dir,
@@ -676,7 +733,7 @@ static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives)
 
 static int nm_ova_get_data(nm_vm_t *vm, int *version)
 {
-    int rc = NM_OK;
+    int rc;
     nm_vect_t err = NM_INIT_VECT;
     nm_str_t ver = NM_INIT_STR;
 

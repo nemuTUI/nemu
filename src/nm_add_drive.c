@@ -15,29 +15,46 @@ static const char NM_DRIVE_FORM_DIS[] = "Discard mode";
 static const char NM_DRIVE_SZ_START[] = "Size [1-";
 static const char NM_DRIVE_SZ_END[] = "]Gb";
 
-enum {
-    NM_FLD_DRVSIZE = 0,
-    NM_FLD_DRVTYPE,
-    NM_FLD_DISCARD,
-    NM_FLD_COUNT
-};
-
+static void nm_add_drive_init_windows(nm_form_t *form);
+static size_t nm_add_drive_labels_setup();
 static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
                                const nm_str_t *type, const nm_vect_t *drives,
                                const nm_str_t *discard);
 
+enum {
+    NM_LBL_DRVSIZE = 0, NM_FLD_DRVSIZE,
+    NM_LBL_DRVTYPE, NM_FLD_DRVTYPE,
+    NM_LBL_DISCARD, NM_FLD_DISCARD,
+    NM_FLD_COUNT
+};
+
+static nm_field_t *fields[NM_FLD_COUNT + 1];
+
+static void nm_add_drive_init_windows(nm_form_t *form)
+{
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
+
+    nm_init_side();
+    nm_init_action(_(NM_MSG_VDRIVE_ADD));
+    nm_init_help_edit();
+
+    nm_print_vm_menu(NULL);
+}
+
 void nm_add_drive(const nm_str_t *name)
 {
+    nm_form_data_t *form_data = NULL;
     nm_form_t *form = NULL;
-    nm_field_t *fields[NM_FLD_COUNT+ 1] = {NULL};
-    nm_str_t buf = NM_INIT_STR;
     nm_str_t drv_size = NM_INIT_STR;
     nm_str_t drv_type = NM_INIT_STR;
     nm_str_t discard = NM_INIT_STR;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_vect_t err = NM_INIT_VECT;
-    nm_vect_t msg_fields = NM_INIT_VECT;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
     size_t msg_len;
 
     nm_vmctl_get_data(name, &vm);
@@ -49,27 +66,23 @@ void nm_add_drive(const nm_str_t *name)
         goto out;
     }
 
-    werase(action_window);
-    werase(help_window);
-    nm_init_action(_(NM_MSG_VDRIVE_ADD));
-    nm_init_help_edit();
+    nm_add_drive_init_windows(NULL);
 
-    nm_str_format(&buf, "%s%u%s",
-        _(NM_DRIVE_SZ_START), nm_hw_disk_free(), _(NM_DRIVE_SZ_END));
+    msg_len = nm_add_drive_labels_setup();
 
-    nm_vect_insert(&msg_fields, buf.data, buf.len + 1, NULL);
-    nm_vect_insert(&msg_fields, _(NM_DRIVE_FORM_MSG),
-            strlen(_(NM_DRIVE_FORM_MSG)) + 1, NULL);
-    nm_vect_insert(&msg_fields, _(NM_DRIVE_FORM_DIS),
-            strlen(_(NM_DRIVE_FORM_DIS)) + 1, NULL);
-    nm_vect_end_zero(&msg_fields);
-    msg_len = nm_max_msg_len((const char **) msg_fields.data);
+    form_data = nm_form_data_new(
+        action_window, nm_add_drive_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
 
-    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
-        return;
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
 
-    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
-        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
+        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
+        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    }
+    fields[NM_FLD_COUNT] = NULL;
+
+    nm_add_drive_labels_setup();
 
     set_field_type(fields[NM_FLD_DRVSIZE], TYPE_INTEGER, 0, 1, nm_hw_disk_free());
     set_field_type(fields[NM_FLD_DRVTYPE], TYPE_ENUM, nm_form_drive_drv, false, false);
@@ -77,21 +90,22 @@ void nm_add_drive(const nm_str_t *name)
 
     set_field_buffer(fields[NM_FLD_DRVTYPE], 0, NM_DEFAULT_DRVINT);
     set_field_buffer(fields[NM_FLD_DISCARD], 0, nm_form_yes_no[1]);
+    nm_fields_unset_status(fields);
 
-    for (size_t n = 0, y = 1, x = 2; n < NM_FLD_COUNT; n++) {
-        mvwaddstr(form_data.form_window, y, x, msg_fields.data[n]);
-        y += 2;
-    }
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    if (nm_draw_form(action_window, form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK)
         goto out;
 
-    //@TODO Fix nm_bug call "nm_add_drive: cannot create image file" when size field is empty
     nm_get_field_buf(fields[NM_FLD_DRVSIZE], &drv_size);
     nm_get_field_buf(fields[NM_FLD_DRVTYPE], &drv_type);
     nm_get_field_buf(fields[NM_FLD_DISCARD], &discard);
-    nm_form_check_data(_("Size"), buf, err);
+
+    if (!drv_size.len) {
+        nm_warn(_(NM_MSG_DRV_SIZE));
+        goto out;
+    }
 
     if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
@@ -104,13 +118,47 @@ void nm_add_drive(const nm_str_t *name)
 
 out:
     NM_FORM_EXIT();
-    nm_vect_free(&msg_fields, NULL);
     nm_vmctl_free_data(&vm);
-    nm_form_free(form, fields);
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
     nm_str_free(&drv_size);
     nm_str_free(&drv_type);
-    nm_str_free(&buf);
     nm_str_free(&discard);
+}
+
+static size_t nm_add_drive_labels_setup()
+{
+    nm_str_t buf = NM_INIT_STR;
+    size_t max_label_len = 0;
+    size_t msg_len = 0;
+
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+        case NM_LBL_DRVSIZE:
+            nm_str_format(&buf, "%s%u%s",
+                _(NM_DRIVE_SZ_START), nm_hw_disk_free(), _(NM_DRIVE_SZ_END));
+            break;
+        case NM_LBL_DRVTYPE:
+            nm_str_format(&buf, "%s", _(NM_DRIVE_FORM_MSG));
+            break;
+        case NM_LBL_DISCARD:
+            nm_str_format(&buf, "%s", _(NM_DRIVE_FORM_DIS));
+            break;
+        default:
+            continue;
+        }
+
+        msg_len = mbstowcs(NULL, buf.data, buf.len);
+        if (msg_len > max_label_len)
+            max_label_len = msg_len;
+
+        if (fields[n])
+            set_field_buffer(fields[n], 0, buf.data);
+    }
+
+    nm_str_free(&buf);
+    return max_label_len;
 }
 
 void nm_del_drive(const nm_str_t *name)

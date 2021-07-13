@@ -509,44 +509,72 @@ void nm_start_main_loop(void)
     nm_vect_free(&vm_list, nm_str_vect_free_cb);
 }
 
+static void nm_search_init_windows(nm_form_t *form)
+{
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = side_window;
+    }
+
+    nm_init_side();
+    nm_init_action(NULL);
+    nm_init_help_main();
+
+    nm_print_vm_menu(NULL);
+    nm_print_vm_info(NULL, NULL, 0);
+    wrefresh(action_window);
+    wrefresh(side_window);
+}
+
 static size_t nm_search_vm(const nm_vect_t *list, int *err, nm_filter_t *filter)
 {
     if (!err)
         return 0;
 
+    nm_form_data_t *form_data = NULL;
+    nm_form_t *form = NULL;
+    nm_field_t *fields[3] = {NULL};
     size_t pos = 0;
     void *match = NULL;
-    nm_form_t *form = NULL;
-    nm_field_t *fields[2];
     nm_str_t input = NM_INIT_STR;
-    int cols = getmaxx(side_window);
     size_t msg_len = mbstowcs(NULL, _(NM_SEARCH_STR), strlen(NM_SEARCH_STR));
-    int req_len = msg_len + 9;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
 
-    if (req_len > cols) {
-        *err = NM_TRUE;
-        return 0;
-    }
+    nm_search_init_windows(NULL);
 
     wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
-
-    form_data.form_len = cols - (5 + msg_len);
-    form_data.w_start_x = msg_len + 2;
-
-    fields[0] = new_field(1, form_data.form_len, 0, 1, 0, 0);
-    fields[1] = NULL;
-    set_field_back(fields[0], A_UNDERLINE);
-    field_opts_off(fields[0], O_STATIC);
-    NM_ERASE_TITLE(side, cols);
-    mvwaddstr(side_window, 1, 2, _(NM_SEARCH_STR));
+    NM_ERASE_TITLE(side, getmaxx(side_window));
     wrefresh(side_window);
 
-    form = nm_post_form(side_window, fields, form_data.w_start_x, NM_FALSE);
-    if (nm_draw_form(side_window, form) != NM_OK)
+    form_data = nm_form_data_new(
+        side_window, nm_search_init_windows, msg_len, 1, NM_FALSE);
+
+    form_data->field_vpad = 0;
+    form_data->field_hpad = 1;
+    form_data->form_ratio = 0.99;
+    form_data->form_vpad = 0;
+    form_data->w_start_y = 1;
+
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
         goto out;
 
-    nm_get_field_buf(fields[0], &input);
+    fields[0] = nm_field_new(NM_FIELD_LABEL, 0, form_data);
+    fields[1] = nm_field_new(NM_FIELD_EDIT, 0, form_data);
+    fields[2] = NULL;
+
+    set_field_back(fields[1], A_UNDERLINE);
+    field_opts_off(fields[1], O_STATIC);
+    set_field_buffer(fields[0], 0, _(NM_SEARCH_STR));
+    nm_fields_unset_status(fields);
+
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
+
+    if (nm_form_draw(&form) != NM_OK)
+        goto out;
+
+    nm_get_field_buf(fields[1], &input);
     if (!input.len)
         goto out;
 
@@ -577,7 +605,9 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err, nm_filter_t *filter)
     }
 
 out:
-    nm_form_free(form, fields);
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
     nm_str_free(&input);
 
     return pos;
@@ -585,22 +615,19 @@ out:
 
 static int nm_filter_check(const nm_str_t *input, nm_filter_t *filter)
 {
-    if (input->len <= 2)
+    if (input->len < 2)
         return NM_ERR;
 
-    if (input->data[1] != ':')
+    if (input->data[0] != 'g' && input->data[1] != ':')
         return NM_ERR;
 
-    if (input->data[0] == 'g') {
-        nm_str_format(&filter->query, "%s", input->data + 2);
-        if (nm_str_cmp_st(&filter->query, "all") == NM_OK) {
-            filter->flags |= NM_FILTER_RESET;
-            return NM_OK;
-        }
-
-        filter->type = NM_FILTER_GROUP;
+    if (input->len == 2) {
+        filter->flags |= NM_FILTER_RESET;
+        return NM_OK;
     }
 
+    nm_str_format(&filter->query, "%s", input->data + 2);
+    filter->type = NM_FILTER_GROUP;
     filter->flags |= NM_FILTER_UPDATE;
 
     return NM_OK;

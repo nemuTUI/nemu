@@ -3,63 +3,90 @@
 #include <nm_utils.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_menu.h>
 #include <nm_database.h>
 #include <nm_vm_control.h>
 #include <nm_edit_boot.h>
 
+static const char NM_EDIT_BOOT_FORM_INST[] = "OS Installed";
+static const char NM_EDIT_BOOT_FORM_SRCP[] = "Path to ISO/IMG";
+static const char NM_EDIT_BOOT_FORM_BIOS[] = "Path to BIOS";
+static const char NM_EDIT_BOOT_FORM_KERN[] = "Path to kernel";
+static const char NM_EDIT_BOOT_FORM_CMDL[] = "Kernel cmdline";
+static const char NM_EDIT_BOOT_FORM_INIT[] = "Path to initrd";
+static const char NM_EDIT_BOOT_FORM_DEBP[] = "GDB debug port";
+static const char NM_EDIT_BOOT_FORM_DEBF[] = "Freeze after start";
+
+static void nm_edit_boot_init_windows(nm_form_t *form);
+static void nm_edit_boot_fields_setup(const nm_vmctl_data_t *cur);
+static size_t nm_edit_boot_labels_setup();
+static int nm_edit_boot_get_data(nm_vm_boot_t *vm);
+static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm);
+
 enum {
-    NM_FLD_INST = 0,
-    NM_FLD_SRCP,
-    NM_FLD_BIOS,
-    NM_FLD_KERN,
-    NM_FLD_CMDL,
-    NM_FLD_INIT,
-    NM_FLD_DEBP,
-    NM_FLD_DEBF,
+    NM_LBL_INST = 0,  NM_FLD_INST,
+    NM_LBL_SRCP, NM_FLD_SRCP,
+    NM_LBL_BIOS, NM_FLD_BIOS,
+    NM_LBL_KERN, NM_FLD_KERN,
+    NM_LBL_CMDL, NM_FLD_CMDL,
+    NM_LBL_INIT, NM_FLD_INIT,
+    NM_LBL_DEBP, NM_FLD_DEBP,
+    NM_LBL_DEBF, NM_FLD_DEBF,
     NM_FLD_COUNT
 };
 
 static nm_field_t *fields[NM_FLD_COUNT + 1];
 
-static const char *nm_form_msg[] = {
-    "OS Installed", "Path to ISO/IMG", "Path to BIOS",
-    "Path to kernel", "Kernel cmdline", "Path to initrd",
-    "GDB debug port", "Freeze after start", NULL
-};
-
-static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur);
-static void nm_edit_boot_field_names(nm_window_t *w);
-static int nm_edit_boot_get_data(nm_vm_boot_t *vm);
-static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm);
-
-void nm_edit_boot(const nm_str_t *name)
+static void nm_edit_boot_init_windows(nm_form_t *form)
 {
-    nm_form_t *form = NULL;
-    nm_vm_boot_t vm = NM_INIT_VM_BOOT;
-    nm_form_data_t form_data = NM_INIT_FORM_DATA;
-    nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
-    size_t msg_len = nm_max_msg_len(nm_form_msg);
+    nm_form_window_init();
+    if(form) {
+        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+        if(form_data)
+            form_data->parent_window = action_window;
+    }
 
-    if (nm_form_calc_size(msg_len, NM_FLD_COUNT, &form_data) != NM_OK)
-        return;
-
-    werase(action_window);
-    werase(help_window);
+    nm_init_side();
     nm_init_action(_(NM_MSG_EDIT_BOOT));
     nm_init_help_edit();
 
+    nm_print_vm_menu(NULL);
+}
+
+void nm_edit_boot(const nm_str_t *name)
+{
+    nm_form_data_t *form_data = NULL;
+    nm_form_t *form = NULL;
+    nm_vm_boot_t vm = NM_INIT_VM_BOOT;
+    nm_vmctl_data_t cur_settings = NM_VMCTL_INIT_DATA;
+    size_t msg_len;
+
+    nm_edit_boot_init_windows(NULL);
+
     nm_vmctl_get_data(name, &cur_settings);
 
-    for (size_t n = 0; n < NM_FLD_COUNT; ++n)
-        fields[n] = new_field(1, form_data.form_len, n * 2, 0, 0, 0);
+    msg_len = nm_edit_boot_labels_setup();
 
+    form_data = nm_form_data_new(
+        action_window, nm_edit_boot_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
+
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+        goto out;
+
+    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
+        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
+        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    }
     fields[NM_FLD_COUNT] = NULL;
 
-    nm_edit_boot_field_setup(&cur_settings);
-    nm_edit_boot_field_names(form_data.form_window);
+    nm_edit_boot_labels_setup();
+    nm_edit_boot_fields_setup(&cur_settings);
+    nm_fields_unset_status(fields);
 
-    form = nm_post_form(form_data.form_window, fields, msg_len + 4, NM_TRUE);
-    if (nm_draw_form(action_window, form) != NM_OK)
+    form = nm_form_new(form_data, fields);
+    nm_form_post(form);
+
+    if (nm_form_draw(&form) != NM_OK)
         goto out;
 
     if (nm_edit_boot_get_data(&vm) != NM_OK)
@@ -71,10 +98,12 @@ out:
     NM_FORM_EXIT();
     nm_vmctl_free_data(&cur_settings);
     nm_vm_free_boot(&vm);
-    nm_form_free(form, fields);
+    nm_form_free(form);
+    nm_form_data_free(form_data);
+    nm_fields_free(fields);
 }
 
-static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
+static void nm_edit_boot_fields_setup(const nm_vmctl_data_t *cur)
 {
     for (size_t n = 1; n < NM_FLD_COUNT; n++)
         field_opts_off(fields[n], O_STATIC);
@@ -103,24 +132,59 @@ static void nm_edit_boot_field_setup(const nm_vmctl_data_t *cur)
         set_field_buffer(fields[NM_FLD_DEBF], 0, nm_form_yes_no[0]);
     else
         set_field_buffer(fields[NM_FLD_DEBF], 0, nm_form_yes_no[1]);
-
-    for (size_t n = 0; n < NM_FLD_COUNT; n++)
-        set_field_status(fields[n], 0);
 }
 
-static void nm_edit_boot_field_names(nm_window_t *w)
+static size_t nm_edit_boot_labels_setup()
 {
-    int y = 1, x = 2, mult = 2;
+    nm_str_t buf = NM_INIT_STR;
+    size_t max_label_len = 0;
+    size_t msg_len = 0;
 
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
-        mvwaddstr(w, y, x, _(nm_form_msg[n]));
-        y += mult;
+        switch (n) {
+        case NM_LBL_INST:
+            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_INST));
+            break;
+        case NM_LBL_SRCP:
+            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_SRCP));
+            break;
+        case NM_LBL_BIOS:
+            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_BIOS));
+            break;
+        case NM_LBL_KERN:
+            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_KERN));
+            break;
+        case NM_LBL_CMDL:
+            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_CMDL));
+            break;
+        case NM_LBL_INIT:
+            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_INIT));
+            break;
+        case NM_LBL_DEBP:
+            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_DEBP));
+            break;
+        case NM_LBL_DEBF:
+            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_DEBF));
+            break;
+        default:
+            continue;
+        }
+
+        msg_len = mbstowcs(NULL, buf.data, buf.len);
+        if (msg_len > max_label_len)
+            max_label_len = msg_len;
+
+        if (fields[n])
+            set_field_buffer(fields[n], 0, buf.data);
     }
+
+    nm_str_free(&buf);
+    return max_label_len;
 }
 
 static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
 {
-    int rc = NM_OK;
+    int rc;
     nm_vect_t err = NM_INIT_VECT;
     nm_str_t inst = NM_INIT_STR;
     nm_str_t debug_freeze = NM_INIT_STR;

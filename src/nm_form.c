@@ -11,6 +11,14 @@
 #include <glob.h>
 #include <dirent.h>
 
+static const int ROW_HEIGHT = 1;
+static const int FIELD_HPAD = 2;
+static const int FIELD_VPAD = 1;
+static const int FORM_HPAD = 2;
+static const int FORM_VPAD = 1;
+static const int MIN_EDIT_SIZE = 18;
+static const float FORM_RATIO = 0.80;
+
 const char *nm_form_yes_no[] = {
     "yes",
     "no",
@@ -53,113 +61,320 @@ const char *nm_form_displaytype[] = {
     NULL
 };
 
+void _nc_Free_Type(nm_field_t *field);
+void _nc_Copy_Type(nm_field_t *dst, nm_field_t const *src );
+
 static int nm_append_path(nm_str_t *path);
+static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data);
+static nm_form_t *nm_form_redraw(nm_form_t *form);
 
-void nm_form_free(nm_form_t *form, nm_field_t **fields)
+nm_field_t *nm_field_new(nm_field_type_t type, int row, nm_form_data_t *form_data)
 {
-    if (form) {
-        unpost_form(form);
-        free_form(form);
-        form = NULL;
+    nm_field_data_t *field_data = NULL;
+    nm_field_t *field = NULL;
+    int height = ROW_HEIGHT;
+    int top = (ROW_HEIGHT + form_data->field_vpad) * row;
+    int width;
+    int left;
+
+    field_data = (nm_field_data_t *)nm_alloc(sizeof(nm_field_data_t));
+
+    field_data->type = type;
+    field_data->row = row;
+    field_data->children.n_memb = 0;
+    field_data->children.n_alloc = 0;
+    field_data->children.data = NULL;
+    field_data->on_change = NULL;
+
+    switch (type) {
+        case NM_FIELD_LABEL:
+            width = form_data->msg_len;
+            left = 0;
+            break;
+        case NM_FIELD_EDIT:
+            width = (form_data->form_len - form_data->msg_len - form_data->field_hpad);
+            left = (form_data->msg_len + form_data->field_hpad);
+            break;
+        case NM_FIELD_DEFAULT:
+            width = form_data->form_len;
+            left = 0;
+            break;
+        default:
+            nm_bug("%s: %s", __func__, "Unknown field type");
+            break;
     }
 
-    if (fields) {
-        for (; *fields; fields++) {
-            free_field(*fields);
-            *fields = NULL;
-        }
+    field = new_field(height, width, top, left, 0, 0);
+    if (field == NULL)
+         nm_bug("%s: %s", __func__, strerror(errno));
+    set_field_userptr(field, field_data);
+
+    switch (type) {
+        case NM_FIELD_LABEL:
+            field_opts_off(field, O_ACTIVE);
+            if (form_data->color) {
+                set_field_fore(field, COLOR_PAIR(NM_COLOR_BLACK));
+                set_field_back(field, COLOR_PAIR(NM_COLOR_BLACK));
+            }
+            break;
+        case NM_FIELD_EDIT:
+        case NM_FIELD_DEFAULT:
+            field_opts_off(field, O_STATIC);
+            break;
+        default:
+            nm_bug("%s: %s", __func__, "Unknown field type");
+            break;
     }
 
-    curs_set(0);
+    set_field_status(field, 0);
+    return field;
 }
 
-nm_form_t *
-nm_post_form(nm_window_t *w, nm_field_t **field, int begin_x, int color)
+static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data)
 {
-    nm_form_t *form;
-    int rows, cols;
+    nm_field_data_t *field_data = (nm_field_data_t *)field_userptr(field);
+    nm_field_t *field_ = NULL;
+    int height = ROW_HEIGHT;
+    int top = (ROW_HEIGHT + form_data->field_vpad) * field_data->row;
+    int width;
+    int left;
 
-    if (color)
-        wbkgd(w, COLOR_PAIR(NM_COLOR_BLACK));
+    switch (field_data->type) {
+        case NM_FIELD_LABEL:
+            width = form_data->msg_len;
+            left = 0;
+            break;
+        case NM_FIELD_EDIT:
+            width = (form_data->form_len - form_data->msg_len - form_data->field_hpad);
+            left = (form_data->msg_len + form_data->field_hpad);
+            break;
+        case NM_FIELD_DEFAULT:
+            width = form_data->form_len;
+            left = 0;
+            break;
+        default:
+            nm_bug("%s: %s", __func__, "Unknown field type");
+            break;
+    }
+
+    field_ = new_field(height, width, top, left, 0, 0);
+    if (field_ == NULL)
+         nm_bug("%s: %s", __func__, strerror(errno));
+
+    set_field_userptr(field_, field_data);
+    set_field_opts(field_, field_opts(field));
+    set_field_buffer(field_, 0, field_buffer(field, 0));
+    set_field_fore(field_, field_fore(field));
+    set_field_back(field_, field_back(field));
+    _nc_Free_Type(field_);
+    _nc_Copy_Type(field_, field);
+    set_field_status(field_, field_status(field));
+    //@TODO update children somehow
+
+    free_field(field);
+
+    return field_;
+}
+
+void nm_field_free(nm_field_t *field)
+{
+    if (!field)
+        return;
+
+    nm_field_data_t *field_data = (nm_field_data_t *)field_userptr(field);
+    if (field_data) {
+        nm_vect_free(&field_data->children, NULL);
+        free(field_data);
+    }
+    free_field(field);
+}
+
+void nm_fields_free(nm_field_t **fields)
+{
+    for (; *fields; fields++) {
+        nm_field_free(*fields);
+        *fields = NULL;
+    }
+}
+
+void nm_fields_unset_status(nm_field_t **fields)
+{
+    for (; *fields; fields++)
+        set_field_status(*fields, 0);
+}
+
+nm_form_data_t *nm_form_data_new(
+    nm_window_t *parent, void (*on_redraw)(nm_form_t *),
+    size_t msg_len, size_t field_lines, int color)
+{
+    nm_form_data_t *form_data = nm_alloc(sizeof(nm_form_data_t));
+    form_data->parent_window = parent;
+    form_data->form_window = NULL;
+    form_data->on_redraw = on_redraw;
+    form_data->msg_len = msg_len;
+    form_data->field_lines = field_lines;
+    form_data->color = color;
+
+    form_data->field_hpad = FIELD_HPAD;
+    form_data->field_vpad = FIELD_VPAD;
+    form_data->form_hpad = FORM_HPAD;
+    form_data->form_vpad = FORM_VPAD;
+    form_data->form_ratio = FORM_RATIO;
+    form_data->min_edit_size = MIN_EDIT_SIZE;
+
+    form_data->w_rows = (ROW_HEIGHT + form_data->field_vpad) * field_lines \
+        + form_data->form_vpad;
+    form_data->w_start_y = NM_WINDOW_HEADER_HEIGHT;
+
+    return form_data;
+}
+
+int nm_form_data_update(nm_form_data_t *form_data, size_t msg_len, size_t field_lines)
+{
+    size_t cols, rows;
+
+    getmaxyx(form_data->parent_window, rows, cols);
+
+    if (msg_len)
+        form_data->msg_len = msg_len;
+    if (field_lines)
+        form_data->field_lines = field_lines;
+
+    form_data->w_rows = (ROW_HEIGHT + form_data->field_vpad) * form_data->field_lines \
+        + form_data->form_vpad;
+    form_data->w_cols = cols * form_data->form_ratio;
+    form_data->form_len = form_data->w_cols \
+        - form_data->field_hpad  - form_data->form_hpad;
+    form_data->w_start_x = ((1 - form_data->form_ratio) * cols) / 2;
+
+    if (form_data->w_cols < (form_data->msg_len + form_data->min_edit_size) ||
+        form_data->w_rows > rows - form_data->w_start_y - form_data->form_vpad) {
+        nm_warn(_(NM_MSG_SMALL_WIN));
+        return NM_ERR;
+    }
+
+    if (form_data->form_window)
+        delwin(form_data->form_window);
+
+    form_data->form_window = derwin(
+        form_data->parent_window,
+        form_data->w_rows, form_data->w_cols,
+        form_data->w_start_y, form_data->w_start_x
+    );
+
+    return NM_OK;
+}
+
+void nm_form_data_free(nm_form_data_t *form_data)
+{
+    if (form_data) {
+        if (form_data->form_window)
+            delwin(form_data->form_window);
+        free(form_data);
+    }
+}
+
+nm_form_t *nm_form_new(nm_form_data_t *form_data, nm_field_t **field)
+{
+    nm_form_t* form;
 
     form = new_form(field);
     if (form == NULL)
          nm_bug("%s: %s", __func__, strerror(errno));
 
-    set_form_win(form, w);
-    scale_form(form, &rows, &cols);
-    set_form_sub(form, derwin(w, rows, cols, 1, begin_x));
-    post_form(form);
-    curs_set(1);
+    set_form_userptr(form, form_data);
+    set_form_win(form, form_data->form_window);
 
     return form;
 }
 
-int nm_draw_form(nm_window_t *w, nm_form_t *form)
+void nm_form_window_init()
 {
+    nm_destroy_windows();
+    endwin();
+    refresh();
+    nm_create_windows();
+}
+
+void nm_form_post(nm_form_t *form)
+{
+    int rows, cols;
+    nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+
+    if (form_data->color)
+        wbkgd(form_data->form_window, COLOR_PAIR(NM_COLOR_BLACK));
+
+    scale_form(form, &rows, &cols);
+    set_form_sub(form,
+        derwin(form_data->form_window,
+            rows, cols, form_data->form_vpad, form_data->form_hpad));
+    post_form(form);
+    curs_set(1);
+}
+
+int nm_form_draw(nm_form_t **form)
+{
+    nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(*form);
     int confirm = NM_ERR, rc = NM_OK;
     int ch;
     nm_str_t buf = NM_INIT_STR;
 
-    wtimeout(w, 100);
+    wtimeout(form_data->parent_window, 100);
 
-    while ((ch = wgetch(w)) != NM_KEY_ESC) {
-        if (confirm == NM_OK)
-            break;
-
+    while (confirm != NM_OK && (ch = wgetch(form_data->parent_window)) != NM_KEY_ESC) {
         switch(ch) {
         case KEY_DOWN:
-            form_driver(form, REQ_VALIDATION);
-            form_driver(form, REQ_NEXT_FIELD);
-            form_driver(form, REQ_END_LINE);
+            form_driver(*form, REQ_VALIDATION);
+            form_driver(*form, REQ_NEXT_FIELD);
+            form_driver(*form, REQ_END_LINE);
             break;
 
         case KEY_UP:
-            form_driver(form, REQ_VALIDATION);
-            form_driver(form, REQ_PREV_FIELD);
-            form_driver(form, REQ_END_LINE);
+            form_driver(*form, REQ_VALIDATION);
+            form_driver(*form, REQ_PREV_FIELD);
+            form_driver(*form, REQ_END_LINE);
             break;
 
         case KEY_LEFT:
-            if (field_type(current_field(form)) == TYPE_ENUM)
-                form_driver(form, REQ_PREV_CHOICE);
+            if (field_type(current_field(*form)) == TYPE_ENUM)
+                form_driver(*form, REQ_PREV_CHOICE);
             else
-                form_driver(form, REQ_PREV_CHAR);
+                form_driver(*form, REQ_PREV_CHAR);
             break;
 
         case KEY_RIGHT:
-            if (field_type(current_field(form)) == TYPE_ENUM)
-                form_driver(form, REQ_NEXT_CHOICE);
+            if (field_type(current_field(*form)) == TYPE_ENUM)
+                form_driver(*form, REQ_NEXT_CHOICE);
             else
-                form_driver(form, REQ_NEXT_CHAR);
+                form_driver(*form, REQ_NEXT_CHAR);
             break;
 
         case KEY_HOME:
-            form_driver(form, REQ_BEG_LINE);
+            form_driver(*form, REQ_BEG_LINE);
             break;
 
         case KEY_END:
-            form_driver(form, REQ_END_LINE);
+            form_driver(*form, REQ_END_LINE);
             break;
 
         case KEY_BACKSPACE:
         case 127:
-            form_driver(form, REQ_DEL_PREV);
+            form_driver(*form, REQ_DEL_PREV);
             break;
 
         case 0x9: /* TAB KEY */
-            if (field_type(current_field(form)) != TYPE_REGEXP)
+            if (field_type(current_field(*form)) != TYPE_REGEXP)
                 break;
             {
-                form_driver(form, REQ_NEXT_FIELD);
-                form_driver(form, REQ_PREV_FIELD);
-                form_driver(form, REQ_END_FIELD);
+                form_driver(*form, REQ_NEXT_FIELD);
+                form_driver(*form, REQ_PREV_FIELD);
+                form_driver(*form, REQ_END_FIELD);
 
-                nm_get_field_buf(current_field(form), &buf);
+                nm_get_field_buf(current_field(*form), &buf);
 
                 if (nm_append_path(&buf) == NM_OK) {
-                    set_field_buffer(current_field(form), 0, buf.data);
-                    form_driver(form, REQ_END_FIELD);
+                    set_field_buffer(current_field(*form), 0, buf.data);
+                    form_driver(*form, REQ_END_FIELD);
                 }
                 nm_str_trunc(&buf, 0);
             }
@@ -167,14 +382,14 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
 
         case KEY_PPAGE:
         case KEY_NPAGE:
-            if (field_type(current_field(form)) == TYPE_ENUM) {
+            if (field_type(current_field(*form)) == TYPE_ENUM) {
                 int drop_ch = 0, x, y;
                 nm_window_t *drop;
                 nm_panel_t *panel;
-                nm_args_t *args = field_arg(current_field(form));
+                nm_args_t *args = field_arg(current_field(*form));
                 nm_menu_data_t list = NM_INIT_MENU_DATA;
                 nm_vect_t values = NM_INIT_VECT;
-                ssize_t list_len = getmaxy(action_window) - 4;
+                ssize_t list_len = getmaxy(form_data->parent_window) - 4;
                 size_t max_len = 0;
 
                 for (ssize_t n = 0; n < args->count; n++) {
@@ -186,8 +401,10 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                     nm_vect_insert_cstr(&values, keyword);
                 }
 
-                getyx(action_window, y, x);
-                x = getbegx(form_sub(form));
+                getyx(form_data->parent_window, y, x);
+                x = getbegx(form_sub(*form)) \
+                    + form_data->msg_len + form_data->field_hpad;
+
                 list.highlight = 1;
                 list_len -= y;
                 if (list_len < args->count)
@@ -201,6 +418,27 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                 panel = new_panel(drop);
                 for(;;) {
                     werase(drop);
+                    if (redraw_window) {
+                        hide_panel(panel);
+                        del_panel(panel);
+                        delwin(drop);
+
+                        ((nm_form_data_t *)form_userptr(*form))->on_redraw(*form);
+                        *form = nm_form_redraw(*form);
+                        wtimeout(form_data->parent_window, 100);
+
+                        getyx(form_data->parent_window, y, x);
+                        x = getbegx(form_sub(*form)) \
+                            + form_data->msg_len + form_data->field_hpad;
+
+                        drop = newwin(list_len + 2, max_len + 4, y + 1, x);
+                        keypad(drop, TRUE);
+                        panel = new_panel(drop);
+
+                        update_panels();
+                        doupdate();
+                        redraw_window = 0;
+                    }
                     nm_menu_scroll(&list, list_len, drop_ch);
                     nm_print_dropdown_menu(&list, drop);
                     drop_ch =  wgetch(drop);
@@ -210,7 +448,7 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
                 }
 
                 if (drop_ch == NM_KEY_ENTER) {
-                    set_field_buffer(current_field(form), 0,
+                    set_field_buffer(current_field(*form), 0,
                             args->kwds[(list.item_first + list.highlight) - 1]);
                 }
 
@@ -226,13 +464,20 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
 
         case NM_KEY_ENTER:
             confirm = NM_OK;
-            if (form_driver(form, REQ_VALIDATION) != E_OK)
+            if (form_driver(*form, REQ_VALIDATION) != E_OK)
                 rc = NM_ERR;
             break;
 
         default:
-            form_driver(form, ch);
+            form_driver(*form, ch);
             break;
+        }
+
+        if (redraw_window) {
+            ((nm_form_data_t *)form_userptr(*form))->on_redraw(*form);
+            *form = nm_form_redraw(*form);
+            wtimeout(form_data->parent_window, 100);
+            redraw_window = 0;
         }
     }
 
@@ -247,27 +492,55 @@ int nm_draw_form(nm_window_t *w, nm_form_t *form)
     return confirm;
 }
 
-int nm_form_calc_size(size_t max_msg, size_t f_num, nm_form_data_t *form)
+void nm_form_free(nm_form_t *form)
 {
-    size_t cols, rows;
+    if (form) {
+        unpost_form(form);
+        free_form(form);
 
-    getmaxyx(action_window, rows, cols);
+        curs_set(0);
+    }
+}
 
-    form->w_cols = cols * NM_FORM_RATIO;
-    form->w_rows = (f_num * 2) + 1;
+static nm_form_t *nm_form_redraw(nm_form_t *form)
+{
+    nm_form_t *form_;
+    nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+    nm_field_t **fields = form_fields(form);
+    nm_field_t *cur_field = current_field(form);
+    int maxfield = form->maxfield;
 
-    if (form->w_cols < (max_msg + 18) ||
-        form->w_rows > rows - 4) {
-        nm_warn(_(NM_MSG_SMALL_WIN));
-        return NM_ERR;
+    form_driver(form, REQ_VALIDATION);
+
+    if (nm_form_data_update(form_data, form_data->msg_len, form_data->field_lines) != NM_OK) {
+        mvwaddstr(form_data->parent_window, 3, 1, _("Window too small"));
+        wrefresh(form_data->parent_window);
+        return form;
     }
 
-    form->w_start_x = ((1 - NM_FORM_RATIO) * cols) / 2;
-    form->form_len = form->w_cols - (max_msg + 6);
-    form->form_window = derwin(action_window, form->w_rows,
-            form->w_cols, 3, form->w_start_x);
+    unpost_form(form);
+    free_form(form);
 
-    return NM_OK;
+    for (int n = 0; n < maxfield; n++) {
+        if(fields[n] == cur_field) {
+            fields[n] = nm_field_resize(fields[n], form_data);
+            cur_field = fields[n];
+        } else {
+            fields[n] = nm_field_resize(fields[n], form_data);
+        }
+    }
+
+    form_ = nm_form_new(form_data, fields);
+    if (form_ == NULL)
+         nm_bug("%s: %s", __func__, strerror(errno));
+
+    nm_form_post(form_);
+    if (cur_field) {
+        set_current_field(form_, cur_field);
+        form_driver(form_, REQ_END_LINE);
+    }
+
+    return form_;
 }
 
 void nm_get_field_buf(nm_field_t *f, nm_str_t *res)
@@ -460,6 +733,7 @@ void *nm_spinner(void *data)
 }
 #endif
 
+//@TODO Does this work at all?
 int nm_print_empty_fields(const nm_vect_t *v)
 {
     nm_str_t msg = NM_INIT_STR;
