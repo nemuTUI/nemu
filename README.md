@@ -36,3 +36,6 @@
  * Gentoo: `emerge app-emulation/nemu`
  * FreeBSD: `pkg install nemu` or `make -C /usr/ports/emulators/nemu install clean`
  * RPMs: [stable](https://copr.fedorainfracloud.org/coprs/grafin1992/nEMU/), [latest](https://copr.fedorainfracloud.org/coprs/grafin1992/nEMU-latest/)
+
+## Remote clients
+ * nemu-droid: [releases](https://github.com/nemuTUI/nemu-droid/releases)
