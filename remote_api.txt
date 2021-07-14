@@ -36,3 +36,8 @@ Force stop VM.
 APIv: >= 0.1
 request: {"exec": "vm_force_stop", "name": "_name_", "auth": "_pass_"}
 reply:   {"return": "ok"} or {"return": "err", "error":"_error_"}
+
+Get VNC/SPICE port.
+APIv: >= 0.1
+request: {"exec": "vm_get_connect_port", "name": "_name_", "auth": "_pass_"}
+reply:   {"return": "_port_"} or {"return": "err", "error":"_error_"}

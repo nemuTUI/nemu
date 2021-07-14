@@ -11,6 +11,7 @@ static const char NM_API_RET_ARRAY[] = "{\"return\":[%s]}";
 static const char NM_API_RET_VAL[]   = "{\"return\":\"%s\"}";
 static const char NM_API_RET_OK[]    = "{\"return\":\"ok\"}";
 static const char NM_API_RET_ERR[]   = "{\"return\":\"err\",\"error\":\"%s\"}";
+static const char NM_API_RET_VAL_UINT[] = "{\"return\":\"%u\"}";
 
 #define NM_API_PORT       0x501D
 #define NM_API_MD_LEN     20
