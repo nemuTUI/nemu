@@ -45,6 +45,7 @@ typedef struct {
 #if defined (NM_WITH_REMOTE)
     nm_str_t api_cert_path;
     nm_str_t api_key_path;
+    nm_str_t api_salt;
     nm_str_t api_hash;
     uint16_t api_port;
     uint32_t api_server:1;

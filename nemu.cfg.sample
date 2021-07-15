@@ -73,5 +73,8 @@ dbus_timeout = 2000
 # Remote control private key path
 #remote_tls_key = /path
 
-# Remote control password hash (sha256)
+# Remote control password salt\n"
+#remote_salt = salt
+
+# Remote control "password+salt" hash (sha256)
 #remote_hash = hash

@@ -68,6 +68,7 @@ static const char NM_INI_P_API_SRV[]    = "remote_control";
 static const char NM_INI_P_API_PORT[]   = "remote_port";
 static const char NM_INI_P_API_CERT[]   = "remote_tls_cert";
 static const char NM_INI_P_API_KEY[]    = "remote_tls_key";
+static const char NM_INI_P_API_SALT[]   = "remote_salt";
 static const char NM_INI_P_API_HASH[]   = "remote_hash";
 #endif
 #if defined (NM_WITH_DBUS)
@@ -307,6 +308,7 @@ void nm_cfg_init(void)
     if (cfg.api_server) {
         nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_API_CERT, &cfg.api_cert_path, NULL);
         nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_API_KEY, &cfg.api_key_path, NULL);
+        nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_API_SALT, &cfg.api_salt, NULL);
         nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_API_HASH, &cfg.api_hash, NULL);
     }
 #endif
@@ -356,6 +358,7 @@ void nm_cfg_free(void)
 #if defined (NM_WITH_REMOTE)
     nm_str_free(&cfg.api_cert_path);
     nm_str_free(&cfg.api_key_path);
+    nm_str_free(&cfg.api_salt);
     nm_str_free(&cfg.api_hash);
 #endif
 }
@@ -512,7 +515,9 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                 "#remote_tls_cert = /path\n\n");
             fprintf(cfg_file, "# Remote control private key path\n"
                 "#remote_tls_key = /path\n\n");
-            fprintf(cfg_file, "# Remote control password hash (sha256)\n"
+            fprintf(cfg_file, "# Remote control password salt\n"
+                "#remote_salt = salt\n");
+            fprintf(cfg_file, "# Remote control \"password+salt\" hash (sha256)\n"
                 "#remote_hash = hash\n");
 #endif
             fclose(cfg_file);

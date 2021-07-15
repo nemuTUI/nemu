@@ -316,6 +316,7 @@ static int nm_api_check_auth(struct json_object *request, nm_str_t *reply)
     char hash_str[NM_API_SHA256_LEN];
     struct json_object *auth;
     const char *pass;
+    nm_str_t salted_pass = NM_INIT_STR;
     SHA256_CTX sha256;
 
     json_object_object_get_ex(request, "auth", &auth);
@@ -325,9 +326,10 @@ static int nm_api_check_auth(struct json_object *request, nm_str_t *reply)
     }
 
     pass = json_object_get_string(auth);
+    nm_str_format(&salted_pass, "%s%s", pass, nm_cfg_get()->api_salt.data);
 
     SHA256_Init(&sha256);
-    SHA256_Update(&sha256, pass, strlen(pass));
+    SHA256_Update(&sha256, salted_pass.data, salted_pass.len);
     SHA256_Final(hash, &sha256);
 
     for (int n = 0; n < SHA256_DIGEST_LENGTH; n++) {
@@ -341,6 +343,7 @@ static int nm_api_check_auth(struct json_object *request, nm_str_t *reply)
 
     nm_str_format(reply, NM_API_RET_ERR, "access denied");
 out:
+    nm_str_free(&salted_pass);
     return NM_ERR;
 }
 
