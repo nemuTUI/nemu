@@ -39,11 +39,14 @@ static nm_field_t *fields[NM_FLD_COUNT + 1];
 
 static void nm_edit_boot_init_windows(nm_form_t *form)
 {
-    nm_form_window_init();
-    if(form) {
+    if (form) {
+        nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if(form_data)
+        if (form_data)
             form_data->parent_window = action_window;
+    } else {
+        werase(action_window);
+        werase(help_window);
     }
 
     nm_init_side();

@@ -525,16 +525,19 @@ void nm_lan_create_veth(int info)
 #if defined (NM_WITH_NETWORK_MAP)
 static void nm_svg_init_windows(nm_form_t *form)
 {
-    nm_form_window_init();
-    if(form) {
+    if (form) {
+        nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if(form_data)
+        if (form_data)
             form_data->parent_window = action_window;
+    } else {
+        werase(action_window);
+        werase(help_window);
     }
 
     nm_init_help_export();
     nm_init_action(_(NM_MSG_EXPORT_MAP));
-    nm_init_side_if_list();
+    nm_init_side_lan();
 
     nm_print_veth_menu(NULL, 1);
 }

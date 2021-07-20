@@ -511,10 +511,10 @@ void nm_start_main_loop(void)
 
 static void nm_search_init_windows(nm_form_t *form)
 {
-    nm_form_window_init();
-    if(form) {
+    if (form) {
+        nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if(form_data)
+        if (form_data)
             form_data->parent_window = side_window;
     }
 
