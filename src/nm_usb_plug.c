@@ -48,8 +48,8 @@ static void nm_usb_attach_init_windows(nm_form_t *form)
 
 static void nm_usb_detach_init_windows(nm_form_t *form)
 {
-    nm_form_window_init();
     if (form) {
+        nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
         if (form_data)
             form_data->parent_window = action_window;
