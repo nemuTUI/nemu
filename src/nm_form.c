@@ -448,8 +448,9 @@ int nm_form_draw(nm_form_t **form)
                 }
 
                 if (drop_ch == NM_KEY_ENTER) {
+                    nm_args_t *cur_args = field_arg(current_field(*form));
                     set_field_buffer(current_field(*form), 0,
-                            args->kwds[(list.item_first + list.highlight) - 1]);
+                            cur_args->kwds[(list.item_first + list.highlight) - 1]);
                 }
 
                 nm_vect_free(list.v, NULL);
