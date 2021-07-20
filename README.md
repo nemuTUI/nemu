@@ -1,6 +1,6 @@
 # nEMU [Ncurses UI for QEMU]
 
-[![Build Status](https://travis-ci.com/nemuTUI/nemu.svg?branch=master)](https://travis-ci.org/nemuTUI/nemu)
+[![Build Status](https://travis-ci.com/nemuTUI/nemu.svg?branch=master)](https://travis-ci.com/nemuTUI/nemu)
 [![Latest Tag](https://img.shields.io/github/tag/nemuTUI/nemu.svg)](https://github.com/nemuTUI/nemu/tags)
 [![Packaging status](https://repology.org/badge/tiny-repos/nemu.svg)](https://repology.org/project/nemu/versions)
 
