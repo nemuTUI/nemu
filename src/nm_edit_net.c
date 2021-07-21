@@ -54,7 +54,7 @@ static const char NM_EDIT_NET_FORM_USER[] = "User mode";
 static const char NM_EDIT_NET_FORM_FWD[]  = "Port forwarding";
 static const char NM_EDIT_NET_FORM_SMB[]  = "Share folder";
 
-static void nm_edit_net_init_main_windows(nm_form_t *form);
+static void nm_edit_net_init_main_windows(bool redraw);
 static void nm_edit_net_init_edit_windows(nm_form_t *form);
 static void nm_edit_net_fields_setup(const nm_vmctl_data_t *vm, size_t if_idx);
 static size_t nm_edit_net_labels_setup();
@@ -83,13 +83,10 @@ enum {
 
 static nm_field_t *fields[NM_FLD_COUNT + 1];
 
-static void nm_edit_net_init_main_windows(nm_form_t *form)
+static void nm_edit_net_init_main_windows(bool redraw)
 {
-    if (form) {
+    if (redraw) {
         nm_form_window_init();
-        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if (form_data)
-            form_data->parent_window = action_window;
     } else {
         werase(action_window);
         werase(help_window);
@@ -138,7 +135,7 @@ void nm_edit_net(const nm_str_t *name)
         goto out;
     }
 
-    nm_edit_net_init_main_windows(NULL);
+    nm_edit_net_init_main_windows(false);
 
     iface_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
 
@@ -174,7 +171,7 @@ void nm_edit_net(const nm_str_t *name)
         nm_print_iface_info(&vm, ifs.highlight);
 
         if (redraw_window) {
-            nm_edit_net_init_main_windows(NULL);
+            nm_edit_net_init_main_windows(true);
 
             vm_list_len = (getmaxy(side_window) - 4);
             /* TODO save last pos */

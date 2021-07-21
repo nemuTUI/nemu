@@ -16,7 +16,7 @@
 const char NM_LAN_FORM_LNAME[] = "Name";
 const char NM_LAN_FORM_RNAME[] = "Peer name";
 
-static void nm_lan_init_main_windows(nm_form_t *form);
+static void nm_lan_init_main_windows(bool redraw);
 static void nm_lan_init_add_windows(nm_form_t *form);
 static void nm_lan_fields_setup();
 static size_t nm_lan_labels_setup();
@@ -70,16 +70,14 @@ enum {
 static nm_field_t *fields_svg[NM_SVG_FLD_COUNT + 1];
 #endif /* NM_WITH_NETWORK_MAP */
 
-static void nm_lan_init_main_windows(nm_form_t *form)
+static void nm_lan_init_main_windows(bool redraw)
 {
-    if (form) {
+    if (redraw) {
         nm_form_window_init();
-        nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if (form_data)
-            form_data->parent_window = action_window;
     } else {
         werase(action_window);
         werase(help_window);
+        werase(side_window);
     }
 
     nm_init_help_lan();
@@ -121,7 +119,7 @@ void nm_lan_settings(void)
 
     nm_lan_create_veth(NM_FALSE);
 
-    nm_lan_init_main_windows(NULL);
+    nm_lan_init_main_windows(false);
 
     do {
         if (ch == NM_KEY_QUESTION) {
@@ -209,7 +207,7 @@ void nm_lan_settings(void)
         }
 
         if (redraw_window) {
-            nm_lan_init_main_windows(NULL);
+            nm_lan_init_main_windows(true);
 
             veth_list_len = (getmaxy(side_window) - 4);
             /* TODO save last pos */
