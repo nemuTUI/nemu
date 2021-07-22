@@ -11,7 +11,7 @@ db = /home/user/.nemu.db
 # override highlight color of running VM's. Example:
 # hl_color = 00afd7
 
-# change cursor style for nemu
+# change cursor style for nemu.
 # see https://terminalguide.namepad.de/seq/csi_sq_t_space/
 # if not set VTE's default cursor style will be used
 # cursor_style = 1
@@ -52,6 +52,9 @@ log_cmd = /tmp/qemu_last_cmd.log
 # Auto start monitoring daemon
 autostart = 1
 
+# Daemon sleep interval (ms) (default: 1000)
+#sleep = 1000
+
 # Monitoring daemon pid file
 pid = /tmp/nemu-monitor.pid
 
@@ -73,7 +76,7 @@ dbus_timeout = 2000
 # Remote control private key path
 #remote_tls_key = /path
 
-# Remote control password salt\n"
+# Remote control password salt
 #remote_salt = salt
 
 # Remote control "password+salt" hash (sha256)

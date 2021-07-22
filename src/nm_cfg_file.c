@@ -472,7 +472,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             fprintf(cfg_file,
                 "# change cursor style for nemu.\n"
                 "# see https://terminalguide.namepad.de/seq/csi_sq_t_space/\n"
-                "# if not set, default VTE's cursor style will be used. Example:\n"
+                "# if not set VTE's default cursor style will be used\n"
                 "# cursor_style = 1\n\n");
             fprintf(cfg_file, "[viewer]\n");
 #ifdef NM_WITH_SPICE
@@ -500,6 +500,7 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                 "log_cmd = /tmp/qemu_last_cmd.log\n\n");
             fprintf(cfg_file, "[nemu-monitor]\n"
                     "# Auto start monitoring daemon\nautostart = 1\n\n"
+                    "# Daemon sleep interval (ms) (default: 1000)\n#sleep = 1000\n\n"
                     "# Monitoring daemon pid file\npid = /tmp/nemu-monitor.pid"
 #ifdef NM_WITH_DBUS
                     "\n\n# Enable D-Bus feature\ndbus_enabled = 1\n\n"
@@ -510,13 +511,13 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             fprintf(cfg_file, "\n# Enable remote control (default: disabled)\n"
                 "#remote_control = 0\n\n");
             fprintf(cfg_file, "# Remote control port (default: %d)\n"
-                "#remote_port= %d\n\n", NM_API_PORT, NM_API_PORT);
+                "#remote_port = %d\n\n", NM_API_PORT, NM_API_PORT);
             fprintf(cfg_file, "# Remote control public certificate path\n"
                 "#remote_tls_cert = /path\n\n");
             fprintf(cfg_file, "# Remote control private key path\n"
                 "#remote_tls_key = /path\n\n");
             fprintf(cfg_file, "# Remote control password salt\n"
-                "#remote_salt = salt\n");
+                "#remote_salt = salt\n\n");
             fprintf(cfg_file, "# Remote control \"password+salt\" hash (sha256)\n"
                 "#remote_hash = hash\n");
 #endif
