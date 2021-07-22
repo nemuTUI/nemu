@@ -45,6 +45,7 @@ void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 void nm_vmctl_start(const nm_str_t *name, int flags)
 {
     nm_str_t buf = NM_INIT_STR;
+    nm_str_t snap = NM_INIT_STR;
     nm_vect_t argv = NM_INIT_VECT;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_vect_t tfds = NM_INIT_VECT;
@@ -71,7 +72,7 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
         }
     }
 
-    nm_vmctl_gen_cmd(&argv, &vm, name, flags, &tfds);
+    nm_vmctl_gen_cmd(&argv, &vm, name, &flags, &tfds, &snap);
     if (argv.n_memb > 0) {
         if (nm_spawn_process(&argv, NULL) != NM_OK) {
             nm_str_t qmp_path = NM_INIT_STR;
@@ -95,10 +96,17 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
             /* close all tap file descriptors */
             for (size_t n = 0; n < tfds.n_memb; n++)
                 close(*((int *) tfds.data[n]));
+
+            /* load snapshot and resume vm after suspend */
+            if (flags & NM_VMCTL_CONT) {
+                nm_qmp_loadvm(name, &snap);
+                nm_qmp_vm_resume(name);
+            }
         }
     }
 
     nm_str_free(&buf);
+    nm_str_free(&snap);
     nm_vect_free(&argv, NULL);
     nm_vect_free(&tfds, NULL);
     nm_vmctl_free_data(&vm);
@@ -230,7 +238,7 @@ void nm_vmctl_connect(const nm_str_t *name)
 #endif
 
 void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
-    const nm_str_t *name, int flags, nm_vect_t *tfds)
+    const nm_str_t *name, int *flags, nm_vect_t *tfds, nm_str_t *snap)
 {
     nm_str_t vmdir = NM_INIT_STR;
     const nm_cfg_t *cfg = nm_cfg_get();
@@ -345,7 +353,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         const char *iso = nm_vect_str_ctx(&vm->main, NM_SQL_ISO);
         size_t srcp_len = strlen(iso);
 
-        if ((srcp_len == 0) && (!(flags & NM_VMCTL_INFO))) {
+        if ((srcp_len == 0) && (!(*flags & NM_VMCTL_INFO))) {
             nm_warn(_(NM_MSG_ISO_MISS));
             nm_vect_free(argv, NULL);
             goto out;
@@ -374,7 +382,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             memset(&info, 0x0, sizeof(info));
             rc = stat(iso, &info);
 
-            if ((rc == -1) && (!(flags & NM_VMCTL_INFO))) {
+            if ((rc == -1) && (!(*flags & NM_VMCTL_INFO))) {
                 nm_warn(_(NM_MSG_ISO_NF));
                 nm_vect_free(argv, NULL);
                 goto out;
@@ -439,14 +447,16 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_db_select(query.data, &snap_res);
 
         if (snap_res.n_memb > 0) {
-            nm_vect_insert_cstr(argv, "-loadvm");
-            nm_vect_insert_cstr(argv, nm_vect_str_ctx(&snap_res, 0));
+            nm_vect_insert_cstr(argv, "-S");
+            nm_str_format(snap, "%s", nm_vect_str_ctx(&snap_res, 0));
 
             /* reset load flag */
-            if (!(flags & NM_VMCTL_INFO)) {
+            if (!(*flags & NM_VMCTL_INFO)) {
                 nm_str_format(&query, NM_RESET_LOAD_SQL, name->data);
                 nm_db_edit(query.data);
             }
+
+            *flags |= NM_VMCTL_CONT;
         }
 
         nm_str_free(&query);
@@ -502,7 +512,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
     /* Save info about usb subsystem status at boot time.
      * Needed for USB hotplug feature. */
-    if (!(flags & NM_VMCTL_INFO)) {
+    if (!(*flags & NM_VMCTL_INFO)) {
         nm_str_t query = NM_INIT_STR;
         nm_str_format(&query,
                       NM_USB_UPDATE_STATE_SQL,
@@ -554,7 +564,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
     /* setup serial socket */
     if (nm_vect_str_len(&vm->main, NM_SQL_SOCK)) {
-        if (!(flags & NM_VMCTL_INFO)) {
+        if (!(*flags & NM_VMCTL_INFO)) {
             struct stat info;
 
             if (stat(nm_vect_str_ctx(&vm->main, NM_SQL_SOCK), &info) != -1) {
@@ -586,7 +596,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
     /* setup serial TTY */
     if (nm_vect_str_len(&vm->main, NM_SQL_TTY)) {
-        if (!(flags & NM_VMCTL_INFO)) {
+        if (!(*flags & NM_VMCTL_INFO)) {
             int fd;
 
             if ((fd = open(nm_vect_str_ctx(&vm->main, NM_SQL_TTY), O_RDONLY)) == -1) {
@@ -629,7 +639,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
             NM_ENABLE) == NM_OK) {
 #if defined (NM_OS_LINUX)
-            if (!(flags & NM_VMCTL_INFO)) {
+            if (!(*flags & NM_VMCTL_INFO)) {
                 /* Delete iface if exists, we are in user mode */
                 uint32_t tap_idx = 0;
                 tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
@@ -676,7 +686,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 #if defined (NM_OS_LINUX)
             /* Delete macvtap iface if exists, we using simple tap iface now.
              * We do not need to create tap interface: QEMU will create it itself. */
-            if (!(flags & NM_VMCTL_INFO)) {
+            if (!(*flags & NM_VMCTL_INFO)) {
                 uint32_t tap_idx = 0;
                 tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
                     NM_SQL_IF_NAME + idx_shift));
@@ -700,7 +710,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 #if defined (NM_OS_LINUX)
             int tap_fd = 0, wait_perm = 0;
 
-            if (!(flags & NM_VMCTL_INFO)) {
+            if (!(*flags & NM_VMCTL_INFO)) {
                 nm_str_t tap_path = NM_INIT_STR;
                 uint32_t tap_idx = 0;
 
@@ -782,7 +792,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
             nm_vect_insert_cstr(argv, "-netdev");
             nm_str_format(&buf, "tap,id=netdev%zu,fd=%d",
-                n, (flags & NM_VMCTL_INFO) ? -1 : tap_fd);
+                n, (*flags & NM_VMCTL_INFO) ? -1 : tap_fd);
 #endif /* NM_OS_LINUX */
         }
         if ((nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift), NM_ENABLE) == NM_OK) &&
@@ -795,7 +805,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
          * If we need to setup IPv4 address or altname we must create
          * the tap interface yourself. */
         if ((nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift), NM_DISABLE) == NM_OK)) {
-            if ((!(flags & NM_VMCTL_INFO)) &&
+            if ((!(*flags & NM_VMCTL_INFO)) &&
                     (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK) &&
                     (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift), NM_DISABLE) == NM_OK)) {
                 nm_net_add_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
@@ -818,7 +828,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 #endif /* NM_OS_LINUX */
     }
 
-    if (flags & NM_VMCTL_TEMP)
+    if (*flags & NM_VMCTL_TEMP)
         nm_vect_insert_cstr(argv, "-snapshot");
 
     nm_vect_insert_cstr(argv, "-pidfile");
@@ -832,7 +842,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
     /* Check if vnc/spice port is available, generate new one if not */
-    if (!(flags & NM_VMCTL_INFO)) {
+    if (!(*flags & NM_VMCTL_INFO)) {
         uint32_t in_addr = cfg->listen_any ? INADDR_ANY : INADDR_LOOPBACK;
         uint32_t curr_port = nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT;
         if (curr_port > 0xffff)

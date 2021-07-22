@@ -180,13 +180,14 @@ void nm_print_cmd(const nm_str_t *name)
     nm_vect_t argv = NM_INIT_VECT;
     nm_vect_t res = NM_INIT_VECT;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
-    int off, start = 3;
+    int off, start = 3, flags = 0;
 
     int col = getmaxx(stdscr);
+    flags |= NM_VMCTL_INFO;
 
     nm_vmctl_get_data(name, &vm);
 
-    nm_vmctl_gen_cmd(&argv, &vm, name, NM_VMCTL_INFO, NULL);
+    nm_vmctl_gen_cmd(&argv, &vm, name, &flags, NULL, NULL);
 
     /* pre checking */
     for (size_t n = 0; n < argv.n_memb; n++) {
