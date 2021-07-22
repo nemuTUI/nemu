@@ -1,4 +1,4 @@
-v2.?.? - ??.??.????
+v3.0.0 - ??.??.????
 ------------------------
     - Feature: internal QEMU network support (including hostfwd, smb)
     - Feature: add the ability to change the display type
