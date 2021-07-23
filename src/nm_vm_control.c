@@ -418,8 +418,9 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
         nm_vect_insert_cstr(argv, "-drive");
 
-        nm_str_format(&buf, "node-name=hd%zu,media=disk,if=%s,file=%s%s",
-            n, blk_drv_type, vmdir.data, drive_img->data);
+        nm_str_format(&buf, "%s=hd%zu,media=disk,if=%s,file=%s%s",
+                (*flags & NM_VMCTL_TEMP) ? "id" : "node-name",
+                n, blk_drv_type, vmdir.data, drive_img->data);
         if (scsi_added && (nm_str_cmp_st(discard, NM_ENABLE) == NM_OK)) {
             nm_str_append_format(&buf, "%s", ",discard=unmap,detect-zeroes=unmap");
         }
