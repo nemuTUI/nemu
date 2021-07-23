@@ -80,7 +80,7 @@ void nm_clone_vm(const nm_str_t *name)
     if (nm_form_draw(&form) != NM_OK)
         goto out;
 
-    nm_get_field_buf(fields[0], &cl_name);
+    nm_get_field_buf(fields[1], &cl_name);
     nm_form_check_data(_(NM_CLONE_NAME_MSG), cl_name, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR) {
