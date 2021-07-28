@@ -27,33 +27,17 @@
 
 static const char NM_SEARCH_STR[] = "Search:";
 
-typedef struct nm_filter {
-    nm_str_t query;
-    int type;
-    int flags;
-} nm_filter_t;
+nm_filter_t nm_filter;
 
-enum {
-    NM_FILTER_NONE = -1,
-    NM_FILTER_GROUP
-};
-
-enum {
-    NM_FILTER_RESET =  (1 << 0),
-    NM_FILTER_UPDATE = (1 << 1)
-};
-
-#define NM_INIT_FILTER (nm_filter_t) { NM_INIT_STR, NM_FILTER_NONE, 0 }
-
-static size_t nm_search_vm(const nm_vect_t *list, int *err, nm_filter_t *filter);
-static int nm_filter_check(const nm_str_t *input, nm_filter_t *filter);
+static size_t nm_search_vm(const nm_vect_t *list, int *err);
+static int nm_filter_check(const nm_str_t *input);
 static int nm_search_cmp_cb(const void *s1, const void *s2);
 
-static inline void nm_filter_clean(nm_filter_t *filter)
+static inline void nm_filter_clean()
 {
-    nm_str_free(&filter->query);
-    filter->type = NM_FILTER_NONE;
-    filter->flags = 0;
+    nm_str_free(&nm_filter.query);
+    nm_filter.type = NM_FILTER_NONE;
+    nm_filter.flags = 0;
 }
 
 void nm_start_main_loop(void)
@@ -66,8 +50,8 @@ void nm_start_main_loop(void)
     nm_vect_t vms_v = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
     const nm_cfg_t *cfg = nm_cfg_get();
-    nm_filter_t filter = NM_INIT_FILTER;
 
+    nm_filter = NM_INIT_FILTER;
     init_pair(NM_COLOR_BLACK, COLOR_BLACK, COLOR_WHITE);
     init_pair(NM_COLOR_RED, COLOR_RED, COLOR_WHITE);
     if (cfg->hl_is_set && can_change_color()) {
@@ -86,18 +70,27 @@ void nm_start_main_loop(void)
     for (;;) {
         int ch;
 
+        if (nm_filter.flags & NM_FILTER_UPDATE) {
+            regen_data = 1;
+            werase(side_window);
+            werase(action_window);
+            nm_init_side();
+            nm_init_action(NULL);
+            nm_filter.flags &= ~NM_FILTER_UPDATE;
+        }
+
         if (regen_data) {
             nm_str_t query = NM_INIT_STR;
 
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
             nm_vect_free(&vms_v, NULL);
 
-            switch (filter.type) {
+            switch (nm_filter.type) {
             case NM_FILTER_NONE:
                 nm_str_format(&query, "%s", NM_GET_VMS_SQL);
                 break;
             case NM_FILTER_GROUP:
-                nm_str_format(&query, NM_GET_VMS_FILTER_GROUP_SQL, filter.query.data);
+                nm_str_format(&query, NM_GET_VMS_FILTER_GROUP_SQL, nm_filter.query.data);
                 break;
             }
 
@@ -148,6 +141,15 @@ void nm_start_main_loop(void)
             nm_print_vm_info(name, &vm_props, status);
             wrefresh(side_window);
             wrefresh(action_window);
+        } else if ((!vm_list.n_memb) && (nm_filter.type == NM_FILTER_GROUP)) {
+                nm_filter_clean();
+                regen_data = 1;
+                nm_warn(_(NM_MSG_NO_GROUP));
+                werase(side_window);
+                werase(action_window);
+                nm_init_side();
+                nm_init_action(NULL);
+                continue;
         } else {
             if (clear_action) {
                 werase(action_window);
@@ -249,10 +251,7 @@ void nm_start_main_loop(void)
                     break;
                 }
                 nm_del_drive(name);
-                if (filter.type == NM_FILTER_GROUP)
-                    nm_init_side_group(&filter.query);
-                else
-                    nm_init_side();
+                nm_init_side();
                 break;
 
 #if defined (NM_OS_LINUX)
@@ -362,19 +361,13 @@ void nm_start_main_loop(void)
 
             case NM_KEY_I:
                 nm_edit_net(name);
-                if (filter.type == NM_FILTER_GROUP)
-                    nm_init_side_group(&filter.query);
-                else
-                    nm_init_side();
+                nm_init_side();
                 break;
 
 #if defined (NM_OS_LINUX)
             case NM_KEY_N_UP:
                 nm_lan_settings();
-                if (filter.type == NM_FILTER_GROUP)
-                    nm_init_side_group(&filter.query);
-                else
-                    nm_init_side();
+                nm_init_side();
                 break;
 #endif
             }
@@ -382,7 +375,7 @@ void nm_start_main_loop(void)
 
         if (ch == NM_KEY_SLASH) {
             int err = NM_FALSE;
-            size_t pos = nm_search_vm(&vm_list, &err, &filter);
+            size_t pos = nm_search_vm(&vm_list, &err);
             int cols = getmaxx(side_window);
 
             if (err == NM_TRUE) {
@@ -400,26 +393,23 @@ void nm_start_main_loop(void)
                 vms.highlight = pos;
             }
 
-            if (filter.flags & NM_FILTER_UPDATE) {
+            if (nm_filter.flags & NM_FILTER_UPDATE) {
                 regen_data = 1;
                 werase(side_window);
                 werase(action_window);
                 nm_init_action(NULL);
-                filter.flags &= ~NM_FILTER_UPDATE;
-            } else if (filter.flags & NM_FILTER_RESET) {
-                nm_filter_clean(&filter);
+                nm_filter.flags &= ~NM_FILTER_UPDATE;
+            } else if (nm_filter.flags & NM_FILTER_RESET) {
+                nm_filter_clean();
                 regen_data = 1;
                 werase(side_window);
                 werase(action_window);
                 nm_init_action(NULL);
-                filter.flags &= ~NM_FILTER_RESET;
+                nm_filter.flags &= ~NM_FILTER_RESET;
             }
 
             NM_ERASE_TITLE(side, cols);
-            if (filter.type == NM_FILTER_GROUP)
-                nm_init_side_group(&filter.query);
-            else
-                nm_init_side();
+            nm_init_side();
         }
 
         if (ch == NM_KEY_I_UP) {
@@ -483,10 +473,7 @@ void nm_start_main_loop(void)
             refresh();
             nm_create_windows();
             nm_init_help_main();
-            if (filter.type == NM_FILTER_GROUP)
-                nm_init_side_group(&filter.query);
-            else
-                nm_init_side();
+            nm_init_side();
             nm_init_action(NULL);
 
             vm_list_len = (getmaxy(side_window) - 4);
@@ -503,7 +490,7 @@ void nm_start_main_loop(void)
         }
     }
 
-    nm_filter_clean(&filter);
+    nm_filter_clean();
     nm_vmctl_free_data(&vm_props);
     nm_vect_free(&vms_v, NULL);
     nm_vect_free(&vm_list, nm_str_vect_free_cb);
@@ -528,7 +515,7 @@ static void nm_search_init_windows(nm_form_t *form)
     wrefresh(side_window);
 }
 
-static size_t nm_search_vm(const nm_vect_t *list, int *err, nm_filter_t *filter)
+static size_t nm_search_vm(const nm_vect_t *list, int *err)
 {
     if (!err)
         return 0;
@@ -578,7 +565,7 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err, nm_filter_t *filter)
     if (!input.len)
         goto out;
 
-    if (nm_filter_check(&input, filter) == NM_OK)
+    if (nm_filter_check(&input) == NM_OK)
         goto out;
 
     match = bsearch(&input, list->data, list->n_memb, sizeof(void *), nm_search_cmp_cb);
@@ -613,7 +600,7 @@ out:
     return pos;
 }
 
-static int nm_filter_check(const nm_str_t *input, nm_filter_t *filter)
+static int nm_filter_check(const nm_str_t *input)
 {
     if (input->len < 2)
         return NM_ERR;
@@ -622,13 +609,13 @@ static int nm_filter_check(const nm_str_t *input, nm_filter_t *filter)
         return NM_ERR;
 
     if (input->len == 2) {
-        filter->flags |= NM_FILTER_RESET;
+        nm_filter.flags |= NM_FILTER_RESET;
         return NM_OK;
     }
 
-    nm_str_format(&filter->query, "%s", input->data + 2);
-    filter->type = NM_FILTER_GROUP;
-    filter->flags |= NM_FILTER_UPDATE;
+    nm_str_format(&nm_filter.query, "%s", input->data + 2);
+    nm_filter.type = NM_FILTER_GROUP;
+    nm_filter.flags |= NM_FILTER_UPDATE;
 
     return NM_OK;
 }

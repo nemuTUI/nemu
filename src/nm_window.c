@@ -104,19 +104,18 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err)
 
 void nm_init_side(void)
 {
-    wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
-    nm_init_window__(side_window, _("VM list"));
-    wtimeout(side_window, 500);
-}
-
-void nm_init_side_group(const nm_str_t *name)
-{
     nm_str_t title = NM_INIT_STR;
 
-    nm_str_format(&title, "VM list [%s]", name->data);
     wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
-    nm_init_window__(side_window, _(title.data));
-    nm_str_free(&title);
+
+    if (nm_filter.type == NM_FILTER_GROUP) {
+        nm_str_format(&title, "VM list [%s]", nm_filter.query.data);
+        nm_init_window__(side_window, _(title.data));
+        nm_str_free(&title);
+    } else {
+        nm_init_window__(side_window, _("VM list"));
+    }
+
     wtimeout(side_window, 500);
 }
 

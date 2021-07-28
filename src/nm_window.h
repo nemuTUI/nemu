@@ -41,6 +41,24 @@ size_t nm_max_msg_len(const char **msg);
 int nm_window_scale_inc(void);
 int nm_window_scale_dec(void);
 
+enum {
+    NM_FILTER_NONE = -1,
+    NM_FILTER_GROUP
+};
+
+enum {
+    NM_FILTER_RESET =  (1 << 0),
+    NM_FILTER_UPDATE = (1 << 1)
+};
+
+typedef struct nm_filter {
+    nm_str_t query;
+    int type;
+    int flags;
+} nm_filter_t;
+
+#define NM_INIT_FILTER (nm_filter_t) { NM_INIT_STR, NM_FILTER_NONE, 0 }
+
 /* Help window*/
 extern nm_window_t *help_window;
 /* Side bar window. Mostly used for VM list */
@@ -53,6 +71,8 @@ extern sig_atomic_t redraw_window;
 extern nm_panel_t *help_panel;
 extern nm_panel_t *side_panel;
 extern nm_panel_t *action_panel;
+/* Filter */
+extern nm_filter_t nm_filter;
 
 #define NM_MSG_ANY_KEY    ", press any key"
 #define NM_MSG_SMALL_WIN  "Window size to small" NM_MSG_ANY_KEY
@@ -129,6 +149,7 @@ extern nm_panel_t *action_panel;
 #define NM_MSG_USB_ATTAC  "Already attached" NM_MSG_ANY_KEY
 #define NM_MSG_BAD_OVF    "Incorrect OVF version" NM_MSG_ANY_KEY
 #define NM_MSG_NO_DAEMON  "Start daemon: nemu --daemon" NM_MSG_ANY_KEY
+#define NM_MSG_NO_GROUP   "Group does not exists" NM_MSG_ANY_KEY
 
 #define NM_ERASE_TITLE(t, cols) \
     mvwhline(t ## _window, 1, 1, ' ', (cols) - 2)

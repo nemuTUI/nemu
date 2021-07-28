@@ -467,6 +467,9 @@ static void nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64
         nm_str_format(&query, "UPDATE vms SET team='%s' WHERE name='%s'",
             vm->group.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
+        if (nm_filter.type == NM_FILTER_GROUP) {
+            nm_filter.flags |= NM_FILTER_UPDATE;
+        }
     }
 
     nm_str_free(&query);
