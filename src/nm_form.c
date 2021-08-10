@@ -61,9 +61,6 @@ const char *nm_form_displaytype[] = {
     NULL
 };
 
-void _nc_Free_Type(nm_field_t *field);
-void _nc_Copy_Type(nm_field_t *dst, nm_field_t const *src );
-
 static int nm_append_path(nm_str_t *path);
 static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data);
 static nm_form_t *nm_form_redraw(nm_form_t *form);
@@ -166,8 +163,7 @@ static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data)
     set_field_buffer(field_, 0, field_buffer(field, 0));
     set_field_fore(field_, field_fore(field));
     set_field_back(field_, field_back(field));
-    _nc_Free_Type(field_);
-    _nc_Copy_Type(field_, field);
+    set_field_type(field_, field_type(field));
     set_field_status(field_, field_status(field));
     //@TODO update children somehow
 
