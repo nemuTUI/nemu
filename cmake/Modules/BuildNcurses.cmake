@@ -6,9 +6,6 @@ macro(build_ncurses)
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/3rd_party
     URL https://invisible-mirror.net/archives/ncurses/ncurses-6.2.tar.gz
     URL_MD5 e812da327b1c2214ac1aed440ea3ae8d
-    PATCH_COMMAND
-      ${PATCH_COMMAND} -p1 -i
-      ${CMAKE_CURRENT_SOURCE_DIR}/patches/ncurses-6.2-value_list.patch
     CONFIGURE_COMMAND
       ${CMAKE_CURRENT_BINARY_DIR}/3rd_party/src/ncurses/configure
       --prefix=/
