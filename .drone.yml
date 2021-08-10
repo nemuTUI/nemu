@@ -2,8 +2,8 @@ kind: pipeline
 name: nemu
 
 steps:
-- name: master
-  image: grafin1992/nemu-ci
+- name: build
+  image: grafin1992/nemu-ci:v1.0
   commands:
   - mkdir build && cd build
   - cmake ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON
