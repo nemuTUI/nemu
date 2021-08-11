@@ -349,7 +349,7 @@ out:
 }
 
 void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
-                     int import, const nm_vect_t *drives)
+                     int imported, const nm_vect_t *drives)
 {
     nm_str_t query = NM_INIT_STR;
 
@@ -366,8 +366,8 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         NM_DISABLE, NM_DISABLE, /* disable KVM on non Linux platform */
 #endif
         vm->vncp.data, vm->arch.data,
-        import ? "" : vm->srcp.data,
-        import ? NM_DISABLE : NM_ENABLE, /* if imported, then no need to install */
+        imported ? "" : vm->srcp.data,
+        imported ? NM_DISABLE : NM_ENABLE, /* if imported, then no need to install */
         nm_mach_get_default(&vm->arch), /* setup default machine type */
         NM_DISABLE, /* mouse override */
         vm->usb_enable ? NM_ENABLE : NM_DISABLE, /* USB enabled */
