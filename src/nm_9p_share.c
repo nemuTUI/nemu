@@ -82,9 +82,22 @@ void nm_9p_share(const nm_str_t *name)
     if (nm_form_data_update(form_data, 0, 0) != NM_OK)
         goto out;
 
-    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
-        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
-        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+            case NM_FLD_9PMODE:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_yes_no, false, false);
+                break;
+            case NM_FLD_9PPATH:
+                fields[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
+                break;
+            case NM_FLD_9PNAME:
+                fields[n] = nm_field_regexp_new(n / 2, form_data, ".*");
+                break;
+            default:
+                fields[n] = nm_field_label_new(n / 2, form_data);
+                break;
+        }
     }
     fields[NM_FLD_COUNT] = NULL;
 
@@ -116,9 +129,6 @@ out:
 
 static void nm_9p_fields_setup(const nm_vmctl_data_t *cur)
 {
-    set_field_type(fields[NM_FLD_9PMODE], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_type(fields[NM_FLD_9PPATH], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[NM_FLD_9PNAME], TYPE_REGEXP, ".*");
     field_opts_off(fields[NM_FLD_9PPATH], O_STATIC);
     field_opts_off(fields[NM_FLD_9PNAME], O_STATIC);
 

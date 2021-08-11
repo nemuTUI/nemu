@@ -13,16 +13,61 @@ typedef FORM nm_form_t;
 typedef FIELD nm_field_t;
 
 typedef enum {
+    NM_FIELD_LABEL = -1,
     NM_FIELD_DEFAULT = 0,
-    NM_FIELD_LABEL,
-    NM_FIELD_EDIT
+    NM_FIELD_ALNUM,
+    NM_FIELD_ALPHA,
+    NM_FIELD_ENUM,
+    NM_FIELD_INTEGER,
+    NM_FIELD_NUMERIC,
+    NM_FIELD_REGEXP
 } nm_field_type_t;
+
+typedef struct {
+    int min_width;
+} nm_field_alnum_arg_t;
+
+typedef struct {
+    int min_width;
+} nm_field_alpha_arg_t;
+
+typedef struct {
+    const char **strings;
+    int case_sens;
+    int uniq_match;
+} nm_field_enum_arg_t;
+
+typedef struct {
+    int prec;
+    long min;
+    long max;
+} nm_field_integer_arg_t;
+
+typedef struct {
+    int prec;
+    double min;
+    double max;
+} nm_field_numeric_arg_t;
+
+typedef struct {
+    const char *exp;
+} nm_field_regexp_arg_t;
+
+typedef union {
+    nm_field_alnum_arg_t alnum_arg;
+    nm_field_alpha_arg_t alpha_arg;
+    nm_field_enum_arg_t enum_arg;
+    nm_field_integer_arg_t integer_arg;
+    nm_field_numeric_arg_t numeric_arg;
+    nm_field_regexp_arg_t regexp_arg;
+} nm_field_type_args_t;
 
 typedef struct {
     nm_field_type_t type;
     size_t row;
     nm_vect_t children;
     void (*on_change)(nm_field_t *);
+    nm_field_type_args_t type_args;
 } nm_field_data_t;
 
 typedef struct {
@@ -124,7 +169,24 @@ typedef struct {
 
 #define NM_INIT_SPINNER (nm_spinner_data_t) { NULL, NULL }
 
-nm_field_t *nm_field_new(nm_field_type_t type, int row, nm_form_data_t *form_data);
+nm_field_t *nm_field_new(
+    nm_field_type_t type, nm_field_type_args_t type_args,
+    int row, nm_form_data_t *form_data
+);
+nm_field_t *nm_field_label_new(int row, nm_form_data_t *form_data);
+nm_field_t *nm_field_default_new(int row, nm_form_data_t *form_data);
+nm_field_t *nm_field_alnum_new(int row, nm_form_data_t *form_data, int min_width);
+nm_field_t *nm_field_alpha_new(int row, nm_form_data_t *form_data, int min_width);
+nm_field_t *nm_field_enum_new(
+    int row, nm_form_data_t *form_data,
+    const char **strings, int case_sens, int uniq_match);
+nm_field_t *nm_field_integer_new(
+    int row, nm_form_data_t *form_data, int prec, long min, long max);
+nm_field_t *nm_field_numeric_new(
+    int row, nm_form_data_t *form_data, int prec, double min, double max);
+nm_field_t *nm_field_regexp_new(int row, nm_form_data_t *form_data, const char *exp);
+void nm_set_field_type(
+    nm_field_t *field, nm_field_type_t type, nm_field_type_args_t args);
 void nm_field_free(nm_field_t *field);
 void nm_fields_free(nm_field_t **fields);
 void nm_fields_unset_status(nm_field_t **fields);

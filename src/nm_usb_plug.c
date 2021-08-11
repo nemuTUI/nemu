@@ -100,12 +100,12 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
     if (nm_form_data_update(form_data, 0, 0) != NM_OK)
         goto out;
 
-    fields[0] = nm_field_new(NM_FIELD_LABEL, 0, form_data);
-    fields[1] = nm_field_new(NM_FIELD_EDIT, 0, form_data);
+    fields[0] = nm_field_label_new(0, form_data);
+    fields[1] = nm_field_enum_new(0, form_data,
+        (const char **)usb_names.data, false, false);
     fields[2] = NULL;
 
     set_field_buffer(fields[0], 0, _(NM_USB_FORM_MSG));
-    set_field_type(fields[1], TYPE_ENUM, usb_names.data, false, false);
     field_opts_off(fields[1], O_STATIC);
     set_field_buffer(fields[1], 0, *usb_names.data);
     nm_fields_unset_status(fields);
@@ -168,12 +168,12 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
     if (nm_form_data_update(form_data, 0, 0) != NM_OK)
         goto out;
 
-    fields[0] = nm_field_new(NM_FIELD_LABEL, 0, form_data);
-    fields[1] = nm_field_new(NM_FIELD_EDIT, 0, form_data);
+    fields[0] = nm_field_label_new(0, form_data);
+    fields[1] = nm_field_enum_new(0, form_data,
+        (const char **)usb_names.data, false, false);
     fields[2] = NULL;
 
     set_field_buffer(fields[0], 0, _(NM_USB_FORM_MSG));
-    set_field_type(fields[1], TYPE_ENUM, usb_names.data, false, false);
     field_opts_off(fields[1], O_STATIC);
     set_field_buffer(fields[1], 0, *usb_names.data);
     nm_fields_unset_status(fields);

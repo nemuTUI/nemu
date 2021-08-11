@@ -63,12 +63,11 @@ void nm_rename_vm(const nm_str_t *name)
     if (nm_form_data_update(form_data, 0, 0) != NM_OK)
         goto out;
 
-    fields[0] = nm_field_new(NM_FIELD_LABEL, 0, form_data);
-    fields[1] = nm_field_new(NM_FIELD_EDIT, 0, form_data);
+    fields[0] = nm_field_label_new(0, form_data);
+    fields[1] = nm_field_regexp_new(0, form_data, "^[a-zA-Z0-9_-]{1,30} *$");
     fields[2] = NULL;
 
     set_field_buffer(fields[0], 0, _(NM_MSG_RENAME_VM));
-    set_field_type(fields[1], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
     nm_str_format(&buf, "%s", name->data);
     set_field_buffer(fields[1], 0, buf.data);
     nm_fields_unset_status(fields);

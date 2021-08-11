@@ -61,14 +61,15 @@ const char *nm_form_displaytype[] = {
     NULL
 };
 
-void _nc_Free_Type(nm_field_t *field);
-void _nc_Copy_Type(nm_field_t *dst, nm_field_t const *src );
-
 static int nm_append_path(nm_str_t *path);
 static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data);
 static nm_form_t *nm_form_redraw(nm_form_t *form);
+static void nm_field_free_type(nm_field_data_t *field_data);
 
-nm_field_t *nm_field_new(nm_field_type_t type, int row, nm_form_data_t *form_data)
+nm_field_t *nm_field_new(
+    nm_field_type_t type, nm_field_type_args_t type_args,
+    int row, nm_form_data_t *form_data
+)
 {
     nm_field_data_t *field_data = NULL;
     nm_field_t *field = NULL;
@@ -79,7 +80,6 @@ nm_field_t *nm_field_new(nm_field_type_t type, int row, nm_form_data_t *form_dat
 
     field_data = (nm_field_data_t *)nm_alloc(sizeof(nm_field_data_t));
 
-    field_data->type = type;
     field_data->row = row;
     field_data->children.n_memb = 0;
     field_data->children.n_alloc = 0;
@@ -91,16 +91,9 @@ nm_field_t *nm_field_new(nm_field_type_t type, int row, nm_form_data_t *form_dat
             width = form_data->msg_len;
             left = 0;
             break;
-        case NM_FIELD_EDIT:
+        default:
             width = (form_data->form_len - form_data->msg_len - form_data->field_hpad);
             left = (form_data->msg_len + form_data->field_hpad);
-            break;
-        case NM_FIELD_DEFAULT:
-            width = form_data->form_len;
-            left = 0;
-            break;
-        default:
-            nm_bug("%s: %s", __func__, "Unknown field type");
             break;
     }
 
@@ -109,25 +102,156 @@ nm_field_t *nm_field_new(nm_field_type_t type, int row, nm_form_data_t *form_dat
          nm_bug("%s: %s", __func__, strerror(errno));
     set_field_userptr(field, field_data);
 
-    switch (type) {
-        case NM_FIELD_LABEL:
-            field_opts_off(field, O_ACTIVE);
-            if (form_data->color) {
-                set_field_fore(field, COLOR_PAIR(NM_COLOR_BLACK));
-                set_field_back(field, COLOR_PAIR(NM_COLOR_BLACK));
-            }
-            break;
-        case NM_FIELD_EDIT:
-        case NM_FIELD_DEFAULT:
-            field_opts_off(field, O_STATIC);
-            break;
-        default:
-            nm_bug("%s: %s", __func__, "Unknown field type");
-            break;
+    nm_set_field_type(field, type, type_args);
+
+    if (type == NM_FIELD_LABEL && form_data->color) {
+        set_field_fore(field, COLOR_PAIR(NM_COLOR_BLACK));
+        set_field_back(field, COLOR_PAIR(NM_COLOR_BLACK));
     }
 
     set_field_status(field, 0);
     return field;
+}
+
+nm_field_t *nm_field_label_new(int row, nm_form_data_t *form_data)
+{
+    nm_field_type_args_t args = {0};
+    return nm_field_new(NM_FIELD_LABEL, args, row, form_data);
+}
+
+nm_field_t *nm_field_default_new(int row, nm_form_data_t *form_data)
+{
+    nm_field_type_args_t args = {0};
+    return nm_field_new(NM_FIELD_DEFAULT, args, row, form_data);
+}
+
+nm_field_t *nm_field_alnum_new(int row, nm_form_data_t *form_data, int min_width)
+{
+    nm_field_type_args_t args = {0};
+    args.alnum_arg.min_width = min_width;
+    return nm_field_new(NM_FIELD_ALNUM, args, row, form_data);
+}
+
+nm_field_t *nm_field_alpha_new(int row, nm_form_data_t *form_data, int min_width)
+{
+    nm_field_type_args_t args = {0};
+    args.alpha_arg.min_width = min_width;
+    return nm_field_new(NM_FIELD_ALPHA, args, row, form_data);
+}
+
+nm_field_t *nm_field_enum_new(
+    int row, nm_form_data_t *form_data,
+    const char **strings, int case_sens, int uniq_match)
+{
+    nm_field_t *field;
+    char **strings_ = NULL;
+    nm_field_type_args_t args = {0};
+    size_t count = 0;
+
+    if (strings) {
+        for (char **p = (char **)strings; *p; p++)
+            count++;
+
+        strings_ = nm_calloc(count + 1, sizeof(char *));
+
+        for (size_t n = 0; n < count; n++)
+            strings_[n] = strdup(strings[n]);
+        strings_[count] = NULL;
+    }
+
+    args.enum_arg.strings = (const char **)strings_;
+    args.enum_arg.case_sens = case_sens;
+    args.enum_arg.uniq_match = uniq_match;
+
+    field = nm_field_new(NM_FIELD_ENUM, args, row, form_data);
+
+    if (!strings_)
+        field_opts_off(field, O_ACTIVE);
+
+    return field;
+}
+
+nm_field_t *nm_field_integer_new(
+    int row, nm_form_data_t *form_data, int prec, long min, long max)
+{
+    nm_field_type_args_t args = {0};
+    args.integer_arg.prec = prec;
+    args.integer_arg.min = min;
+    args.integer_arg.max = max;
+    return nm_field_new(NM_FIELD_INTEGER, args, row, form_data);
+}
+
+nm_field_t *nm_field_numeric_new(
+    int row, nm_form_data_t *form_data, int prec, double min, double max)
+{
+    nm_field_type_args_t args = {0};
+    args.numeric_arg.prec = prec;
+    args.numeric_arg.min = min;
+    args.numeric_arg.max = max;
+    return nm_field_new(NM_FIELD_NUMERIC, args, row, form_data);
+}
+
+nm_field_t *nm_field_regexp_new(int row, nm_form_data_t *form_data, const char *exp)
+{
+    nm_field_type_args_t args = {0};
+    args.regexp_arg.exp = strdup(exp);
+    return nm_field_new(NM_FIELD_REGEXP, args, row, form_data);
+}
+
+void nm_set_field_type(
+    nm_field_t *field, nm_field_type_t type, nm_field_type_args_t args)
+{
+    nm_field_data_t *field_data = (nm_field_data_t *)field_userptr(field);
+    field_data->type = type;
+    field_data->type_args = args;
+
+    switch (type) {
+        case NM_FIELD_LABEL:
+            field_opts_off(field, O_ACTIVE);
+            break;
+        case NM_FIELD_DEFAULT:
+            field_opts_off(field, O_STATIC);
+            break;
+        case NM_FIELD_ALNUM:
+            field_opts_off(field, O_STATIC);
+            set_field_type(field, TYPE_ALNUM, args.alnum_arg.min_width);
+            break;
+        case NM_FIELD_ALPHA:
+            field_opts_off(field, O_STATIC);
+            set_field_type(field, TYPE_ALPHA, args.alpha_arg.min_width);
+            break;
+        case NM_FIELD_ENUM:
+            field_opts_off(field, O_STATIC);
+            set_field_type(
+                field, TYPE_ENUM,
+                args.enum_arg.strings,
+                args.enum_arg.case_sens,
+                args.enum_arg.uniq_match
+            );
+            break;
+        case NM_FIELD_INTEGER:
+            field_opts_off(field, O_STATIC);
+            set_field_type(
+                field, TYPE_INTEGER,
+                args.integer_arg.prec,
+                args.integer_arg.min,
+                args.integer_arg.max
+            );
+            break;
+        case NM_FIELD_NUMERIC:
+            field_opts_off(field, O_STATIC);
+            set_field_type(
+                field, TYPE_NUMERIC,
+                args.numeric_arg.prec,
+                args.numeric_arg.min,
+                args.numeric_arg.max
+            );
+            break;
+        case NM_FIELD_REGEXP:
+            field_opts_off(field, O_STATIC);
+            set_field_type(field, TYPE_REGEXP, args.regexp_arg.exp);
+            break;
+    }
 }
 
 static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data)
@@ -144,16 +268,9 @@ static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data)
             width = form_data->msg_len;
             left = 0;
             break;
-        case NM_FIELD_EDIT:
+        default:
             width = (form_data->form_len - form_data->msg_len - form_data->field_hpad);
             left = (form_data->msg_len + form_data->field_hpad);
-            break;
-        case NM_FIELD_DEFAULT:
-            width = form_data->form_len;
-            left = 0;
-            break;
-        default:
-            nm_bug("%s: %s", __func__, "Unknown field type");
             break;
     }
 
@@ -166,8 +283,7 @@ static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data)
     set_field_buffer(field_, 0, field_buffer(field, 0));
     set_field_fore(field_, field_fore(field));
     set_field_back(field_, field_back(field));
-    _nc_Free_Type(field_);
-    _nc_Copy_Type(field_, field);
+    nm_set_field_type(field_, field_data->type, field_data->type_args);
     set_field_status(field_, field_status(field));
     //@TODO update children somehow
 
@@ -183,6 +299,7 @@ void nm_field_free(nm_field_t *field)
 
     nm_field_data_t *field_data = (nm_field_data_t *)field_userptr(field);
     if (field_data) {
+        nm_field_free_type(field_data);
         nm_vect_free(&field_data->children, NULL);
         free(field_data);
     }
@@ -542,6 +659,23 @@ static nm_form_t *nm_form_redraw(nm_form_t *form)
     }
 
     return form_;
+}
+
+static void nm_field_free_type(nm_field_data_t *field_data)
+{
+    if (field_data->type == NM_FIELD_REGEXP)
+        free((char *)field_data->type_args.regexp_arg.exp);
+    else if (field_data->type == NM_FIELD_ENUM) {
+        char **strings = (char **)field_data->type_args.enum_arg.strings;
+        if (strings) {
+            for (char **s = strings; *s; s++)
+                free(*s);
+            free(strings);
+        }
+    }
+
+    field_data->type = NM_FIELD_DEFAULT;
+    field_data->type_args = (nm_field_type_args_t){0};
 }
 
 void nm_get_field_buf(nm_field_t *f, nm_str_t *res)

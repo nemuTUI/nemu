@@ -546,8 +546,8 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
     if (nm_form_data_update(form_data, 0, 0) != NM_OK)
         goto out;
 
-    fields[0] = nm_field_new(NM_FIELD_LABEL, 0, form_data);
-    fields[1] = nm_field_new(NM_FIELD_EDIT, 0, form_data);
+    fields[0] = nm_field_label_new(0, form_data);
+    fields[1] = nm_field_default_new(0, form_data);
     fields[2] = NULL;
 
     set_field_back(fields[1], A_UNDERLINE);

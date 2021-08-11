@@ -186,9 +186,27 @@ void nm_ovf_import(void)
     if (nm_form_data_update(form_data, 0, 0) != NM_OK)
         goto out;
 
-    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
-        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
-        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+            case NM_OVA_FLD_SRC:
+                fields[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
+                break;
+            case NM_OVA_FLD_ARCH:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_cfg_get_arch(), false, false);
+                break;
+            case NM_OVA_FLD_NAME:
+                fields[n] = nm_field_regexp_new(
+                    n / 2, form_data, "^[a-zA-Z0-9_-]{1,30} *$");
+                break;
+            case NM_OVA_FLD_VER:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_ovf_version, false, false);
+                break;
+            default:
+                fields[n] = nm_field_label_new(n / 2, form_data);
+                break;
+        }
     }
     fields[NM_FLD_COUNT] = NULL;
 
@@ -277,13 +295,6 @@ cancel:
 
 static void nm_ovf_fields_setup()
 {
-    set_field_type(fields[NM_OVA_FLD_SRC], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[NM_OVA_FLD_ARCH], TYPE_ENUM,
-                   nm_cfg_get_arch(), false, false);
-    set_field_type(fields[NM_OVA_FLD_NAME], TYPE_REGEXP,
-                   "^[a-zA-Z0-9_-]{1,30} *$");
-    set_field_type(fields[NM_OVA_FLD_VER], TYPE_ENUM,
-                   nm_ovf_version, false, false);
     set_field_buffer(fields[NM_OVA_FLD_ARCH], 0, *nm_cfg_get()->qemu_targets.data);
     set_field_buffer(fields[NM_OVA_FLD_VER], 0, *nm_ovf_version);
     field_opts_off(fields[NM_OVA_FLD_SRC], O_STATIC);

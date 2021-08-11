@@ -18,7 +18,6 @@ const char NM_LAN_FORM_RNAME[] = "Peer name";
 
 static void nm_lan_init_main_windows(bool redraw);
 static void nm_lan_init_add_windows(nm_form_t *form);
-static void nm_lan_fields_setup();
 static size_t nm_lan_labels_setup();
 static void nm_lan_add_veth(void);
 static void nm_lan_del_veth(const nm_str_t *name);
@@ -250,14 +249,24 @@ static void nm_lan_add_veth(void)
     if (nm_form_data_update(form_data, 0, 0) != NM_OK)
         goto out;
 
-    for (size_t n = 0; n < NM_LAN_FLD_COUNT; n += 2) {
-        fields_lan[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
-        fields_lan[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    for (size_t n = 0; n < NM_LAN_FLD_COUNT; n++) {
+        switch (n) {
+            case NM_LAN_FLD_LNAME:
+                fields_lan[n] = nm_field_regexp_new(
+                    n / 2, form_data, "^[a-zA-Z0-9_-]{1,15} *$");
+                break;
+            case NM_LAN_FLD_RNAME:
+                fields_lan[n] = nm_field_regexp_new(
+                    n / 2, form_data, "^[a-zA-Z0-9_-]{1,15} *$");
+                break;
+            default:
+                fields_lan[n] = nm_field_label_new(n / 2, form_data);
+                break;
+        }
     }
     fields_lan[NM_LAN_FLD_COUNT] = NULL;
 
     nm_lan_labels_setup();
-    nm_lan_fields_setup();
     nm_fields_unset_status(fields_lan);
 
     form = nm_form_new(form_data, fields_lan);
@@ -286,12 +295,6 @@ out:
     nm_str_free(&l_name);
     nm_str_free(&r_name);
     nm_str_free(&query);
-}
-
-static void nm_lan_fields_setup()
-{
-    set_field_type(fields_lan[NM_LAN_FLD_LNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,15} *$");
-    set_field_type(fields_lan[NM_LAN_FLD_RNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,15} *$");
 }
 
 static size_t nm_lan_labels_setup()
@@ -569,9 +572,26 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
     if (nm_form_data_update(form_data, 0, 0) != NM_OK)
         goto out;
 
-    for (size_t n = 0; n < NM_SVG_FLD_COUNT; n += 2) {
-        fields_svg[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
-        fields_svg[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    for (size_t n = 0; n < NM_SVG_FLD_COUNT; n++) {
+        switch (n) {
+            case NM_SVG_FLD_PATH:
+                fields_svg[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
+                break;
+            case NM_SVG_FLD_TYPE:
+                fields_svg[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_svg_state, false, false);
+                break;
+            case NM_SVG_FLD_LAYT:
+                fields_svg[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_svg_layout, false, false);
+                break;
+            case NM_SVG_FLD_GROUP:
+                fields_svg[n] = nm_field_default_new(n / 2, form_data);
+                break;
+            default:
+                fields_svg[n] = nm_field_label_new(n / 2, form_data);
+                break;
+        }
     }
     fields_svg[NM_SVG_FLD_COUNT] = NULL;
 
@@ -625,6 +645,7 @@ static void nm_svg_fields_setup()
 {
     nm_vect_t vgroup = NM_INIT_VECT;
     const char **groups;
+    nm_field_type_args_t groups_args = {0};
 
     nm_db_select(NM_GET_GROUPS_SQL, &vgroup);
     groups = nm_calloc(vgroup.n_memb + 1, sizeof(char *));
@@ -633,10 +654,12 @@ static void nm_svg_fields_setup()
     }
     groups[vgroup.n_memb] = NULL;
 
-    set_field_type(fields_svg[NM_SVG_FLD_PATH], TYPE_REGEXP, "^/.*");
-    set_field_type(fields_svg[NM_SVG_FLD_TYPE], TYPE_ENUM, nm_form_svg_state, false, false);
-    set_field_type(fields_svg[NM_SVG_FLD_LAYT], TYPE_ENUM, nm_form_svg_layout, false, false);
-    set_field_type(fields_svg[NM_SVG_FLD_GROUP], TYPE_ENUM, groups, false, false);
+    groups_args.enum_arg.strings = groups;
+    groups_args.enum_arg.case_sens = false;
+    groups_args.enum_arg.uniq_match = false;
+
+    nm_set_field_type(fields_svg[NM_SVG_FLD_GROUP], NM_FIELD_ENUM, groups_args);
+
     set_field_buffer(fields_svg[NM_SVG_FLD_TYPE], 0, nm_form_svg_state[0]);
     set_field_buffer(fields_svg[NM_SVG_FLD_LAYT], 0, nm_form_svg_layout[0]);
 

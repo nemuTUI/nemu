@@ -234,9 +234,45 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
         goto out;
     }
 
-    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
-        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
-        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+            case NM_FLD_NDRV:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_net_drv, false, false);
+                break;
+            case NM_FLD_MADR:
+                fields[n] = nm_field_regexp_new(n / 2, form_data, ".*");
+                break;
+            case NM_FLD_IPV4:
+                fields[n] = nm_field_regexp_new(n / 2, form_data, ".*");
+                break;
+#if defined (NM_OS_LINUX)
+            case NM_FLD_VHST:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_yes_no, false, false);
+                break;
+            case NM_FLD_MTAP:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_macvtap, false, false);
+                break;
+            case NM_FLD_PETH:
+                fields[n] = nm_field_regexp_new(n / 2, form_data, ".*");
+                break;
+#endif
+            case NM_FLD_USER:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_yes_no, false, false);
+                break;
+            case NM_FLD_FWD:
+                fields[n] = nm_field_regexp_new(n / 2, form_data, ".*");
+                break;
+            case NM_FLD_SMB:
+                fields[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
+                break;
+            default:
+                fields[n] = nm_field_label_new(n / 2, form_data);
+                break;
+        }
     }
     fields[NM_FLD_COUNT] = NULL;
 
@@ -283,18 +319,6 @@ static void nm_edit_net_fields_setup(const nm_vmctl_data_t *vm, size_t if_idx)
     if (!if_idx)
         return;
     idx_shift = NM_IFS_IDX_COUNT * (--if_idx);
-
-    set_field_type(fields[NM_FLD_NDRV], TYPE_ENUM, nm_form_net_drv, false, false);
-    set_field_type(fields[NM_FLD_MADR], TYPE_REGEXP, ".*");
-    set_field_type(fields[NM_FLD_IPV4], TYPE_REGEXP, ".*");
-#if defined (NM_OS_LINUX)
-    set_field_type(fields[NM_FLD_VHST], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_type(fields[NM_FLD_MTAP], TYPE_ENUM, nm_form_macvtap, false, false);
-    set_field_type(fields[NM_FLD_PETH], TYPE_REGEXP, ".*");
-#endif
-    set_field_type(fields[NM_FLD_USER], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_type(fields[NM_FLD_FWD], TYPE_REGEXP, ".*");
-    set_field_type(fields[NM_FLD_SMB], TYPE_REGEXP, "^/.*");
 
     field_opts_off(fields[NM_FLD_MADR], O_STATIC);
     field_opts_off(fields[NM_FLD_IPV4], O_STATIC);

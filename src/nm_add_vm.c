@@ -109,9 +109,51 @@ static void nm_add_vm_main()
     if (nm_form_data_update(form_data, 0, 0) != NM_OK)
         goto out;
 
-    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
-        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
-        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+            case NM_FLD_VMNAME:
+                fields[n] = nm_field_regexp_new(
+                    n / 2, form_data, "^[a-zA-Z0-9_-]{1,30} *$");
+                break;
+            case NM_FLD_VMARCH:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_cfg_get_arch(), false, false);
+                break;
+            case NM_FLD_CPUNUM:
+                fields[n] = nm_field_regexp_new(
+                    n / 2, form_data, "^[0-9]{1}(:[0-9]{1})?(:[0-9]{1})? *$");
+                break;
+            case NM_FLD_RAMTOT:
+                fields[n] = nm_field_integer_new(n / 2, form_data,
+                    0, 4, nm_hw_total_ram());
+                break;
+            case NM_FLD_DISKSZ:
+                fields[n] = nm_field_integer_new(n / 2, form_data,
+                    0, 1, nm_hw_disk_free());
+                break;
+            case NM_FLD_DISKIN:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_drive_drv, false, false);
+                break;
+            case NM_FLD_DISCARD:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_yes_no, false, false);
+                break;
+            case NM_FLD_SOURCE:
+                fields[n] = nm_field_regexp_new(
+                    n / 2, form_data, "^/.*");
+                break;
+            case NM_FLD_IFSCNT:
+                fields[n] = nm_field_integer_new(n / 2, form_data, 1, 0, 64);
+                break;
+            case NM_FLD_IFSDRV:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_net_drv, false, false);
+                break;
+            default:
+                fields[n] = nm_field_label_new(n / 2, form_data);
+                break;
+        }
     }
     fields[NM_FLD_COUNT] = NULL;
 
@@ -160,17 +202,6 @@ out:
 
 static void nm_add_vm_fields_setup()
 {
-    set_field_type(fields[NM_FLD_VMNAME], TYPE_REGEXP, "^[a-zA-Z0-9_-]{1,30} *$");
-    set_field_type(fields[NM_FLD_VMARCH], TYPE_ENUM, nm_cfg_get_arch(), false, false);
-    set_field_type(fields[NM_FLD_CPUNUM], TYPE_REGEXP, "^[0-9]{1}(:[0-9]{1})?(:[0-9]{1})? *$");
-    set_field_type(fields[NM_FLD_RAMTOT], TYPE_INTEGER, 0, 4, nm_hw_total_ram());
-    set_field_type(fields[NM_FLD_DISKSZ], TYPE_INTEGER, 0, 1, nm_hw_disk_free());
-    set_field_type(fields[NM_FLD_DISKIN], TYPE_ENUM, nm_form_drive_drv, false, false);
-    set_field_type(fields[NM_FLD_DISCARD], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_type(fields[NM_FLD_SOURCE], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[NM_FLD_IFSCNT], TYPE_INTEGER, 1, 0, 64);
-    set_field_type(fields[NM_FLD_IFSDRV], TYPE_ENUM, nm_form_net_drv, false, false);
-
     set_field_buffer(fields[NM_FLD_VMARCH], 0, *nm_cfg_get()->qemu_targets.data);
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, "1");
     set_field_buffer(fields[NM_FLD_DISKIN], 0, NM_DEFAULT_DRVINT);

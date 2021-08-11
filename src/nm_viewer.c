@@ -98,9 +98,38 @@ void nm_viewer(const nm_str_t *name)
     if (nm_form_data_update(form_data, 0, 0) != NM_OK)
         goto out;
 
-    for (size_t n = 0; n < NM_FLD_COUNT; n += 2) {
-        fields[n] = nm_field_new(NM_FIELD_LABEL, n / 2, form_data);
-        fields[n + 1] = nm_field_new(NM_FIELD_EDIT, n / 2, form_data);
+    for (size_t n = 0; n < NM_FLD_COUNT; n++) {
+        switch (n) {
+#if defined(NM_WITH_SPICE)
+            case NM_FLD_SPICE:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_yes_no, false, false);
+                break;
+#endif
+            case NM_FLD_PORT:
+                fields[n] = nm_field_integer_new(n / 2, form_data,
+                    1, NM_STARTING_VNC_PORT, 0xffff);
+                break;
+            case NM_FLD_TTYP:
+                fields[n] = nm_field_regexp_new(
+                    n / 2, form_data, "^/.*");
+                break;
+            case NM_FLD_SOCK:
+                fields[n] = nm_field_regexp_new(
+                    n / 2, form_data, "^/.*");
+                break;
+            case NM_FLD_SYNC:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_yes_no, false, false);
+                break;
+            case NM_FLD_DSP:
+                fields[n] = nm_field_enum_new(
+                    n / 2, form_data, nm_form_displaytype, false, false);
+                break;
+            default:
+                fields[n] = nm_field_label_new(n / 2, form_data);
+                break;
+        }
     }
     fields[NM_FLD_COUNT] = NULL;
 
@@ -133,17 +162,11 @@ static void nm_viewer_fields_setup(const nm_vmctl_data_t *vm)
     uint32_t vnc_port;
 
 #if defined(NM_WITH_SPICE)
-    set_field_type(fields[NM_FLD_SPICE], TYPE_ENUM, nm_form_yes_no, false, false);
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_SPICE), NM_ENABLE) == NM_OK)
         set_field_buffer(fields[NM_FLD_SPICE], 0, nm_form_yes_no[0]);
     else
         set_field_buffer(fields[NM_FLD_SPICE], 0, nm_form_yes_no[1]);
 #endif
-    set_field_type(fields[NM_FLD_PORT], TYPE_INTEGER, 1, NM_STARTING_VNC_PORT, 0xffff);
-    set_field_type(fields[NM_FLD_TTYP], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[NM_FLD_SOCK], TYPE_REGEXP, "^/.*");
-    set_field_type(fields[NM_FLD_SYNC], TYPE_ENUM, nm_form_yes_no, false, false);
-    set_field_type(fields[NM_FLD_DSP], TYPE_ENUM, nm_form_displaytype, false, false);
 
     field_opts_off(fields[NM_FLD_TTYP], O_STATIC);
     field_opts_off(fields[NM_FLD_SOCK], O_STATIC);
