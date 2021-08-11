@@ -60,7 +60,7 @@ void nm_import_vm(void)
 void nm_add_vm(void)
 {
     import = NM_INSTALL_VM;
-    nm_add_vm_main(NM_INSTALL_VM);
+    nm_add_vm_main();
 }
 
 static void nm_add_vm_init_windows(nm_form_t *form)
