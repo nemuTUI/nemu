@@ -4,11 +4,8 @@ macro(build_qemu)
   ExternalProject_Add(
     qemu
     PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/qemu
-    URL https://download.qemu.org/qemu-5.2.0.tar.bz2
-    URL_MD5 c887884bf336cf87feee30f6bcb52c6b
-    PATCH_COMMAND
-      ${PATCH_COMMAND} -p1 -i
-      ${CMAKE_CURRENT_SOURCE_DIR}/patches/qemu-qmp-savevm-5.0.0+.patch
+    URL https://download.qemu.org/qemu-6.0.0.tar.bz2
+    URL_MD5 f3d5455f8be87a36d106463a50882f9d
     CONFIGURE_COMMAND
       ${CMAKE_CURRENT_SOURCE_DIR}/qemu/src/qemu/configure
       --prefix=${CMAKE_INSTALL_FULL_DATAROOTDIR}/nemu/qemu
