@@ -12,6 +12,7 @@ deps:
 		libarchive-devel \
 		graphviz-devel \
 		dbus-devel \
+		json-c-devel \
 		git
 
 dirs:
