@@ -34,7 +34,7 @@ steps:
   - /codeql/codeql database analyze lgtm --format=sarif-latest
     --output=./codeql-lgtm.sarif cpp-lgtm.qls
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
-    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}
+    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
     --sarif=./codeql-lgtm.sarif
 
   depends_on:
