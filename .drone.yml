@@ -64,9 +64,8 @@ steps:
   image: grafin1992/nemu-ci:v1.1
 
   commands:
-  - cd build
   - codespell -q 3 -L 'fo,ser,ans,chello'
-    --skip="../lgtm,../_lgtm_detected_source_root" ../
+    --skip="../lgtm,../_lgtm_detected_source_root" ./
 
   depends_on:
   - clone
