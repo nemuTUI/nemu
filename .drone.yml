@@ -5,9 +5,6 @@ name: nemu
 steps:
 - name: cmake
   image: grafin1992/nemu-ci:v1.1
-  volumes:
-  - name: cache
-    path: /build
 
   commands:
   - mkdir build && cd build
@@ -22,9 +19,6 @@ steps:
 
 - name: codeql
   image: grafin1992/nemu-ci:v1.1
-  volumes:
-  - name: cache
-    path: /build
   environment:
     GITHUB_TOKEN:
       from_secret: github_token
@@ -46,9 +40,6 @@ steps:
 
 - name: cppcheck
   image: grafin1992/nemu-ci:v1.1
-  volumes:
-  - name: cache
-    path: /build
   environment:
     GITHUB_TOKEN:
       from_secret: github_token
@@ -56,7 +47,7 @@ steps:
   commands:
   - cd /sarif-multitool
   - cppcheck --enable=all --inline-suppr --xml
-    --output-file=./cppcheck.xml /build/nemu/src
+    --output-file=./cppcheck.xml /drone/src/src
   - npx "@microsoft/sarif-multitool" convert ./cppcheck.xml
     --tool CppCheck --output ./cppcheck.sarif --force
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
@@ -68,9 +59,6 @@ steps:
 
 - name: codespell
   image: grafin1992/nemu-ci:v1.1
-  volumes:
-  - name: cache
-    path: /build
 
   commands:
   - cd build
@@ -82,9 +70,6 @@ steps:
 
 - name: build
   image: grafin1992/nemu-ci:v1.1
-  volumes:
-  - name: cache
-    path: /build
 
   commands:
   - cd build
@@ -92,7 +77,3 @@ steps:
 
   depends_on:
   - cmake
-
-volumes:
-- name: cache
-  temp: {}
