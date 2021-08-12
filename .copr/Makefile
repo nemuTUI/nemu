@@ -13,6 +13,7 @@ deps:
 		graphviz-devel \
 		dbus-devel \
 		json-c-devel \
+		gettext \
 		git
 
 dirs:
