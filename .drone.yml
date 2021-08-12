@@ -31,10 +31,10 @@ steps:
 
   commands:
   - /codeql/codeql database create lgtm --language=cpp
-  - /codeql/codeql database analyze lgtm --format=sarif-latest \
+  - /codeql/codeql database analyze lgtm --format=sarif-latest
     --output=./codeql-lgtm.sarif cpp-lgtm.qls
-  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" \
-    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" \
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
+    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}
     --sarif=./codeql-lgtm.sarif
 
   depends_on:
@@ -65,7 +65,7 @@ steps:
 
   commands:
   - cd build
-  - codespell -q 3 -L 'fo,ser,ans,chello' \
+  - codespell -q 3 -L 'fo,ser,ans,chello'
     --skip="../lgtm,../_lgtm_detected_source_root" ../
 
   depends_on:
