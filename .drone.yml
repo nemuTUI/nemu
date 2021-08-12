@@ -49,10 +49,14 @@ steps:
   - cppcheck --enable=all --inline-suppr --xml
     --output-file=./cppcheck.xml /drone/src/src
   - npx "@microsoft/sarif-multitool" convert ./cppcheck.xml
-    --tool CppCheck --output ./cppcheck.sarif --force
+    --tool CppCheck --output ./cppcheck.sarif -m --force
+  - npx "@microsoft/sarif-multitool" rebaseuri ./cppcheck.sarif
+    --base-path-value "file:///drone/src" --base-path-token %SRCROOT% -o ./
+    -m --force
+  - cat ./cppcheck-rebased.sarif
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
     --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
-    --sarif=./cppcheck.sarif
+    --sarif=./cppcheck-rebased.sarif
 
   depends_on:
   - cmake
