@@ -49,10 +49,19 @@ steps:
   volumes:
   - name: cache
     path: /build
+  environment:
+    GITHUB_TOKEN:
+      from_secret: github_token
 
   commands:
-  - cd build
-  - cppcheck --error-exitcode=42 --enable=all --inline-suppr ../src
+  - cd /sarif-multitool
+  - cppcheck --enable=all --inline-suppr --xml
+    --output-file=./cppcheck.xml /build/nemu/src
+  - npx "@microsoft/sarif-multitool" convert ./cppcheck.xml
+    --tool CppCheck --output ./cppcheck.sarif --force
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
+    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
+    --sarif=./cppcheck.sarif
 
   depends_on:
   - cmake
