@@ -327,7 +327,7 @@ nm_form_data_t *nm_form_data_new(
     nm_window_t *parent, void (*on_redraw)(nm_form_t *),
     size_t msg_len, size_t field_lines, int color)
 {
-    nm_form_data_t *form_data = nm_alloc(sizeof(nm_form_data_t));
+    nm_form_data_t *form_data = nm_calloc(1, sizeof(nm_form_data_t));
     form_data->parent_window = parent;
     form_data->form_window = NULL;
     form_data->on_redraw = on_redraw;
@@ -388,6 +388,7 @@ int nm_form_data_update(nm_form_data_t *form_data, size_t msg_len, size_t field_
 void nm_form_data_free(nm_form_data_t *form_data)
 {
     if (form_data) {
+        nm_vect_free(&form_data->h_lines, NULL);
         if (form_data->form_window)
             delwin(form_data->form_window);
         free(form_data);
@@ -416,6 +417,13 @@ void nm_form_window_init()
     nm_create_windows();
 }
 
+void nm_form_add_hline(nm_form_t *form, int y)
+{
+    nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
+
+    nm_vect_insert(&form_data->h_lines, &y, sizeof(y), NULL);
+}
+
 void nm_form_post(nm_form_t *form)
 {
     int rows, cols;
@@ -429,6 +437,15 @@ void nm_form_post(nm_form_t *form)
         derwin(form_data->form_window,
             rows, cols, form_data->form_vpad, form_data->form_hpad));
     post_form(form);
+
+    for (size_t n = 0; n < form_data->h_lines.n_memb; n++) {
+        mvwhline(
+            form_data->form_window,
+            *(int *)nm_vect_at(&form_data->h_lines, n),
+            0, ACS_HLINE, getmaxx(form_data->form_window)
+        );
+    }
+
     curs_set(1);
 }
 

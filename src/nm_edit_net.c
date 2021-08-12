@@ -281,11 +281,8 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
     nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
+    nm_form_add_hline(form, NM_LBL_USER);
     nm_form_post(form);
-
-    /* Add horisontal line before usernet related stuff */
-    mvwhline(form_data->form_window,
-        NM_LBL_USER, 0, ACS_HLINE, getmaxx(form_data->form_window));
 
     if (nm_form_draw(&form) != NM_OK) {
         rc = NM_ERR;

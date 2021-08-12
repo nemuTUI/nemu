@@ -94,12 +94,11 @@ typedef struct {
     size_t field_lines;
     size_t msg_len;
     int color;
+    nm_vect_t h_lines;
     nm_window_t *parent_window;
     nm_window_t *form_window;
     void (*on_redraw)(nm_form_t *);
 } nm_form_data_t;
-
-#define NM_INIT_FORM_DATA (nm_form_data_t) { 0, 0, 0, 0, NULL }
 
 typedef struct {
     nm_str_t driver;
@@ -200,6 +199,7 @@ void nm_form_data_free(nm_form_data_t *form_data);
 
 nm_form_t *nm_form_new(nm_form_data_t *form_data, nm_field_t **field);
 void nm_form_window_init();
+void nm_form_add_hline(nm_form_t *form, int y);
 void nm_form_post(nm_form_t *form);
 int nm_form_draw(nm_form_t **form);
 void nm_form_free(nm_form_t *form);
