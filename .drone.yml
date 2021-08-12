@@ -4,7 +4,7 @@ name: nemu
 
 steps:
 - name: cmake
-  image: grafin1992/nemu-ci:v1.0
+  image: grafin1992/nemu-ci:v1.1
   volumes:
   - name: cache
     path: /build
@@ -13,12 +13,39 @@ steps:
   - mkdir build && cd build
   - cmake ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
 
+  depends_on:
+  - clone
+
+  when:
+    branch:
+    - master
+
+- name: codeql
+  image: grafin1992/nemu-ci:v1.1
+  volumes:
+  - name: cache
+    path: /build
+  environment:
+    GITHUB_TOKEN:
+      from_secret: github_token
+
+  commands:
+  - /codeql/codeql database create lgtm
+  - /codeql/codeql database analyze lgtm --format=sarif-latest \
+    --sarif-category=c --output=./codeql-lgtm.sarif cpp-lgtm.qls
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" \
+    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" \
+    --sarif=./codeql-lgtm.sarif
+
+  depends_on:
+  - clone
+
   when:
     branch:
     - master
 
 - name: cppcheck
-  image: grafin1992/nemu-ci:v1.0
+  image: grafin1992/nemu-ci:v1.1
   volumes:
   - name: cache
     path: /build
@@ -31,7 +58,7 @@ steps:
   - cmake
 
 - name: codespell
-  image: grafin1992/nemu-ci:v1.0
+  image: grafin1992/nemu-ci:v1.1
   volumes:
   - name: cache
     path: /build
@@ -44,7 +71,7 @@ steps:
   - cmake
 
 - name: build
-  image: grafin1992/nemu-ci:v1.0
+  image: grafin1992/nemu-ci:v1.1
   volumes:
   - name: cache
     path: /build
