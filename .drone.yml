@@ -32,7 +32,7 @@ steps:
   commands:
   - /codeql/codeql database create lgtm
   - /codeql/codeql database analyze lgtm --format=sarif-latest \
-    --sarif-category=cpp --output=./codeql-lgtm.sarif cpp-lgtm.qls
+    --sarif-category=cpp-lgtm --output=./codeql-lgtm.sarif cpp-lgtm.qls
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}" \
     --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" \
     --sarif=./codeql-lgtm.sarif
@@ -66,7 +66,7 @@ steps:
   commands:
   - cd build
   - codespell -q 3 -L 'fo,ser,ans,chello' \
-    -S "./lgtm,./_lgtm_detected_source_root" ../*
+    -S "../lgtm,../_lgtm_detected_source_root" ../*
 
   depends_on:
   - cmake
