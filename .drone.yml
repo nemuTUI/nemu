@@ -59,7 +59,7 @@ steps:
     --sarif=./cppcheck-rebased.sarif
 
   depends_on:
-  - cmake
+  - clone
 
 - name: codespell
   image: grafin1992/nemu-ci:v1.1
@@ -70,7 +70,7 @@ steps:
     --skip="../lgtm,../_lgtm_detected_source_root" ../
 
   depends_on:
-  - cmake
+  - clone
 
 - name: build
   image: grafin1992/nemu-ci:v1.1
