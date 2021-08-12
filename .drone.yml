@@ -30,9 +30,9 @@ steps:
       from_secret: github_token
 
   commands:
-  - /codeql/codeql database create lgtm
+  - /codeql/codeql database create lgtm --language=cpp
   - /codeql/codeql database analyze lgtm --format=sarif-latest \
-    --sarif-category=cpp-lgtm --output=./codeql-lgtm.sarif cpp-lgtm.qls
+    --output=./codeql-lgtm.sarif cpp-lgtm.qls
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}" \
     --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" \
     --sarif=./codeql-lgtm.sarif
@@ -66,7 +66,7 @@ steps:
   commands:
   - cd build
   - codespell -q 3 -L 'fo,ser,ans,chello' \
-    -S "../lgtm,../_lgtm_detected_source_root" ../*
+    --skip="../lgtm,../_lgtm_detected_source_root" ../
 
   depends_on:
   - cmake
