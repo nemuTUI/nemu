@@ -428,7 +428,7 @@ void nm_net_mac_n2s(uint64_t maddr, nm_str_t *res)
         uint32_t octet = ((maddr >> 40) & 0xff);
 
         int n = snprintf(buf + pos, sizeof(buf) - pos, "%02x:", octet);
-        if (n < 0 || n >= sizeof(buf) - pos)
+        if (n < 0 || n >= (int)(sizeof(buf) - pos))
             nm_bug(_("%s: snprintf failed"), __func__);
 
         pos += n;
