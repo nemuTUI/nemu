@@ -27,9 +27,8 @@ steps:
   - cd build
   - cppcheck --error-exitcode=42 --enable=all --inline-suppr ../src
 
-  when:
-    branch:
-    - master
+  depends_on:
+  - cmake
 
 - name: codespell
   image: grafin1992/nemu-ci:v1.0
@@ -41,9 +40,8 @@ steps:
   - cd build
   - codespell -q 3 -L 'fo,ser,ans,chello' ../*
 
-  when:
-    branch:
-    - master
+  depends_on:
+  - cmake
 
 - name: build
   image: grafin1992/nemu-ci:v1.0
@@ -55,9 +53,8 @@ steps:
   - cd build
   - make
 
-  when:
-    branch:
-    - master
+  depends_on:
+  - cmake
 
 volumes:
 - name: cache
