@@ -53,7 +53,6 @@ steps:
   - npx "@microsoft/sarif-multitool" rebaseuri ./cppcheck.sarif
     --base-path-value "file:///drone/src" --base-path-token %SRCROOT% -o ./
     -m --force
-  - cat ./cppcheck-rebased.sarif
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
     --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
     --sarif=./cppcheck-rebased.sarif
