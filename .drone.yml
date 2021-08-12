@@ -11,7 +11,7 @@ steps:
 
   commands:
   - mkdir build && cd build
-  - cmake ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON
+  - cmake ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
 
   when:
     branch:
