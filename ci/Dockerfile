@@ -2,7 +2,7 @@ FROM debian:buster-slim
 
 RUN apt-get update -y && \
     apt-get install -y apt-utils \
-        git cmake gcc cppcheck npm python3 python3-pip \
+        git cmake ninja-build gcc cppcheck npm python3 python3-pip \
         libdbus-1-dev libncurses-dev libsqlite3-dev libusb-1.0-0-dev \
         libarchive-dev libgraphviz-dev libudev-dev libjson-c-dev libxml2-dev \
         libssl-dev gettext npm
@@ -50,6 +50,3 @@ RUN mkdir -p /sarif-multitool && cd /sarif-multitool && \
     npm install "@microsoft/sarif-multitool"
 
 RUN pip3 install codespell
-
-RUN mkdir -p /build
-WORKDIR /build
