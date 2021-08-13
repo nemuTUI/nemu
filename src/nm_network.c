@@ -49,12 +49,14 @@ enum {
 struct iplink_req {
     struct nlmsghdr n;
     struct ifinfomsg i;
+    /* cppcheck-suppress unusedStructMember */
     char buf[1024];
 };
 
 struct ipaddr_req {
     struct nlmsghdr n;
     struct ifaddrmsg i;
+    /* cppcheck-suppress unusedStructMember */
     char buf[256];
 };
 
@@ -644,6 +646,7 @@ int nm_net_link_status(const nm_str_t *name)
     struct rtnl_handle rth;
     struct {
         struct nlmsghdr n;
+        /* cppcheck-suppress unusedStructMember */
         char buf[16384];
     } result;
 

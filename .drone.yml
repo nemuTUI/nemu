@@ -46,7 +46,7 @@ steps:
 
   commands:
   - cd /sarif-multitool
-  - cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --xml
+  - cppcheck --enable=all --suppress=missingIncludeSystem --xml
     --output-file=./cppcheck.xml /drone/src/src
   - npx "@microsoft/sarif-multitool" convert ./cppcheck.xml
     --tool CppCheck --output ./cppcheck.sarif -m --force

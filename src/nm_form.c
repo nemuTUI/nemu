@@ -125,6 +125,7 @@ nm_field_t *nm_field_default_new(int row, nm_form_data_t *form_data)
     return nm_field_new(NM_FIELD_DEFAULT, args, row, form_data);
 }
 
+/* cppcheck-suppress unusedFunction */
 nm_field_t *nm_field_alnum_new(int row, nm_form_data_t *form_data, int min_width)
 {
     nm_field_type_args_t args = {0};
@@ -132,6 +133,7 @@ nm_field_t *nm_field_alnum_new(int row, nm_form_data_t *form_data, int min_width
     return nm_field_new(NM_FIELD_ALNUM, args, row, form_data);
 }
 
+/* cppcheck-suppress unusedFunction */
 nm_field_t *nm_field_alpha_new(int row, nm_form_data_t *form_data, int min_width)
 {
     nm_field_type_args_t args = {0};
@@ -181,6 +183,7 @@ nm_field_t *nm_field_integer_new(
     return nm_field_new(NM_FIELD_INTEGER, args, row, form_data);
 }
 
+/* cppcheck-suppress unusedFunction */
 nm_field_t *nm_field_numeric_new(
     int row, nm_form_data_t *form_data, int prec, double min, double max)
 {
