@@ -227,7 +227,7 @@ msgstr ""
 
 #: nm_main.c:222
 msgid "-d, --daemon            vm monitoring daemon"
-msgstr ""
+msgstr "-d, --daemon            демон мониторинга vm"
 
 #: nm_main.c:217
 msgid "-f, --force-stop <name> shutdown vm"
