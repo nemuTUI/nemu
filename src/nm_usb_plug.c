@@ -10,7 +10,7 @@
 #include <nm_qmp_control.h>
 #include <nm_usb_plug.h>
 
-static const char NM_USB_FORM_MSG[] = "Device";
+static const char NM_LC_USB_FORM_MSG[] = "Device";
 
 static void nm_usb_attach_init_windows(nm_form_t *form);
 static void nm_usb_detach_init_windows(nm_form_t *form);
@@ -74,7 +74,7 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
     nm_vect_t usb_names = NM_INIT_VECT;
     nm_vect_t db_result = NM_INIT_VECT;
     nm_usb_data_t usb = NM_INIT_USB_DATA;
-    size_t msg_len = mbstowcs(NULL, _(NM_USB_FORM_MSG), strlen(_(NM_USB_FORM_MSG)));
+    size_t msg_len = mbstowcs(NULL, _(NM_LC_USB_FORM_MSG), strlen(_(NM_LC_USB_FORM_MSG)));
 
     /* check for usb enabled first */
     nm_str_format(&buf, NM_USB_CHECK_SQL, name->data);
@@ -105,7 +105,7 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
         (const char **)usb_names.data, false, false);
     fields[2] = NULL;
 
-    set_field_buffer(fields[0], 0, _(NM_USB_FORM_MSG));
+    set_field_buffer(fields[0], 0, _(NM_LC_USB_FORM_MSG));
     field_opts_off(fields[1], O_STATIC);
     set_field_buffer(fields[1], 0, *usb_names.data);
     nm_fields_unset_status(fields);
@@ -146,7 +146,7 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
     nm_usb_dev_t usb_dev = NM_INIT_USB;
     nm_vect_t usb_names = NM_INIT_VECT;
     nm_vect_t db_result = NM_INIT_VECT;
-    size_t msg_len = mbstowcs(NULL, _(NM_USB_FORM_MSG), strlen(_(NM_USB_FORM_MSG)));
+    size_t msg_len = mbstowcs(NULL, _(NM_LC_USB_FORM_MSG), strlen(_(NM_LC_USB_FORM_MSG)));
 
     usb_data.dev = &usb_dev;
 
@@ -173,7 +173,7 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
         (const char **)usb_names.data, false, false);
     fields[2] = NULL;
 
-    set_field_buffer(fields[0], 0, _(NM_USB_FORM_MSG));
+    set_field_buffer(fields[0], 0, _(NM_LC_USB_FORM_MSG));
     field_opts_off(fields[1], O_STATIC);
     set_field_buffer(fields[1], 0, *usb_names.data);
     nm_fields_unset_status(fields);

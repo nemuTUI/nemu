@@ -285,7 +285,7 @@ msgstr "Уже установлен (y/n)"
 msgid "Already running, press any key"
 msgstr "гость уже работает"
 
-#: nm_add_vm.c:298
+#: nm_add_vm.c:17 nm_add_vm.c:298 nm_ovf_import.c:36
 msgid "Architecture"
 msgstr "Архитектура"
 
@@ -302,6 +302,10 @@ msgstr "Плохой INI файл: отсутствует \"]\" в имени с
 msgid "CPU cores"
 msgstr "CPU ядра"
 
+#: nm_add_vm.c:18 nm_edit_vm.c:17
+msgid "CPU count"
+msgstr ""
+
 #: nm_cfg_file.c:431
 #, c-format
 msgid "Cannot create VM storage directory %s: %s\n"
@@ -311,7 +315,7 @@ msgstr "Не смог создать директорию %s: %s\n"
 msgid "Cannot create new XPath context, press any key"
 msgstr ""
 
-#: nm_add_drive.c:264
+#: nm_add_drive.c:265
 msgid "Cannot delete drive from filesystem, press any key"
 msgstr ""
 
@@ -372,7 +376,7 @@ msgstr ""
 msgid "Delete VM snapshot"
 msgstr "Нет доступных снепшотов"
 
-#: nm_add_drive.c:230 nm_add_drive.c:240
+#: nm_add_drive.c:231 nm_add_drive.c:241
 #, fuzzy
 msgid "Delete virtual drive"
 msgstr " v - удалить виртуальный диск"
@@ -382,7 +386,12 @@ msgstr " v - удалить виртуальный диск"
 msgid "Detach USB device"
 msgstr "USB устройство"
 
-#: nm_add_vm.c:304 nm_edit_vm.c:320
+#: nm_usb_plug.c:13
+msgid "Device"
+msgstr ""
+
+#: nm_add_drive.c:14 nm_add_vm.c:24 nm_add_vm.c:304 nm_edit_vm.c:24
+#: nm_edit_vm.c:320
 msgid "Discard mode"
 msgstr ""
 
@@ -390,9 +399,21 @@ msgstr ""
 msgid "Disk"
 msgstr "Диск"
 
-#: nm_add_vm.c:303 nm_edit_vm.c:318
+#: nm_add_vm.c:21
+msgid "Disk [1-"
+msgstr "Диск [1-"
+
+#: nm_add_vm.c:23 nm_add_vm.c:303 nm_edit_vm.c:23 nm_edit_vm.c:318
 msgid "Disk interface"
 msgstr "Интерфейс дисков"
+
+#: nm_viewer.c:37
+msgid "Display type"
+msgstr ""
+
+#: nm_add_drive.c:13
+msgid "Drive interface"
+msgstr ""
 
 #: nm_window.c:139
 #, fuzzy
@@ -417,6 +438,10 @@ msgstr ""
 msgid "Empty device name, press any key"
 msgstr ""
 
+#: nm_9p_share.c:27
+msgid "Enable sharing"
+msgstr "Включить"
+
 #: nm_cfg_file.c:122
 #, c-format
 msgid "Error get home directory: %s\n"
@@ -430,6 +455,18 @@ msgstr "Не смог получить пользовательский ввод
 msgid "Error send message to QMP socket, press any key"
 msgstr ""
 
+#: nm_edit_vm.c:28
+msgid "Extra QEMU args"
+msgstr ""
+
+#: nm_edit_boot.c:18
+msgid "Freeze after start"
+msgstr ""
+
+#: nm_edit_boot.c:17
+msgid "GDB debug port"
+msgstr ""
+
 #: nm_cfg_file.c:377
 #, c-format
 msgid ""
@@ -439,6 +476,10 @@ msgstr ""
 "Сгененировать файл? (y/n)\n"
 "> "
 
+#: nm_edit_vm.c:29
+msgid "Group"
+msgstr ""
+
 #: nm_main_loop.c:147
 msgid "Group does not exists, press any key"
 msgstr ""
@@ -447,9 +488,17 @@ msgstr ""
 msgid "Host CPU"
 msgstr ""
 
+#: nm_edit_vm.c:21
+msgid "Host CPU [yes/no]"
+msgstr ""
+
 #: nm_edit_vm.c:337 nm_edit_vm.c:356
 msgid "Host CPU requires KVM enabled, press any key"
 msgstr ""
+
+#: nm_edit_net.c:47
+msgid "IPv4 address"
+msgstr "IPv4 адрес"
 
 #: nm_vm_control.c:386
 msgid "ISO path does not exist, press any key"
@@ -524,9 +573,25 @@ msgstr ""
 msgid "KVM"
 msgstr ""
 
-#: nm_edit_net.c:437
+#: nm_edit_vm.c:20
+msgid "KVM [yes/no]"
+msgstr ""
+
+#: nm_edit_boot.c:15
+msgid "Kernel cmdline"
+msgstr "Аргументы ядра"
+
+#: nm_vm_snapshot.c:21
+msgid "Load at next boot"
+msgstr ""
+
+#: nm_edit_net.c:46 nm_edit_net.c:437
 msgid "Mac address"
 msgstr "Мак адрес"
+
+#: nm_edit_vm.c:27
+msgid "Machine type"
+msgstr "Тип машины"
 
 #: nm_usb_plug.c:294 nm_usb_plug.c:347
 msgid "Malformed input data, press any key"
@@ -540,23 +605,39 @@ msgstr ""
 msgid "Memory"
 msgstr "Память"
 
+#: nm_add_vm.c:19 nm_edit_vm.c:18
+msgid "Memory [4-"
+msgstr "Память [4-"
+
 #: nm_ini_parser.c:197 nm_ini_parser.c:225
 msgid "NULL list head pointer"
 msgstr ""
 
-#: nm_add_vm.c:297
+#: nm_add_vm.c:16 nm_add_vm.c:297 nm_clone_vm.c:14
 msgid "Name"
 msgstr "Имя"
 
-#: nm_add_vm.c:307 nm_edit_net.c:435
+#: nm_ovf_import.c:37
+msgid "Name (optional)"
+msgstr ""
+
+#: nm_9p_share.c:29
+msgid "Name of the share"
+msgstr "Имя ресурса"
+
+#: nm_add_vm.c:28 nm_add_vm.c:307 nm_edit_net.c:45 nm_edit_net.c:435
 msgid "Net driver"
 msgstr "Сетевой драйвер"
 
-#: nm_add_vm.c:306 nm_edit_vm.c:316
+#: nm_add_vm.c:27 nm_add_vm.c:306 nm_edit_vm.c:22 nm_edit_vm.c:316
 msgid "Network interfaces"
 msgstr "Сетевые интерфейсы"
 
-#: nm_add_drive.c:192
+#: nm_rename_vm.c:10
+msgid "New VM name"
+msgstr ""
+
+#: nm_add_drive.c:193
 msgid "No additional disks, press any key"
 msgstr ""
 
@@ -573,7 +654,7 @@ msgstr ""
 msgid "No unused ifaces, press any key"
 msgstr ""
 
-#: nm_edit_boot.c:225
+#: nm_edit_boot.c:11 nm_edit_boot.c:225
 msgid "OS Installed"
 msgstr "ОС Установлена"
 
@@ -581,12 +662,44 @@ msgstr "ОС Установлена"
 msgid "OVF file is not found, press any key"
 msgstr ""
 
-#: nm_add_vm.c:305
+#: nm_ovf_import.c:38
+msgid "OVF version"
+msgstr ""
+
+#: nm_edit_boot.c:13
+msgid "Path to BIOS"
+msgstr "Путь до BIOS"
+
+#: nm_add_vm.c:26 nm_add_vm.c:305 nm_edit_boot.c:12
 msgid "Path to ISO/IMG"
 msgstr "Путь до ISO/IMG"
 
+#: nm_ovf_import.c:35
+msgid "Path to OVA"
+msgstr ""
+
+#: nm_9p_share.c:28
+msgid "Path to directory"
+msgstr "Путь до директории"
+
 #: nm_cfg_file.c:464
 msgid "Path to directory, where QEMU binary can be found"
+msgstr ""
+
+#: nm_add_vm.c:25
+msgid "Path to disk image"
+msgstr "Путь до диска"
+
+#: nm_edit_boot.c:16
+msgid "Path to initrd"
+msgstr "Путь до initrd"
+
+#: nm_edit_boot.c:14
+msgid "Path to kernel"
+msgstr "Путь до ядра"
+
+#: nm_edit_net.c:54
+msgid "Port forwarding"
 msgstr ""
 
 #: nm_window.c:145
@@ -638,10 +751,34 @@ msgstr ""
 "Путь до VNC клиента (введите \"/bin/false\" если будете подключаться другим "
 "способом)"
 
+#: nm_viewer.c:34
+msgid "Serial TTY"
+msgstr ""
+
+#: nm_viewer.c:35
+msgid "Serial socket"
+msgstr "Serial сокет"
+
+#: nm_edit_net.c:55
+msgid "Share folder"
+msgstr ""
+
 #: nm_9p_share.c:59
 #, fuzzy
 msgid "Share host filesystem (9pfs)"
 msgstr " h - общие файловые ресурсы"
+
+#: nm_add_drive.c:15
+msgid "Size [1-"
+msgstr ""
+
+#: nm_vm_snapshot.c:22
+msgid "Snapshot"
+msgstr "Снепшот"
+
+#: nm_vm_snapshot.c:20
+msgid "Snapshot name"
+msgstr "Имя снепшота"
 
 #: nm_vm_control.c:572
 msgid "Socket is already used!, press any key"
@@ -651,12 +788,20 @@ msgstr ""
 msgid "Some files was not deleted!, press any key"
 msgstr ""
 
+#: nm_viewer.c:29
+msgid "Spice server"
+msgstr ""
+
 #: nm_main_loop.c:296 nm_main_loop.c:312 nm_main_loop.c:320
 msgid "Start daemon: nemu --daemon, press any key"
 msgstr ""
 
 #: nm_vm_control.c:90
 msgid "Start failed, error was logged, press any key"
+msgstr ""
+
+#: nm_viewer.c:36
+msgid "Sync mouse position"
 msgstr ""
 
 #: nm_vm_control.c:604
@@ -709,11 +854,15 @@ msgstr ""
 msgid "USB"
 msgstr ""
 
+#: nm_edit_vm.c:25
+msgid "USB [yes/no]"
+msgstr ""
+
 #: nm_usb_plug.c:84
 msgid "USB must be enabled at boot time, press any key"
 msgstr ""
 
-#: nm_edit_vm.c:324
+#: nm_edit_vm.c:26 nm_edit_vm.c:324
 msgid "USB version"
 msgstr ""
 
@@ -721,7 +870,7 @@ msgstr ""
 msgid "Unused ifaces deleted, press any key"
 msgstr ""
 
-#: nm_edit_net.c:445
+#: nm_edit_net.c:53 nm_edit_net.c:445
 msgid "User mode"
 msgstr ""
 
@@ -753,6 +902,10 @@ msgstr ""
 "Путь до VNC клиента (введите \"/bin/false\" если будете подключаться другим "
 "способом)"
 
+#: nm_viewer.c:30
+msgid "VNC/Spice port"
+msgstr ""
+
 #: nm_form.c:372 nm_main_loop.c:382 nm_window.c:710
 msgid "Window size to small, press any key"
 msgstr ""
@@ -765,6 +918,14 @@ msgstr ""
 #, c-format
 msgid "You can copy example from:\n"
 msgstr "Вы можете скопировать пример из файла:\n"
+
+#: nm_add_drive.c:16 nm_add_vm.c:22
+msgid "]Gb"
+msgstr ""
+
+#: nm_add_vm.c:20 nm_edit_vm.c:19
+msgid "]Mb"
+msgstr ""
 
 #: nm_cfg_file.c:376
 #, c-format
@@ -927,35 +1088,11 @@ msgstr ""
 #~ msgid "CPU cores [1-"
 #~ msgstr "CPU ядра [1-"
 
-#~ msgid "Disk [1-"
-#~ msgstr "Диск [1-"
-
-#~ msgid "IPv4 address"
-#~ msgstr "IPv4 адрес"
-
-#~ msgid "Kernel cmdline"
-#~ msgstr "Аргументы ядра"
-
 #~ msgid "Manage guests"
 #~ msgstr "Управление гостями"
 
-#~ msgid "Memory [4-"
-#~ msgstr "Память [4-"
-
 #~ msgid "No VMs installed"
 #~ msgstr "Нет гостей"
-
-#~ msgid "Path to BIOS"
-#~ msgstr "Путь до BIOS"
-
-#~ msgid "Path to kernel"
-#~ msgstr "Путь до ядра"
-
-#~ msgid "Path to initrd"
-#~ msgstr "Путь до initrd"
-
-#~ msgid "Machine type"
-#~ msgstr "Тип машины"
 
 #~ msgid "Proceed? (y/n)"
 #~ msgstr "Продолжить? (y/n)"
@@ -963,14 +1100,8 @@ msgstr ""
 #~ msgid "Quit"
 #~ msgstr "Выйти"
 
-#~ msgid "Serial socket"
-#~ msgstr "Serial сокет"
-
 #~ msgid "Wrong disk size"
 #~ msgstr "Неверный размер диска"
-
-#~ msgid "Snapshot"
-#~ msgstr "Снепшот"
 
 #~ msgid "Snapshot "
 #~ msgstr "Снепшот "
@@ -978,14 +1109,8 @@ msgstr ""
 #~ msgid "Revert "
 #~ msgstr "Откатить "
 
-#~ msgid "Snapshot name"
-#~ msgstr "Имя снепшота"
-
 #~ msgid "Enable vhost"
 #~ msgstr "Включить vhost"
-
-#~ msgid "Path to disk image"
-#~ msgstr "Путь до диска"
 
 #~ msgid "Local network"
 #~ msgstr "Локальная сеть"
@@ -1013,12 +1138,3 @@ msgstr ""
 
 #~ msgid "Share files to "
 #~ msgstr "Разделить файлы с "
-
-#~ msgid "Enable sharing"
-#~ msgstr "Включить"
-
-#~ msgid "Path to directory"
-#~ msgstr "Путь до директории"
-
-#~ msgid "Name of the share"
-#~ msgstr "Имя ресурса"

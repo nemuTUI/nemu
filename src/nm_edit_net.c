@@ -42,17 +42,17 @@ typedef struct {
                         NM_INIT_STR }
 #endif
 
-static const char NM_EDIT_NET_FORM_NDRV[] = "Net driver";
-static const char NM_EDIT_NET_FORM_MADR[] = "Mac address";
-static const char NM_EDIT_NET_FORM_IPV4[] = "IPv4 address";
+static const char NM_LC_EDIT_NET_FORM_NDRV[] = "Net driver";
+static const char NM_LC_EDIT_NET_FORM_MADR[] = "Mac address";
+static const char NM_LC_EDIT_NET_FORM_IPV4[] = "IPv4 address";
 #if defined (NM_OS_LINUX)
-static const char NM_EDIT_NET_FORM_VHST[] = "Enable vhost";
-static const char NM_EDIT_NET_FORM_MTAP[] = "Enable MacVTap";
-static const char NM_EDIT_NET_FORM_PETH[] = "MacVTap iface";
+static const char NM_LC_EDIT_NET_FORM_VHST[] = "Enable vhost";
+static const char NM_LC_EDIT_NET_FORM_MTAP[] = "Enable MacVTap";
+static const char NM_LC_EDIT_NET_FORM_PETH[] = "MacVTap iface";
 #endif
-static const char NM_EDIT_NET_FORM_USER[] = "User mode";
-static const char NM_EDIT_NET_FORM_FWD[]  = "Port forwarding";
-static const char NM_EDIT_NET_FORM_SMB[]  = "Share folder";
+static const char NM_LC_EDIT_NET_FORM_USER[] = "User mode";
+static const char NM_LC_EDIT_NET_FORM_FWD[]  = "Port forwarding";
+static const char NM_LC_EDIT_NET_FORM_SMB[]  = "Share folder";
 
 static void nm_edit_net_init_main_windows(bool redraw);
 static void nm_edit_net_init_edit_windows(nm_form_t *form);
@@ -370,33 +370,33 @@ static size_t nm_edit_net_labels_setup()
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
         case NM_LBL_NDRV:
-            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_NDRV));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_NDRV));
             break;
         case NM_LBL_MADR:
-            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_MADR));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_MADR));
             break;
         case NM_LBL_IPV4:
-            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_IPV4));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_IPV4));
             break;
 #if defined (NM_OS_LINUX)
         case NM_LBL_VHST:
-            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_VHST));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_VHST));
             break;
         case NM_LBL_MTAP:
-            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_MTAP));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_MTAP));
             break;
         case NM_LBL_PETH:
-            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_PETH));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_PETH));
             break;
 #endif
         case NM_LBL_USER:
-            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_USER));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_USER));
             break;
         case NM_LBL_FWD:
-            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_FWD));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_FWD));
             break;
         case NM_LBL_SMB:
-            nm_str_format(&buf, "%s", _(NM_EDIT_NET_FORM_SMB));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_SMB));
             break;
         default:
             continue;

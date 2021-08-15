@@ -8,14 +8,14 @@
 #include <nm_vm_control.h>
 #include <nm_edit_boot.h>
 
-static const char NM_EDIT_BOOT_FORM_INST[] = "OS Installed";
-static const char NM_EDIT_BOOT_FORM_SRCP[] = "Path to ISO/IMG";
-static const char NM_EDIT_BOOT_FORM_BIOS[] = "Path to BIOS";
-static const char NM_EDIT_BOOT_FORM_KERN[] = "Path to kernel";
-static const char NM_EDIT_BOOT_FORM_CMDL[] = "Kernel cmdline";
-static const char NM_EDIT_BOOT_FORM_INIT[] = "Path to initrd";
-static const char NM_EDIT_BOOT_FORM_DEBP[] = "GDB debug port";
-static const char NM_EDIT_BOOT_FORM_DEBF[] = "Freeze after start";
+static const char NM_LC_EDIT_BOOT_FORM_INST[] = "OS Installed";
+static const char NM_LC_EDIT_BOOT_FORM_SRCP[] = "Path to ISO/IMG";
+static const char NM_LC_EDIT_BOOT_FORM_BIOS[] = "Path to BIOS";
+static const char NM_LC_EDIT_BOOT_FORM_KERN[] = "Path to kernel";
+static const char NM_LC_EDIT_BOOT_FORM_CMDL[] = "Kernel cmdline";
+static const char NM_LC_EDIT_BOOT_FORM_INIT[] = "Path to initrd";
+static const char NM_LC_EDIT_BOOT_FORM_DEBP[] = "GDB debug port";
+static const char NM_LC_EDIT_BOOT_FORM_DEBF[] = "Freeze after start";
 
 static void nm_edit_boot_init_windows(nm_form_t *form);
 static void nm_edit_boot_fields_setup(const nm_vmctl_data_t *cur);
@@ -166,28 +166,28 @@ static size_t nm_edit_boot_labels_setup()
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
         case NM_LBL_INST:
-            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_INST));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_INST));
             break;
         case NM_LBL_SRCP:
-            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_SRCP));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_SRCP));
             break;
         case NM_LBL_BIOS:
-            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_BIOS));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_BIOS));
             break;
         case NM_LBL_KERN:
-            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_KERN));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_KERN));
             break;
         case NM_LBL_CMDL:
-            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_CMDL));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_CMDL));
             break;
         case NM_LBL_INIT:
-            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_INIT));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_INIT));
             break;
         case NM_LBL_DEBP:
-            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_DEBP));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_DEBP));
             break;
         case NM_LBL_DEBF:
-            nm_str_format(&buf, "%s", _(NM_EDIT_BOOT_FORM_DEBF));
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_DEBF));
             break;
         default:
             continue;

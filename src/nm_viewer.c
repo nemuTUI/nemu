@@ -26,15 +26,15 @@ typedef struct {
 #endif
 
 #if defined(NM_WITH_SPICE)
-static const char NM_VIEWER_FORM_SPICE[] = "Spice server";
-static const char NM_VIEWER_FORM_PORT[]  = "VNC/Spice port";
+static const char NM_LC_VIEWER_FORM_SPICE[] = "Spice server";
+static const char NM_LC_VIEWER_FORM_PORT[]  = "VNC/Spice port";
 #else
-static const char NM_VIEWER_FORM_PORT[]  = "VNC port";
+static const char NM_LC_VIEWER_FORM_PORT[]  = "VNC port";
 #endif
-static const char NM_VIEWER_FORM_TTYP[]  = "Serial TTY";
-static const char NM_VIEWER_FORM_SOCK[]  = "Serial socket";
-static const char NM_VIEWER_FORM_SYNC[]  = "Sync mouse position";
-static const char NM_VIEWER_FORM_DSP[]   = "Display type";
+static const char NM_LC_VIEWER_FORM_TTYP[]  = "Serial TTY";
+static const char NM_LC_VIEWER_FORM_SOCK[]  = "Serial socket";
+static const char NM_LC_VIEWER_FORM_SYNC[]  = "Sync mouse position";
+static const char NM_LC_VIEWER_FORM_DSP[]   = "Display type";
 
 static void nm_viewer_init_windows(nm_form_t *form);
 static void nm_viewer_fields_setup(const nm_vmctl_data_t *vm);
@@ -194,23 +194,23 @@ static size_t nm_viewer_labels_setup()
         switch (n) {
 #if defined(NM_WITH_SPICE)
         case NM_LBL_SPICE:
-            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_SPICE));
+            nm_str_format(&buf, "%s", _(NM_LC_VIEWER_FORM_SPICE));
             break;
 #endif
         case NM_LBL_PORT:
-            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_PORT));
+            nm_str_format(&buf, "%s", _(NM_LC_VIEWER_FORM_PORT));
             break;
         case NM_LBL_TTYP:
-            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_TTYP));
+            nm_str_format(&buf, "%s", _(NM_LC_VIEWER_FORM_TTYP));
             break;
         case NM_LBL_SOCK:
-            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_SOCK));
+            nm_str_format(&buf, "%s", _(NM_LC_VIEWER_FORM_SOCK));
             break;
         case NM_LBL_SYNC:
-            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_SYNC));
+            nm_str_format(&buf, "%s", _(NM_LC_VIEWER_FORM_SYNC));
             break;
         case NM_LBL_DSP:
-            nm_str_format(&buf, "%s", _(NM_VIEWER_FORM_DSP));
+            nm_str_format(&buf, "%s", _(NM_LC_VIEWER_FORM_DSP));
             break;
         default:
             continue;
@@ -256,16 +256,16 @@ static int nm_viewer_get_data(nm_view_data_t *vm)
 
 #if defined(NM_WITH_SPICE)
     if (field_status(fields[NM_FLD_SPICE]))
-        nm_form_check_data(_(NM_VIEWER_FORM_SPICE), vm->spice, err);
+        nm_form_check_data(_(NM_LC_VIEWER_FORM_SPICE), vm->spice, err);
 #endif
     if (field_status(fields[NM_FLD_PORT]))
-        nm_form_check_data(_(NM_VIEWER_FORM_PORT), vm->port, err);
+        nm_form_check_data(_(NM_LC_VIEWER_FORM_PORT), vm->port, err);
     if (field_status(fields[NM_FLD_SOCK]))
-        nm_form_check_data(_(NM_VIEWER_FORM_SOCK), vm->sock, err);
+        nm_form_check_data(_(NM_LC_VIEWER_FORM_SOCK), vm->sock, err);
     if (field_status(fields[NM_FLD_SYNC]))
-        nm_form_check_data(_(NM_VIEWER_FORM_SYNC), vm->sync, err);
+        nm_form_check_data(_(NM_LC_VIEWER_FORM_SYNC), vm->sync, err);
     if (field_status(fields[NM_FLD_DSP]))
-        nm_form_check_data(_(NM_VIEWER_FORM_DSP), vm->display, err);
+        nm_form_check_data(_(NM_LC_VIEWER_FORM_DSP), vm->display, err);
 
     rc = nm_print_empty_fields(&err);
 

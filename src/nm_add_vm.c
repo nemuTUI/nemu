@@ -13,19 +13,19 @@
 #include <nm_cfg_file.h>
 #include <nm_ovf_import.h>
 
-static const char NM_VM_FORM_NAME[]      = "Name";
-static const char NM_VM_FORM_ARCH[]      = "Architecture";
-static const char NM_VM_FORM_CPU[]       = "CPU count";
-static const char NM_VM_FORM_MEM_BEGIN[] = "Memory [4-";
-static const char NM_VM_FORM_MEM_END[]   = "]Mb";
-static const char NM_VM_FORM_DRV_BEGIN[] = "Disk [1-";
-static const char NM_VM_FORM_DRV_END[]   = "]Gb";
-static const char NM_VM_FORM_DRV_IF[]    = "Disk interface";
-static const char NM_VM_FORM_DRV_DIS[]   = "Discard mode";
-static const char NM_VM_FORM_IMP_PATH[]  = "Path to disk image";
-static const char NM_VM_FORM_INS_PATH[]  = "Path to ISO/IMG";
-static const char NM_VM_FORM_NET_IFS[]   = "Network interfaces";
-static const char NM_VM_FORM_NET_DRV[]   = "Net driver";
+static const char NM_LC_VM_FORM_NAME[]      = "Name";
+static const char NM_LC_VM_FORM_ARCH[]      = "Architecture";
+static const char NM_LC_VM_FORM_CPU[]       = "CPU count";
+static const char NM_LC_VM_FORM_MEM_BEGIN[] = "Memory [4-";
+static const char NM_LC_VM_FORM_MEM_END[]   = "]Mb";
+static const char NM_LC_VM_FORM_DRV_BEGIN[] = "Disk [1-";
+static const char NM_LC_VM_FORM_DRV_END[]   = "]Gb";
+static const char NM_LC_VM_FORM_DRV_IF[]    = "Disk interface";
+static const char NM_LC_VM_FORM_DRV_DIS[]   = "Discard mode";
+static const char NM_LC_VM_FORM_IMP_PATH[]  = "Path to disk image";
+static const char NM_LC_VM_FORM_INS_PATH[]  = "Path to ISO/IMG";
+static const char NM_LC_VM_FORM_NET_IFS[]   = "Network interfaces";
+static const char NM_LC_VM_FORM_NET_DRV[]   = "Net driver";
 
 static void nm_add_vm_init_windows(nm_form_t *form);
 static void nm_add_vm_fields_setup();
@@ -225,39 +225,39 @@ static size_t nm_add_vm_labels_setup()
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
         case NM_LBL_VMNAME:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_NAME));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_NAME));
             break;
         case NM_LBL_VMARCH:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_ARCH));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_ARCH));
             break;
         case NM_LBL_CPUNUM:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_CPU));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_CPU));
             break;
         case NM_LBL_RAMTOT:
             nm_str_format(&buf, "%s%u%s",
-                _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
+                _(NM_LC_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_LC_VM_FORM_MEM_END));
             break;
         case NM_LBL_DISKSZ:
             nm_str_format(&buf, "%s%u%s",
-                _(NM_VM_FORM_DRV_BEGIN), nm_hw_disk_free(), _(NM_VM_FORM_DRV_END));
+                _(NM_LC_VM_FORM_DRV_BEGIN), nm_hw_disk_free(), _(NM_LC_VM_FORM_DRV_END));
             break;
         case NM_LBL_DISKIN:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_DRV_IF));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_DRV_IF));
             break;
         case NM_LBL_DISCARD:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_DRV_DIS));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_DRV_DIS));
             break;
         case NM_LBL_SOURCE:
             if (import)
-                nm_str_format(&buf, "%s", _(NM_VM_FORM_IMP_PATH));
+                nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_IMP_PATH));
             else
-                nm_str_format(&buf, "%s", _(NM_VM_FORM_INS_PATH));
+                nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_INS_PATH));
             break;
         case NM_LBL_IFSCNT:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_NET_IFS));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_NET_IFS));
             break;
         case NM_LBL_IFSDRV:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_NET_DRV));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_NET_DRV));
             break;
         default:
             continue;

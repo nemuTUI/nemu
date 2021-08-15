@@ -7,7 +7,7 @@
 #include <nm_database.h>
 #include <nm_rename_vm.h>
 
-static const char NM_RENAME_FORM_MSG[] = "New VM name";
+static const char NM_LC_RENAME_FORM_MSG[] = "New VM name";
 
 static void nm_rename_init_windows(nm_form_t *form);
 static void nm_rename_vm_in_db(const nm_vmctl_data_t *vm, const nm_str_t *new_name);
@@ -55,7 +55,7 @@ void nm_rename_vm(const nm_str_t *name)
 
     nm_vmctl_get_data(name, &vm);
 
-    msg_len = mbstowcs(NULL, _(NM_RENAME_FORM_MSG), strlen(_(NM_RENAME_FORM_MSG)));
+    msg_len = mbstowcs(NULL, _(NM_LC_RENAME_FORM_MSG), strlen(_(NM_LC_RENAME_FORM_MSG)));
 
     form_data = nm_form_data_new(
         action_window, nm_rename_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
@@ -79,7 +79,7 @@ void nm_rename_vm(const nm_str_t *name)
         goto out;
 
     nm_get_field_buf(fields[1], &new_name);
-    nm_form_check_data(_(NM_RENAME_FORM_MSG), new_name, err);
+    nm_form_check_data(_(NM_LC_RENAME_FORM_MSG), new_name, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
