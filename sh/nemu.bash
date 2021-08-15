@@ -26,7 +26,8 @@ _nemu_completions()
 
     if [[ "$COMP_CWORD" == 1 ]]; then
         COMPREPLY=( $(compgen -W "-h --help -l --list -s --start -p --powerdown \
-            -f --force-stop -z --reset -k --kill -i --info -v --version" -- "$curr") )
+            -f --force-stop -z --reset -k --kill -i --info -v --version \
+            -d --daemon -c --create-veth" -- "$curr") )
     elif [[ "$COMP_CWORD" == 2 ]]; then
         case "$prev" in
             "-s"|"--start")
