@@ -13,7 +13,7 @@ SRC_URI=""
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="+vnc-client +ovf +spice dbus svg utf remote-api"
+IUSE="+vnc-client +ovf +spice dbus svg glyphs remote-api"
 
 RDEPEND="
 	dev-libs/json-c
@@ -21,7 +21,7 @@ RDEPEND="
 	dev-db/sqlite:3=
 	dev-libs/libusb:1=
 	|| ( sys-fs/eudev sys-fs/udev sys-apps/systemd )
-	>=app-emulation/qemu-2.12.0[vnc,virtfs,spice?]
+	>=app-emulation/qemu-6.0.0-r2[vnc,virtfs,spice?]
 	ovf? (
 		dev-libs/libxml2
 		app-arch/libarchive
@@ -40,7 +40,7 @@ src_configure() {
 		-DNM_WITH_REMOTE=$(usex remote-api)
 		-DNM_WITH_SPICE=$(usex spice)
 		-DNM_WITH_DBUS=$(usex dbus)
-		-DNM_USE_UTF=$(usex utf)
+		-DNM_WITH_UNICODE_GLYPHS=$(usex glyphs)
 		-DCMAKE_INSTALL_PREFIX=/usr
 	)
 	cmake-utils_src_configure

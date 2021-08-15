@@ -8,6 +8,9 @@
 	<use>
 		<flag name="vnc-client">Adds support for external VNC client</flag>
 		<flag name="savevm">Adds support for QEMU savevm snapshots (experimental, QEMU must be patched)</flag>
+		<flag name="glyphs">Adds support for unicode glyphs</flag>
+		<flag name="remote-api">Adds API for remote control</flag>
+		<flag name="spice">Adds SPICE protocol support</flag>
 		<flag name="ovf">Adds support for OVA/OVF import</flag>
 	</use>
 </pkgmetadata>

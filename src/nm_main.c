@@ -237,7 +237,7 @@ static void nm_print_feset(void)
     nm_vect_t feset = NM_INIT_VECT;
     nm_str_t msg = NM_INIT_STR;
 
-#ifdef NM_USE_UTF
+#ifdef NM_WITH_UNICODE_GLYPHS
   #define NM_FESET_YES "\u2611"
   #define NM_FESET_NO  "\u2610"
 #else
