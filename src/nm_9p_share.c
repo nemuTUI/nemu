@@ -24,9 +24,9 @@ static const char NM_9P_SET_PATH_SQL[] =
 static const char NM_9P_SET_NAME_SQL[] =
     "UPDATE vms SET fs9p_name='%s' WHERE name='%s'";
 
-static const char NM_9P_FORM_MODE[] = "Enable sharing";
-static const char NM_9P_FORM_PATH[] = "Path to directory";
-static const char NM_9P_FORM_NAME[] = "Name of the share";
+static const char NM_LC_9P_FORM_MODE[] = "Enable sharing";
+static const char NM_LC_9P_FORM_PATH[] = "Path to directory";
+static const char NM_LC_9P_FORM_NAME[] = "Name of the share";
 
 static void nm_9p_init_windows(nm_form_t *form);
 static void nm_9p_fields_setup(const nm_vmctl_data_t *cur);
@@ -148,13 +148,13 @@ static size_t nm_9p_labels_setup()
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
         case NM_LBL_9PMODE:
-            nm_str_format(&buf, "%s", _(NM_9P_FORM_MODE));
+            nm_str_format(&buf, "%s", _(NM_LC_9P_FORM_MODE));
             break;
         case NM_LBL_9PPATH:
-            nm_str_format(&buf, "%s", _(NM_9P_FORM_PATH));
+            nm_str_format(&buf, "%s", _(NM_LC_9P_FORM_PATH));
             break;
         case NM_LBL_9PNAME:
-            nm_str_format(&buf, "%s", _(NM_9P_FORM_NAME));
+            nm_str_format(&buf, "%s", _(NM_LC_9P_FORM_NAME));
             break;
         default:
             continue;
@@ -188,8 +188,8 @@ static int nm_9p_get_data(nm_9p_data_t *data, const nm_vmctl_data_t *cur)
     else if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_9FLG), NM_ENABLE) != NM_OK)
             goto out;
 
-    nm_form_check_data(_(NM_9P_FORM_PATH), data->path, err);
-    nm_form_check_data(_(NM_9P_FORM_NAME), data->name, err);
+    nm_form_check_data(_(NM_LC_9P_FORM_PATH), data->path, err);
+    nm_form_check_data(_(NM_LC_9P_FORM_NAME), data->name, err);
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
         nm_vect_free(&err, NULL);

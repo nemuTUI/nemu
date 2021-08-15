@@ -32,10 +32,10 @@ const char *nm_ovf_version[] = {
 enum {NM_BLOCK_SIZE = 10240};
 static const char NM_OVA_DIR_TEMPL[] = "/tmp/ova_extract_XXXXXX";
 
-static const char NM_OVF_FORM_PATH[] = "Path to OVA";
-static const char NM_OVF_FORM_ARCH[] = "Architecture";
-static const char NM_OVF_FORM_NAME[] = "Name (optional)";
-static const char NM_OVF_FORM_VER[]  = "OVF version";
+static const char NM_LC_OVF_FORM_PATH[] = "Path to OVA";
+static const char NM_LC_OVF_FORM_ARCH[] = "Architecture";
+static const char NM_LC_OVF_FORM_NAME[] = "Name (optional)";
+static const char NM_LC_OVF_FORM_VER[]  = "OVF version";
 static const char NM_XML_OVF_NS[]    = "ovf";
 static const char NM_XML_RASD_NS[]   = "rasd";
 static const char NM_XML_SASD_NS[]   = "sasd";
@@ -310,16 +310,16 @@ static size_t nm_ovf_labels_setup()
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
         case NM_OVA_LBL_SRC:
-            nm_str_format(&buf, "%s", _(NM_OVF_FORM_PATH));
+            nm_str_format(&buf, "%s", _(NM_LC_OVF_FORM_PATH));
             break;
         case NM_OVA_LBL_ARCH:
-            nm_str_format(&buf, "%s", _(NM_OVF_FORM_ARCH));
+            nm_str_format(&buf, "%s", _(NM_LC_OVF_FORM_ARCH));
             break;
         case NM_OVA_LBL_NAME:
-            nm_str_format(&buf, "%s", _(NM_OVF_FORM_NAME));
+            nm_str_format(&buf, "%s", _(NM_LC_OVF_FORM_NAME));
             break;
         case NM_OVA_LBL_VER:
-            nm_str_format(&buf, "%s", _(NM_OVF_FORM_VER));
+            nm_str_format(&buf, "%s", _(NM_LC_OVF_FORM_VER));
             break;
         default:
             continue;
@@ -756,12 +756,12 @@ static int nm_ova_get_data(nm_vm_t *vm, int *version)
     nm_get_field_buf(fields[NM_OVA_FLD_VER], &ver);
     if (field_status(fields[NM_OVA_FLD_NAME])) {
         nm_get_field_buf(fields[NM_OVA_FLD_NAME], &vm->name);
-        nm_form_check_data(_(NM_OVF_FORM_NAME), vm->name, err);
+        nm_form_check_data(_(NM_LC_OVF_FORM_NAME), vm->name, err);
     }
 
-    nm_form_check_data(_(NM_OVF_FORM_PATH), vm->srcp, err);
-    nm_form_check_data(_(NM_OVF_FORM_ARCH), vm->arch, err);
-    nm_form_check_data(_(NM_OVF_FORM_VER), ver, err);
+    nm_form_check_data(_(NM_LC_OVF_FORM_PATH), vm->srcp, err);
+    nm_form_check_data(_(NM_LC_OVF_FORM_ARCH), vm->arch, err);
+    nm_form_check_data(_(NM_LC_OVF_FORM_VER), ver, err);
 
     if (nm_str_cmp_st(&ver, nm_ovf_version[0]) == NM_OK) {
         *version = 1;

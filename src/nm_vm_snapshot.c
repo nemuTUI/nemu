@@ -17,9 +17,9 @@ typedef struct {
 
 #define NM_INIT_VMSNAP (nm_vmsnap_t) { NM_INIT_STR, NM_INIT_STR, 0 }
 
-static const char NM_VMSNAP_FORM_NAME[] = "Snapshot name";
-static const char NM_VMSNAP_FORM_LOAD[] = "Load at next boot";
-static const char NM_VMSNAP_FORM_SNAP[] = "Snapshot";
+static const char NM_LC_VMSNAP_FORM_NAME[] = "Snapshot name";
+static const char NM_LC_VMSNAP_FORM_LOAD[] = "Load at next boot";
+static const char NM_LC_VMSNAP_FORM_SNAP[] = "Snapshot";
 
 static void nm_vm_snapshot_init_windows(nm_form_t *form);
 static void nm_vm_snapshot_create_init_windows(nm_form_t *form);
@@ -176,10 +176,10 @@ static size_t nm_vm_snapshot_create_labels_setup()
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
         case NM_LBL_VMSNAPNAME:
-            nm_str_format(&buf, "%s", _(NM_VMSNAP_FORM_NAME));
+            nm_str_format(&buf, "%s", _(NM_LC_VMSNAP_FORM_NAME));
             break;
         case NM_LBL_VMLOAD:
-            nm_str_format(&buf, "%s", _(NM_VMSNAP_FORM_LOAD));
+            nm_str_format(&buf, "%s", _(NM_LC_VMSNAP_FORM_LOAD));
             break;
         default:
             continue;
@@ -232,7 +232,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
 
     nm_vm_snapshot_delete_init_windows(NULL);
 
-    msg_len = mbstowcs(NULL, _(NM_VMSNAP_FORM_SNAP), strlen(_(NM_VMSNAP_FORM_SNAP)));
+    msg_len = mbstowcs(NULL, _(NM_LC_VMSNAP_FORM_SNAP), strlen(_(NM_LC_VMSNAP_FORM_SNAP)));
 
     form_data = nm_form_data_new(
         action_window, nm_vm_snapshot_delete_init_windows,
@@ -247,7 +247,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
         (const char **)choices.data, false, false);
     fields[2] = NULL;
 
-    set_field_buffer(fields[0], 0, _(NM_VMSNAP_FORM_SNAP));
+    set_field_buffer(fields[0], 0, _(NM_LC_VMSNAP_FORM_SNAP));
     set_field_buffer(fields[1], 0, *choices.data);
     nm_fields_unset_status(fields);
 
@@ -258,7 +258,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
         goto out;
 
     nm_get_field_buf(fields[1], &buf);
-    nm_form_check_data(_(NM_VMSNAP_FORM_SNAP), buf, err);
+    nm_form_check_data(_(NM_LC_VMSNAP_FORM_SNAP), buf, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
@@ -322,7 +322,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
 
     nm_vm_snapshot_revert_init_windows(NULL);
 
-    msg_len = mbstowcs(NULL, _(NM_VMSNAP_FORM_SNAP), strlen(_(NM_VMSNAP_FORM_SNAP)));
+    msg_len = mbstowcs(NULL, _(NM_LC_VMSNAP_FORM_SNAP), strlen(_(NM_LC_VMSNAP_FORM_SNAP)));
 
     form_data = nm_form_data_new(
         action_window, nm_vm_snapshot_delete_init_windows,
@@ -337,7 +337,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
         (const char **)choices.data, false, false);
     fields[2] = NULL;
 
-    set_field_buffer(fields[0], 0, _(NM_VMSNAP_FORM_SNAP));
+    set_field_buffer(fields[0], 0, _(NM_LC_VMSNAP_FORM_SNAP));
     set_field_buffer(fields[1], 0, *choices.data);
     nm_fields_unset_status(fields);
 
@@ -348,7 +348,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
         goto out;
 
     nm_get_field_buf(fields[1], &buf);
-    nm_form_check_data(_(NM_VMSNAP_FORM_SNAP), buf, err);
+    nm_form_check_data(_(NM_LC_VMSNAP_FORM_SNAP), buf, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
@@ -468,8 +468,8 @@ static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data)
     nm_get_field_buf(fields[NM_FLD_VMSNAPNAME], &data->snap_name);
     nm_get_field_buf(fields[NM_FLD_VMLOAD], &data->load);
 
-    nm_form_check_data(_(NM_VMSNAP_FORM_NAME), data->snap_name, err);
-    nm_form_check_data(_(NM_VMSNAP_FORM_LOAD), data->load, err);
+    nm_form_check_data(_(NM_LC_VMSNAP_FORM_NAME), data->snap_name, err);
+    nm_form_check_data(_(NM_LC_VMSNAP_FORM_LOAD), data->load, err);
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR) {
         nm_vect_free(&err, NULL);

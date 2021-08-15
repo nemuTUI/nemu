@@ -13,8 +13,8 @@
 
 #if defined (NM_OS_LINUX)
 
-const char NM_LAN_FORM_LNAME[] = "Name";
-const char NM_LAN_FORM_RNAME[] = "Peer name";
+const char NM_LC_LAN_FORM_LNAME[] = "Name";
+const char NM_LC_LAN_FORM_RNAME[] = "Peer name";
 
 static void nm_lan_init_main_windows(bool redraw);
 static void nm_lan_init_add_windows(nm_form_t *form);
@@ -48,10 +48,10 @@ const char *nm_form_svg_layout[] = {
     NULL
 };
 
-const char NM_SVG_FORM_PATH[] = "Export path";
-const char NM_SVG_FORM_TYPE[] = "State";
-const char NM_SVG_FORM_LAYT[] = "Layout";
-const char NM_SVG_FORM_GROUP[] = "Group";
+const char NM_LC_SVG_FORM_PATH[] = "Export path";
+const char NM_LC_SVG_FORM_TYPE[] = "State";
+const char NM_LC_SVG_FORM_LAYT[] = "Layout";
+const char NM_LC_SVG_FORM_GROUP[] = "Group";
 
 static void nm_svg_init_windows(nm_form_t *form);
 static void nm_svg_fields_setup();
@@ -306,10 +306,10 @@ static size_t nm_lan_labels_setup()
     for (size_t n = 0; n < NM_LAN_FLD_COUNT; n++) {
         switch (n) {
         case NM_LAN_LBL_LNAME:
-            nm_str_format(&buf, "%s", _(NM_LAN_FORM_LNAME));
+            nm_str_format(&buf, "%s", _(NM_LC_LAN_FORM_LNAME));
             break;
         case NM_LAN_LBL_RNAME:
-            nm_str_format(&buf, "%s", _(NM_LAN_FORM_RNAME));
+            nm_str_format(&buf, "%s", _(NM_LC_LAN_FORM_RNAME));
             break;
         default:
             continue;
@@ -609,9 +609,9 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
     nm_get_field_buf(fields_svg[NM_SVG_FLD_TYPE], &type);
     nm_get_field_buf(fields_svg[NM_SVG_FLD_LAYT], &layout);
     nm_get_field_buf(fields_svg[NM_SVG_FLD_GROUP], &group);
-    nm_form_check_data(_(NM_SVG_FORM_PATH), path, err);
-    nm_form_check_data(_(NM_SVG_FORM_TYPE), type, err);
-    nm_form_check_data(_(NM_SVG_FORM_LAYT), layout, err);
+    nm_form_check_data(_(NM_LC_SVG_FORM_PATH), path, err);
+    nm_form_check_data(_(NM_LC_SVG_FORM_TYPE), type, err);
+    nm_form_check_data(_(NM_LC_SVG_FORM_LAYT), layout, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);
@@ -680,16 +680,16 @@ static size_t nm_svg_labels_setup()
     for (size_t n = 0; n < NM_SVG_FLD_COUNT; n++) {
         switch (n) {
         case NM_SVG_LBL_PATH:
-            nm_str_format(&buf, "%s", _(NM_SVG_FORM_PATH));
+            nm_str_format(&buf, "%s", _(NM_LC_SVG_FORM_PATH));
             break;
         case NM_SVG_LBL_TYPE:
-            nm_str_format(&buf, "%s", _(NM_SVG_FORM_TYPE));
+            nm_str_format(&buf, "%s", _(NM_LC_SVG_FORM_TYPE));
             break;
         case NM_SVG_LBL_LAYT:
-            nm_str_format(&buf, "%s", _(NM_SVG_FORM_LAYT));
+            nm_str_format(&buf, "%s", _(NM_LC_SVG_FORM_LAYT));
             break;
         case NM_SVG_LBL_GROUP:
-            nm_str_format(&buf, "%s", _(NM_SVG_FORM_GROUP));
+            nm_str_format(&buf, "%s", _(NM_LC_SVG_FORM_GROUP));
             break;
         default:
             continue;

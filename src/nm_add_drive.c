@@ -10,10 +10,10 @@
 #include <nm_add_drive.h>
 #include <nm_vm_control.h>
 
-static const char NM_DRIVE_FORM_MSG[] = "Drive interface";
-static const char NM_DRIVE_FORM_DIS[] = "Discard mode";
-static const char NM_DRIVE_SZ_START[] = "Size [1-";
-static const char NM_DRIVE_SZ_END[] = "]Gb";
+static const char NM_LC_DRIVE_FORM_MSG[] = "Drive interface";
+static const char NM_LC_DRIVE_FORM_DIS[] = "Discard mode";
+static const char NM_LC_DRIVE_FORM_SZ_START[] = "Size [1-";
+static const char NM_LC_DRIVE_FORM_SZ_END[]   = "]Gb";
 
 static void nm_add_drive_init_windows(nm_form_t *form);
 static size_t nm_add_drive_labels_setup();
@@ -150,13 +150,14 @@ static size_t nm_add_drive_labels_setup()
         switch (n) {
         case NM_LBL_DRVSIZE:
             nm_str_format(&buf, "%s%u%s",
-                _(NM_DRIVE_SZ_START), nm_hw_disk_free(), _(NM_DRIVE_SZ_END));
+                _(NM_LC_DRIVE_FORM_SZ_START), nm_hw_disk_free(),
+                _(NM_LC_DRIVE_FORM_SZ_END));
             break;
         case NM_LBL_DRVTYPE:
-            nm_str_format(&buf, "%s", _(NM_DRIVE_FORM_MSG));
+            nm_str_format(&buf, "%s", _(NM_LC_DRIVE_FORM_MSG));
             break;
         case NM_LBL_DISCARD:
-            nm_str_format(&buf, "%s", _(NM_DRIVE_FORM_DIS));
+            nm_str_format(&buf, "%s", _(NM_LC_DRIVE_FORM_DIS));
             break;
         default:
             continue;

@@ -11,7 +11,7 @@
 #include <nm_clone_vm.h>
 
 #define NM_FLD_COUNT 2
-static const char NM_CLONE_NAME_MSG[] = "Name";
+static const char NM_LC_CLONE_NAME_MSG[] = "Name";
 
 static void nm_clone_vm_init_windows(nm_form_t *form);
 static void nm_clone_vm_to_fs(const nm_str_t *src, const nm_str_t *dst,
@@ -56,7 +56,7 @@ void nm_clone_vm(const nm_str_t *name)
 
     nm_vmctl_get_data(name, &vm);
 
-    msg_len = mbstowcs(NULL, _(NM_CLONE_NAME_MSG), strlen(_(NM_CLONE_NAME_MSG)));
+    msg_len = mbstowcs(NULL, _(NM_LC_CLONE_NAME_MSG), strlen(_(NM_LC_CLONE_NAME_MSG)));
 
     form_data = nm_form_data_new(
         action_window, nm_clone_vm_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
@@ -68,7 +68,7 @@ void nm_clone_vm(const nm_str_t *name)
     fields[1] = nm_field_regexp_new(0, form_data, "^[a-zA-Z0-9_-]{1,30} *$");
     fields[2] = NULL;
 
-    set_field_buffer(fields[0], 0, _(NM_CLONE_NAME_MSG));
+    set_field_buffer(fields[0], 0, _(NM_LC_CLONE_NAME_MSG));
     nm_str_format(&buf, "%s-clone", name->data);
     set_field_buffer(fields[1], 0, buf.data);
     nm_fields_unset_status(fields);
@@ -80,7 +80,7 @@ void nm_clone_vm(const nm_str_t *name)
         goto out;
 
     nm_get_field_buf(fields[1], &cl_name);
-    nm_form_check_data(_(NM_CLONE_NAME_MSG), cl_name, err);
+    nm_form_check_data(_(NM_LC_CLONE_NAME_MSG), cl_name, err);
 
     if (nm_print_empty_fields(&err) == NM_ERR) {
         nm_vect_free(&err, NULL);

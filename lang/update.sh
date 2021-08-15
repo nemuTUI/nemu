@@ -8,6 +8,12 @@ pushd ../src > /dev/null
 
 FILES=$(ls -1 *.c)
 
+# xgettext doesn't recognise this:
+#
+# define MSG "message"
+# printf("%s", _(msg));
+#
+# so we feed it with postprocessed files.
 for F in $FILES; do
     E=${F//\.c/}
     gcc -I. -I/usr/include/json-c -I/usr/include/libxml2 \
@@ -19,7 +25,23 @@ for F in $FILES; do
         -E $F -o ${TMPDIR}/${E}.e
 done
 
+pushd $TMPDIR > /dev/null
+
+
+# xgettext doesn't recognise this:
+#
+# static const char msg[] = "message";
+# printf("%s", _(msg));
+#
+# so we have to edit code. We use NM_LC_ prefix for strings 
+# that must be processed by gettext.
+for F in $FILES; do
+    E=${F//\.c/\.e}
+    sed -ri 's/(^static const char NM_LC_.*= )(".*")(;$)/\1_(\2_)\3/' $E
+done
+
+popd > /dev/null
 popd > /dev/null
 xgettext --keyword=_ --language=C --add-comments --sort-output \
     --from-code=UTF-8 --omit-header -o nemu.pot $TMPDIR/*.e
-msgmerge --update ru/nemu.po nemu.pot
+msgmerge -N --update ru/nemu.po nemu.pot

@@ -14,19 +14,19 @@
 #include <nm_qmp_control.h>
 #include <nm_edit_vm.h>
 
-static const char NM_VM_FORM_CPU[]       = "CPU count";
-static const char NM_VM_FORM_MEM_BEGIN[] = "Memory [4-";
-static const char NM_VM_FORM_MEM_END[]   = "]Mb";
-static const char NM_VM_FORM_KVM[]       = "KVM [yes/no]";
-static const char NM_VM_FORM_HCPU[]      = "Host CPU [yes/no]";
-static const char NM_VM_FORM_NET_IFS[]   = "Network interfaces";
-static const char NM_VM_FORM_DRV_IF[]    = "Disk interface";
-static const char NM_VM_FORM_DRV_DIS[]   = "Discard mode";
-static const char NM_VM_FORM_USB[]       = "USB [yes/no]";
-static const char NM_VM_FORM_USBT[]      = "USB version";
-static const char NM_VM_FORM_MACH[]      = "Machine type";
-static const char NM_VM_FORM_ARGS[]      = "Extra QEMU args";
-static const char NM_VM_FORM_GROUP[]     = "Group";
+static const char NM_LC_VM_FORM_CPU[]       = "CPU count";
+static const char NM_LC_VM_FORM_MEM_BEGIN[] = "Memory [4-";
+static const char NM_LC_VM_FORM_MEM_END[]   = "]Mb";
+static const char NM_LC_VM_FORM_KVM[]       = "KVM [yes/no]";
+static const char NM_LC_VM_FORM_HCPU[]      = "Host CPU [yes/no]";
+static const char NM_LC_VM_FORM_NET_IFS[]   = "Network interfaces";
+static const char NM_LC_VM_FORM_DRV_IF[]    = "Disk interface";
+static const char NM_LC_VM_FORM_DRV_DIS[]   = "Discard mode";
+static const char NM_LC_VM_FORM_USB[]       = "USB [yes/no]";
+static const char NM_LC_VM_FORM_USBT[]      = "USB version";
+static const char NM_LC_VM_FORM_MACH[]      = "Machine type";
+static const char NM_LC_VM_FORM_ARGS[]      = "Extra QEMU args";
+static const char NM_LC_VM_FORM_GROUP[]     = "Group";
 
 static void nm_edit_vm_init_windows(nm_form_t *form);
 static void nm_edit_vm_fields_setup(const nm_vmctl_data_t *cur);
@@ -228,41 +228,41 @@ static size_t nm_edit_vm_labels_setup()
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
         case NM_LBL_CPUNUM:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_CPU));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_CPU));
             break;
         case NM_LBL_RAMTOT:
             nm_str_format(&buf, "%s%u%s",
-                _(NM_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_VM_FORM_MEM_END));
+                _(NM_LC_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_LC_VM_FORM_MEM_END));
             break;
         case NM_LBL_KVMFLG:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_KVM));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_KVM));
             break;
         case NM_LBL_HOSCPU:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_HCPU));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_HCPU));
             break;
         case NM_LBL_IFSCNT:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_NET_IFS));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_NET_IFS));
             break;
         case NM_LBL_DISKIN:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_DRV_IF));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_DRV_IF));
             break;
         case NM_LBL_DISCARD:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_DRV_DIS));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_DRV_DIS));
             break;
         case NM_LBL_USBUSE:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_USB));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_USB));
             break;
         case NM_LBL_USBTYP:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_USBT));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_USBT));
             break;
         case NM_LBL_MACH:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_MACH));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_MACH));
             break;
         case NM_LBL_ARGS:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_ARGS));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_ARGS));
             break;
         case NM_LBL_GROUP:
-            nm_str_format(&buf, "%s", _(NM_VM_FORM_GROUP));
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_GROUP));
             break;
         default:
             continue;
