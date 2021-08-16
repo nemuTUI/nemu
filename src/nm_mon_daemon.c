@@ -267,7 +267,9 @@ static bool nm_mon_check_version(pid_t *opid)
                 " restart anyway\n", __func__);
     }
 
-    *opid = nm_str_ttoul(buf, 10);
+    if (res) {
+        *opid = nm_str_ttoul(buf, 10);
+    }
 
 out:
     close(fd);
