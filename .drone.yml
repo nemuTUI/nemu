@@ -64,6 +64,9 @@ steps:
 
 - name: codespell
   image: grafin1992/nemu-ci:v1.1
+  environment:
+    GITHUB_TOKEN:
+      from_secret: github_token
 
   commands:
 #  - codespell -q 3 -L 'fo,ser,ans,chello'
