@@ -307,7 +307,6 @@ void nm_mon_start(void)
 
         /* wait for daemon shutdown */
         for (int try = 0; try < 300; try++) {
-            nm_debug("%s: try #%d\n", __func__, try);
             if (kill(opid, 0) < 0) {
                 restart_ok = true;
                 break;
