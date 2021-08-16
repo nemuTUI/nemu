@@ -8,7 +8,7 @@ steps:
 
   commands:
   - mkdir build && cd build
-  - cmake -G Ninja ../ 
+  - cmake -G Ninja ../
     -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON
     -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
 
@@ -66,8 +66,12 @@ steps:
   image: grafin1992/nemu-ci:v1.1
 
   commands:
-  - codespell -q 3 -L 'fo,ser,ans,chello'
-    --skip="../lgtm,../_lgtm_detected_source_root" ./
+#  - codespell -q 3 -L 'fo,ser,ans,chello'
+#    --skip="../lgtm,../_lgtm_detected_source_root" ./
+  - ./ci/codespell-sarif.py -o ./codespell.sarif
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
+    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
+    --sarif=./codespell.sarif
 
   depends_on:
   - clone
