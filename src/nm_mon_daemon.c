@@ -259,12 +259,15 @@ static bool nm_mon_check_version(pid_t *opid)
         if (nm_str_cmp_tt(nl + 1, NM_VERSION) != NM_OK) {
             res = true;
             *nl = '\0';
-            *opid = nm_str_ttoul(buf, 10);
             nm_debug("%s: daemon version different, need restart\n", __func__);
         }
     } else {
-        nm_debug("%s: nEMU < 3.0.0, cannot check version\n", __func__);
+        res = true;
+        nm_debug("%s: nEMU < 3.0.0, cannot check version,"
+                " restart anyway\n", __func__);
     }
+
+    *opid = nm_str_ttoul(buf, 10);
 
 out:
     close(fd);
