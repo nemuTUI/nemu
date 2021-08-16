@@ -253,7 +253,7 @@ static bool nm_mon_check_version(pid_t *opid)
     }
 
     if ((nl = strchr(buf, '\n')) != NULL) {
-        /* nEMU >= 3.0.0, cut version number */
+        /* nEMU >= 3.0.0, check and cut version number */
         nm_debug("%s: daemon version: %s [actual: %s]\n",
                 __func__, nl + 1, NM_VERSION);
         if (nm_str_cmp_tt(nl + 1, NM_VERSION) != NM_OK) {
