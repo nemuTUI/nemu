@@ -162,7 +162,7 @@ def main(args: Namespace):
 
     if outputPath:
         with open(outputPath, "w") as outputFile:
-            outputFile.write(dumps(sarif), indent=2)
+            outputFile.write(dumps(sarif, indent=2))
     else:
         print(dumps(sarif, indent=2))
 
