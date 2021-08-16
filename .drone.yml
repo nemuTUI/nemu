@@ -62,7 +62,7 @@ steps:
 
   commands:
   - ./ci/codespell-sarif.py
-    -a "-q 3 -L 'fo,ser,ans,chello' --skip='../lgtm,../_lgtm_detected_source_root'"
+    -a "-q 3 -L fo,ser,ans,chello -S ../lgtm,../_lgtm_detected_source_root"
     -o ./codespell.sarif ./
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
     --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
