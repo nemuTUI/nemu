@@ -224,17 +224,95 @@ out:
     pthread_exit(NULL);
 }
 
+static bool nm_mon_check_version(pid_t *opid)
+{
+    const char *path = nm_cfg_get()->daemon_pid.data;
+    struct stat info;
+    bool res = false;
+    char *buf, *nl;
+    int fd;
+
+    memset(&info, 0x0, sizeof(info));
+
+    if ((stat(path, &info) == -1) || (!info.st_size))
+        return false;
+
+    buf = nm_calloc(1, info.st_size + 1);
+    fd = open(path, O_RDONLY);
+    if (fd == -1) {
+        nm_debug("%s: error open pid file: %s: %s",
+                __func__, path, strerror(errno));
+        free(buf);
+        return false;
+    }
+
+    if (read(fd, buf, info.st_size) < 0) {
+        nm_debug("%s: error read pid file: %s: %s",
+                __func__, path, strerror(errno));
+        goto out;
+    }
+
+    if ((nl = strchr(buf, '\n')) != NULL) {
+        /* nEMU >= 3.0.0, cut version number */
+        nm_debug("%s: daemon version: %s [actual: %s]\n",
+                __func__, nl + 1, NM_VERSION);
+        if (nm_str_cmp_tt(nl + 1, NM_VERSION) != NM_OK) {
+            res = true;
+            *nl = '\0';
+            *opid = nm_str_ttoul(buf, 10);
+            nm_debug("%s: daemon version different, need restart\n", __func__);
+        }
+    } else {
+        nm_debug("%s: nEMU < 3.0.0, cannot check version\n", __func__);
+    }
+
+out:
+    close(fd);
+    free(buf);
+    return res;
+}
+
 void nm_mon_start(void)
 {
     const nm_cfg_t *cfg = nm_cfg_get();
-    pid_t pid, wpid;
+    bool need_restart = false;
+    pid_t pid, wpid, opid;
     int wstatus = 0;
 
     if (!cfg->start_daemon)
         return;
 
     if (access(cfg->daemon_pid.data, R_OK) != -1) {
-        return;
+        if ((need_restart = nm_mon_check_version(&opid)) == false) {
+            return;
+        }
+    }
+
+    if (need_restart) {
+        struct timespec ts;
+        bool restart_ok = false;
+
+        memset(&ts, 0, sizeof(ts));
+        ts.tv_nsec = 5e+7; /* 0.05sec */
+
+        if (kill(opid, SIGINT) < 0) {
+            nm_bug("%s: error send signal to pid %d: %s",
+                    __func__, opid, strerror(errno));
+        }
+
+        /* wait for daemon shutdown */
+        for (int try = 0; try < 300; try++) {
+            nm_debug("%s: try #%d\n", __func__, try);
+            if (kill(opid, 0) < 0) {
+                restart_ok = true;
+                break;
+            }
+            nanosleep(&ts, NULL);
+        }
+
+        if (!restart_ok) {
+            nm_bug("%s: after 15 seconds the daemon has not exited\n", __func__);
+        }
     }
 
     pid = fork();
@@ -265,7 +343,7 @@ void nm_mon_ping(void)
     int fd;
     struct stat info;
     const char *path = nm_cfg_get()->daemon_pid.data;
-    char *buf;
+    char *buf, *nl;
 
     memset(&info, 0x0, sizeof(info));
 
@@ -285,6 +363,11 @@ void nm_mon_ping(void)
         nm_debug("%s: error read pid file: %s: %s",
                 __func__, path, strerror(errno));
         goto out;
+    }
+
+    if ((nl = strchr(buf, '\n')) != NULL) {
+        /* nEMU >= 3.0.0, cut version number */
+        *nl = '\0';
     }
 
     pid = nm_str_ttoul(buf, 10);
@@ -481,7 +564,7 @@ static int nm_mon_store_pid(void)
     }
 
     pid = getpid();
-    nm_str_format(&res, "%d", pid);
+    nm_str_format(&res, "%d\n%s", pid, NM_VERSION);
 
     if (write(fd, res.data, res.len) < 0) {
         nm_debug("%s: error save pid number\n", __func__);
