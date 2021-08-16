@@ -27,12 +27,6 @@ def sarif_template(codePath: str, uriBaseId: str, codespell: str) -> dict:
                         "name": "codespell",
                         "version": codespellVersion,
                         "informationUri": "https://github.com/codespell-project/codespell",
-                        "globalMessageStrings": {
-                            "spellingMistake": {
-                                "text": "Possible spelling mistake: \"{0}\".",
-                                "markdown": "Possible spelling mistake: `{0}`.",
-                            }
-                        },
                         "rules": [
                             {
                                 "id": "CS0001",
@@ -127,8 +121,7 @@ def parse_error(error: str, uriBaseId: str) -> dict:
         "ruleId": "CS0001",
         "ruleIndex": 0,
         "message": {
-            "id": "spellingMistake",
-            "arguments": [error["msg"]],
+            "text": f"Possible spelling mistake: {error['msg']}.",
         },
         "locations": [
             {
