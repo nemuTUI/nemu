@@ -15,10 +15,6 @@ steps:
   depends_on:
   - clone
 
-  when:
-    branch:
-    - master
-
 - name: codeql
   image: grafin1992/nemu-ci:v1.1
   environment:
@@ -35,10 +31,6 @@ steps:
 
   depends_on:
   - clone
-
-  when:
-    branch:
-    - master
 
 - name: cppcheck
   image: grafin1992/nemu-ci:v1.1
@@ -69,9 +61,9 @@ steps:
       from_secret: github_token
 
   commands:
-#  - codespell -q 3 -L 'fo,ser,ans,chello'
-#    --skip="../lgtm,../_lgtm_detected_source_root" ./
-  - ./ci/codespell-sarif.py -o ./codespell.sarif ./
+  - ./ci/codespell-sarif.py
+    -a "-q 3 -L 'fo,ser,ans,chello' --skip='../lgtm,../_lgtm_detected_source_root'"
+    -o ./codespell.sarif ./
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
     --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
     --sarif=./codespell.sarif
@@ -88,3 +80,7 @@ steps:
 
   depends_on:
   - cmake
+
+trigger:
+  branch:
+  - master
