@@ -1,3 +1,4 @@
+---
 kind: pipeline
 type: docker
 name: nemu
@@ -84,3 +85,8 @@ steps:
 trigger:
   branch:
   - master
+---
+kind: signature
+hmac: d548943fa4ad871bd68056c013dc5db32d916023dd8a51814c529ffcfa3c8e90
+
+...
