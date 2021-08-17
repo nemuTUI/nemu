@@ -19,7 +19,7 @@ typedef struct {
     short b;
 } nm_rgb_t;
 
-#define NM_GLYPH_SEP    "\uE0B5"
+#define NM_GLYPH_SEP    "\uE0B1"
 #define NM_GLYPH_CK_YES "\u2611"
 #define NM_GLYPH_CK_NO  "\u2610"
 
