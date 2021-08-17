@@ -85,18 +85,28 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err)
         return;
 
     int x = 1, y = 0;
+    int use_glyph = nm_cfg_get()->glyphs.separator;
 
     wbkgd(help_window, COLOR_PAIR(err ? NM_COLOR_RED : NM_COLOR_BLACK));
 
     for (size_t n = 0; n < objs; n++) {
         if (n > 0) {
             x++;
-            mvwaddch(help_window, y, x, ACS_VLINE);
+            if (use_glyph) {
+                mvwprintw(help_window, y, x, NM_GLYPH_SEP);
+            } else {
+                mvwaddch(help_window, y, x, ACS_VLINE);
+            }
             x+=2;
         }
 
         mvwprintw(help_window, y, x, _(msg[n]));
         x += mbstowcs(NULL, _(msg[n]), strlen(_(msg[n])));
+
+        if (use_glyph && (n == objs - 1)) {
+            x++;
+            mvwprintw(help_window, y, x, NM_GLYPH_SEP);
+        }
     }
 
     wrefresh(help_window);

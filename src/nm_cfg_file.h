@@ -19,6 +19,15 @@ typedef struct {
     short b;
 } nm_rgb_t;
 
+#define NM_GLYPH_SEP    "\uE0B5"
+#define NM_GLYPH_CK_YES "\u2611"
+#define NM_GLYPH_CK_NO  "\u2610"
+
+typedef struct {
+    uint32_t separator:1;
+    uint32_t checkbox:1;
+} nm_glyph_t;
+
 typedef struct {
     nm_str_t vm_dir;
     nm_str_t db_path;
@@ -35,6 +44,7 @@ typedef struct {
     nm_str_t qemu_bin_path;
     nm_vect_t qemu_targets;
     nm_rgb_t hl_color;
+    nm_glyph_t glyphs;
     nm_str_t debug_path;
     uint64_t daemon_sleep;
     uint32_t cursor_style;
