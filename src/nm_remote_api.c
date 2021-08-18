@@ -409,8 +409,6 @@ out:
     json_object_put(request);
 }
 
-/* FIXME nm_vmctl_start() stucks client connection in CLOSE-WAIT state
- * until VM is running */
 static void nm_api_md_vmstart(struct json_object *request, nm_str_t *reply)
 {
     int rc = nm_api_check_auth(request, reply);
