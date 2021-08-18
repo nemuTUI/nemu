@@ -107,6 +107,12 @@ void *nm_api_server(void *ctx)
                         }
                         break;
                     }
+                    if (fcntl(cl_sd, F_SETFD, FD_CLOEXEC) == -1) {
+                        nm_debug("%s: fcntl error: %s\n",
+                                __func__, strerror(errno));
+                        goto out;
+                    }
+
                     nm_debug("%s: connect to API from: %s\n",
                             __func__, inet_ntoa(cl_addr.sin_addr));
                     fds[nfds].fd = cl_sd;
