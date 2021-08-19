@@ -27,7 +27,7 @@ static void nm_print_help__(const char **keys, const char **values,
 #else
   #if defined (NM_WITH_OVF_SUPPORT)
     #define NM_HELP_MSG \
-      "q:Quit", "I:Install VM", "O:Import OVA", "A:Import image" "?:Help"
+      "q:Quit", "I:Install VM", "O:Import OVA", "A:Import image", "?:Help"
   #else
     #define NM_HELP_MSG \
       "q:Quit", "I:Install VM", "A:Import image", "?:Help"
