@@ -16,12 +16,22 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err);
 static void nm_print_help__(const char **keys, const char **values,
                             size_t hotkey_num, size_t maxlen);
 
-#if defined (NM_WITH_OVF_SUPPORT)
-  #define NM_HELP_MSG \
-    "q:Quit", "I:Install VM", "O:Import OVA", "A:Import image", "N:Network", "?:Help"
+#if defined (NM_OS_LINUX)
+  #if defined (NM_WITH_OVF_SUPPORT)
+    #define NM_HELP_MSG \
+      "q:Quit", "I:Install VM", "O:Import OVA", "A:Import image", "N:Network", "?:Help"
+  #else
+    #define NM_HELP_MSG \
+      "q:Quit", "I:Install VM", "A:Import image", "N:Network", "?:Help"
+  #endif
 #else
-  #define NM_HELP_MSG \
-    "q:Quit", "I:Install VM", "A:Import image", "N:Network", "?:Help"
+  #if defined (NM_WITH_OVF_SUPPORT)
+    #define NM_HELP_MSG \
+      "q:Quit", "I:Install VM", "O:Import OVA", "A:Import image" "?:Help"
+  #else
+    #define NM_HELP_MSG \
+      "q:Quit", "I:Install VM", "A:Import image", "?:Help"
+  #endif
 #endif
 
 #if defined (NM_WITH_NETWORK_MAP)
