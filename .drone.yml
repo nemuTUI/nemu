@@ -19,6 +19,7 @@ steps:
 - name: codeql
   image: grafin1992/nemu-ci:v1.1
   environment:
+    _JAVA_OPTIONS: -Xmx512m
     GITHUB_TOKEN:
       from_secret: github_token
 
@@ -87,6 +88,6 @@ trigger:
   - master
 ---
 kind: signature
-hmac: d548943fa4ad871bd68056c013dc5db32d916023dd8a51814c529ffcfa3c8e90
+hmac: e162fa87b9d62bcf5e0e6e04ab5abe6f2aaa875feb5810bb8b30e94300f92b6d
 
 ...
