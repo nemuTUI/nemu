@@ -75,6 +75,14 @@ platform:
   os: linux
   arch: amd64
 
+server:
+  host:
+    from_secret: freebsd_host
+  user:
+    from_secret: freebsd_user
+  ssh_key:
+    from_secret: freebsd_key
+
 steps:
 - name: cmake
   commands:
