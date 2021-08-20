@@ -95,8 +95,6 @@ name: FreeBSD
 server:
   host:
     from_secret: freebsd_host
-  port:
-    from_secret: freebsd_port
   user:
     from_secret: freebsd_user
   ssh_key:
@@ -129,6 +127,6 @@ steps:
 
 ---
 kind: signature
-hmac: ed8a3d0c0bafb58740cde63ca32bd2d8db98273988df1dc85f56e6a775f5bd25
+hmac: 2013f179bebe9e91000c784813323de4d016210398ca6a349e856fd2edb84d6b
 
 ...
