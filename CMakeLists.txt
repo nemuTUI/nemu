@@ -201,7 +201,7 @@ if(NM_WITH_DBUS)
 endif()
 
 if(NM_WITH_REMOTE)
-  find_package(OpenSSL REQUIRED)
+  find_package(OpenSSL 1.1 REQUIRED)
   target_link_libraries(${PROJECT_NAME} ssl)
   target_link_libraries(${PROJECT_NAME} crypto)
   include_directories(${OPENSSL_INCLUDE_DIR})
