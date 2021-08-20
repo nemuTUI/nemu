@@ -3,83 +3,62 @@ kind: pipeline
 type: docker
 name: Linux
 
+platform:
+  os: linux
+  arch: amd64
+
 steps:
 - name: cmake
   image: grafin1992/nemu-ci:v1.1
-
   commands:
   - mkdir build && cd build
-  - cmake -G Ninja ../
-    -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON
-    -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
-
+  - cmake -G Ninja ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
   depends_on:
   - clone
 
 - name: codeql
   image: grafin1992/nemu-ci:v1.1
-  environment:
-    _JAVA_OPTIONS: -Xmx512m
-    GITHUB_TOKEN:
-      from_secret: github_token
-
   commands:
   - /codeql/codeql database create lgtm --language=cpp
-  - /codeql/codeql database analyze lgtm --format=sarif-latest
-    --output=./codeql-lgtm.sarif cpp-lgtm.qls
-  - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
-    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
-    --sarif=./codeql-lgtm.sarif
-
+  - /codeql/codeql database analyze lgtm --format=sarif-latest --output=./codeql-lgtm.sarif cpp-lgtm.qls
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./codeql-lgtm.sarif
+  environment:
+    GITHUB_TOKEN:
+      from_secret: github_token
+    _JAVA_OPTIONS: -Xmx512m
   depends_on:
   - clone
 
 - name: cppcheck
   image: grafin1992/nemu-ci:v1.1
+  commands:
+  - cd /sarif-multitool
+  - cppcheck --enable=all --suppress=missingIncludeSystem --xml --output-file=./cppcheck.xml /drone/src/src
+  - npx "@microsoft/sarif-multitool" convert ./cppcheck.xml --tool CppCheck --output ./cppcheck.sarif -m --force
+  - npx "@microsoft/sarif-multitool" rebaseuri ./cppcheck.sarif --base-path-value "file:///drone/src" --base-path-token %SRCROOT% -o ./ -m --force
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./cppcheck-rebased.sarif
   environment:
     GITHUB_TOKEN:
       from_secret: github_token
-
-  commands:
-  - cd /sarif-multitool
-  - cppcheck --enable=all --suppress=missingIncludeSystem --xml
-    --output-file=./cppcheck.xml /drone/src/src
-  - npx "@microsoft/sarif-multitool" convert ./cppcheck.xml
-    --tool CppCheck --output ./cppcheck.sarif -m --force
-  - npx "@microsoft/sarif-multitool" rebaseuri ./cppcheck.sarif
-    --base-path-value "file:///drone/src" --base-path-token %SRCROOT% -o ./
-    -m --force
-  - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
-    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
-    --sarif=./cppcheck-rebased.sarif
-
   depends_on:
   - clone
 
 - name: codespell
   image: grafin1992/nemu-ci:v1.1
+  commands:
+  - ./ci/codespell-sarif.py -a "-q 3 -L fo,ser,ans,chello -S ../lgtm,../_lgtm_detected_source_root" -o ./codespell.sarif ./
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./codespell.sarif
   environment:
     GITHUB_TOKEN:
       from_secret: github_token
-
-  commands:
-  - ./ci/codespell-sarif.py
-    -a "-q 3 -L fo,ser,ans,chello -S ../lgtm,../_lgtm_detected_source_root"
-    -o ./codespell.sarif ./
-  - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
-    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
-    --sarif=./codespell.sarif
-
   depends_on:
   - clone
 
 - name: build
   image: grafin1992/nemu-ci:v1.1
-
   commands:
   - cd build
   - ninja
-
   depends_on:
   - cmake
 
@@ -92,41 +71,31 @@ kind: pipeline
 type: ssh
 name: FreeBSD
 
-server:
-  host:
-    from_secret: freebsd_host
-  user:
-    from_secret: freebsd_user
-  ssh_key:
-    from_secret: freebsd_key
-
-trigger:
-  branch:
-    - master
+platform:
+  os: linux
+  arch: amd64
 
 steps:
 - name: cmake
-
   commands:
   - mkdir build && cd build
-  - cmake ../
-    -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
-    -DNM_WITH_UNICODE_GLYPHS=ON
-
+  - cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
   depends_on:
   - clone
 
 - name: build
-
   commands:
   - cd build
   - make
-
   depends_on:
   - cmake
 
+trigger:
+  branch:
+  - master
+
 ---
 kind: signature
-hmac: 2013f179bebe9e91000c784813323de4d016210398ca6a349e856fd2edb84d6b
+hmac: fd0978763922b6f6149bb0e073479c05cbbd3f9ab584ee95aed374e95d21a7e7
 
 ...
