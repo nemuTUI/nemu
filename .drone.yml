@@ -87,7 +87,7 @@ steps:
 - name: cmake
   commands:
   - mkdir build && cd build
-  - cmake ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
+  - cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
   depends_on:
   - clone
 
