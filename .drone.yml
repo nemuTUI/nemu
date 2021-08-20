@@ -1,7 +1,7 @@
 ---
 kind: pipeline
 type: docker
-name: nemu
+name: main
 
 steps:
 - name: cmake
@@ -86,8 +86,49 @@ steps:
 trigger:
   branch:
   - master
+
+---
+kind: pipeline
+type: ssh
+name: default
+
+server:
+  host:
+    from_secret: freebsd_host
+  port:
+    from_secret: freebsd_port
+  user:
+    from_secret: freebsd_user
+  key:
+    from_secret: freebsd_key
+
+trigger:
+  branch:
+    - master
+
+steps:
+- name: cmake
+
+  commands:
+  - mkdir build && cd build
+  - cmake ../
+    -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+    -DNM_WITH_UNICODE_GLYPHS=ON
+
+  depends_on:
+  - clone
+
+- name: build
+
+  commands:
+  - cd build
+  - make
+
+  depends_on:
+  - cmake
+
 ---
 kind: signature
-hmac: e162fa87b9d62bcf5e0e6e04ab5abe6f2aaa875feb5810bb8b30e94300f92b6d
+hmac: 54bc5e75d69e3c3072113b534c39e4c95227a9dd329570925ecac885f87b8c47
 
 ...
