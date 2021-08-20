@@ -4,13 +4,16 @@ macro(get_glibc_version)
     OUTPUT_VARIABLE GLIBC
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-  get_filename_component(GLIBC ${GLIBC} REALPATH)
-  get_filename_component(GLIBC_VERSION ${GLIBC} NAME)
-  string(REPLACE "libc-" "" GLIBC_VERSION ${GLIBC_VERSION})
-  string(REPLACE ".so" "" GLIBC_VERSION ${GLIBC_VERSION})
+  execute_process(
+    COMMAND ${GLIBC}
+    COMMAND "head" "-n1"
+    COMMAND "sed" "-r" "s|.*version ([0-9]*\\.[0-9]*).|\\1|"
+    OUTPUT_VARIABLE GLIBC_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
   if(NOT GLIBC_VERSION MATCHES "^[0-9.]+$")
-    unset(GLIBC_VERSION)
     message(FATAL_ERROR "Unknown glibc version: ${GLIBC_VERSION}")
+    unset(GLIBC_VERSION)
   endif(NOT GLIBC_VERSION MATCHES "^[0-9.]+$")
 
 endmacro(get_glibc_version)
