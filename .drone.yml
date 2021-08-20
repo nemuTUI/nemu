@@ -1,7 +1,7 @@
 ---
 kind: pipeline
 type: docker
-name: main
+name: Linux
 
 steps:
 - name: cmake
@@ -90,7 +90,7 @@ trigger:
 ---
 kind: pipeline
 type: ssh
-name: default
+name: FreeBSD
 
 server:
   host:
@@ -99,7 +99,7 @@ server:
     from_secret: freebsd_port
   user:
     from_secret: freebsd_user
-  key:
+  ssh_key:
     from_secret: freebsd_key
 
 trigger:
@@ -129,6 +129,6 @@ steps:
 
 ---
 kind: signature
-hmac: 54bc5e75d69e3c3072113b534c39e4c95227a9dd329570925ecac885f87b8c47
+hmac: ed8a3d0c0bafb58740cde63ca32bd2d8db98273988df1dc85f56e6a775f5bd25
 
 ...
