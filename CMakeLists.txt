@@ -114,6 +114,10 @@ set_property(
   TARGET ${PROJECT_NAME}
   APPEND_STRING
   PROPERTY COMPILE_FLAGS "-Wall -Wextra -Wformat-security -pedantic -std=c99 ")
+set_property(
+  TARGET ${PROJECT_NAME}
+  APPEND_STRING
+  PROPERTY LINK_FLAGS_RELEASE "-s")
 
 set(NM_WITH_SENDFILE FALSE)
 
