@@ -5,7 +5,7 @@ RUN apt-get update -y && \
         git cmake ninja-build gcc cppcheck npm python3 python3-pip \
         libdbus-1-dev libncurses-dev libsqlite3-dev libusb-1.0-0-dev \
         libarchive-dev libgraphviz-dev libudev-dev libjson-c-dev libxml2-dev \
-        libssl-dev gettext npm
+        libssl-dev gettext
 
 RUN cd / && \
     curl -L https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.tar.gz > codeql.tar.gz && \
