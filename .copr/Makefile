@@ -30,8 +30,7 @@ build: dirs
 		-DNM_WITH_REMOTE=ON \
 		-DNM_WITH_UNICODE_GLYPHS=ON \
 		-DNM_WITH_QEMU=ON && \
-	cpack -D CPACK_RPM_SPEC_MORE_DEFINE="%global __strip /bin/true" \
-		-G RPM --config ./CPackSourceConfig.cmake && \
+	cpack -G RPM --config ./CPackSourceConfig.cmake && \
 	cp *.src.rpm $(outdir) && \
 	cd ${TOP_DIR} && \
 	rm -rf ${BUILD_DIR}
