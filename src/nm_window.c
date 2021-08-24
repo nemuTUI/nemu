@@ -780,11 +780,13 @@ nm_print_help__(const char **keys, const char **values,
 #define NM_SI_ENEMIE_INROW  10
 #define NM_SI_EMEMIE_ROTATE 3
 #define NM_SI_DELAY         20000
-#define NM_SI_BULLETS       100
+#define NM_SI_BULLETS       200
 static void nm_si_game(void)
 {
     typedef enum {
-        NM_SI_SHIP_COMMON,
+        NM_SI_SHIP_1,
+        NM_SI_SHIP_2,
+        NM_SI_SHIP_3,
         NM_SI_BULLET,
         NM_SI_PLAYER
     } nm_si_type_t;
@@ -793,30 +795,54 @@ static void nm_si_game(void)
         int pos_x;
         int pos_y;
         nm_si_type_t type;
-        bool alive;
+        size_t health;
+        bool hit;
     } nm_si_t;
 
-    nm_si_t player;
+    static nm_si_t player;
+    static bool si_player_init = false;
+    static size_t score;
+    static size_t bullets_cnt;
+    static size_t level;
+
     int max_x, max_y, start_x, start_y;
     nm_str_t info = NM_INIT_STR;
-    size_t score = 0, bullets_cnt = NM_SI_BULLETS;
-    bool play = true, change_dir = false;
+    bool play = true, change_dir = false, next = false;
     uint64_t iter = 0;
-    int direction = 1;
-    nm_vect_t bullets = NM_INIT_VECT;
+    int direction = 1, mch;
+    nm_vect_t pl_bullets = NM_INIT_VECT;
+    nm_vect_t en_bullets = NM_INIT_VECT;
     nm_vect_t enemies = NM_INIT_VECT;
     const char *shape_player = "<^>";
     const char *shape_ship0  = "#v#";
+    const char *shape_ship1  = ")v(";
+    const char *shape_ship2  = "]v[";
     const char *shape_dead   = "x-x";
+    const char *shape_hit    = ">-<";
+    const char *shape_win    = "^_^";
 
     nodelay(action_window, TRUE);
     getmaxyx(action_window, max_y, max_x);
-    player = (nm_si_t) { max_x / 2, max_y - 2, NM_SI_PLAYER, true };
+
+    if (!si_player_init) {
+        player = (nm_si_t) { max_x / 2, max_y - 2, NM_SI_PLAYER, 5, false };
+        score = 0, bullets_cnt = NM_SI_BULLETS;
+        si_player_init = true;
+        level = 0;
+    } else {
+        level++;
+        bullets_cnt += 200;
+    }
     start_x = (max_x / 5);
     start_y = 5;
 
     for (size_t n = 0; n < NM_SI_ENEMIE_COUNT; n++) {
-        nm_si_t ship = (nm_si_t) { start_x, start_y, NM_SI_SHIP_COMMON, true };
+        nm_si_type_t type = (n < 10) ? NM_SI_SHIP_3 :
+                            (n >= 10 && n < 30) ? NM_SI_SHIP_2 : NM_SI_SHIP_1;
+        size_t health = (n < 10) ? 3 :
+                            (n >= 10 && n < 30) ? 2 : 1;
+        nm_si_t ship = (nm_si_t) { start_x, start_y, type, health, false };
+
         nm_vect_insert(&enemies, &ship, sizeof(nm_si_t), NULL);
         start_x += 5;
         if (!((n + 1) % NM_SI_ENEMIE_INROW)) {
@@ -829,8 +855,8 @@ static void nm_si_game(void)
         int ch = wgetch(action_window);
 
         werase(action_window);
-        nm_str_format(&info, "SI Game [score: %zu bullets: %zu]",
-                score, bullets_cnt);
+        nm_str_format(&info, "SI Game: level %zu [score: %zu bullets: %zu hp: %zu]",
+                level, score, bullets_cnt, player.health);
         nm_init_action(info.data);
 
         switch (ch) {
@@ -849,9 +875,9 @@ static void nm_si_game(void)
         case ' ':
             {
                 nm_si_t bullet = (nm_si_t) { player.pos_x + 1,
-                    max_y - 3, NM_SI_BULLET, true };
+                    max_y - 3, NM_SI_BULLET, 0, false };
                 if (bullets_cnt) {
-                    nm_vect_insert(&bullets, &bullet, sizeof(nm_si_t), NULL);
+                    nm_vect_insert(&pl_bullets, &bullet, sizeof(nm_si_t), NULL);
                     bullets_cnt--;
                 }
             }
@@ -863,26 +889,81 @@ static void nm_si_game(void)
             break;
         }
 
-        mvwaddstr(action_window, player.pos_y, player.pos_x, shape_player);
+        if (!enemies.n_memb) {
+            play = false;
+            next = true;
+            mvwaddstr(action_window, player.pos_y, player.pos_x, shape_win);
+            break;
+        }
 
         for (size_t n = 0; n < enemies.n_memb; n++) {
             nm_si_t *e = nm_vect_at(&enemies, n);
 
-            for (size_t nb = 0; nb < bullets.n_memb; nb++) {
-                nm_si_t *b = nm_vect_at(&bullets, nb);
+            for (size_t nb = 0; nb < pl_bullets.n_memb; nb++) {
+                nm_si_t *b = nm_vect_at(&pl_bullets, nb);
 
                 if (((b->pos_x >= e->pos_x && b->pos_x <= e->pos_x + 2)) &&
                         (e->pos_y == b->pos_y)) {
-                    e->alive = false;
-                    nm_vect_delete(&bullets, nb, NULL);
+                    e->health--;
+                    if (!e->health) {
+                        switch (e->type) {
+                            case NM_SI_SHIP_1:
+                                score += 10;
+                                break;
+                            case NM_SI_SHIP_2:
+                                score += 20;
+                                break;
+                            case NM_SI_SHIP_3:
+                                score += 30;
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        e->hit = true;
+                        switch (e->type) {
+                            case NM_SI_SHIP_1:
+                                score += 1;
+                                break;
+                            case NM_SI_SHIP_2:
+                                score += 2;
+                                break;
+                            case NM_SI_SHIP_3:
+                                score += 3;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    nm_vect_delete(&pl_bullets, nb, NULL);
                     nb--;
-                    score += 10;
                     break;
                 }
             }
 
-            if (e->alive) {
-                mvwaddstr(action_window, e->pos_y, e->pos_x, shape_ship0);
+            if (e->health) {
+                bool can_shoot = true;
+                const char *shape;
+                switch (e->type) {
+                case NM_SI_SHIP_1:
+                    shape = shape_ship0;
+                    break;
+                case NM_SI_SHIP_2:
+                    shape = shape_ship1;
+                    break;
+                case NM_SI_SHIP_3:
+                    shape = shape_ship2;
+                    break;
+                default:
+                    break;
+                }
+
+                if (e->hit) {
+                    shape = shape_hit;
+                    e->hit = false;
+                }
+
+                mvwaddstr(action_window, e->pos_y, e->pos_x, shape);
                 if (iter == NM_SI_EMEMIE_ROTATE) {
                     direction ? e->pos_x++ : e->pos_x--;
                     if (!direction && e->pos_x == 1) {
@@ -891,6 +972,34 @@ static void nm_si_game(void)
                         change_dir = true;
                     }
                 }
+
+                for (size_t no = n; no < enemies.n_memb; no++) {
+                    nm_si_t *eo = nm_vect_at(&enemies, no);
+                    if (((eo->pos_y - 1 >= e->pos_y &&
+                          eo->pos_y - 1 <= e->pos_y + 5)) &&
+                          (e->pos_x == eo->pos_x)) {
+                        can_shoot = false;
+                        break;
+                    }
+                }
+
+                if (can_shoot) {
+                    struct timespec ts;
+                    int r;
+
+                    srand((time_t) ts.tv_nsec);
+                    clock_gettime(CLOCK_MONOTONIC, &ts);
+                    r = rand() % 1000;
+                    if (r > 498 && r < 500) { /* fire! */
+                        nm_si_t bullet = (nm_si_t) {
+                            e->pos_x + 1, e->pos_y + 1,
+                            NM_SI_BULLET, 0, false
+                        };
+                        nm_vect_insert(&en_bullets, &bullet,
+                                sizeof(nm_si_t), NULL);
+                    }
+                }
+
             } else {
                 mvwaddstr(action_window, e->pos_y, e->pos_x, shape_dead);
                 nm_vect_delete(&enemies, n, NULL);
@@ -915,15 +1024,45 @@ static void nm_si_game(void)
             change_dir = false;
         }
 
-        for (size_t n = 0; n < bullets.n_memb; n++) {
-            nm_si_t *b = nm_vect_at(&bullets, n);
+        for (size_t n = 0; n < pl_bullets.n_memb; n++) {
+            nm_si_t *b = nm_vect_at(&pl_bullets, n);
             mvwaddch(action_window, b->pos_y, b->pos_x, '*');
             b->pos_y--;
 
             if (b->pos_y == 1) {
-                nm_vect_delete(&bullets, n, NULL);
+                nm_vect_delete(&pl_bullets, n, NULL);
                 n--;
             }
+        }
+
+        for (size_t n = 0; n < en_bullets.n_memb; n++) {
+            nm_si_t *b = nm_vect_at(&en_bullets, n);
+            mvwaddch(action_window, b->pos_y, b->pos_x, '|');
+
+            if (((b->pos_x >= player.pos_x && b->pos_x <= player.pos_x + 2)) &&
+                    (player.pos_y == b->pos_y)) {
+                player.health--;
+                player.hit = true;
+            }
+
+            b->pos_y++;
+
+            if (b->pos_y == max_y - 1) {
+                nm_vect_delete(&en_bullets, n, NULL);
+                n--;
+            }
+        }
+
+        if (player.health) {
+            if (player.hit) {
+                mvwaddstr(action_window, player.pos_y, player.pos_x, shape_hit);
+                player.hit = false;
+            } else {
+                mvwaddstr(action_window, player.pos_y, player.pos_x, shape_player);
+            }
+        } else {
+            mvwaddstr(action_window, player.pos_y, player.pos_x, shape_dead);
+            play = false;
         }
 
         wrefresh(action_window);
@@ -936,14 +1075,21 @@ static void nm_si_game(void)
 
     nodelay(action_window, FALSE);
     NM_ERASE_TITLE(action, getmaxx(action_window));
-    nm_str_format(&info, "SI Game over [score: %zu bullets: %zu]",
-            score, bullets_cnt);
+    nm_str_format(&info, "SI %s [score: %zu bullets: %zu hp: %zu]",
+            next ? "(n)ext level" : "Game over", score, bullets_cnt, player.health);
     nm_init_action(info.data);
-    wgetch(action_window);
+    mch = wgetch(action_window);
 
     nm_str_free(&info);
-    nm_vect_free(&bullets, NULL);
+    nm_vect_free(&pl_bullets, NULL);
+    nm_vect_free(&en_bullets, NULL);
     nm_vect_free(&enemies, NULL);
+
+    if (mch == 'n' && next) {
+        nm_si_game();
+    } else {
+        si_player_init = false;
+    }
 }
 
 void nm_print_nemu(void)
