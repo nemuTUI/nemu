@@ -780,6 +780,7 @@ nm_print_help__(const char **keys, const char **values,
 #define NM_SI_ENEMIE_INROW  10
 #define NM_SI_EMEMIE_ROTATE 3
 #define NM_SI_DELAY         20000
+#define NM_SI_BULLETS       100
 static void nm_si_game(void)
 {
     typedef enum {
@@ -797,6 +798,8 @@ static void nm_si_game(void)
 
     nm_si_t player;
     int max_x, max_y, start_x, start_y;
+    nm_str_t info = NM_INIT_STR;
+    size_t score = 0, bullets_cnt = NM_SI_BULLETS;
     bool play = true, change_dir = false;
     uint64_t iter = 0;
     int direction = 1;
@@ -826,7 +829,9 @@ static void nm_si_game(void)
         int ch = wgetch(action_window);
 
         werase(action_window);
-        nm_init_action("SI Game");
+        nm_str_format(&info, "SI Game [score: %zu bullets: %zu]",
+                score, bullets_cnt);
+        nm_init_action(info.data);
 
         switch (ch) {
         case KEY_LEFT:
@@ -845,7 +850,10 @@ static void nm_si_game(void)
             {
                 nm_si_t bullet = (nm_si_t) { player.pos_x + 1,
                     max_y - 3, NM_SI_BULLET, true };
-                nm_vect_insert(&bullets, &bullet, sizeof(nm_si_t), NULL);
+                if (bullets_cnt) {
+                    nm_vect_insert(&bullets, &bullet, sizeof(nm_si_t), NULL);
+                    bullets_cnt--;
+                }
             }
             break;
         case ERR:
@@ -868,6 +876,7 @@ static void nm_si_game(void)
                     e->alive = false;
                     nm_vect_delete(&bullets, nb, NULL);
                     nb--;
+                    score += 10;
                     break;
                 }
             }
@@ -926,9 +935,13 @@ static void nm_si_game(void)
     }
 
     nodelay(action_window, FALSE);
-    nm_init_action("SI Game [Game over]");
+    NM_ERASE_TITLE(action, getmaxx(action_window));
+    nm_str_format(&info, "SI Game over [score: %zu bullets: %zu]",
+            score, bullets_cnt);
+    nm_init_action(info.data);
     wgetch(action_window);
 
+    nm_str_free(&info);
     nm_vect_free(&bullets, NULL);
     nm_vect_free(&enemies, NULL);
 }
