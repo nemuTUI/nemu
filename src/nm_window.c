@@ -815,13 +815,13 @@ static void nm_si_game(void)
             break;
         case KEY_RIGHT:
         case NM_KEY_D:
-            if (player.pos_x < max_x - 2) {
+            if (player.pos_x < max_x - 4) {
                 player.pos_x += 1;
             }
             break;
         case ' ':
             {
-                nm_si_t bullet = (nm_si_t) { player.pos_x,
+                nm_si_t bullet = (nm_si_t) { player.pos_x + 1,
                     max_y - 3, NM_SI_BULLET, true };
                 nm_vect_insert(&bullets, &bullet, sizeof(nm_si_t), NULL);
             }
@@ -833,7 +833,7 @@ static void nm_si_game(void)
             break;
         }
 
-        mvwaddch(action_window, player.pos_y, player.pos_x, '^');
+        mvwaddstr(action_window, player.pos_y, player.pos_x, "<^>");
         for (size_t n = 0; n < bullets.n_memb; n++) {
             nm_si_t *b = nm_vect_at(&bullets, n);
             mvwaddch(action_window, b->pos_y, b->pos_x, '*');
