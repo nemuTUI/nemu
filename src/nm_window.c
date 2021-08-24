@@ -776,6 +776,9 @@ nm_print_help__(const char **keys, const char **values,
     nm_str_free(&help_title);
 }
 
+#define NM_SI_ENEMIE_COUNT 10
+#define NM_SI_EMEMIE_ROTATE 3
+#define NM_SI_DELAY     20000
 static void nm_si_game(void)
 {
     typedef enum {
@@ -788,17 +791,30 @@ static void nm_si_game(void)
         int pos_x;
         int pos_y;
         nm_si_type_t type;
-        bool exists;
+        bool alive;
     } nm_si_t;
 
     nm_si_t player;
-    int max_x, max_y;
+    int max_x, max_y, start_x;
     bool play = true;
+    uint64_t iter = 0;
+    int direction = 1;
     nm_vect_t bullets = NM_INIT_VECT;
+    nm_vect_t enemies = NM_INIT_VECT;
+    const char *shape_player = "<^>";
+    const char *shape_ship0  = "#v#";
+    const char *shape_dead   = "x-x";
 
     nodelay(action_window, TRUE);
     getmaxyx(action_window, max_y, max_x);
-    player = (nm_si_t) { max_x / 2, max_y - 2, NM_SI_PLAYER, true};
+    player = (nm_si_t) { max_x / 2, max_y - 2, NM_SI_PLAYER, true };
+    start_x = (max_x / 5);
+
+    for (size_t n = 0; n < NM_SI_ENEMIE_COUNT; n++) {
+        nm_si_t ship = (nm_si_t) { start_x, 5, NM_SI_SHIP_COMMON, true };
+        nm_vect_insert(&enemies, &ship, sizeof(nm_si_t), NULL);
+        start_x += 5;
+    }
 
     while (play) {
         int ch = wgetch(action_window);
@@ -833,7 +849,50 @@ static void nm_si_game(void)
             break;
         }
 
-        mvwaddstr(action_window, player.pos_y, player.pos_x, "<^>");
+        mvwaddstr(action_window, player.pos_y, player.pos_x, shape_player);
+
+        for (size_t n = 0; n < enemies.n_memb; n++) {
+            nm_si_t *e = nm_vect_at(&enemies, n);
+
+            for (size_t nb = 0; nb < bullets.n_memb; nb++) {
+                nm_si_t *b = nm_vect_at(&bullets, nb);
+
+                if (((e->pos_x == b->pos_x) ||
+                     (e->pos_x + 1 == b->pos_x) ||
+                     (e->pos_x + 2 == b->pos_x)) && (e->pos_y == b->pos_y)) {
+                    e->alive = false;
+                    nm_vect_delete(&bullets, nb, NULL);
+                    nb--;
+                    break;
+                }
+            }
+
+            if (e->alive) {
+                mvwaddstr(action_window, e->pos_y, e->pos_x, shape_ship0);
+                if (iter == NM_SI_EMEMIE_ROTATE) {
+                    direction ? e->pos_x++ : e->pos_x--;
+                }
+            } else {
+                mvwaddstr(action_window, e->pos_y, e->pos_x, shape_dead);
+                nm_vect_delete(&enemies, n, NULL);
+                n--;
+            }
+        }
+
+        if (enemies.n_memb) {
+            if (!direction) {
+                nm_si_t *e = nm_vect_at(&enemies, 0);
+                if (e->pos_x == 1) {
+                    direction = 1;
+                }
+            } else {
+                nm_si_t *e = nm_vect_at(&enemies, enemies.n_memb - 1);
+                if (e->pos_x == max_x - 4) {
+                    direction = 0;
+                }
+            }
+        }
+
         for (size_t n = 0; n < bullets.n_memb; n++) {
             nm_si_t *b = nm_vect_at(&bullets, n);
             mvwaddch(action_window, b->pos_y, b->pos_x, '*');
@@ -847,11 +906,15 @@ static void nm_si_game(void)
 
         wrefresh(action_window);
 
-        usleep(20000);
+        usleep(NM_SI_DELAY);
+        if (iter++ == NM_SI_EMEMIE_ROTATE) {
+            iter = 0;
+        }
     }
 
     nodelay(action_window, FALSE);
     nm_vect_free(&bullets, NULL);
+    nm_vect_free(&enemies, NULL);
 }
 
 void nm_print_nemu(void)
