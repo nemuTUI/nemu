@@ -857,9 +857,8 @@ static void nm_si_game(void)
             for (size_t nb = 0; nb < bullets.n_memb; nb++) {
                 nm_si_t *b = nm_vect_at(&bullets, nb);
 
-                if (((e->pos_x == b->pos_x) ||
-                     (e->pos_x + 1 == b->pos_x) ||
-                     (e->pos_x + 2 == b->pos_x)) && (e->pos_y == b->pos_y)) {
+                if (((b->pos_x >= e->pos_x && b->pos_x <= e->pos_x + 2)) &&
+                        (e->pos_y == b->pos_y)) {
                     e->alive = false;
                     nm_vect_delete(&bullets, nb, NULL);
                     nb--;
