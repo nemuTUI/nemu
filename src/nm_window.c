@@ -776,8 +776,87 @@ nm_print_help__(const char **keys, const char **values,
     nm_str_free(&help_title);
 }
 
+static void nm_si_game(void)
+{
+    typedef enum {
+        NM_SI_SHIP_COMMON,
+        NM_SI_BULLET,
+        NM_SI_PLAYER
+    } nm_si_type_t;
+
+    typedef struct {
+        int pos_x;
+        int pos_y;
+        nm_si_type_t type;
+        bool exists;
+    } nm_si_t;
+
+    nm_si_t player;
+    int max_x, max_y;
+    bool play = true;
+    nm_vect_t bullets = NM_INIT_VECT;
+
+    nodelay(action_window, TRUE);
+    getmaxyx(action_window, max_y, max_x);
+    player = (nm_si_t) { max_x / 2, max_y - 2, NM_SI_PLAYER, true};
+
+    while (play) {
+        int ch = wgetch(action_window);
+
+        werase(action_window);
+        nm_init_action("SI Game");
+
+        switch (ch) {
+        case KEY_LEFT:
+        case NM_KEY_A:
+            if (player.pos_x > 1) {
+                player.pos_x -= 1;
+            }
+            break;
+        case KEY_RIGHT:
+        case NM_KEY_D:
+            if (player.pos_x < max_x - 2) {
+                player.pos_x += 1;
+            }
+            break;
+        case ' ':
+            {
+                nm_si_t bullet = (nm_si_t) { player.pos_x,
+                    max_y - 3, NM_SI_BULLET, true };
+                nm_vect_insert(&bullets, &bullet, sizeof(nm_si_t), NULL);
+            }
+            break;
+        case ERR:
+            break;
+        default:
+            play = false;
+            break;
+        }
+
+        mvwaddch(action_window, player.pos_y, player.pos_x, '^');
+        for (size_t n = 0; n < bullets.n_memb; n++) {
+            nm_si_t *b = nm_vect_at(&bullets, n);
+            mvwaddch(action_window, b->pos_y, b->pos_x, '*');
+            b->pos_y--;
+
+            if (b->pos_y == 1) {
+                nm_vect_delete(&bullets, n, NULL);
+                n--;
+            }
+        }
+
+        wrefresh(action_window);
+
+        usleep(20000);
+    }
+
+    nodelay(action_window, FALSE);
+    nm_vect_free(&bullets, NULL);
+}
+
 void nm_print_nemu(void)
 {
+    int ch;
     size_t max_y = getmaxy(action_window);
     const char *nemu[] = {
         "            .x@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@o.           ",
@@ -823,7 +902,10 @@ void nm_print_nemu(void)
     for (size_t l = 3, n = 0; n < (max_y - 4) && n < nm_arr_len(nemu); n++, l++)
         mvwprintw(action_window, l, 1, "%s", nemu[n]);
 
-    wgetch(action_window);
+    ch = wgetch(action_window);
+    if (ch == NM_KEY_S) {
+        nm_si_game();
+    }
 }
 
 void nm_align2line(nm_str_t *str, size_t line_len)

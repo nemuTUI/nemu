@@ -14,9 +14,11 @@ typedef struct {
 
 typedef void (*nm_vect_ins_cb_pt)(void *unit_p, const void *ctx);
 typedef void (*nm_vect_free_cb_pt)(void *unit_p);
+typedef void (*nm_vect_del_cb_pt)(void *unit_p);
 
 /* NOTE: If inserting C string len must include \x00 */
 void nm_vect_insert(nm_vect_t *v, const void *data, size_t len, nm_vect_ins_cb_pt cb);
+void nm_vect_delete(nm_vect_t *v, size_t index, nm_vect_del_cb_pt cb);
 void *nm_vect_at(const nm_vect_t *v, size_t index);
 void nm_vect_end_zero(nm_vect_t *v);
 void nm_vect_free(nm_vect_t *v, nm_vect_free_cb_pt cb);
