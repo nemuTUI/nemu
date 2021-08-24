@@ -30,7 +30,7 @@ void nm_vect_insert(nm_vect_t *v, const void *data, size_t len, nm_vect_ins_cb_p
     v->n_memb++;
 }
 
-void nm_vect_delete(nm_vect_t *v, size_t index, nm_vect_del_cb_pt cb)
+void nm_vect_delete(nm_vect_t *v, size_t index, nm_vect_free_cb_pt cb)
 {
     if (v == NULL)
         nm_bug(_("%s: NULL vector pointer value"), __func__);
