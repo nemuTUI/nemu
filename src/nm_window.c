@@ -778,7 +778,7 @@ nm_print_help__(const char **keys, const char **values,
 
 #define NM_SI_ENEMIE_COUNT  60
 #define NM_SI_ENEMIE_INROW  10
-#define NM_SI_EMEMIE_ROTATE 3
+#define NM_SI_EMEMIE_ROTATE 10
 #define NM_SI_DELAY         20000
 #define NM_SI_BULLETS       200
 static void nm_si_game(void)
@@ -799,20 +799,22 @@ static void nm_si_game(void)
         bool hit;
     } nm_si_t;
 
-    static nm_si_t player;
     static bool si_player_init = false;
-    static size_t score;
     static size_t bullets_cnt;
+    static nm_si_t player;
+    static size_t score;
     static size_t level;
+    static size_t speed;
 
-    int max_x, max_y, start_x, start_y;
-    nm_str_t info = NM_INIT_STR;
     bool play = true, change_dir = false, next = false;
-    uint64_t iter = 0;
-    int direction = 1, mch;
+    int max_x, max_y, start_x, start_y;
     nm_vect_t pl_bullets = NM_INIT_VECT;
     nm_vect_t en_bullets = NM_INIT_VECT;
     nm_vect_t enemies = NM_INIT_VECT;
+    nm_str_t info = NM_INIT_STR;
+    int direction = 1, mch;
+    uint64_t iter = 0;
+
     const char *shape_player = "<^>";
     const char *shape_ship0  = "#v#";
     const char *shape_ship1  = ")v(";
@@ -828,10 +830,14 @@ static void nm_si_game(void)
         player = (nm_si_t) { max_x / 2, max_y - 2, NM_SI_PLAYER, 5, false };
         score = 0, bullets_cnt = NM_SI_BULLETS;
         si_player_init = true;
+        speed = NM_SI_EMEMIE_ROTATE;
         level = 0;
     } else {
         level++;
         bullets_cnt += 200;
+        if (speed > 1) {
+            speed--;
+        }
     }
     start_x = (max_x / 5);
     start_y = 5;
@@ -964,7 +970,7 @@ static void nm_si_game(void)
                 }
 
                 mvwaddstr(action_window, e->pos_y, e->pos_x, shape);
-                if (iter == NM_SI_EMEMIE_ROTATE) {
+                if (iter == speed) {
                     direction ? e->pos_x++ : e->pos_x--;
                     if (!direction && e->pos_x == 1) {
                         change_dir = true;
@@ -1068,7 +1074,7 @@ static void nm_si_game(void)
         wrefresh(action_window);
 
         usleep(NM_SI_DELAY);
-        if (iter++ == NM_SI_EMEMIE_ROTATE) {
+        if (iter++ == speed) {
             iter = 0;
         }
     }
