@@ -781,6 +781,7 @@ nm_print_help__(const char **keys, const char **values,
 #define NM_SI_EMEMIE_ROTATE 10
 #define NM_SI_DELAY         20000
 #define NM_SI_BULLETS       200
+#define NM_SI_BONIS_DELAY   1000
 static void nm_si_game(void)
 {
     typedef enum {
@@ -788,7 +789,8 @@ static void nm_si_game(void)
         NM_SI_SHIP_2,
         NM_SI_SHIP_3,
         NM_SI_BULLET,
-        NM_SI_PLAYER
+        NM_SI_PLAYER,
+        NM_SI_BONUS
     } nm_si_type_t;
 
     typedef struct {
@@ -812,8 +814,11 @@ static void nm_si_game(void)
     nm_vect_t en_bullets = NM_INIT_VECT;
     nm_vect_t enemies = NM_INIT_VECT;
     nm_str_t info = NM_INIT_STR;
+    bool bonus_active = false;
     int direction = 1, mch;
+    int b_direction = 1;
     uint64_t iter = 0;
+    nm_si_t bonus;
 
     const char *shape_player = "<^>";
     const char *shape_ship0  = "#v#";
@@ -822,9 +827,12 @@ static void nm_si_game(void)
     const char *shape_dead   = "x-x";
     const char *shape_hit    = ">-<";
     const char *shape_win    = "^_^";
+    const char *shape_bonus  = "(?)";
 
     nodelay(action_window, TRUE);
     getmaxyx(action_window, max_y, max_x);
+
+    bonus = (nm_si_t) { 1, 3, NM_SI_BONUS, 1, false };
 
     if (!si_player_init) {
         player = (nm_si_t) { max_x / 2, max_y - 2, NM_SI_PLAYER, 5, false };
@@ -970,7 +978,7 @@ static void nm_si_game(void)
                 }
 
                 mvwaddstr(action_window, e->pos_y, e->pos_x, shape);
-                if (iter == speed) {
+                if (iter % (speed + 1) == speed) {
                     direction ? e->pos_x++ : e->pos_x--;
                     if (!direction && e->pos_x == 1) {
                         change_dir = true;
@@ -1041,6 +1049,51 @@ static void nm_si_game(void)
             }
         }
 
+        if (iter % (NM_SI_BONIS_DELAY + 1) == NM_SI_BONIS_DELAY &&
+                !bonus_active) {
+            bonus_active = true;
+        }
+
+        if (bonus_active) {
+            for (size_t n = 0; n < pl_bullets.n_memb; n++) {
+                nm_si_t *b = nm_vect_at(&pl_bullets, n);
+
+                if (((b->pos_x >= bonus.pos_x && b->pos_x <= bonus.pos_x + 2)) &&
+                        (bonus.pos_y == b->pos_y)) {
+                    bonus.hit = true;
+                    nm_vect_delete(&pl_bullets, n, NULL);
+                    break;
+                }
+            }
+
+            if (bonus.hit) {
+                mvwaddstr(action_window, bonus.pos_y, bonus.pos_x, shape_dead);
+                bonus.hit = false;
+                bonus_active = false;
+                if (b_direction) {
+                    b_direction = 0;
+                    bonus.pos_x = max_x - 4;
+                } else {
+                    b_direction = 1;
+                    bonus.pos_x = 1;
+                }
+                score += 100;
+                (iter % 2) ? bullets_cnt += 50 : player.health++;
+            } else {
+                mvwaddstr(action_window, bonus.pos_y, bonus.pos_x, shape_bonus);
+                if (iter % (speed + 1) == speed) {
+                    (b_direction) ? bonus.pos_x++ : bonus.pos_x--;
+                    if (!b_direction && bonus.pos_x == 1) {
+                        bonus_active = false;
+                        b_direction = 1;
+                    } else if (b_direction && (bonus.pos_x == max_x - 4)) {
+                        bonus_active = false;
+                        b_direction = 0;
+                    }
+                }
+            }
+        }
+
         for (size_t n = 0; n < en_bullets.n_memb; n++) {
             nm_si_t *b = nm_vect_at(&en_bullets, n);
             mvwaddch(action_window, b->pos_y, b->pos_x, '|');
@@ -1074,9 +1127,7 @@ static void nm_si_game(void)
         wrefresh(action_window);
 
         usleep(NM_SI_DELAY);
-        if (iter++ == speed) {
-            iter = 0;
-        }
+        iter++;
     }
 
     nodelay(action_window, FALSE);
