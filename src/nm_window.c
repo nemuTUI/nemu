@@ -1076,16 +1076,23 @@ static void nm_si_game(void)
     nodelay(action_window, FALSE);
     NM_ERASE_TITLE(action, getmaxx(action_window));
     nm_str_format(&info, "SI %s [score: %zu bullets: %zu hp: %zu]",
-            next ? "(n)ext level" : "Game over", score, bullets_cnt, player.health);
+            next ? "(n)ext level, (q)uit" : "Game over, (q)uit, (r)eplay",
+            score, bullets_cnt, player.health);
     nm_init_action(info.data);
-    mch = wgetch(action_window);
 
     nm_str_free(&info);
     nm_vect_free(&pl_bullets, NULL);
     nm_vect_free(&en_bullets, NULL);
     nm_vect_free(&enemies, NULL);
 
+    do {
+        mch = wgetch(action_window);
+    } while ((mch != 'n') && (mch != 'q') && (mch != 'r'));
+
     if (mch == 'n' && next) {
+        nm_si_game();
+    } else if (mch == 'r') {
+        si_player_init = false;
         nm_si_game();
     } else {
         si_player_init = false;
