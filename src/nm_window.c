@@ -987,8 +987,8 @@ static void nm_si_game(void)
                     struct timespec ts;
                     int r;
 
-                    srand((time_t) ts.tv_nsec);
                     clock_gettime(CLOCK_MONOTONIC, &ts);
+                    srand((time_t) ts.tv_nsec);
                     r = rand() % 1000;
                     if (r > 498 && r < 500) { /* fire! */
                         nm_si_t bullet = (nm_si_t) {
