@@ -171,7 +171,7 @@ void nm_ovf_import(void)
     nm_xml_xpath_ctx_pt xpath_ctx = NULL;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     size_t msg_len;
-    pthread_t spin_th;
+    pthread_t spin_th = 0;
     int done = 0, version = 0;
 
     strncpy(templ_path, NM_OVA_DIR_TEMPL, sizeof(templ_path));
@@ -272,7 +272,7 @@ void nm_ovf_import(void)
 
 out:
     done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
+    if (spin_th && (pthread_join(spin_th, NULL) != 0))
         nm_bug(_("%s: cannot join thread"), __func__);
 
     if (nm_clean_temp_dir(templ_path, &files) != NM_OK)
