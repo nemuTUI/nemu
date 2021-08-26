@@ -6,7 +6,11 @@
 #include <nm_ncurses.h>
 #include <nm_usb_devices.h>
 
+#if defined(CURSES_HAVE_NCURSES_CURSES_H)
+#include <ncursesw/form.h>
+#elif defined(CURSES_HAVE_CURSES_H)
 #include <form.h>
+#endif
 #include <pthread.h>
 
 typedef FORM nm_form_t;
