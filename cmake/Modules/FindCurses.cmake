@@ -49,7 +49,7 @@ The following variable are provided for backward compatibility:
   Path to Curses library.  Use ``CURSES_LIBRARIES`` instead.
 #]=======================================================================]
 
-include(${CMAKE_CURRENT_LIST_DIR}/CheckLibraryExists.cmake)
+include(CheckLibraryExists)
 
 # we don't know anything about cursesw, so only ncurses
 # may be ncursesw
@@ -101,7 +101,7 @@ endif()
 # prefix as the library was found, if still not found, try curses.h with the
 # default search paths.
 if(CURSES_CURSES_LIBRARY  AND  CURSES_NEED_NCURSES)
-  include(${CMAKE_CURRENT_LIST_DIR}/CMakePushCheckState.cmake)
+  include(CMakePushCheckState)
   cmake_push_check_state()
   set(CMAKE_REQUIRED_QUIET ${Curses_FIND_QUIETLY})
   CHECK_LIBRARY_EXISTS("${CURSES_CURSES_LIBRARY}"
@@ -264,7 +264,7 @@ if(PKG_CONFIG_FOUND)
   set(CURSES_CFLAGS ${NCURSES_CFLAGS_OTHER})
 endif()
 
-include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
+include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Curses DEFAULT_MSG
   CURSES_LIBRARY CURSES_INCLUDE_PATH)
 
