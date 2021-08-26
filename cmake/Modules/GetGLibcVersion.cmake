@@ -7,7 +7,7 @@ macro(get_glibc_version)
   execute_process(
     COMMAND ${GLIBC}
     COMMAND "head" "-n1"
-    COMMAND "sed" "-r" "s|.*version ([0-9]*\\.[0-9]*).|\\1|"
+    COMMAND "sed" "-r" "s|.*version ([0-9]*.[0-9]*).*|\\1|"
     OUTPUT_VARIABLE GLIBC_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
