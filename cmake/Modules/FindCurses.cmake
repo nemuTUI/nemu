@@ -51,6 +51,11 @@ The following variable are provided for backward compatibility:
 
 include(CheckLibraryExists)
 
+# fix FreeBSD
+if(NM_OS_FREEBSD)
+  set(CURSES_NEED_WIDE OFF)
+endif()
+
 # we don't know anything about cursesw, so only ncurses
 # may be ncursesw
 if(NOT CURSES_NEED_WIDE)
