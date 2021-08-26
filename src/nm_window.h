@@ -15,7 +15,6 @@ void nm_print_snapshots(const nm_vect_t *v);
 void nm_print_cmd(const nm_str_t *name);
 void nm_print_help(void);
 void nm_lan_help(void);
-void nm_print_nemu(void);
 void nm_create_windows(void);
 void nm_destroy_windows(void);
 void nm_init_action(const char *msg);
