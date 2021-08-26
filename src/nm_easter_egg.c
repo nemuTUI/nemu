@@ -139,10 +139,11 @@ static void nm_si_game(void)
                 }
             }
             break;
-        case ERR:
-            break;
-        default:
+        case NM_KEY_Q:
             play = false;
+            break;
+        case ERR:
+        default:
             break;
         }
 
