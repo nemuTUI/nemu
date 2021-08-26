@@ -104,14 +104,15 @@ endif()
 
 find_package(Sqlite3 REQUIRED)
 find_package(Threads REQUIRED)
+find_package(RT REQUIRED)
 find_package(libusb-1.0 REQUIRED)
 find_package(UDev REQUIRED)
 pkg_check_modules(JSONC REQUIRED json-c)
 
 target_link_libraries(
   ${PROJECT_NAME} ${CURSES_LIBRARIES} ${SQLITE3_LIBRARIES} ${JSONC_LINK_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT} ${LIBUSB_1_LIBRARIES} ${UDEV_LIBRARIES})
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lrt")
+  ${CMAKE_THREAD_LIBS_INIT} ${LIBUSB_1_LIBRARIES} ${UDEV_LIBRARIES}
+  ${RT_LIBRARY})
 include_directories(${CURSES_INCLUDE_PATH} ${SQLITE3_INCLUDE_DIR}
                     ${UDEV_INCLUDE_DIR} ${JSONC_INCLUDE_DIRS})
 include_directories(SYSTEM ${LIBUSB_1_INCLUDE_DIRS})
