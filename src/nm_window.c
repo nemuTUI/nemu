@@ -847,7 +847,7 @@ static void nm_si_game(void)
         gain = 0;
     } else {
         level++;
-        bullets_cnt += 200;
+        bullets_cnt += 150;
         if (speed > 1) {
             speed--;
         }
