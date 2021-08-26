@@ -782,6 +782,7 @@ nm_print_help__(const char **keys, const char **values,
 #define NM_SI_DELAY         20000
 #define NM_SI_BULLETS       200
 #define NM_SI_BONIS_DELAY   1000
+#define NM_SI_GAIN_COUNT    500
 static void nm_si_game(void)
 {
     typedef enum {
@@ -797,7 +798,7 @@ static void nm_si_game(void)
         int pos_x;
         int pos_y;
         nm_si_type_t type;
-        size_t health;
+        int health;
         bool hit;
     } nm_si_t;
 
@@ -807,6 +808,7 @@ static void nm_si_game(void)
     static size_t score;
     static size_t level;
     static size_t speed;
+    static size_t gain;
 
     bool play = true, change_dir = false, next = false;
     int max_x, max_y, start_x, start_y;
@@ -815,6 +817,8 @@ static void nm_si_game(void)
     nm_vect_t enemies = NM_INIT_VECT;
     nm_str_t info = NM_INIT_STR;
     bool bonus_active = false;
+    bool gain_active = false;
+    size_t gain_counter = 0;
     int direction = 1, mch;
     int b_direction = 1;
     uint64_t iter = 0;
@@ -840,6 +844,7 @@ static void nm_si_game(void)
         si_player_init = true;
         speed = NM_SI_EMEMIE_ROTATE;
         level = 0;
+        gain = 0;
     } else {
         level++;
         bullets_cnt += 200;
@@ -869,8 +874,8 @@ static void nm_si_game(void)
         int ch = wgetch(action_window);
 
         werase(action_window);
-        nm_str_format(&info, "Level %zu [score: %zu bullets: %zu hp: %zu]",
-                level, score, bullets_cnt, player.health);
+        nm_str_format(&info, "Level %zu [score: %zu bullets: %zu(s:%zu) hp: %d]",
+                level, score, bullets_cnt, gain, player.health);
         nm_init_action(info.data);
 
         switch (ch) {
@@ -886,10 +891,17 @@ static void nm_si_game(void)
                 player.pos_x += 1;
             }
             break;
+        case NM_KEY_S:
+            if (gain && !gain_active) {
+                gain_counter = NM_SI_GAIN_COUNT;
+                gain_active = true;
+                gain--;
+            }
+            break;
         case ' ':
             {
                 nm_si_t bullet = (nm_si_t) { player.pos_x + 1,
-                    max_y - 3, NM_SI_BULLET, 0, false };
+                    max_y - 3, NM_SI_BULLET, (gain_active) ? 3 : 1, false };
                 if (bullets_cnt) {
                     nm_vect_insert(&pl_bullets, &bullet, sizeof(nm_si_t), NULL);
                     bullets_cnt--;
@@ -915,11 +927,14 @@ static void nm_si_game(void)
 
             for (size_t nb = 0; nb < pl_bullets.n_memb; nb++) {
                 nm_si_t *b = nm_vect_at(&pl_bullets, nb);
+                size_t hp_hit = 0;
 
                 if (((b->pos_x >= e->pos_x && b->pos_x <= e->pos_x + 2)) &&
                         (e->pos_y == b->pos_y)) {
-                    e->health--;
-                    if (!e->health) {
+                    hp_hit = e->health;
+                    e->health -= b->health;
+                    b->health -= hp_hit;
+                    if (e->health <= 0) {
                         switch (e->type) {
                             case NM_SI_SHIP_1:
                                 score += 10;
@@ -949,13 +964,15 @@ static void nm_si_game(void)
                                 break;
                         }
                     }
-                    nm_vect_delete(&pl_bullets, nb, NULL);
-                    nb--;
+                    if (b->health <= 0) {
+                        nm_vect_delete(&pl_bullets, nb, NULL);
+                        nb--;
+                    }
                     break;
                 }
             }
 
-            if (e->health) {
+            if (e->health > 0) {
                 bool can_shoot = true;
                 const char *shape;
                 switch (e->type) {
@@ -1040,7 +1057,7 @@ static void nm_si_game(void)
 
         for (size_t n = 0; n < pl_bullets.n_memb; n++) {
             nm_si_t *b = nm_vect_at(&pl_bullets, n);
-            mvwaddch(action_window, b->pos_y, b->pos_x, '*');
+            mvwaddch(action_window, b->pos_y, b->pos_x, gain_active ? '^' : '*');
             b->pos_y--;
 
             if (b->pos_y == 1) {
@@ -1061,7 +1078,10 @@ static void nm_si_game(void)
                 if (((b->pos_x >= bonus.pos_x && b->pos_x <= bonus.pos_x + 2)) &&
                         (bonus.pos_y == b->pos_y)) {
                     bonus.hit = true;
-                    nm_vect_delete(&pl_bullets, n, NULL);
+                    b->health--;
+                    if (!b->health) {
+                        nm_vect_delete(&pl_bullets, n, NULL);
+                    }
                     break;
                 }
             }
@@ -1078,7 +1098,17 @@ static void nm_si_game(void)
                     bonus.pos_x = 1;
                 }
                 score += 100;
-                (iter % 2) ? bullets_cnt += 50 : player.health++;
+                switch (iter % 3) {
+                case 0:
+                    bullets_cnt += 50;
+                    break;
+                case 1:
+                    player.health++;
+                    break;
+                case 2:
+                    gain++;
+                    break;
+                }
             } else {
                 mvwaddstr(action_window, bonus.pos_y, bonus.pos_x, shape_bonus);
                 if (iter % (speed + 1) == speed) {
@@ -1128,13 +1158,19 @@ static void nm_si_game(void)
 
         usleep(NM_SI_DELAY);
         iter++;
+        if (gain_active) {
+            gain_counter--;
+            if (!gain_counter) {
+                gain_active = false;
+            }
+        }
     }
 
     nodelay(action_window, FALSE);
     NM_ERASE_TITLE(action, getmaxx(action_window));
-    nm_str_format(&info, "%s [score: %zu bullets: %zu hp: %zu]",
+    nm_str_format(&info, "%s [score: %zu bullets: %zu(s:%zu) hp: %d]",
             next ? "(n)ext level, (q)uit" : "Game over, (q)uit, (r)eplay",
-            score, bullets_cnt, player.health);
+            score, bullets_cnt, gain, player.health);
     nm_init_action(info.data);
 
     nm_str_free(&info);
