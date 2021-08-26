@@ -104,6 +104,7 @@ endif()
 
 find_package(Sqlite3 REQUIRED)
 find_package(Threads REQUIRED)
+find_package(RT REQUIRED)
 find_package(libusb-1.0 REQUIRED)
 find_package(UDev REQUIRED)
 pkg_check_modules(JSONC REQUIRED json-c)
@@ -158,10 +159,6 @@ if(NM_OS_LINUX)
   if(GLIBC_VERSION VERSION_GREATER 2.0)
     set(NM_WITH_SENDFILE TRUE)
     add_definitions(-DNM_WITH_SENDFILE)
-  endif()
-
-  if(GLIBC_VERSION VERSION_LESS 2.17)
-    find_package(RT REQUIRED)
   endif()
 
   if(NM_CUSTOM_SYS_INCLUDE)
