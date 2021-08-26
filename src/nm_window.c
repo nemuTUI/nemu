@@ -869,7 +869,7 @@ static void nm_si_game(void)
         int ch = wgetch(action_window);
 
         werase(action_window);
-        nm_str_format(&info, "SI Game: level %zu [score: %zu bullets: %zu hp: %zu]",
+        nm_str_format(&info, "Level %zu [score: %zu bullets: %zu hp: %zu]",
                 level, score, bullets_cnt, player.health);
         nm_init_action(info.data);
 
@@ -1132,7 +1132,7 @@ static void nm_si_game(void)
 
     nodelay(action_window, FALSE);
     NM_ERASE_TITLE(action, getmaxx(action_window));
-    nm_str_format(&info, "SI %s [score: %zu bullets: %zu hp: %zu]",
+    nm_str_format(&info, "%s [score: %zu bullets: %zu hp: %zu]",
             next ? "(n)ext level, (q)uit" : "Game over, (q)uit, (r)eplay",
             score, bullets_cnt, player.health);
     nm_init_action(info.data);
