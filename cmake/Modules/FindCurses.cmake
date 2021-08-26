@@ -56,9 +56,11 @@ include(CheckLibraryExists)
 if(NOT CURSES_NEED_WIDE)
   set(NCURSES_LIBRARY_NAME "ncurses")
   set(CURSES_FORM_LIBRARY_NAME "form")
+  set(CURSES_PANEL_LIBRARY_NAME "panel")
 else()
   set(NCURSES_LIBRARY_NAME "ncursesw")
   set(CURSES_FORM_LIBRARY_NAME "formw")
+  set(CURSES_PANEL_LIBRARY_NAME "panelw")
   # Also, if we are searching for wide curses - we are actually searching
   # for ncurses, we don't know about any other unicode version.
   set(CURSES_NEED_NCURSES TRUE)
@@ -237,6 +239,8 @@ endif()
 
 find_library(CURSES_FORM_LIBRARY "${CURSES_FORM_LIBRARY_NAME}" HINTS "${_cursesLibDir}")
 find_library(CURSES_FORM_LIBRARY "${CURSES_FORM_LIBRARY_NAME}" )
+find_library(CURSES_PANEL_LIBRARY "${CURSES_PANEL_LIBRARY_NAME}" HINTS "${_cursesLibDir}")
+find_library(CURSES_PANEL_LIBRARY "${CURSES_PANEL_LIBRARY_NAME}" )
 
 # Previous versions of FindCurses provided these values.
 if(NOT DEFINED FORM_LIBRARY)
@@ -252,6 +256,10 @@ endif()
 
 if(CURSES_FORM_LIBRARY)
   set(CURSES_LIBRARIES ${CURSES_LIBRARIES} ${CURSES_FORM_LIBRARY})
+endif()
+
+if(CURSES_PANEL_LIBRARY)
+  set(CURSES_LIBRARIES ${CURSES_LIBRARIES} ${CURSES_PANEL_LIBRARY})
 endif()
 
 # Provide the *_INCLUDE_DIRS and *_CFLAGS results.
