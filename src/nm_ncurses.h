@@ -4,7 +4,7 @@
 #if defined(CURSES_HAVE_NCURSES_CURSES_H)
 #include <ncursesw/curses.h>
 #include <ncursesw/panel.h>
-#elif defined(CURSES_HAVE_CURSES_H)
+#elif defined(CURSES_HAVE_CURSES_H) || defined (NM_WITH_NCURSES)
 #include <curses.h>
 #include <panel.h>
 #endif
