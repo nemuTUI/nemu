@@ -649,9 +649,8 @@ static void nm_svg_fields_setup()
 
     nm_db_select(NM_GET_GROUPS_SQL, &vgroup);
     groups = nm_calloc(vgroup.n_memb + 1, sizeof(char *));
-    for (size_t n = 0; n < vgroup.n_memb; n++) {
-       groups[n] = nm_vect_str_ctx(&vgroup, n);
-    }
+    for (size_t n = 0; n < vgroup.n_memb; n++)
+        groups[n] = strdup(nm_vect_str_ctx(&vgroup, n));
     groups[vgroup.n_memb] = NULL;
 
     groups_args.enum_arg.strings = groups;
@@ -667,7 +666,6 @@ static void nm_svg_fields_setup()
         field_opts_off(fields_svg[NM_SVG_FLD_GROUP], O_ACTIVE);
     }
 
-    free(groups);
     nm_vect_free(&vgroup, nm_str_vect_free_cb);
 }
 
