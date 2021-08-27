@@ -1,0 +1,11 @@
+# Centos/EPEL/Fedora
+bison bzip2 bzip2-devel cmake dbus-devel flex gcc gettext git glib2-devel graphviz-devel json-c-devel libaio-devel libarchive-devel libattr-devel libcap-devel libcap-ng-devel libcurl-devel libjpeg-turbo-devel libpng-devel libseccomp-devel libusbx-devel libxml2-devel make ncurses-devel ninja-build openssl-devel patch perl-interpreter pixman-devel pulseaudio-libs-devel python3 spice-protocol spice-server-devel sqlite-devel systemd-devel usbredir-devel wget
+
+# Mageia
+bison bzip2 cmake flex gcc gettext git lib64aio-devel lib64attr-devel lib64bz2-devel lib64cap-devel lib64cap-ng-devel lib64curl-devel lib64glib2.0-devel lib64graphviz-devel lib64jpeg-devel lib64json-c-devel lib64openssl-devel lib64pixman-devel lib64png-devel lib64pulseaudio-devel lib64seccomp-devel lib64spice-server-devel lib64usb1.0-devel lib64usbredir-devel libarchive-devel libdbus-devel libncursesw-devel libsqlite3-devel libudev-devel libxml2-devel make ninja patch perl python3 spice-protocol wget
+
+# OpenMandriva
+bison bzip2 clang cmake flex gettext git glibc-devel lib64aio-devel lib64attr-devel lib64bz2-devel lib64cap-devel lib64cap-ng-devel lib64curl-devel lib64dbus-1-devel lib64glib2.0-devel lib64graphviz-devel lib64jpeg-devel lib64json-c-devel lib64ncurses-devel lib64openssl-devel lib64pixman-devel lib64png-devel lib64pulseaudio-devel lib64seccomp-devel lib64spice-server-devel lib64sqlite3-devel lib64systemd-devel lib64udev-devel lib64usb1.0-devel lib64usbredirhost-devel lib64usbredirparser-devel libarchive-devel libxml2-devel make ninja patch perl python3 spice-protocol usbredir-devel wget
+
+# OpenSUSE
+bison bzip2 cmake dbus-1-devel flex gcc gettext gettext-tools git glib2-devel graphviz-devel libaio-devel libarchive-devel libattr-devel libbz2-devel libcap-devel libcap-ng-devel libcurl-devel libjpeg8-devel libjson-c-devel libopenssl-devel libpixman-1-0-devel libpng16-compat-devel libpng16-devel libpulse-devel libseccomp-devel libspice-server-devel libudev-devel libusb-1_0-devel libxml2-devel make ncurses-devel ninja patch perl python3 spice-protocol-devel sqlite3-devel systemd-devel usbredir-devel wget
