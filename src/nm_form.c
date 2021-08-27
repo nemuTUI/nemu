@@ -959,6 +959,8 @@ ORDER BY vnc ASC LIMIT 1", &res);
 
     vnc = nm_str_stoui(res.data[0], 10);
 
+    nm_vect_free(&res, nm_str_vect_free_cb);
+
     return vnc;
 }
 
