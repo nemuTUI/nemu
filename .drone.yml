@@ -33,6 +33,7 @@ steps:
   image: grafin1992/nemu-ci:v1.1
   commands:
   - ./ci/cppcheck-sarif.py -a "--enable=all --suppress=missingIncludeSystem --xml -q" -o ./cppcheck.sarif ./src
+  - cat ./cppcheck.sarif
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./cppcheck.sarif
   environment:
     GITHUB_TOKEN:
@@ -101,6 +102,6 @@ trigger:
 
 ---
 kind: signature
-hmac: 2222178b13904d56f343617dd6cd6e3effc6a7ae47392a1b8eb730db7ae7ffbe
+hmac: 91fb79d764f40544129b6f056ef474f264952f80b0eadffd04211d8f07463166
 
 ...
