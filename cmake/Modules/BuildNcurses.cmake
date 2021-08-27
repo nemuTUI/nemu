@@ -21,7 +21,7 @@ macro(build_ncurses)
       --without-manpages
       --without-progs
       --without-tests
-      $<$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>:--disable-leaks>
+      $<$<OR:$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>,$<STREQUAL:${CMAKE_BUILD_TYPE},Sanitizer>>:--disable-leaks>
     INSTALL_COMMAND
       ${CMAKE_MAKE_PROGRAM}
       install
