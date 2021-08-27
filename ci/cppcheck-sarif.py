@@ -89,14 +89,14 @@ def parse_error(
     id = f"CWE{error.attrib['cwe']}"
     text = error.attrib["verbose"]
     file = path.relpath(error[0].attrib["file"], codePath)
-    line = error[0].attrib["line"]
+    line = int(error[0].attrib["line"])
 
     for idx, rule in enumerate(rules):
         if rule["id"] == id:
             rule_index = idx
             break
     else:
-        name = error.attrib["id"]
+        name = error.attrib["id"].capitalize()
         description = id_to_description(name)
         severity = error.attrib["severity"]
         rule_index = len(rules)
