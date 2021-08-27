@@ -8,7 +8,7 @@ RUN apt-get update -y && \
         libssl-dev gettext
 
 RUN cd / && \
-    curl -L https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.tar.gz > codeql.tar.gz && \
+    curl -L https://github.com/github/codeql-action/releases/download/codeql-bundle-20210809/codeql-bundle-linux64.tar.gz > codeql.tar.gz && \
     tar -xzvf codeql.tar.gz && rm -rf codeql.tar.gz && \
     rm -rf /codeql/qlpacks/codeql-java/ && \
     rm -rf /codeql/qlpacks/codeql-ruby/ && \
