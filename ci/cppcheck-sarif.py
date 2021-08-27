@@ -96,7 +96,7 @@ def parse_error(
             rule_index = idx
             break
     else:
-        name = error.attrib["id"].capitalize()
+        name = error.attrib["id"]
         description = id_to_description(name)
         severity = error.attrib["severity"]
         rule_index = len(rules)
