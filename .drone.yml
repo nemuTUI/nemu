@@ -8,32 +8,31 @@ platform:
   arch: amd64
 
 steps:
-#- name: cmake
-#  image: grafin1992/nemu-ci:v1.1
-#  commands:
-#  - mkdir build && cd build
-#  - cmake -G Ninja ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
-#  depends_on:
-#  - clone
-#
-#- name: codeql
-#  image: grafin1992/nemu-ci:v1.1
-#  commands:
-#  - /codeql/codeql database create lgtm --language=cpp
-#  - /codeql/codeql database analyze lgtm --format=sarif-latest --output=./codeql-lgtm.sarif cpp-lgtm.qls
-#  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./codeql-lgtm.sarif
-#  environment:
-#    GITHUB_TOKEN:
-#      from_secret: github_token
-#    _JAVA_OPTIONS: -Xmx512m
-#  depends_on:
-#  - clone
+- name: cmake
+  image: grafin1992/nemu-ci:v1.1
+  commands:
+  - mkdir build && cd build
+  - cmake -G Ninja ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
+  depends_on:
+  - clone
+
+- name: codeql
+  image: grafin1992/nemu-ci:v1.1
+  commands:
+  - /codeql/codeql database create lgtm --language=cpp
+  - /codeql/codeql database analyze lgtm --format=sarif-latest --output=./codeql-lgtm.sarif cpp-lgtm.qls
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./codeql-lgtm.sarif
+  environment:
+    GITHUB_TOKEN:
+      from_secret: github_token
+    _JAVA_OPTIONS: -Xmx512m
+  depends_on:
+  - clone
 
 - name: cppcheck
   image: grafin1992/nemu-ci:v1.1
   commands:
   - ./ci/cppcheck-sarif.py -a "--enable=all --suppress=missingIncludeSystem --xml -q" -o ./cppcheck.sarif ./src
-  - cat ./cppcheck.sarif
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./cppcheck.sarif
   environment:
     GITHUB_TOKEN:
@@ -41,67 +40,67 @@ steps:
   depends_on:
   - clone
 
-#- name: codespell
-#  image: grafin1992/nemu-ci:v1.1
-#  commands:
-#  - ./ci/codespell-sarif.py -a "-q 3 -L fo,ser,ans,chello -S ../lgtm,../_lgtm_detected_source_root" -o ./codespell.sarif ./
-#  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./codespell.sarif
-#  environment:
-#    GITHUB_TOKEN:
-#      from_secret: github_token
-#  depends_on:
-#  - clone
-#
-#- name: build
-#  image: grafin1992/nemu-ci:v1.1
-#  commands:
-#  - cd build
-#  - ninja
-#  depends_on:
-#  - cmake
+- name: codespell
+  image: grafin1992/nemu-ci:v1.1
+  commands:
+  - ./ci/codespell-sarif.py -a "-q 3 -L fo,ser,ans,chello -S ../lgtm,../_lgtm_detected_source_root" -o ./codespell.sarif ./
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./codespell.sarif
+  environment:
+    GITHUB_TOKEN:
+      from_secret: github_token
+  depends_on:
+  - clone
+
+- name: build
+  image: grafin1992/nemu-ci:v1.1
+  commands:
+  - cd build
+  - ninja
+  depends_on:
+  - cmake
 
 trigger:
   branch:
   - master
 
-#---
-#kind: pipeline
-#type: ssh
-#name: FreeBSD
-#
-#platform:
-#  os: linux
-#  arch: amd64
-#
-#server:
-#  host:
-#    from_secret: freebsd_host
-#  user:
-#    from_secret: freebsd_user
-#  ssh_key:
-#    from_secret: freebsd_key
-#
-#steps:
-#- name: cmake
-#  commands:
-#  - mkdir build && cd build
-#  - cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
-#  depends_on:
-#  - clone
-#
-#- name: build
-#  commands:
-#  - cd build
-#  - make
-#  depends_on:
-#  - cmake
-#
-#trigger:
-#  branch:
-#  - master
+---
+kind: pipeline
+type: ssh
+name: FreeBSD
+
+platform:
+  os: linux
+  arch: amd64
+
+server:
+  host:
+    from_secret: freebsd_host
+  user:
+    from_secret: freebsd_user
+  ssh_key:
+    from_secret: freebsd_key
+
+steps:
+- name: cmake
+  commands:
+  - mkdir build && cd build
+  - cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
+  depends_on:
+  - clone
+
+- name: build
+  commands:
+  - cd build
+  - make
+  depends_on:
+  - cmake
+
+trigger:
+  branch:
+  - master
 
 ---
 kind: signature
-hmac: e11a53e1ed322817040daff9b8f143a60a786aab40576696374f320282905b29
+hmac: 2bb50d644f1c3f570ae2121618fb048203fffe6d44eeb9746bc2d09f62706cb5
 
 ...

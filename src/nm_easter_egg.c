@@ -504,10 +504,4 @@ void nm_print_nemu(void)
     }
 }
 
-static int useless();
-static int useless()
-{
-    return 0;
-}
-
 /* vim:set ts=4 sw=4: */
