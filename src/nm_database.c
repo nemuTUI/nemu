@@ -313,8 +313,9 @@ static int nm_db_select_cb(void *v, int argc, char **argv,
     for (int n = 0; n < argc; n++) {
         nm_str_alloc_text(&value, argv[n] ? argv[n] : "");
         nm_vect_insert(res, &value, sizeof(nm_str_t), nm_str_vect_ins_cb);
-        nm_str_free(&value);
     }
+
+    nm_str_free(&value);
 
     return 0;
 }
