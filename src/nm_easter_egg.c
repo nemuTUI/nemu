@@ -183,10 +183,10 @@ static void nm_si_game(void)
 
             for (size_t nb = 0; nb < pl_bullets.n_memb; nb++) {
                 nm_si_t *b = nm_vect_at(&pl_bullets, nb);
+                size_t hp_hit = e->health;
 
                 if (((b->pos_x >= e->pos_x && b->pos_x <= e->pos_x + 2)) &&
                         (e->pos_y == b->pos_y)) {
-                    size_t hp_hit = e->health;
                     e->health -= b->health;
                     b->health -= hp_hit;
                     if (e->health <= 0) {
