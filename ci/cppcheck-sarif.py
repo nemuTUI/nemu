@@ -170,7 +170,7 @@ def main(args: Namespace):
         result, rules = parse_error(error, uriBaseId, codePath, rules)
         sarif["runs"][0]["results"].append(result)
 
-    sarif["runs"][0]["tool"]["rules"] = rules
+    sarif["runs"][0]["tool"]["driver"]["rules"] = rules
 
     if outputPath:
         with open(outputPath, "w") as outputFile:
