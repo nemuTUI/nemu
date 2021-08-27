@@ -9,7 +9,7 @@ platform:
 
 steps:
 - name: cmake
-  image: grafin1992/nemu-ci:v1.1
+  image: grafin1992/nemu-ci:v1.2
   commands:
   - mkdir build && cd build
   - cmake -G Ninja ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
@@ -17,7 +17,7 @@ steps:
   - clone
 
 - name: codeql
-  image: grafin1992/nemu-ci:v1.1
+  image: grafin1992/nemu-ci:v1.2
   commands:
   - /codeql/codeql database create lgtm --language=cpp
   - /codeql/codeql database analyze lgtm --format=sarif-latest --output=./codeql-lgtm.sarif cpp-lgtm.qls
@@ -30,7 +30,7 @@ steps:
   - clone
 
 - name: cppcheck
-  image: grafin1992/nemu-ci:v1.1
+  image: grafin1992/nemu-ci:v1.2
   commands:
   - ./ci/cppcheck-sarif.py -a "--enable=all --suppress=missingIncludeSystem --xml -q" -o ./cppcheck.sarif ./
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./cppcheck.sarif
@@ -41,7 +41,7 @@ steps:
   - clone
 
 - name: codespell
-  image: grafin1992/nemu-ci:v1.1
+  image: grafin1992/nemu-ci:v1.2
   commands:
   - ./ci/codespell-sarif.py -a "-q 3 -L fo,ser,ans,chello -S ../lgtm,../_lgtm_detected_source_root" -o ./codespell.sarif ./
   - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./codespell.sarif
@@ -52,7 +52,7 @@ steps:
   - clone
 
 - name: build
-  image: grafin1992/nemu-ci:v1.1
+  image: grafin1992/nemu-ci:v1.2
   commands:
   - cd build
   - ninja
@@ -101,6 +101,6 @@ trigger:
 
 ---
 kind: signature
-hmac: 7960af59be67baa1e83041b48f91177197fc350dd6b984c3c1b1674cb57ff0a6
+hmac: 486f44b28c5b55b46cb25644f8d4cb016cc7302e7ce32390f232099587eb2d71
 
 ...
