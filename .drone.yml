@@ -32,11 +32,8 @@ steps:
 - name: cppcheck
   image: grafin1992/nemu-ci:v1.1
   commands:
-  - cd /sarif-multitool
-  - cppcheck --enable=all --suppress=missingIncludeSystem --xml --output-file=./cppcheck.xml /drone/src/src
-  - npx "@microsoft/sarif-multitool" convert ./cppcheck.xml --tool CppCheck --output ./cppcheck.sarif -m --force
-  - npx "@microsoft/sarif-multitool" rebaseuri ./cppcheck.sarif --base-path-value "file:///drone/src" --base-path-token %SRCROOT% -o ./ -m --force
-  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./cppcheck-rebased.sarif
+  - ./ci/cppcheck-sarif.py -a "--enable=all --suppress=missingIncludeSystem --xml -q" -o ./cppcheck.sarif ./src
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./cppcheck.sarif
   environment:
     GITHUB_TOKEN:
       from_secret: github_token
