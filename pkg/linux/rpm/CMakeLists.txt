@@ -6,7 +6,11 @@ set(CPACK_PACKAGING_INSTALL_PREFIX /usr)
 set(CPACK_PACKAGE_VERSION ${GIT_TAG_VERSION})
 set(CPACK_PACKAGE_FILE_NAME
     "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.${CMAKE_SYSTEM_PROCESSOR}")
-set(CPACK_RPM_SPEC_MORE_DEFINE "%global __strip /bin/true")
+set(CPACK_RPM_SPEC_MORE_DEFINE "${CPACK_RPM_SPEC_MORE_DEFINE}
+%global __strip /bin/true
+%define _build_pkgcheck_set %{nil}
+%define _build_pkgcheck_srpm %{nil}
+")
 
 if(CPACK_RPM_PACKAGE_SOURCES)
   set(CPACK_RPM_SOURCE_PKG_BUILD_PARAMS "")
