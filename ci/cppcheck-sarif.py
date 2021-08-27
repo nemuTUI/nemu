@@ -84,11 +84,11 @@ def run_cppcheck(
 
 
 def parse_error(
-    error: Element, uriBaseId: str, codePath: str, rules: list
+    error: Element, uriBaseId: str, codePath: str, pathPrefix: str, rules: list
 ) -> Tuple[dict, list]:
     id = f"CWE{error.attrib['cwe']}"
     text = error.attrib["verbose"]
-    file = path.relpath(error[0].attrib["file"], codePath)
+    file = pathPrefix + path.relpath(error[0].attrib["file"], codePath)
     line = int(error[0].attrib["line"])
 
     for idx, rule in enumerate(rules):
@@ -155,6 +155,7 @@ def main(args: Namespace):
     codePath = args.path
     uriBaseId = args.base_uri
     outputPath = args.output
+    pathPrefix = args.path_prefix
 
     xml = run_cppcheck(cppcheck, cppcheckArgs, codePath)
 
@@ -167,7 +168,8 @@ def main(args: Namespace):
 
     rules = []
     for error in errors:
-        result, rules = parse_error(error, uriBaseId, codePath, rules)
+        result, rules = parse_error(
+            error, uriBaseId, codePath, pathPrefix, rules)
         sarif["runs"][0]["results"].append(result)
 
     sarif["runs"][0]["tool"]["driver"]["rules"] = rules
@@ -201,6 +203,11 @@ if __name__ == "__main__":
     argParser.add_argument(
         "-o", "--output",
         help="Path to output SARIF file", type=str, default=""
+    )
+    argParser.add_argument(
+        "-p", "--path-prefix",
+        help="Prefix, which will be added to scanned files", type=str,
+        default=""
     )
 
     try:
