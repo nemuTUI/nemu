@@ -32,7 +32,7 @@ macro(build_ncurses)
       --without-tests
       $<$<OR:$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>,$<STREQUAL:${CMAKE_BUILD_TYPE},Sanitizer>>:--disable-leaks>
     INSTALL_COMMAND
-      ${CMAKE_MAKE_PROGRAM}
+      make
       install
       DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/ncurses)
 
