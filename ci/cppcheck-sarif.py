@@ -4,7 +4,7 @@ from argparse import ArgumentParser, Namespace
 from subprocess import run
 from json import dumps
 from xml.etree.ElementTree import fromstring as xml_parse, Element
-from typing import List
+from typing import List, Tuple
 from sys import exit
 from os import path
 
@@ -83,22 +83,41 @@ def run_cppcheck(
     return(tree)
 
 
-def parse_error(error: Element, uriBaseId: str, codePath: str) -> dict:
+def parse_error(
+    error: Element, uriBaseId: str, codePath: str, rules: list
+) -> Tuple[dict, list]:
     id = f"CWE{error.attrib['cwe']}"
-    name = id_to_name(error.attrib["id"])
     text = error.attrib["verbose"]
-    severity = error.attrib["severity"]
     file = path.relpath(error[0].attrib["file"], codePath)
     line = error[0].attrib["line"]
 
-    return {
+    for idx, rule in enumerate(rules):
+        if rule["id"] == id:
+            rule_index = idx
+            break
+    else:
+        name = error.attrib["id"]
+        description = id_to_description(name)
+        severity = error.attrib["severity"]
+        rule_index = len(rules)
+
+        rules.append({
+            "id": id,
+            "name": name,
+            "shortDescription": {
+                "text": description,
+            },
+            "helpUri": "https://sourceforge.net/p/cppcheck/wiki/ListOfChecks",
+            "properties": {
+                "Severity": severity,
+            },
+        })
+
+    result = {
         "ruleId": id,
-        "name": name,
+        "ruleIndex": rule_index,
         "message": {
             "text": text,
-        },
-        "properties": {
-            "Severity": severity,
         },
         "locations": [
             {
@@ -115,8 +134,10 @@ def parse_error(error: Element, uriBaseId: str, codePath: str) -> dict:
         ],
     }
 
+    return result, rules
 
-def id_to_name(string: str) -> str:
+
+def id_to_description(string: str) -> str:
     words = [[string[0].upper()]]
 
     for c in string[1:]:
@@ -144,10 +165,12 @@ def main(args: Namespace):
 
     sarif["runs"][0]["tool"]["driver"]["version"] = cppcheckVersion
 
+    rules = []
     for error in errors:
-        sarif["runs"][0]["results"].append(
-            parse_error(error, uriBaseId, codePath)
-        )
+        result, rules = parse_error(error, uriBaseId, codePath, rules)
+        sarif["runs"][0]["results"].append(result)
+
+    sarif["runs"][0]["tool"]["rules"] = rules
 
     if outputPath:
         with open(outputPath, "w") as outputFile:
