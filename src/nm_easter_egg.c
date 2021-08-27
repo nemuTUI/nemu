@@ -28,9 +28,9 @@ static void nm_si_game(void)
     typedef struct {
         int pos_x;
         int pos_y;
-        nm_si_type_t type;
         int health;
         bool hit;
+        nm_si_type_t type;
     } nm_si_t;
 
     static bool si_player_init = false;
@@ -67,10 +67,22 @@ static void nm_si_game(void)
     nodelay(action_window, TRUE);
     getmaxyx(action_window, max_y, max_x);
 
-    bonus = (nm_si_t) { 1, 3, NM_SI_BONUS, 1, false };
+    bonus = (nm_si_t) {
+        .pos_x = 1,
+        .pos_y = 3,
+        .health = 1,
+        .hit = false,
+        .type = NM_SI_BONUS
+    };
 
     if (!si_player_init) {
-        player = (nm_si_t) { max_x / 2, max_y - 2, NM_SI_PLAYER, 5, false };
+        player = (nm_si_t) {
+            .pos_x = max_x / 2,
+            .pos_y = max_y - 2,
+            .health = 5,
+            .hit = false,
+            .type = NM_SI_PLAYER
+        };
         score = 0, bullets_cnt = NM_SI_BULLETS;
         si_player_init = true;
         speed = NM_SI_EMEMIE_ROTATE;
@@ -91,7 +103,13 @@ static void nm_si_game(void)
                             (n >= 10 && n < 30) ? NM_SI_SHIP_2 : NM_SI_SHIP_1;
         size_t health = (n < 10) ? 3 :
                             (n >= 10 && n < 30) ? 2 : 1;
-        nm_si_t ship = (nm_si_t) { start_x, start_y, type, health, false };
+        nm_si_t ship = (nm_si_t) {
+            .pos_x = start_x,
+            .pos_y = start_y,
+            .type = type,
+            .hit = false,
+            .health = health
+        };
 
         nm_vect_insert(&enemies, &ship, sizeof(nm_si_t), NULL);
         start_x += 5;
@@ -131,8 +149,14 @@ static void nm_si_game(void)
             break;
         case ' ':
             {
-                nm_si_t bullet = (nm_si_t) { player.pos_x + 1,
-                    max_y - 3, NM_SI_BULLET, (gain_active) ? 3 : 1, false };
+                nm_si_t bullet = (nm_si_t) {
+                    .pos_x = player.pos_x + 1,
+                    .pos_y = max_y - 3,
+                    .health = (gain_active) ? 3 : 1,
+                    .hit = false,
+                    .type = NM_SI_BULLET,
+                };
+
                 if (bullets_cnt) {
                     nm_vect_insert(&pl_bullets, &bullet, sizeof(nm_si_t), NULL);
                     bullets_cnt--;
@@ -254,8 +278,11 @@ static void nm_si_game(void)
                     r = rand() % 1000;
                     if (r > 498 && r < 500) { /* fire! */
                         nm_si_t bullet = (nm_si_t) {
-                            e->pos_x + 1, e->pos_y + 1,
-                            NM_SI_BULLET, 0, false
+                            .pos_x = e->pos_x + 1,
+                            .pos_y = e->pos_y + 1,
+                            .health = 0,
+                            .hit = false,
+                            .type = NM_SI_BULLET
                         };
                         nm_vect_insert(&en_bullets, &bullet,
                                 sizeof(nm_si_t), NULL);
