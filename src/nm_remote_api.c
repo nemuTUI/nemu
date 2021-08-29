@@ -162,7 +162,9 @@ out:
             close(fds[i].fd);
         }
     }
+
     SSL_CTX_free(tls_ctx);
+    nm_db_close();
 
     pthread_exit(NULL);
 }
@@ -345,6 +347,7 @@ static int nm_api_check_auth(struct json_object *request, nm_str_t *reply)
     hash_str[NM_API_SHA256_LEN - 1] = '\0';
 
     if (nm_str_cmp_st(&nm_cfg_get()->api_hash, hash_str) == NM_OK) {
+        nm_str_free(&salted_pass);
         return NM_OK;
     }
 
