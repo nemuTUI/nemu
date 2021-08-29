@@ -1,5 +1,5 @@
 .\" -*- mode: troff; coding: UTF-8 -*-
-.TH NEMU 1 "%DATE_OF_MAN_PAGE%" "nEMU %VERSION%" "nEMU"
+.TH NEMU 1 "${BUILD_DATE}" "nEMU ${GIT_TAG_VERSION}" "nEMU"
 .SH "NAME"
 nemu \- ncurses UI for QEMU.
 .SH "SYNOPSIS"
