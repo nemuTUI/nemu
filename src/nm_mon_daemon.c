@@ -323,7 +323,7 @@ void nm_mon_start(void)
 
     switch (pid) {
     case 0: /* child */
-        if (execlp(NM_PROGNAME, NM_PROGNAME, "--daemon", NULL) == -1) {
+        if (execlp(nm_nemu_path(), nm_nemu_path(), "--daemon", NULL) == -1) {
             fprintf(stderr, "%s: execlp error: %s\n", __func__, strerror(errno));
             nm_exit(EXIT_FAILURE);
         }
