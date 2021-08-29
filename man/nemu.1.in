@@ -6,7 +6,7 @@ nemu \- ncurses UI for QEMU.
 .B nemu
 [\-ldcvh] [\-s name] [\-p name] [\-f name] [\-z name] [\-k name] [\-i name]
 .SH "DESCRIPTION"
-nEMU is a ncurses UI for QEMU with many other functions
+nEMU is a ncurses UI for QEMU with many other functions.
 .SH "OPTIONS"
 .TP
 .I \-s name, \-\-start=name.
