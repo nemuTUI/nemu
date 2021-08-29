@@ -13,7 +13,7 @@ configure_file(${MAN_FILE_IN} ${MAN_FILE_OUT})
 add_custom_command(
   OUTPUT ${TARGET_MAN_FILE}
   COMMAND ${GZIP}
-  ARGS ${MAN_FILE_OUT} ${TARGET_MAN_FILE}
+  ARGS ${MAN_FILE_OUT}
   DEPENDS ${MAN_FILE_OUT} ${MAN_FILE_IN}
 )
 
