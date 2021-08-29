@@ -8,6 +8,8 @@ set(CPACK_PACKAGE_FILE_NAME
     "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.${CMAKE_SYSTEM_PROCESSOR}")
 set(CPACK_RPM_SPEC_MORE_DEFINE "${CPACK_RPM_SPEC_MORE_DEFINE}
 %global __strip /bin/true
+%define _source_payload w9.gzdio
+%define _binary_payload w9.gzdio
 %define _build_pkgcheck_set %{nil}
 %define _build_pkgcheck_srpm %{nil}
 ")
