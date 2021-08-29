@@ -1,0 +1,37 @@
+.\" -*- mode: troff; coding: UTF-8 -*-
+.TH NEMU 1 "%DATE_OF_MAN_PAGE%" "nEMU %VERSION%" "nEMU"
+.SH "NAME"
+nemu \- ncurses UI for QEMU.
+.SH "SYNOPSIS"
+.B nemu
+[\-ldcvh] [\-s name] [\-p name] [\-f name] [\-z name] [\-k name] [\-i name]
+.SH "DESCRIPTION"
+nEMU is a ncurses UI for QEMU with many other functions
+.SH "OPTIONS"
+.TP
+.I \-s name, \-\-start=name.
+Start VM
+.TP
+.I \-p name, \-\-powerdown=name
+Send powerdown command. The VM will get an ACPI shutdown request and usually shutdown cleanly.
+.TP
+.I \-f name, \-\-force-stop=name
+Shutdown VM immediately.
+.TP
+.I \-k name, \-\-kill=name
+Send kill signal to QEMU process associated with VM name.
+.TP
+.I \-i name, \-\-info=name
+Displays VM information.
+.TP
+.I \-d, \-\-daemon
+Start nEMU daemon.
+.TP
+.I \-c, \-\-create-veth
+Create VETH interfaces.
+.TP
+.I \-v, \-\-version
+Displays the current version.
+.TP
+.I \-h, \-\-help
+Show help options.
