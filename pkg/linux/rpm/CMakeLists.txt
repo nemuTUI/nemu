@@ -10,7 +10,7 @@ set(CPACK_RPM_SPEC_MORE_DEFINE "${CPACK_RPM_SPEC_MORE_DEFINE}
 %global __strip /bin/true
 %define _build_pkgcheck_set %{nil}
 %define _build_pkgcheck_srpm %{nil}
-%define ___build_shell '/usr/bin/env DONT_COMPRESS=1 /bin/sh'
+%define ___build_shell /usr/bin/env DONT_COMPRESS=1 /bin/sh
 ")
 
 if(CPACK_RPM_PACKAGE_SOURCES)
