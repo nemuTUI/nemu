@@ -62,6 +62,11 @@ pkg_pretend() {
 	fi
 }
 
+src_install() {
+	cmake-utils_src_install
+	docompress -x /usr/share/man/man1/nemu.1.gz
+}
+
 pkg_postinst() {
 	elog "For non-root usage execute script:"
 	elog "/usr/share/nemu/scripts/setup_nemu_nonroot.sh linux <username>"
