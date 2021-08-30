@@ -8,6 +8,7 @@
 #include <nm_database.h>
 #include <nm_utils.h>
 
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
@@ -107,6 +108,12 @@ void *nm_api_server(void *ctx)
                         }
                         break;
                     }
+                    if (fcntl(cl_sd, F_SETFD, FD_CLOEXEC) == -1) {
+                        nm_debug("%s: fcntl error: %s\n",
+                                __func__, strerror(errno));
+                        goto out;
+                    }
+
                     nm_debug("%s: connect to API from: %s\n",
                             __func__, inet_ntoa(cl_addr.sin_addr));
                     fds[nfds].fd = cl_sd;
@@ -155,7 +162,9 @@ out:
             close(fds[i].fd);
         }
     }
+
     SSL_CTX_free(tls_ctx);
+    nm_db_close();
 
     pthread_exit(NULL);
 }
@@ -338,6 +347,7 @@ static int nm_api_check_auth(struct json_object *request, nm_str_t *reply)
     hash_str[NM_API_SHA256_LEN - 1] = '\0';
 
     if (nm_str_cmp_st(&nm_cfg_get()->api_hash, hash_str) == NM_OK) {
+        nm_str_free(&salted_pass);
         return NM_OK;
     }
 
@@ -403,8 +413,6 @@ out:
     json_object_put(request);
 }
 
-/* FIXME nm_vmctl_start() stucks client connection in CLOSE-WAIT state
- * until VM is running */
 static void nm_api_md_vmstart(struct json_object *request, nm_str_t *reply)
 {
     int rc = nm_api_check_auth(request, reply);

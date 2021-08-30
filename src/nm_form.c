@@ -959,6 +959,8 @@ ORDER BY vnc ASC LIMIT 1", &res);
 
     vnc = nm_str_stoui(res.data[0], 10);
 
+    nm_vect_free(&res, nm_str_vect_free_cb);
+
     return vnc;
 }
 
@@ -986,6 +988,7 @@ void nm_vm_free_boot(nm_vm_boot_t *vm)
     nm_str_free(&vm->kernel);
     nm_str_free(&vm->cmdline);
     nm_str_free(&vm->inst_path);
+    nm_str_free(&vm->debug_port);
 }
 
 /* vim:set ts=4 sw=4: */

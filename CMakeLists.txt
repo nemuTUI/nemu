@@ -87,6 +87,18 @@ else()
   set(CURSES_NEED_NCURSES TRUE)
   set(CURSES_NEED_WIDE TRUE)
   find_package(Curses REQUIRED)
+  if(CURSES_HAVE_CURSES_H)
+    add_definitions(-DCURSES_HAVE_CURSES_H="${CURSES_HAVE_CURSES_H}")
+  endif()
+  if(CURSES_HAVE_NCURSES_CURSES_H)
+    add_definitions(-DCURSES_HAVE_NCURSES_CURSES_H="${CURSES_HAVE_NCURSES_CURSES_H}")
+  endif()
+  if(CURSES_HAVE_NCURSES_H)
+    add_definitions(-DCURSES_HAVE_NCURSES_H="${CURSES_HAVE_NCURSES_H}")
+  endif()
+  if(CURSES_HAVE_NCURSES_NCURSES_H)
+    add_definitions(-DCURSES_HAVE_NCURSES_NCURSES_H="${CURSES_HAVE_NCURSES_NCURSES_H}")
+  endif()
 endif()
 
 find_package(Sqlite3 REQUIRED)
@@ -113,6 +125,10 @@ set_property(
   TARGET ${PROJECT_NAME}
   APPEND_STRING
   PROPERTY COMPILE_FLAGS "-Wall -Wextra -Wformat-security -pedantic -std=c99 ")
+set_property(
+  TARGET ${PROJECT_NAME}
+  APPEND_STRING
+  PROPERTY LINK_FLAGS_RELEASE "-s")
 
 set(NM_WITH_SENDFILE FALSE)
 
@@ -159,6 +175,7 @@ if(NM_OS_LINUX)
   endif()
 elseif(NM_OS_FREEBSD)
   add_definitions(-DNM_OS_FREEBSD -D_BSD_SOURCE)
+  set(NM_WITH_NETWORK_MAP FALSE)
   find_package(Intl REQUIRED)
   target_link_libraries(${PROJECT_NAME} ${Intl_LIBRARIES})
 endif()
@@ -195,7 +212,7 @@ if(NM_WITH_DBUS)
 endif()
 
 if(NM_WITH_REMOTE)
-  find_package(OpenSSL REQUIRED)
+  find_package(OpenSSL 1.1 REQUIRED)
   target_link_libraries(${PROJECT_NAME} ssl)
   target_link_libraries(${PROJECT_NAME} crypto)
   include_directories(${OPENSSL_INCLUDE_DIR})
@@ -226,6 +243,7 @@ if(NOT GIT_TAG_VERSION STREQUAL "")
   message(STATUS "Build from git, version:${GIT_TAG_VERSION}")
   add_definitions(-DNM_VERSION="${GIT_TAG_VERSION}")
 endif()
+string(TIMESTAMP BUILD_DATE "%Y-%m-%d")
 
 add_definitions(-DNM_CFG_NAME="${NM_CFG_NAME}")
 add_definitions(-DNM_DEFAULT_VMDIR="${NM_DEFAULT_VMDIR}")
@@ -236,6 +254,9 @@ add_definitions(-DNM_DEFAULT_QEMUDIR="${NM_DEFAULT_QEMUDIR}")
 
 add_subdirectory(lang)
 add_dependencies(${PROJECT_NAME} lang)
+
+add_subdirectory(man)
+add_dependencies(${PROJECT_NAME} man)
 
 # configure install
 set(NEMU_CONFIG_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cfg.sample")

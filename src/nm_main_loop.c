@@ -21,6 +21,7 @@
 #include <nm_ovf_import.h>
 #include <nm_vm_control.h>
 #include <nm_mon_daemon.h>
+#include <nm_easter_egg.h>
 #include <nm_vm_snapshot.h>
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>

@@ -16,12 +16,22 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err);
 static void nm_print_help__(const char **keys, const char **values,
                             size_t hotkey_num, size_t maxlen);
 
-#if defined (NM_WITH_OVF_SUPPORT)
-  #define NM_HELP_MSG \
-    "q:Quit", "I:Install VM", "O:Import OVA", "A:Import image", "N:Network", "?:Help"
+#if defined (NM_OS_LINUX)
+  #if defined (NM_WITH_OVF_SUPPORT)
+    #define NM_HELP_MSG \
+      "q:Quit", "I:Install VM", "O:Import OVA", "A:Import image", "N:Network", "?:Help"
+  #else
+    #define NM_HELP_MSG \
+      "q:Quit", "I:Install VM", "A:Import image", "N:Network", "?:Help"
+  #endif
 #else
-  #define NM_HELP_MSG \
-    "q:Quit", "I:Install VM", "A:Import image", "N:Network", "?:Help"
+  #if defined (NM_WITH_OVF_SUPPORT)
+    #define NM_HELP_MSG \
+      "q:Quit", "I:Install VM", "O:Import OVA", "A:Import image", "?:Help"
+  #else
+    #define NM_HELP_MSG \
+      "q:Quit", "I:Install VM", "A:Import image", "?:Help"
+  #endif
 #endif
 
 #if defined (NM_WITH_NETWORK_MAP)
@@ -774,56 +784,6 @@ nm_print_help__(const char **keys, const char **values,
     wrefresh(action_window);
     nm_init_action(NULL);
     nm_str_free(&help_title);
-}
-
-void nm_print_nemu(void)
-{
-    size_t max_y = getmaxy(action_window);
-    const char *nemu[] = {
-        "            .x@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@o.           ",
-        "          .x@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@x.          ",
-        "         o@@@@@@@@@@@@@x@@@@@@@@@@@@@@@@@@@@@@@@@o         ",
-        "       .x@@@@@@@@x@@@@xx@@@@@@@@@@@@@@@@@@@@@@@@@@o        ",
-        "      .x@@@@@@@x. .x@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.       ",
-        "      x@@@@@ox@x..o@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.      ",
-        "     o@@@@@@xx@@@@@@@@@@@@@@@@@@@@@@@@x@@@@@@@@@@@@@o      ",
-        "    .x@@@@@@@@@@x@@@@@@@@@@@@@@@@@@@@@o@@@@@@@@@@@@@@.     ",
-        "    .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@x.@@@@@@@@@@@@@@o     ",
-        "    o@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@xx..o@@@@@@@@@@@@@x     ",
-        "    x@@@@@@@@@@@@@@@@@@xxoooooooo........oxxx@@@@@@@@x.    ",
-        "    x@@@@@@@@@@x@@@@@@x. .oxxx@@xo.       .oxo.o@@@@@x     ",
-        "    o@@@@@@@@x..o@@@@@o .xxx@@@o ..      .x@ooox@@@@@o     ",
-        "    .x@@@@@@@oo..x@@@@.  ...oo..         .oo. o@@@@@o.     ",
-        "     .x@@@@@@xoooo@@@@.                       x@@@x..      ",
-        "       o@@@@@@ooxx@@@@.                 .    .@@@x..       ",
-        "        .o@@@@@@o.x@@@.                 ..   o@@x.         ",
-        "         .x@@@@@@xx@@@.                 ..  .x@o           ",
-        "         o@@@@@@@o.x@@.                    .x@x.           ",
-        "         o@@@@@@@o o@@@xo.         .....  .x@x.            ",
-        "          .@@@@@x. .x@o.x@x..           .o@@@.             ",
-        "         .x@@@@@o.. o@o  .o@@xoo..    .o..@@o              ",
-        "          o@@@@oo@@xx@x.   .x@@@ooooooo. o@x.              ",
-        "         .o@@o..xx@@@@@xo.. o@x.         xx.               ",
-        "          .oo. ....ox@@@@@@xx@o          xo.               ",
-        "          ....       .o@@@@@@@@o        .@..               ",
-        "           ...         ox.ox@@@.        .x..               ",
-        "            ...        .x. .@@x.        .o                 ",
-        "              .         .o .@@o.         o                 ",
-        "                         o. x@@o         .                 ",
-        "                         .o o@@..        .                 ",
-        "                          ...@o..        .                 ",
-        "                           .x@xo.                          ",
-        "                            .x..                           ",
-        "                           .x....                          ",
-        "                           o@..xo                          ",
-        "                           o@o oo                          ",
-        "                           ..                              "
-    };
-
-    for (size_t l = 3, n = 0; n < (max_y - 4) && n < nm_arr_len(nemu); n++, l++)
-        mvwprintw(action_window, l, 1, "%s", nemu[n]);
-
-    wgetch(action_window);
 }
 
 void nm_align2line(nm_str_t *str, size_t line_len)

@@ -1,8 +1,13 @@
 #ifndef NM_NCURSES_H_
 #define NM_NCURSES_H_
 
+#if defined(CURSES_HAVE_NCURSES_CURSES_H)
+#include <ncursesw/curses.h>
+#include <ncursesw/panel.h>
+#elif defined(CURSES_HAVE_CURSES_H) || defined (NM_WITH_NCURSES)
 #include <curses.h>
 #include <panel.h>
+#endif
 
 typedef WINDOW nm_window_t;
 typedef PANEL nm_panel_t;

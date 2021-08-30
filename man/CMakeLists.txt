@@ -1,0 +1,23 @@
+include(FindUnixCommands)
+
+set(MAN_NUM "1")
+set(MAN_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.${MAN_NUM}.in")
+set(MAN_FILE_OUT "${PROJECT_NAME}.${MAN_NUM}")
+set(TARGET_MAN_FILE "${PROJECT_NAME}.${MAN_NUM}.gz")
+
+if(NOT GZIP)
+  message(FATAL_ERROR "gzip was not found")
+endif()
+
+configure_file(${MAN_FILE_IN} ${MAN_FILE_OUT})
+add_custom_command(
+  OUTPUT ${TARGET_MAN_FILE}
+  COMMAND ${GZIP}
+  ARGS ${MAN_FILE_OUT}
+  DEPENDS ${MAN_FILE_OUT} ${MAN_FILE_IN}
+)
+
+add_custom_target(man SOURCES ${MAN_FILE_IN} DEPENDS ${TARGET_MAN_FILE})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_MAN_FILE}
+  DESTINATION "${CMAKE_INSTALL_FULL_MANDIR}/man${MAN_NUM}"
+)

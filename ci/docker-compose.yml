@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  drone-server:
+    image: drone/drone:2
+    ports:
+      - 127.0.0.1:20080:80
+    volumes:
+      - drone-server-data:/data
+    restart: always
+    environment:
+      - DRONE_GITHUB_CLIENT_ID={GITHUB_OAUTH_CLIENT_ID}
+      - DRONE_GITHUB_CLIENT_SECRET={GITHUB_OAUTH_CLIENT_SECRET}
+      - DRONE_RPC_SECRET={DRONE_SHARED_SECRET}
+      - DRONE_SERVER_HOST=drone.stepanenko.pw
+      - DRONE_SERVER_PROTO=http
+      - DRONE_USER_CREATE=username:grafin,admin:true
+      - DRONE_USER_FILTER=grafin,0x501D
+
+  drone-runner-docker:
+    image: drone/drone-runner-docker:linux-amd64
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+    depends_on:
+      - drone-server
+    environment:
+      - DRONE_SERVER=https://drone.stepanenko.pw
+      - DRONE_RPC_PROTO=https
+      - DRONE_RPC_HOST=drone.stepanenko.pw
+      - DRONE_RPC_SECRET={DRONE_SHARED_SECRET}
+      - DRONE_RUNNER_CAPACITY=1
+      - DRONE_RUNNER_NAME=docker.drone.stepanenko.pw
+
+  drone-runner-ssh:
+    image: drone/drone-runner-ssh
+    restart: always
+    depends_on:
+      - drone-server
+    environment:
+      - DRONE_SERVER=https://drone.stepanenko.pw
+      - DRONE_RPC_PROTO=https
+      - DRONE_RPC_HOST=drone.stepanenko.pw
+      - DRONE_RPC_SECRET={DRONE_SHARED_SECRET}
+      - DRONE_RUNNER_CAPACITY=1
+      - DRONE_RUNNER_NAME=ssh.drone.stepanenko.pw
+
+volumes:
+  drone-server-data:
