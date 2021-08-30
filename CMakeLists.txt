@@ -332,9 +332,6 @@ add_custom_target(
                     ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 add_subdirectory(pkg/linux/rpm)
-if(NM_SRPM_BUILD)
-  set(ENV{DONT_COMPRESS} "1")
-endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
