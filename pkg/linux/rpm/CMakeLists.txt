@@ -8,8 +8,6 @@ set(CPACK_PACKAGE_FILE_NAME
     "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.${CMAKE_SYSTEM_PROCESSOR}")
 set(CPACK_RPM_SPEC_MORE_DEFINE "${CPACK_RPM_SPEC_MORE_DEFINE}
 %global __strip /bin/true
-%define _source_payload w9.gzdio
-%define _binary_payload w9.gzdio
 %define _build_pkgcheck_set %{nil}
 %define _build_pkgcheck_srpm %{nil}
 ")
@@ -51,6 +49,8 @@ if(CPACK_RPM_PACKAGE_SOURCES)
   )
   set(CPACK_RPM_SOURCE_PKG_BUILD_PARAMS
       "${CPACK_RPM_SOURCE_PKG_BUILD_PARAMS} -DNM_WITH_NCURSES=${NM_WITH_NCURSES}")
+  set(CPACK_RPM_SOURCE_PKG_BUILD_PARAMS
+      "${CPACK_RPM_SOURCE_PKG_BUILD_PARAMS} -DNM_SRPM_BUILD=ON")
 
 elseif(NM_WITH_QEMU)
   set(CPACK_RPM_PACKAGE_REQUIRES "bzip2")
