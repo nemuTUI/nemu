@@ -12,7 +12,7 @@ steps:
   image: grafin1992/nemu-ci:v1.2
   commands:
   - mkdir build && cd build
-  - cmake -G Ninja ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
+  - cmake -G Ninja ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
   depends_on:
   - clone
 
@@ -84,7 +84,7 @@ steps:
 - name: cmake
   commands:
   - mkdir build && cd build
-  - cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
+  - cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
   depends_on:
   - clone
 
