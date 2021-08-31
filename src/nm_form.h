@@ -8,7 +8,7 @@
 
 #if defined(CURSES_HAVE_NCURSES_CURSES_H)
 #include <ncursesw/form.h>
-#elif defined(CURSES_HAVE_CURSES_H) || defined (NM_WITH_NCURSES)
+#else
 #include <form.h>
 #endif
 #include <pthread.h>
