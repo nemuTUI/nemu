@@ -13,7 +13,7 @@ SRC_URI=""
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="+vnc-client +ovf +spice dbus svg glyphs remote-api"
+IUSE="+vnc-client +ovf +spice dbus svg remote-api"
 
 RDEPEND="
 	dev-libs/json-c
@@ -40,7 +40,6 @@ src_configure() {
 		-DNM_WITH_REMOTE=$(usex remote-api)
 		-DNM_WITH_SPICE=$(usex spice)
 		-DNM_WITH_DBUS=$(usex dbus)
-		-DNM_WITH_UNICODE_GLYPHS=$(usex glyphs)
 		-DCMAKE_INSTALL_PREFIX=/usr
 	)
 	cmake-utils_src_configure

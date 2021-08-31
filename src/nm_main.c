@@ -208,8 +208,10 @@ static void nm_process_args(int argc, char **argv)
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
             nm_exit_core();
         case 'v':
+            nm_cfg_init();
             printf("nEMU %s\n", NM_VERSION);
             nm_print_feset();
+            nm_cfg_free();
             nm_exit(NM_OK);
         case 'h':
             printf("%s\n", _("-s, --start      <name> start vm"));
@@ -232,68 +234,64 @@ static void nm_process_args(int argc, char **argv)
     }
 }
 
+#define NM_FESET(feset, _g_, _c_) \
+    (cfg->glyphs.checkbox) ? NM_GLYPH_CK_##_g_ feset : _c_ feset
+
 static void nm_print_feset(void)
 {
+    const nm_cfg_t *cfg = nm_cfg_get();
     nm_vect_t feset = NM_INIT_VECT;
     nm_str_t msg = NM_INIT_STR;
 
-#ifdef NM_WITH_UNICODE_GLYPHS
-  #define NM_FESET_YES "\u2611"
-  #define NM_FESET_NO  "\u2610"
-#else
-  #define NM_FESET_YES "+"
-  #define NM_FESET_NO  "-"
-#endif
-
     nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_VNC_CLIENT)
-            NM_FESET_YES
+            NM_FESET(" VNC", YES, "+")
 #else
-            NM_FESET_NO
+            NM_FESET(" VNC", NO, "-")
 #endif
-            " VNC");
+            );
     nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_SPICE)
-            NM_FESET_YES
+            NM_FESET(" SPICE", YES, "+")
 #else
-            NM_FESET_NO
+            NM_FESET(" SPICE", NO, "-")
 #endif
-            " SPICE");
+            );
     nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_OVF_SUPPORT)
-            NM_FESET_YES
+            NM_FESET(" OVF import", YES, "+")
 #else
-            NM_FESET_NO
+            NM_FESET(" OVF import", NO, "-")
 #endif
-            " OVF import");
+            );
     nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_NETWORK_MAP)
-            NM_FESET_YES
+            NM_FESET(" SVG map", YES, "+")
 #else
-            NM_FESET_NO
+            NM_FESET(" SVG map", NO, "-")
 #endif
-            " SVG map");
+            );
     nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_NEWLINKPROP)
-            NM_FESET_YES
+            NM_FESET(" Link alt names", YES, "+")
 #else
-            NM_FESET_NO
+            NM_FESET(" Link alt names", NO, "-")
 #endif
-            " Link alt names");
+            );
     nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_DBUS)
-            NM_FESET_YES
+            NM_FESET(" D-Bus support", YES, "+")
 #else
-            NM_FESET_NO
+            NM_FESET(" D-Bus support", NO, "-")
 #endif
-            " D-Bus support");
+            );
     nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_REMOTE)
-            NM_FESET_YES
+            NM_FESET(" Remote control", YES, "+")
 #else
-            NM_FESET_NO
+            NM_FESET(" Remote control", NO, "-")
 #endif
-            " Remote control");
+            );
 
     for (size_t n = 0; n < feset.n_memb; n++)
         nm_str_append_format(&msg, " %s\n", (char *) nm_vect_at(&feset, n));
