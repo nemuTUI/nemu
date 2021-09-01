@@ -54,9 +54,6 @@ static void nm_mon_cleanup(int rc, void *arg)
     nm_vect_free(data->vms.list, NULL);
     nm_vect_free(data->vm_list, nm_str_vect_free_cb);
 
-#if defined (NM_WITH_DBUS)
-    nm_dbus_disconnect();
-#endif
     data->qmp_ctrl.stop = true;
     pthread_join(*data->qmp_worker, NULL);
 #if defined (NM_WITH_REMOTE)
@@ -459,11 +456,6 @@ void nm_mon_loop(void)
 
     nm_db_init();
     nm_mon_build_list(&mon_list, &vm_list);
-#if defined (NM_WITH_DBUS)
-    if (nm_dbus_connect() != NM_OK) {
-        nm_exit(EXIT_FAILURE);
-    }
-#endif
     if (pthread_create(&qmp_thr, NULL, nm_qmp_dispatcher, &clean.qmp_ctrl) != 0) {
         nm_exit(EXIT_FAILURE);
     }

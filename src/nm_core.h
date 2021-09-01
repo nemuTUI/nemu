@@ -26,6 +26,7 @@
 
 #include <nm_cfg_file.h>
 #include <nm_database.h>
+#include <nm_dbus.h>
 
 #define NM_PROGNAME "nemu"
 
@@ -80,6 +81,9 @@ static inline void __attribute__((noreturn)) nm_exit_core()
     if (nm_db_in_transaction())
         nm_db_rollback();
 
+#if defined (NM_WITH_DBUS)
+    nm_dbus_disconnect();
+#endif
     nm_db_close();
     nm_cfg_free();
     exit(NM_OK);
