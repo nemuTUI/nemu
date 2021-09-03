@@ -30,11 +30,9 @@ typedef struct nm_qmp_w_data {
 
 typedef struct nm_clean_data {
     nm_mon_vms_t vms;
-#if defined (NM_OS_LINUX)
     nm_vect_t *vm_list;
     pthread_t *qmp_worker;
     pthread_t *api_server;
-#endif
     nm_thr_ctrl_t qmp_ctrl;
     nm_thr_ctrl_t api_ctrl;
 } nm_clean_data_t;
