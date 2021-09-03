@@ -44,27 +44,30 @@ typedef struct nm_clean_data {
     { NM_MON_VMS_INIT, NULL, NULL, NULL, NM_THR_CTRL_INIT, NM_THR_CTRL_INIT }
 
 #if defined (NM_OS_LINUX)
-static void nm_mon_cleanup(int rc, void *arg)
+static nm_clean_data_t *clean_ptr = NULL;
+
+static void nm_mon_cleanup(void)
 {
-    nm_clean_data_t *data = arg;
     const nm_cfg_t *cfg = nm_cfg_get();
 
-    nm_debug("mon daemon exited: %d\n", rc);
+	if (!clean_ptr) return;
 
-    nm_vect_free(data->vms.list, NULL);
-    nm_vect_free(data->vm_list, nm_str_vect_free_cb);
+    nm_debug("mon daemon exited\n");
 
-    data->qmp_ctrl.stop = true;
-    pthread_join(*data->qmp_worker, NULL);
+    nm_vect_free(clean_ptr->vms.list, NULL);
+    nm_vect_free(clean_ptr->vm_list, nm_str_vect_free_cb);
+
+    clean_ptr->qmp_ctrl.stop = true;
+    pthread_join(*clean_ptr->qmp_worker, NULL);
 #if defined (NM_WITH_REMOTE)
     if (cfg->api_server) {
-        data->api_ctrl.stop = true;
-        pthread_join(*data->api_server, NULL);
+        clean_ptr->api_ctrl.stop = true;
+        pthread_join(*clean_ptr->api_server, NULL);
     }
 #endif
 
     if (unlink(cfg->daemon_pid.data) != 0) {
-        nm_debug("error delete mon daemon pidfile: %s\n", strerror(rc));
+        nm_debug("error delete mon daemon pidfile\n");
     }
     nm_exit_core();
 }
@@ -396,6 +399,8 @@ void nm_mon_loop(void)
     struct timespec ts;
     pid_t pid;
 
+	clean_ptr = &clean;
+
     nm_cfg_init();
     cfg = nm_cfg_get();
     if (access(cfg->daemon_pid.data, R_OK) != -1) {
@@ -430,7 +435,7 @@ void nm_mon_loop(void)
     clean.qmp_worker = &qmp_thr;
     clean.api_server = &api_srv;
 
-    if (on_exit(nm_mon_cleanup, &clean) != 0) {
+    if (atexit(nm_mon_cleanup) != 0) {
         fprintf(stderr, "%s: on_exit(3) failed\n", __func__);
         nm_exit(EXIT_FAILURE);
     }
