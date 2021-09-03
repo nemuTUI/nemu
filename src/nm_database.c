@@ -137,6 +137,7 @@ bool nm_db_in_transaction()
 {
     db_conn_t *db;
 
+    pthread_once(&key_once, nm_db_init_key);
     db = pthread_getspecific(db_conn_key);
 
     return (db) ? db->in_transaction : false;
