@@ -1,3 +1,8 @@
+v3.?.? - ??.??.????
+------------------------
+    - Bugfix: musl build
+    - Bugfix: failing dbus communication led to daemon crash
+
 v3.0.0 - 31.08.2021
 ------------------------
     - Feature: internal QEMU network support (including hostfwd, smb)
