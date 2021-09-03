@@ -6,10 +6,7 @@
 
 #if defined (NM_OS_LINUX)
 
-#ifdef _DEFAULT_SOURCE
-#include <net/if.h>
-#include <linux/if.h>
-#else
+#ifdef NM_NET_IF_FIX
 /* Temporary work-around for broken glibc vs. linux kernel header definitions
  * This is already fixed upstream, remove this when distributions have updated.
  * net/if.h fuckup should be removed someday in future, when kernels <= 4.2 will not be supported
@@ -22,6 +19,9 @@
 #define IFNAMSIZ 16
 extern unsigned int if_nametoindex (const char *__ifname) __THROW;
 #endif
+#include <linux/if.h>
+#else
+#include <net/if.h>
 #include <linux/if.h>
 #endif
 

@@ -7,7 +7,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 
 include(GNUInstallDirs)
-include(GetGLibcVersion)
 include(CheckSymbolExists)
 include(BuildQEMU)
 include(BuildNcurses)
@@ -150,14 +149,23 @@ set(NM_DEFAULT_QEMUDIR "/usr/bin" CACHE STRING
 if(NM_OS_LINUX)
   add_definitions(-DNM_OS_LINUX)
 
-  get_glibc_version()
-  if(GLIBC_VERSION VERSION_GREATER 2.18)
-    add_definitions(-D_DEFAULT_SOURCE)
-  else()
-    add_definitions(-D_XOPEN_SOURCE=700 -D_BSD_SOURCE)
+  try_compile(
+    NET_IF
+    "${CMAKE_CURRENT_BINARY_DIR}/CMake_Tests"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Tests/net_if.c"
+    COMPILE_DEFINITIONS "-Wall -Wextra -pedantic -Werror")
+
+  if(NOT NET_IF)
+    add_definitions(-DNM_NET_IF_FIX)
   endif()
 
-  if(GLIBC_VERSION VERSION_GREATER 2.0)
+  try_compile(
+    SENDFILE
+    "${CMAKE_CURRENT_BINARY_DIR}/CMake_Tests"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Tests/sendfile.c"
+    COMPILE_DEFINITIONS "-Wall -Wextra -pedantic -Werror")
+
+  if(SENDFILE)
     set(NM_WITH_SENDFILE TRUE)
     add_definitions(-DNM_WITH_SENDFILE)
   endif()
