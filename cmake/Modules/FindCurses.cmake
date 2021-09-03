@@ -51,6 +51,10 @@ The following variable are provided for backward compatibility:
 
 include(CheckLibraryExists)
 
+if(NOT CURSES_INCLUDE_PATH)
+  set(CURSES_INCLUDE_PATH /usr/include)
+endif()
+
 # fix FreeBSD
 if(NM_OS_FREEBSD)
   set(CURSES_NEED_WIDE OFF)
