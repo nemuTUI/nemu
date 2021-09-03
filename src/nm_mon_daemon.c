@@ -50,9 +50,10 @@ static void nm_mon_cleanup(void)
 {
     const nm_cfg_t *cfg = nm_cfg_get();
 
-	if (!clean_ptr) return;
-
     nm_debug("mon daemon exited\n");
+
+    if (!clean_ptr)
+        return;
 
     nm_vect_free(clean_ptr->vms.list, NULL);
     nm_vect_free(clean_ptr->vm_list, nm_str_vect_free_cb);
