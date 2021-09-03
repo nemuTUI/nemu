@@ -34,13 +34,13 @@
 
 stdenv.mkDerivation rec {
   pname = "nemu";
-  version = "unstable-2021-09-01";
+  version = "unstable-2021-09-03";
 
   src = fetchFromGitHub {
     owner = "nemuTUI";
     repo = "nemu";
-    rev = "16e8f77394d21e6c447b2aae2b674dc56b3e39bd";
-    sha256 = "0xnsal5b8j0bnpkdwn6y8zdsa2sprc036k8fyhxs9byz2rx5qvg4";
+    rev = "ce526ba4e6a674c193f0d4365bf0d95c45a6ef45";
+    sha256 = "1mbg1pm10vyvy3kwkkilx466srfysqalyy2fcx5i5dxmc1zymr33";
   };
 
   system.requiredKernelConfig = with config.lib.kernelConfig; [
