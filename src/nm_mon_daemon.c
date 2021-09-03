@@ -400,8 +400,6 @@ void nm_mon_loop(void)
     struct timespec ts;
     pid_t pid;
 
-	clean_ptr = &clean;
-
     nm_cfg_init();
     cfg = nm_cfg_get();
     if (access(cfg->daemon_pid.data, R_OK) != -1) {
@@ -431,6 +429,8 @@ void nm_mon_loop(void)
     }
 
 #if defined (NM_OS_LINUX)
+    clean_ptr = &clean;
+
     clean.vms.list = &mon_list;
     clean.vm_list = &vm_list;
     clean.qmp_worker = &qmp_thr;
