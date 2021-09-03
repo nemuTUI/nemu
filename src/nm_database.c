@@ -245,7 +245,7 @@ static void nm_db_check_version(void)
 
     if (!res.n_memb) {
         fprintf(stderr, _("%s: cannot get database version"), __func__);
-        exit(NM_ERR);
+        nm_exit(NM_ERR);
     }
 
     if (nm_str_cmp_st(nm_vect_at(&res, 0), NM_DB_VERSION) != NM_OK) {
@@ -253,7 +253,7 @@ static void nm_db_check_version(void)
                     " I will try to update it.\n"));
         if (nm_db_update() != NM_OK) {
             fprintf(stderr, _("Cannot update database\n"));
-            exit(NM_ERR);
+            nm_exit(NM_ERR);
         }
     }
 

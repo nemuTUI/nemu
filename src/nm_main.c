@@ -50,6 +50,8 @@ int main(int argc, char **argv)
     sa.sa_flags = 0;
     sa.sa_handler = signals_handler;
     sigaction(SIGWINCH, &sa, NULL);
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
 
     nm_ncurses_init();
 
@@ -64,6 +66,10 @@ static void signals_handler(int signal)
     case SIGWINCH:
         redraw_window = 1;
         break;
+    case SIGINT:
+        nm_exit(EXIT_SUCCESS);
+    case SIGTERM:
+        nm_exit(SIGTERM);
     }
 }
 

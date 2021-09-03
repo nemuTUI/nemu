@@ -43,14 +43,13 @@ typedef struct nm_clean_data {
 #define NM_CLEAN_INIT (nm_clean_data_t) \
     { NM_MON_VMS_INIT, NULL, NULL, NULL, NM_THR_CTRL_INIT, NM_THR_CTRL_INIT }
 
-#if defined (NM_OS_LINUX)
 static nm_clean_data_t *clean_ptr = NULL;
 
 static void nm_mon_cleanup(void)
 {
     const nm_cfg_t *cfg = nm_cfg_get();
 
-    nm_debug("mon daemon exited\n");
+    nm_debug("mon daemon exited: %d\n", nm_rc());
 
     if (!clean_ptr)
         return;
@@ -72,7 +71,6 @@ static void nm_mon_cleanup(void)
     }
     nm_exit_core();
 }
-#endif /* NM_OS_LINUX */
 
 void *nm_qmp_worker(void *data)
 {
@@ -428,7 +426,6 @@ void nm_mon_loop(void)
         nm_exit(EXIT_FAILURE);
     }
 
-#if defined (NM_OS_LINUX)
     clean_ptr = &clean;
 
     clean.vms.list = &mon_list;
@@ -440,7 +437,6 @@ void nm_mon_loop(void)
         fprintf(stderr, "%s: on_exit(3) failed\n", __func__);
         nm_exit(EXIT_FAILURE);
     }
-#endif
 
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
@@ -547,7 +543,7 @@ static void nm_mon_signals_handler(int signal)
     case SIGINT:
         nm_exit(EXIT_SUCCESS);
     case SIGTERM:
-        nm_exit(EXIT_FAILURE);
+        nm_exit(SIGTERM);
     }
 }
 

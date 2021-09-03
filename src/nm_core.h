@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
+#include <nm_utils.h>
 #include <nm_cfg_file.h>
 #include <nm_database.h>
 #include <nm_dbus.h>
@@ -86,7 +87,7 @@ static inline void __attribute__((noreturn)) nm_exit_core()
 #endif
     nm_db_close();
     nm_cfg_free();
-    exit(NM_OK);
+    nm_exit(NM_OK);
 }
 static inline int compar_uint32_t(const void *a, const void *b)
 {
