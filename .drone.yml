@@ -100,7 +100,37 @@ trigger:
   - master
 
 ---
+kind: pipeline
+type: docker
+name: musl
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: cmake
+  image: grafin1992/nemu-musl:v1.0
+  commands:
+  - mkdir build && cd build
+  - cmake ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+  depends_on:
+  - clone
+
+- name: build
+  image: grafin1992/nemu-musl:v1.0
+  commands:
+  - cd build
+  - make
+  depends_on:
+  - cmake
+
+trigger:
+  branch:
+  - master
+
+---
 kind: signature
-hmac: 9cd1a34eaa5af0c34f14c1c1079db0556f1cc34c49e31e13f11945cea4c3e57d
+hmac: 4c66ccde1df91d377400c29867d81ebdecdf60cf565bc5e0f76460f4e85554ac
 
 ...
