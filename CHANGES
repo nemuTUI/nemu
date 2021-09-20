@@ -1,5 +1,6 @@
 v3.?.? - ??.??.????
 ------------------------
+    - Feature: remote control API listen interface parameter
     - Bugfix: musl build
     - Bugfix: failing dbus communication led to daemon crash
 
