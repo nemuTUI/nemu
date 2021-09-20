@@ -9,6 +9,8 @@
 #include <nm_utils.h>
 
 #include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
@@ -302,7 +304,22 @@ static int nm_api_socket(int *sock)
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(nm_cfg_get()->api_port);
-    addr.sin_addr.s_addr = INADDR_ANY;
+
+    if (!nm_cfg_get()->api_iface.len) {
+        addr.sin_addr.s_addr = INADDR_ANY;
+    } else {
+        struct ifreq ifr;
+
+        memset(&ifr, 0, sizeof(ifr));
+        strncpy(ifr.ifr_name, nm_cfg_get()->api_iface.data, IFNAMSIZ - 1);
+
+        if (ioctl(sd, SIOCGIFADDR, &ifr) != 0) {
+            nm_debug("%s: cannot get addr: %s\n", __func__, strerror(errno));
+            return NM_ERR;
+        }
+
+        addr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
+    }
 
     if (bind(sd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
         nm_debug("%s: cannot bind: %s\n", __func__, strerror(errno));

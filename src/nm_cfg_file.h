@@ -57,6 +57,7 @@ typedef struct {
     nm_str_t api_key_path;
     nm_str_t api_salt;
     nm_str_t api_hash;
+    nm_str_t api_iface;
     uint16_t api_port;
     uint32_t api_server:1;
 #endif

@@ -67,6 +67,7 @@ static const char NM_INI_P_GL_SEP[]     = "glyph_separator";
 static const char NM_INI_P_GL_CHECK[]   = "glyph_checkbox";
 #if defined (NM_WITH_REMOTE)
 static const char NM_INI_P_API_SRV[]    = "remote_control";
+static const char NM_INI_P_API_IFACE[]  = "remote_interface";
 static const char NM_INI_P_API_PORT[]   = "remote_port";
 static const char NM_INI_P_API_CERT[]   = "remote_tls_cert";
 static const char NM_INI_P_API_KEY[]    = "remote_tls_key";
@@ -317,6 +318,7 @@ void nm_cfg_init(void)
     }
 
     if (cfg.api_server) {
+        nm_get_opt_param(ini, NM_INI_S_DMON, NM_INI_P_API_IFACE, &cfg.api_iface);
         nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_API_CERT, &cfg.api_cert_path, NULL);
         nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_API_KEY, &cfg.api_key_path, NULL);
         nm_get_param(ini, NM_INI_S_DMON, NM_INI_P_API_SALT, &cfg.api_salt, NULL);
@@ -371,6 +373,7 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.api_key_path);
     nm_str_free(&cfg.api_salt);
     nm_str_free(&cfg.api_hash);
+    nm_str_free(&cfg.api_iface);
 #endif
 }
 
@@ -522,6 +525,8 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 #ifdef NM_WITH_REMOTE
             fprintf(cfg_file, "\n# Enable remote control (default: disabled)\n"
                 "#remote_control = 0\n\n");
+            fprintf(cfg_file, "# Remote control listen interface (default: any)\n"
+                "#remote_interface = eth0\n\n");
             fprintf(cfg_file, "# Remote control port (default: %d)\n"
                 "#remote_port = %d\n\n", NM_API_PORT, NM_API_PORT);
             fprintf(cfg_file, "# Remote control public certificate path\n"

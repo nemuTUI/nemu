@@ -70,6 +70,9 @@ dbus_timeout = 2000
 # Enable remote control (default: disabled)
 #remote_control = 0
 
+# Remote control listen interface (default: any)
+#remote_interface = eth0
+
 # Remote control port (default: 20509)
 #remote_port = 20509
 
