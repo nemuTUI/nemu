@@ -52,6 +52,7 @@ static void nm_si_game(void)
     size_t gain_counter = 0;
     int direction = 1, mch;
     int b_direction = 1;
+    bool pause = false;
     uint64_t iter = 0;
     nm_si_t bonus;
 
@@ -121,6 +122,15 @@ static void nm_si_game(void)
 
     while (play) {
         int ch = wgetch(action_window);
+
+        if (ch == NM_KEY_P) {
+            pause = !pause;
+        }
+
+        if (pause) {
+            usleep(NM_SI_DELAY);
+            continue;
+        }
 
         werase(action_window);
         nm_str_format(&info, "Level %zu [score: %zu hp: %d ammo: %zu ap: %zu]",
