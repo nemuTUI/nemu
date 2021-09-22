@@ -669,7 +669,7 @@ void nm_print_help(void)
 #if defined (NM_OS_LINUX)
         "+", "-",
 #endif
-        "k", "/"
+        "k", "/" , "[", "]"
 };
 
     const char *values[] = {
@@ -704,6 +704,8 @@ void nm_print_help(void)
 #endif
         "kill vm process",
         "search vm, filters",
+        "previous group",
+        "next grup",
         NULL
     };
 

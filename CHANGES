@@ -1,6 +1,7 @@
 v3.?.? - ??.??.????
 ------------------------
     - Feature: remote control API listen interface parameter
+    - Feature: switch VM groups in VM list window with hotkeys
     - Bugfix: musl build
     - Bugfix: failing dbus communication led to daemon crash
 

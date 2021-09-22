@@ -33,6 +33,7 @@ nm_filter_t nm_filter;
 static size_t nm_search_vm(const nm_vect_t *list, int *err);
 static int nm_filter_check(const nm_str_t *input);
 static int nm_search_cmp_cb(const void *s1, const void *s2);
+static void nm_iterate_groups(bool forward);
 
 static inline void nm_filter_clean()
 {
@@ -78,6 +79,14 @@ void nm_start_main_loop(void)
             nm_init_side();
             nm_init_action(NULL);
             nm_filter.flags &= ~NM_FILTER_UPDATE;
+        } else if (nm_filter.flags & NM_FILTER_RESET) {
+            nm_filter_clean();
+            regen_data = 1;
+            werase(side_window);
+            werase(action_window);
+            nm_init_side();
+            nm_init_action(NULL);
+            nm_filter.flags &= ~NM_FILTER_RESET;
         }
 
         if (regen_data) {
@@ -183,6 +192,14 @@ void nm_start_main_loop(void)
             int vm_status = nm_vect_item_status_cur(&vms);
 
             switch (ch) {
+            case NM_KEY_NEXT:
+                nm_iterate_groups(true);
+                break;
+
+            case NM_KEY_PREV:
+                nm_iterate_groups(false);
+                break;
+
             case NM_KEY_R:
                 if (vm_status) {
                     nm_warn(_(NM_MSG_RUNNING));
@@ -392,21 +409,6 @@ void nm_start_main_loop(void)
                 vms.item_first = 0;
                 vms.item_last = vm_list_len;
                 vms.highlight = pos;
-            }
-
-            if (nm_filter.flags & NM_FILTER_UPDATE) {
-                regen_data = 1;
-                werase(side_window);
-                werase(action_window);
-                nm_init_action(NULL);
-                nm_filter.flags &= ~NM_FILTER_UPDATE;
-            } else if (nm_filter.flags & NM_FILTER_RESET) {
-                nm_filter_clean();
-                regen_data = 1;
-                werase(side_window);
-                werase(action_window);
-                nm_init_action(NULL);
-                nm_filter.flags &= ~NM_FILTER_RESET;
             }
 
             NM_ERASE_TITLE(side, cols);
@@ -636,5 +638,60 @@ static int nm_search_cmp_cb(const void *s1, const void *s2)
     }
 
     return rc;
+}
+
+static void nm_iterate_groups(bool forward)
+{
+    nm_str_t query = NM_INIT_STR;
+    nm_vect_t group_list = NM_INIT_VECT;
+
+    nm_str_format(&query, "%s", NM_GET_GROUPS_SQL);
+    nm_db_select(query.data, &group_list);
+
+    if (group_list.n_memb) {
+        if (nm_filter.type != NM_FILTER_GROUP) {
+            nm_filter.type = NM_FILTER_GROUP;
+            nm_filter.flags |= NM_FILTER_UPDATE;
+            nm_str_format(&nm_filter.query, "%s",
+                    nm_vect_str_ctx(&group_list,
+                        (forward) ? 0 : group_list.n_memb - 1));
+        } else {
+            bool match = false;
+
+            for (size_t n = 0; n < group_list.n_memb; n++) {
+                if (nm_str_cmp_ss(nm_vect_str(&group_list, n),
+                            &nm_filter.query) == NM_OK) {
+                    match = true;
+                    if (forward) {
+                        if (n < group_list.n_memb - 1) {
+                            nm_filter.flags |= NM_FILTER_UPDATE;
+                            nm_str_format(&nm_filter.query, "%s",
+                                    nm_vect_str_ctx(&group_list, n + 1));
+                        } else {
+                            nm_filter.flags |= NM_FILTER_RESET;
+                        }
+                    } else {
+                        if (n == 0) {
+                            nm_filter.flags |= NM_FILTER_RESET;
+                        } else {
+                            nm_filter.flags |= NM_FILTER_UPDATE;
+                            nm_str_format(&nm_filter.query, "%s",
+                                    nm_vect_str_ctx(&group_list, n - 1));
+                        }
+                    }
+                    break;
+                }
+            }
+
+            if (!match) { /* current group is not exists */
+                nm_str_format(&nm_filter.query, "%s",
+                        nm_vect_str_ctx(&group_list, 0));
+                nm_filter.flags |= NM_FILTER_UPDATE;
+            }
+        }
+    }
+
+    nm_str_free(&query);
+    nm_vect_free(&group_list, nm_str_vect_free_cb);
 }
 /* vim:set ts=4 sw=4: */

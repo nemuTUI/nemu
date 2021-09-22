@@ -166,6 +166,8 @@ enum nm_key {
     NM_KEY_PLUS     = 43,
     NM_KEY_MINUS    = 45,
     NM_KEY_SLASH    = 47,
+    NM_KEY_PREV     = 91,
+    NM_KEY_NEXT     = 93,
     NM_KEY_A = 97,
     NM_KEY_B = 98,
     NM_KEY_C = 99,
