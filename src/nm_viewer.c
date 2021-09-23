@@ -260,8 +260,6 @@ static int nm_viewer_get_data(nm_view_data_t *vm)
 #endif
     if (field_status(fields[NM_FLD_PORT]))
         nm_form_check_data(_(NM_LC_VIEWER_FORM_PORT), vm->port, err);
-    if (field_status(fields[NM_FLD_SOCK]))
-        nm_form_check_data(_(NM_LC_VIEWER_FORM_SOCK), vm->sock, err);
     if (field_status(fields[NM_FLD_SYNC]))
         nm_form_check_data(_(NM_LC_VIEWER_FORM_SYNC), vm->sync, err);
     if (field_status(fields[NM_FLD_DSP]))
