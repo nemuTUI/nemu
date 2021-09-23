@@ -151,7 +151,7 @@ static const char NM_GET_IFMAPGR_SQL[] = \
     "vm_name=name WHERE team='%s' AND (parent_eth='%s' OR parent_eth='%s')";
 
 static const char NM_GET_GROUPS_SQL[] = \
-    "SELECT DISTINCT team FROM vms WHERE team IS NOT NULL";
+    "SELECT DISTINCT team FROM vms WHERE team <> \"\"";
 
 static const char NM_LAN_VETH_INF_SQL[] = \
     "SELECT if_name FROM ifaces WHERE parent_eth='%s'";
