@@ -609,7 +609,7 @@ out:
 static void
 nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply)
 {
-    const char **disk_drivers = nm_form_drive_drv;
+    //const char **disk_drivers = nm_form_drive_drv;
     int rc = nm_api_check_auth(request, reply);
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_mon_vms_t *vms = mon_data->vms;

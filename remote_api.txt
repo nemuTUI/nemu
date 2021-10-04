@@ -50,7 +50,7 @@ reply:   {"return": [{"param": "_param_", "value": "_value_", "value_list": ["_l
 param list:
   smp - CPU count, format: sockets:cores?:threads?
     typeof: value: string
-  mem - the ammount of RAM
+  mem - the amount of RAM
     typeof: value: integer
   kvm - KVM status
     typeof: value: bool
