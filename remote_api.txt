@@ -45,5 +45,16 @@ reply:   {"return": "_port_"} or {"return": "err", "error":"_error_"}
 Get VM settings.
 APIv: >= 0.2
 request: {"exec": "vm_get_settings", "name": "_name_", "auth": "_pass_"}
-reply:   {"return": [{"param": "_param_", "value": "_value_", "value_list": "_list_"}]}
+reply:   {"return": [{"param": "_param_", "value": "_value_", "value_list": ["_list_"]}]}
   or {"return": "err", "error":"_error_"}
+param list:
+  smp - CPU count, format: sockets:cores?:threads?
+    typeof: value: string
+  mem - the ammount of RAM
+    typeof: value: integer
+  kvm - KVM status
+    typeof: value: bool
+  hcpu - Host CPU status
+    typeof: value: bool
+  disk_iface - disk interface driver
+    typeof: value: string, value_list: array of string

@@ -7,6 +7,7 @@
 #include <nm_vm_control.h>
 #include <nm_database.h>
 #include <nm_utils.h>
+#include <nm_form.h>
 
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -608,6 +609,7 @@ out:
 static void
 nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply)
 {
+    const char **disk_drivers = nm_form_drive_drv;
     int rc = nm_api_check_auth(request, reply);
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_mon_vms_t *vms = mon_data->vms;
@@ -644,11 +646,19 @@ nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply)
 
     nm_str_format(&settings,
             "{\"param\":\"smp\",\"value\":\"%s\"},"
-            "{\"param\":\"mem\",\"value\":\"%s\"},"
-            "{\"param\":\"kvm\",\"value\":\"%s\"}",
+            "{\"param\":\"mem\",\"value\":%s},"
+            "{\"param\":\"kvm\",\"value\":%s},"
+            "{\"param\":\"hcpu\",\"value\":%s},"
+            "{\"param\":\"netifs\",\"value\":%zu},"
+            "{\"param\":\"disk_iface\",\"value\":\"%s\", \"value_list\":[",
             nm_vect_str_ctx(&vm.main, NM_SQL_SMP),
             nm_vect_str_ctx(&vm.main, NM_SQL_MEM),
-            nm_vect_str_ctx(&vm.main, NM_SQL_KVM));
+            (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_KVM),
+                           NM_ENABLE) == NM_OK) ? "true" : "false",
+            (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_HCPU),
+                           NM_ENABLE) == NM_OK) ? "true" : "false",
+            vm.ifs.n_memb / NM_IFS_IDX_COUNT,
+            nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_TYPE));
     nm_str_format(reply, NM_API_RET_ARRAY, settings.data);
 
 out:
