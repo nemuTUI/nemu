@@ -1,5 +1,5 @@
 API for remote control.
-Current version: 0.1
+Current version: 0.2
 
 Get API version (no auth required).
 APIv: >= 0.1
@@ -41,3 +41,9 @@ Get VNC/SPICE port.
 APIv: >= 0.1
 request: {"exec": "vm_get_connect_port", "name": "_name_", "auth": "_pass_"}
 reply:   {"return": "_port_"} or {"return": "err", "error":"_error_"}
+
+Get VM settings.
+APIv: >= 0.2
+request: {"exec": "vm_get_settings", "name": "_name_", "auth": "_pass_"}
+reply:   {"return": [{"param": "_param_", "value": "_value_", "value_list": "_list_"}]}
+  or {"return": "err", "error":"_error_"}
