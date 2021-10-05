@@ -776,7 +776,7 @@ nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply)
     json_object_object_add(jrep, "netifs", kv);
 
     /* disk interface driver */
-    if ((kv = nm_api_json_kv_str("value", nm_vect_str_ctx(&vm.main,
+    if ((kv = nm_api_json_kv_str("value", nm_vect_str_ctx(&vm.drives,
                         NM_SQL_DRV_TYPE))) == NULL) {
         nm_str_format(reply, NM_API_RET_ERR, "Internal error");
         goto out;
