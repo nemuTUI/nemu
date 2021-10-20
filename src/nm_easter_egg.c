@@ -22,7 +22,8 @@ static void nm_si_game(void)
         NM_SI_SHIP_3,
         NM_SI_BULLET,
         NM_SI_PLAYER,
-        NM_SI_BONUS
+        NM_SI_BONUS,
+        NM_SI_BOSS
     } nm_si_type_t;
 
     typedef struct {
@@ -49,6 +50,7 @@ static void nm_si_game(void)
     nm_str_t info = NM_INIT_STR;
     bool bonus_active = false;
     bool gain_active = false;
+    bool boss_active = false;
     size_t gain_counter = 0;
     int direction = 1, mch;
     int b_direction = 1;
@@ -64,6 +66,8 @@ static void nm_si_game(void)
     const char *shape_hit    = ">-<";
     const char *shape_win    = "^_^";
     const char *shape_bonus  = "(?)";
+    const char *shape_boss   = "v-@-v";
+    const char *shape_boss_hit   = "x-X-x";
 
     nodelay(action_window, TRUE);
     getmaxyx(action_window, max_y, max_x);
@@ -95,28 +99,45 @@ static void nm_si_game(void)
         if (speed > 1) {
             speed--;
         }
+        if (level % 5 == 0) {
+            boss_active = true;
+        } else {
+            boss_active = false;
+        }
     }
     start_x = (max_x / 5);
     start_y = 5;
 
-    for (size_t n = 0; n < NM_SI_ENEMIE_COUNT; n++) {
-        nm_si_type_t type = (n < 10) ? NM_SI_SHIP_3 :
-                            (n >= 10 && n < 30) ? NM_SI_SHIP_2 : NM_SI_SHIP_1;
-        size_t health = (n < 10) ? 3 :
-                            (n >= 10 && n < 30) ? 2 : 1;
+    if (boss_active) {
         nm_si_t ship = (nm_si_t) {
             .pos_x = start_x,
             .pos_y = start_y,
-            .type = type,
+            .type = NM_SI_BOSS,
             .hit = false,
-            .health = health
+            .health = 100
         };
 
         nm_vect_insert(&enemies, &ship, sizeof(nm_si_t), NULL);
-        start_x += 5;
-        if (!((n + 1) % NM_SI_ENEMIE_INROW)) {
-            start_y++;
-            start_x = (max_x / 5);
+    } else {
+        for (size_t n = 0; n < NM_SI_ENEMIE_COUNT; n++) {
+            nm_si_type_t type = (n < 10) ? NM_SI_SHIP_3 :
+                (n >= 10 && n < 30) ? NM_SI_SHIP_2 : NM_SI_SHIP_1;
+            size_t health = (n < 10) ? 3 :
+                (n >= 10 && n < 30) ? 2 : 1;
+            nm_si_t ship = (nm_si_t) {
+                .pos_x = start_x,
+                .pos_y = start_y,
+                .type = type,
+                .hit = false,
+                .health = health
+            };
+
+            nm_vect_insert(&enemies, &ship, sizeof(nm_si_t), NULL);
+            start_x += 5;
+            if (!((n + 1) % NM_SI_ENEMIE_INROW)) {
+                start_y++;
+                start_x = (max_x / 5);
+            }
         }
     }
 
@@ -133,8 +154,20 @@ static void nm_si_game(void)
         }
 
         werase(action_window);
-        nm_str_format(&info, "Level %zu [score: %zu hp: %d ammo: %zu ap: %zu]",
-                level, score, player.health, bullets_cnt, gain);
+        if (!boss_active) {
+            nm_str_format(&info, "Level %zu [score: %zu hp: %d ammo: %zu ap: %zu]",
+                    level, score, player.health, bullets_cnt, gain);
+        } else {
+            size_t boss_health;
+
+            if (!enemies.n_memb) {
+                boss_health = 0;
+            } else {
+                boss_health = ((nm_si_t *) nm_vect_at(&enemies, 0))->health;
+            }
+            nm_str_format(&info, "Level %zu - Boss %zu%% [score: %zu hp: %d ammo: %zu ap: %zu]",
+                    level, boss_health, score, player.health, bullets_cnt, gain);
+        }
         nm_init_action(info.data);
 
         switch (ch) {
@@ -194,7 +227,8 @@ static void nm_si_game(void)
             for (size_t nb = 0; nb < pl_bullets.n_memb; nb++) {
                 nm_si_t *b = nm_vect_at(&pl_bullets, nb);
 
-                if (((b->pos_x >= e->pos_x && b->pos_x <= e->pos_x + 2)) &&
+                if (((b->pos_x >= e->pos_x && b->pos_x <= e->pos_x +
+                                ((boss_active) ? 4 : 2))) &&
                         (e->pos_y == b->pos_y)) {
                     size_t hp_hit = e->health;
                     e->health -= b->health;
@@ -210,6 +244,9 @@ static void nm_si_game(void)
                             case NM_SI_SHIP_3:
                                 score += 30;
                                 break;
+                            case NM_SI_BOSS:
+                                score += 1000;
+                                break;
                             default:
                                 break;
                         }
@@ -224,6 +261,9 @@ static void nm_si_game(void)
                                 break;
                             case NM_SI_SHIP_3:
                                 score += 3;
+                                break;
+                            case NM_SI_BOSS:
+                                score += 10;
                                 break;
                             default:
                                 break;
@@ -250,12 +290,15 @@ static void nm_si_game(void)
                 case NM_SI_SHIP_3:
                     shape = shape_ship2;
                     break;
+                case NM_SI_BOSS:
+                    shape = shape_boss;
+                    break;
                 default:
                     break;
                 }
 
                 if (e->hit) {
-                    shape = shape_hit;
+                    shape = (boss_active) ? shape_boss_hit : shape_hit;
                     e->hit = false;
                 }
 
@@ -264,7 +307,8 @@ static void nm_si_game(void)
                     direction ? e->pos_x++ : e->pos_x--;
                     if (!direction && e->pos_x == 1) {
                         change_dir = true;
-                    } else if (direction && (e->pos_x == max_x - 4)) {
+                    } else if (direction && (e->pos_x == max_x -
+                                ((boss_active) ? 6 : 4))) {
                         change_dir = true;
                     }
                 }
@@ -286,16 +330,34 @@ static void nm_si_game(void)
                     clock_gettime(CLOCK_MONOTONIC, &ts);
                     srand((time_t) ts.tv_nsec);
                     r = rand() % 1000;
-                    if (r > 498 && r < 500) { /* fire! */
-                        nm_si_t bullet = (nm_si_t) {
-                            .pos_x = e->pos_x + 1,
-                            .pos_y = e->pos_y + 1,
-                            .health = 0,
-                            .hit = false,
-                            .type = NM_SI_BULLET
-                        };
-                        nm_vect_insert(&en_bullets, &bullet,
-                                sizeof(nm_si_t), NULL);
+                    if (boss_active) {
+                        if (r > 490 && r < 500 && e->pos_x != 1 &&
+                                e->pos_x != max_x - 6) {
+                            change_dir = true;
+                        }
+                        if (r > 480 && r < 500) { /* fire! */
+                            nm_si_t bullet = (nm_si_t) {
+                                .pos_x = e->pos_x + 2,
+                                .pos_y = e->pos_y + 1,
+                                .health = 0,
+                                .hit = false,
+                                .type = NM_SI_BULLET
+                            };
+                            nm_vect_insert(&en_bullets, &bullet,
+                                    sizeof(nm_si_t), NULL);
+                        }
+                    } else {
+                        if (r > 498 && r < 500) { /* fire! */
+                            nm_si_t bullet = (nm_si_t) {
+                                .pos_x = e->pos_x + 1,
+                                .pos_y = e->pos_y + 1,
+                                .health = 0,
+                                .hit = false,
+                                .type = NM_SI_BULLET
+                            };
+                            nm_vect_insert(&en_bullets, &bullet,
+                                    sizeof(nm_si_t), NULL);
+                        }
                     }
                 }
 
@@ -309,17 +371,15 @@ static void nm_si_game(void)
         if (enemies.n_memb && change_dir) {
             for (size_t n = 0; n < enemies.n_memb; n++) {
                 nm_si_t *e = nm_vect_at(&enemies, n);
-                e->pos_y += 1;
+                if (!boss_active) {
+                    e->pos_y += 1;
+                }
                 if (e->pos_y == max_y - 2) {
                     play = false;
                 }
             }
 
-            if (!direction) {
-                direction = 1;
-            } else {
-                direction = 0;
-            }
+            direction = !direction;
             change_dir = false;
         }
 
