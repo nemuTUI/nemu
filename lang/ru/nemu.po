@@ -15,7 +15,7 @@ msgstr ""
 #: nm_vm_control.c:1200
 #, c-format
 msgid "%s viewer: port is not set"
-msgstr ""
+msgstr "%s сервис отображения виртуальной машины: не задан порт"
 
 #: nm_vector.c:10 nm_vector.c:36
 #, c-format
@@ -25,7 +25,7 @@ msgstr "%s: нулевой указатель на вектор"
 #: nm_utils.c:402
 #, c-format
 msgid "%s: bad format: %%%c"
-msgstr ""
+msgstr "%s: неверно задан формат: %%%c"
 
 #: nm_string.c:142 nm_string.c:158 nm_string.c:185
 #, fuzzy, c-format
@@ -45,12 +45,12 @@ msgstr "%s: не могу создать директорию %s: %s"
 #: nm_svg_map.c:36
 #, fuzzy, c-format
 msgid "%s: cannot create graphviz ctx"
-msgstr "%s: ошибка создания потока"
+msgstr "%s: ошибка создания graphviz ctx"
 
 #: nm_add_drive.c:129 nm_add_vm.c:460 nm_ovf_import.c:723
 #, c-format
 msgid "%s: cannot create image file"
-msgstr "%s: не согу создать файл диска"
+msgstr "%s: не могу создать файл диска"
 
 #: nm_add_vm.c:183 nm_clone_vm.c:96 nm_ovf_import.c:229 nm_rename_vm.c:95
 #: nm_vm_snapshot.c:146 nm_vm_snapshot.c:271 nm_vm_snapshot.c:361
@@ -61,27 +61,27 @@ msgstr "%s: ошибка создания потока"
 #: nm_ncurses.c:46
 #, fuzzy, c-format
 msgid "%s: cannot create window"
-msgstr "%s: ошибка создания потока"
+msgstr "%s: не могу создать окно"
 
 #: nm_vm_snapshot.c:437
 #, fuzzy, c-format
 msgid "%s: cannot delete snapshot"
-msgstr "%s: не могу открыть файл %s:%s "
+msgstr "%s: не могу удалить снапшот"
 
 #: nm_database.c:247
 #, fuzzy, c-format
 msgid "%s: cannot get database version"
-msgstr "%s: ошибка создания потока"
+msgstr "%s: не могу получить версию базы данных"
 
 #: nm_add_vm.c:326
 #, fuzzy, c-format
 msgid "%s: cannot get stat of file: %s"
-msgstr "%s: не могу отобразить файл в память %s:%s"
+msgstr "%s: не могу отобразить файл в память %s"
 
 #: nm_utils.c:361
 #, fuzzy, c-format
 msgid "%s: cannot get time"
-msgstr "%s: ошибка создания потока"
+msgstr "%s: не подскажете, который сейчас час?"
 
 #: nm_add_vm.c:192 nm_clone_vm.c:103 nm_ovf_import.c:276 nm_rename_vm.c:106
 #: nm_vm_snapshot.c:153 nm_vm_snapshot.c:277 nm_vm_snapshot.c:367
@@ -107,49 +107,49 @@ msgstr "%s: ошибка создания потока"
 #: nm_cfg_file.c:401
 #, c-format
 msgid "%s: config filepath \"%s\" ends with /"
-msgstr ""
+msgstr "%s: у вас / в конце пути конфигурационного файла \"%s\""
 
 #: nm_database.c:155
 #, c-format
 msgid "%s: database already in transaction"
-msgstr ""
+msgstr "%s: база данных уже в процессе транзакции"
 
 #: nm_database.c:66 nm_database.c:94 nm_database.c:114 nm_database.c:133
 #: nm_database.c:160 nm_database.c:180 nm_database.c:198 nm_database.c:218
 #, c-format
 msgid "%s: database error: %s"
-msgstr "%s: ошибка быза данных: %s"
+msgstr "%s: ошибка базы данных: %s"
 
 #: nm_cfg_file.c:453
 #, c-format
 msgid "%s: database filepath \"%s\" ends with /"
-msgstr ""
+msgstr "%s: у вас / в конце пути базы данных \"%s\""
 
 #: nm_database.c:90 nm_database.c:108 nm_database.c:128 nm_database.c:278
 #, fuzzy, c-format
 msgid "%s: database in transaction"
-msgstr "%s: ошибка быза данных: %s"
+msgstr "%s: база данных в процессе транзакции"
 
 #: nm_database.c:175 nm_database.c:193 nm_database.c:213
 #, fuzzy, c-format
 msgid "%s: database not in transaction"
-msgstr "%s: ошибка быза данных: %s"
+msgstr "%s: база данных не в процессе транзакции"
 
 #: nm_utils.c:336 nm_utils.c:338
 #, fuzzy, c-format
 msgid "%s: failed to create directory \"%s\" (%s)"
-msgstr "%s: не могу создать директорию %s: %s"
+msgstr "%s: не смог создать директорию \"%s\" (%s)"
 
 #: nm_database.c:104 nm_database.c:124 nm_database.c:151 nm_database.c:171
 #: nm_database.c:189 nm_database.c:209 nm_database.c:274
 #, fuzzy, c-format
 msgid "%s: got NULL db_conn"
-msgstr "%s: нулевой указатель"
+msgstr "%s: ошибка: нулевой указатель на соединение с базой данных"
 
 #: nm_string.c:139 nm_string.c:155 nm_string.c:182
 #, c-format
 msgid "%s: integer overflow"
-msgstr "%s: целочисленное переполнение"
+msgstr "%s: слишком большое целочисленное"
 
 #: nm_vector.c:39
 #, c-format
@@ -169,32 +169,32 @@ msgstr "%s: некорректная длина: %d"
 #: nm_rename_vm.c:211
 #, c-format
 msgid "%s: path \"%s\" already exists"
-msgstr ""
+msgstr "%s: путь \"%s\" уже существует"
 
 #: nm_utils.c:328
 #, c-format
 msgid "%s: path \"%s\" too long"
-msgstr ""
+msgstr "%s: путь \"%s\" слишком длинный"
 
 #: nm_database.c:22
 #, fuzzy, c-format
 msgid "%s: pthread_key_create error: %s"
-msgstr "%s: ошибка быза данных: %s"
+msgstr "%s: ошибка функции pthread_key_create: %s"
 
 #: nm_database.c:71
 #, fuzzy, c-format
 msgid "%s: pthread_once error: %s"
-msgstr "%s: ошибка быза данных: %s"
+msgstr "%s: ошибка функции pthread_once: %s"
 
 #: nm_database.c:76
 #, fuzzy, c-format
 msgid "%s: pthread_setspecific error: %s"
-msgstr "%s: ошибка быза данных: %s"
+msgstr "%s: ошибка функции pthread_setspecific: %s"
 
 #: nm_rename_vm.c:216 nm_rename_vm.c:231
 #, fuzzy, c-format
 msgid "%s: rename error: %s"
-msgstr "%s: ошибка быза данных: %s"
+msgstr "%s: не смог переименовать: %s"
 
 #: nm_network.c:432
 #, fuzzy, c-format
@@ -203,13 +203,13 @@ msgstr "%s: udev_new не смогла"
 
 #: nm_rename_vm.c:213
 #, fuzzy, c-format
-msgid "%s: stat error: %s"
-msgstr "%s: ошибка быза данных: %s"
+msgid "%s: stat(2) error: %s"
+msgstr "%s: stat(2) вернул ошибку: %s"
 
 #: nm_string.c:409
 #, c-format
 msgid "%s: string replace failed"
-msgstr ""
+msgstr "%s: ошибка замены строк"
 
 #: nm_string.c:201
 #, c-format
@@ -219,62 +219,62 @@ msgstr "%s: строка нулевой длины"
 #: nm_add_drive.c:66
 #, c-format
 msgid "%zu %s"
-msgstr ""
+msgstr "%zu %s"
 
 #: nm_ovf_import.c:254
 msgid ", press any key"
-msgstr ""
+msgstr ", нажмите любую кнопу"
 
 #: nm_main.c:222
 msgid "-d, --daemon            vm monitoring daemon"
-msgstr ""
+msgstr "-d, --daemon            демон мониторинга виртуальных машин"
 
 #: nm_main.c:217
 msgid "-f, --force-stop <name> shutdown vm"
-msgstr ""
+msgstr "-f, --force-stop <name> принудительное выключение виртуальной машины"
 
 #: nm_main.c:227
 msgid "-h, --help              show help"
-msgstr ""
+msgstr "-h, --help              помощь"
 
 #: nm_main.c:220
 msgid "-i, --info       <name> print vm info"
-msgstr ""
+msgstr "-i, --info       <name> показать информацию о виртуальной машине"
 
 #: nm_main.c:219
 #, fuzzy
 msgid "-k, --kill       <name> kill vm process"
-msgstr " k - убить процесс с гостем"
+msgstr "-k, --kill       <name> убить процесс виртуальной машины"
 
 #: nm_main.c:221
 msgid "-l, --list              list vms"
-msgstr ""
+msgstr "-l, --list              список виртуальных машин"
 
 #: nm_main.c:216
 #, fuzzy
 msgid "-p, --powerdown  <name> powerdown vm"
-msgstr " p - выключить гостя"
+msgstr "-p, --powerdown  <name> завершение работы виртуальной машины"
 
 #: nm_main.c:215
 msgid "-s, --start      <name> start vm"
-msgstr ""
+msgstr "-s, --start      <name> запустить работу виртуальной машины"
 
 #: nm_main.c:226
 msgid "-v, --version           show version"
-msgstr ""
+msgstr "-v, --version           текущая версия"
 
 #: nm_main.c:218
 msgid "-z, --reset      <name> reset vm"
-msgstr ""
+msgstr "-z, --reset      <name> перезапустить виртуальную машину"
 
 #: nm_add_drive.c:46
 #, fuzzy
 msgid "Add virtual drive"
-msgstr " a - добавить виртуальный диск"
+msgstr "Добавить виртуальный диск"
 
 #: nm_usb_plug.c:317
 msgid "Already attached, press any key"
-msgstr ""
+msgstr "Уже запущено, нажмите любую кнопку"
 
 #: nm_vm_control.c:57
 msgid "Already installed (y/n)"
@@ -283,7 +283,7 @@ msgstr "Уже установлен (y/n)"
 #: nm_main_loop.c:187 nm_main_loop.c:195
 #, fuzzy
 msgid "Already running, press any key"
-msgstr "гость уже работает"
+msgstr "Гость уже работает, нажмите любую кнопку"
 
 #: nm_add_vm.c:17 nm_add_vm.c:298 nm_ovf_import.c:36
 msgid "Architecture"
@@ -292,7 +292,7 @@ msgstr "Архитектура"
 #: nm_usb_plug.c:43
 #, fuzzy
 msgid "Attach USB device"
-msgstr "USB устройство"
+msgstr "Вставьте USB устройство"
 
 #: nm_ini_parser.c:118
 msgid "Bad INI file: missing \"]\" at section name"
@@ -304,20 +304,20 @@ msgstr "CPU ядра"
 
 #: nm_add_vm.c:18 nm_edit_vm.c:17
 msgid "CPU count"
-msgstr ""
+msgstr "Количество ядер CPU"
 
 #: nm_cfg_file.c:431
 #, c-format
 msgid "Cannot create VM storage directory %s: %s\n"
-msgstr "Не смог создать директорию %s: %s\n"
+msgstr "Не смог создать директорию для хранения данных виртуальной машины %s: %s\n"
 
 #: nm_ovf_import.c:249
 msgid "Cannot create new XPath context, press any key"
-msgstr ""
+msgstr "Не смог создать новый контекст XPath, нажмите любую кнопку"
 
 #: nm_add_drive.c:265
 msgid "Cannot delete drive from filesystem, press any key"
-msgstr ""
+msgstr "Не смог удалить диск из файловой системы, нажмите любую кнопку"
 
 #: nm_utils.c:88
 #, c-format
@@ -327,7 +327,7 @@ msgstr "Не могу узнать информацию о файле %s:%s"
 #: nm_machine.c:114
 #, c-format
 msgid "Cannot get mach for %-6s  . Error was logged"
-msgstr ""
+msgstr "Не могу поять тип виртуальной машины %-6s  . Ошибка внесена в журнал ошибок (логи)"
 
 #: nm_utils.c:82
 #, c-format
@@ -336,17 +336,17 @@ msgstr "Не могу открыть файл %s:%s"
 
 #: nm_ovf_import.c:244
 msgid "Cannot parse OVF file, press any key"
-msgstr ""
+msgstr "Не могу разобрать OVF file, нажмите любую кнопку"
 
 #: nm_database.c:255
 #, c-format
 msgid "Cannot update database\n"
-msgstr ""
+msgstr "Не могу обновить базу данных\n"
 
 #: nm_clone_vm.c:35
 #, fuzzy
 msgid "Clone VM"
-msgstr "Клонировать "
+msgstr "Клонировать виртуальную машину"
 
 #: nm_cfg_file.c:373
 #, c-format
@@ -355,45 +355,45 @@ msgstr "Конфигурационный файл \"%s\" не найден.\n"
 
 #: nm_main_loop.c:344
 msgid "Confirm deletion? (y/n)"
-msgstr ""
+msgstr "Продолжить удаление? (y/n)"
 
 #: nm_form.c:627
 msgid "Contents of field is invalid, press any key"
-msgstr ""
+msgstr "Содержимое полей неприемлемо, нажмите любую кнопку"
 
 #: nm_vm_snapshot.c:75
 #, fuzzy
 msgid "Create VM snapshot"
-msgstr "Нет доступных снепшотов"
+msgstr "Создать снапшот виртуальной машины"
 
 #: nm_database.c:252
 #, c-format
 msgid "Database version is not up do date. I will try to update it.\n"
-msgstr ""
+msgstr "Версия базы данных не актуальна. Я попробую её обновить.\n"
 
 #: nm_vm_snapshot.c:88
 #, fuzzy
 msgid "Delete VM snapshot"
-msgstr "Нет доступных снепшотов"
+msgstr "Удалить снапшот виртуальной машины"
 
 #: nm_add_drive.c:231 nm_add_drive.c:241
 #, fuzzy
 msgid "Delete virtual drive"
-msgstr " v - удалить виртуальный диск"
+msgstr " Удалить виртуальный диск"
 
 #: nm_usb_plug.c:62
 #, fuzzy
 msgid "Detach USB device"
-msgstr "USB устройство"
+msgstr "Извлечь USB устройство"
 
 #: nm_usb_plug.c:13
 msgid "Device"
-msgstr ""
+msgstr "Устройство"
 
 #: nm_add_drive.c:14 nm_add_vm.c:24 nm_add_vm.c:304 nm_edit_vm.c:24
 #: nm_edit_vm.c:320
 msgid "Discard mode"
-msgstr ""
+msgstr "Сбросить настройки"
 
 #: nm_add_vm.c:302
 msgid "Disk"
@@ -409,38 +409,38 @@ msgstr "Интерфейс дисков"
 
 #: nm_viewer.c:37
 msgid "Display type"
-msgstr ""
+msgstr "Тип дисплея"
 
 #: nm_add_drive.c:13
 msgid "Drive interface"
-msgstr ""
+msgstr "Интерфейс устройств"
 
 #: nm_window.c:139
 #, fuzzy
 msgid "Drive list"
-msgstr "Диск"
+msgstr "Список устройств"
 
 #: nm_edit_boot.c:53
 #, fuzzy
 msgid "Edit boot settings"
-msgstr " настройка загрузки"
+msgstr "Настройка загрузки"
 
 #: nm_viewer.c:75
 #, fuzzy
 msgid "Edit display settings"
-msgstr " e - править натсройки гостя"
+msgstr "Править настройки экрана"
 
 #: nm_edit_vm.c:68
 msgid "Edit properties"
-msgstr ""
+msgstr "Править характеристики"
 
 #: nm_usb_plug.c:287 nm_usb_plug.c:340
 msgid "Empty device name, press any key"
-msgstr ""
+msgstr "Пустое имя устро1ства, нажмите любую кнопку"
 
 #: nm_9p_share.c:27
 msgid "Enable sharing"
-msgstr "Включить"
+msgstr "Разрешить совместное использование"
 
 #: nm_cfg_file.c:122
 #, c-format
@@ -453,19 +453,19 @@ msgstr "Не смог получить пользовательский ввод
 
 #: nm_qmp_control.c:540
 msgid "Error send message to QMP socket, press any key"
-msgstr ""
+msgstr "Ошибка отправки сообщения на сокет QMP, нажмите любую кнопку"
 
 #: nm_edit_vm.c:28
 msgid "Extra QEMU args"
-msgstr ""
+msgstr "Дополнительные аргументы QEMU"
 
 #: nm_edit_boot.c:18
 msgid "Freeze after start"
-msgstr ""
+msgstr "Приостановить после запуска"
 
 #: nm_edit_boot.c:17
 msgid "GDB debug port"
-msgstr ""
+msgstr "Порт отладки GDB"
 
 #: nm_cfg_file.c:377
 #, c-format
@@ -473,28 +473,28 @@ msgid ""
 "Generate cfg? (y/n)\n"
 "> "
 msgstr ""
-"Сгененировать файл? (y/n)\n"
+"Сгененировать конфигурационный файл? (y/n)\n"
 "> "
 
 #: nm_edit_vm.c:29
 msgid "Group"
-msgstr ""
+msgstr "Группа"
 
 #: nm_main_loop.c:147
 msgid "Group does not exists, press any key"
-msgstr ""
+msgstr "Группа не существует, нажмите любую кнопку"
 
 #: nm_edit_vm.c:314
 msgid "Host CPU"
-msgstr ""
+msgstr "CPU хозяина"
 
 #: nm_edit_vm.c:21
 msgid "Host CPU [yes/no]"
-msgstr ""
+msgstr "CPU хозяина [yes/no]"
 
 #: nm_edit_vm.c:337 nm_edit_vm.c:356
 msgid "Host CPU requires KVM enabled, press any key"
-msgstr ""
+msgstr "CPU хозяина требует включить KVM, нажмите любую кнопку"
 
 #: nm_edit_net.c:47
 msgid "IPv4 address"
@@ -502,80 +502,81 @@ msgstr "IPv4 адрес"
 
 #: nm_vm_control.c:386
 msgid "ISO path does not exist, press any key"
-msgstr ""
+msgstr "Путь ISO не существует, нажмите любую клавишу"
 
 #: nm_edit_boot.c:234 nm_vm_control.c:357
 msgid "ISO/IMG path not set, press any key"
-msgstr ""
+msgstr "Путь ISO/IMG не установлен, нажмите любую клавишу"
 
 #: nm_window.c:132
 msgid "Iface list"
-msgstr ""
+msgstr "Список интерфейсов"
 
 #: nm_ovf_import.c:155
 #, fuzzy
 msgid "Import OVA image"
-msgstr "Импортировать диск"
+msgstr "Импортировать образ OVA"
 
 #: nm_add_vm.c:83
 #, fuzzy
 msgid "Import drive image"
-msgstr "Импортировать диск"
+msgstr "Импортировать образ диска"
 
 #: nm_ovf_import.c:490
 msgid "Incorrect OVF version, press any key"
-msgstr ""
+msgstr "Неправильная версия OVF, нажмите любую кнопку"
 
 #: nm_add_drive.c:119
 msgid "Incorrect drive size, press any key"
-msgstr ""
+msgstr "Неправильный размер диска, попробуй ещё раз"
 
 #: nm_add_vm.c:80
 #, fuzzy
 msgid "Install VM"
-msgstr "Инсталлировать гостя"
+msgstr "Установить виртуальную машину"
 
 #: nm_string.c:479 nm_string.c:483
 msgid "Integer overflow"
-msgstr ""
+msgstr "Слишком большое целочисленное"
 
 #: nm_string.c:427 nm_string.c:453 nm_string.c:457
 msgid "Integer overflow\n"
-msgstr ""
+msgstr "Слишком большое целочисленное\n"
 
 #: nm_edit_net.c:97 nm_edit_net.c:116 nm_edit_net.c:170
 #, fuzzy
 msgid "Interface properties"
-msgstr "Интерфейс"
+msgstr "Характеристики интерфейса"
 
 #: nm_network.c:389
 msgid "Invalid CIDR: expected [1-32]"
-msgstr ""
+msgstr "Неверный CIDR: я ждал [1-32]"
 
 #: nm_network.c:383
 msgid "Invalid IPv4 address"
-msgstr ""
+msgstr "Неверный IPv4"
 
 #: nm_network.c:355 nm_network.c:374
 msgid "Invalid address format: expected IPv4/CIDR"
-msgstr ""
+msgstr "Неправильный формат адреса: я ждал IPv4/CIDR"
 
 #: nm_edit_net.c:452
 msgid "Invalid mac address, press any key"
-msgstr ""
+msgstr "Неправльный mac адрес, нажмите любую кнопку"
 
 #: nm_edit_net.c:466
 msgid ""
 "Invalid portfwd value, format: tcp|udp::[1-65535]-:[1-65535], press any key"
 msgstr ""
+"Неправильное значение  portfwd, формат: tcp|udp::[1-65535]-:[1-65535], нажмите любую кнопку"
 
 #: nm_edit_vm.c:312
 msgid "KVM"
-msgstr ""
+msgstr "KVM"
 
 #: nm_edit_vm.c:20
 msgid "KVM [yes/no]"
-msgstr ""
+msgstr "KVM [yes/no]"
 
 #: nm_edit_boot.c:15
 msgid "Kernel cmdline"
@@ -583,7 +584,7 @@ msgstr "Аргументы ядра"
 
 #: nm_vm_snapshot.c:21
 msgid "Load at next boot"
-msgstr ""
+msgstr "Загрузка при следующем запуске"
 
 #: nm_edit_net.c:46 nm_edit_net.c:437
 msgid "Mac address"
@@ -595,11 +596,11 @@ msgstr "Тип машины"
 
 #: nm_usb_plug.c:294 nm_usb_plug.c:347
 msgid "Malformed input data, press any key"
-msgstr ""
+msgstr "Неправильно введенные данные, нажмите любую кнопку"
 
 #: nm_string.c:504
 msgid "Malformed nm_str_t data"
-msgstr ""
+msgstr "Неправильно введенные данные nm_str_t"
 
 #: nm_add_vm.c:300 nm_edit_vm.c:310
 msgid "Memory"
@@ -611,7 +612,7 @@ msgstr "Память [4-"
 
 #: nm_ini_parser.c:197 nm_ini_parser.c:225
 msgid "NULL list head pointer"
-msgstr ""
+msgstr "Пустой указатель на заголовок списка"
 
 #: nm_add_vm.c:16 nm_add_vm.c:297 nm_clone_vm.c:14
 msgid "Name"
@@ -619,7 +620,7 @@ msgstr "Имя"
 
 #: nm_ovf_import.c:37
 msgid "Name (optional)"
-msgstr ""
+msgstr "Имя (опционально)"
 
 #: nm_9p_share.c:29
 msgid "Name of the share"
@@ -635,11 +636,11 @@ msgstr "Сетевые интерфейсы"
 
 #: nm_rename_vm.c:10
 msgid "New VM name"
-msgstr ""
+msgstr "Новое имя виртуальной машины"
 
 #: nm_add_drive.c:193
 msgid "No additional disks, press any key"
-msgstr ""
+msgstr "Нет дополнительных дисков, нажмите любую кнопку"
 
 #: nm_edit_net.c:134
 #, fuzzy
@@ -648,11 +649,11 @@ msgstr "Нет сетевых интерфейсов"
 
 #: nm_add_vm.c:331
 msgid "No space left for importing drive image, press any key"
-msgstr ""
+msgstr "Не осталось места для образа импортируемого устройства, нажмите любую кнопку"
 
 #: nm_vm_control.c:1138
 msgid "No unused ifaces, press any key"
-msgstr ""
+msgstr "Нет используемых интерфейсов, нажмите любую кнопку"
 
 #: nm_edit_boot.c:11 nm_edit_boot.c:225
 msgid "OS Installed"
@@ -660,11 +661,11 @@ msgstr "ОС Установлена"
 
 #: nm_ovf_import.c:237
 msgid "OVF file is not found, press any key"
-msgstr ""
+msgstr "Файл OVF не найден, нажмите любую кнопку"
 
 #: nm_ovf_import.c:38
 msgid "OVF version"
-msgstr ""
+msgstr "Версия OVF"
 
 #: nm_edit_boot.c:13
 msgid "Path to BIOS"
@@ -676,7 +677,7 @@ msgstr "Путь до ISO/IMG"
 
 #: nm_ovf_import.c:35
 msgid "Path to OVA"
-msgstr ""
+msgstr "Путь до OVA"
 
 #: nm_9p_share.c:28
 msgid "Path to directory"
@@ -684,11 +685,11 @@ msgstr "Путь до директории"
 
 #: nm_cfg_file.c:464
 msgid "Path to directory, where QEMU binary can be found"
-msgstr ""
+msgstr "Путь до директории, в которой я смог бы найти бинарный файл QEMU?"
 
 #: nm_add_vm.c:25
 msgid "Path to disk image"
-msgstr "Путь до диска"
+msgstr "Путь до образа диска"
 
 #: nm_edit_boot.c:16
 msgid "Path to initrd"
@@ -700,11 +701,11 @@ msgstr "Путь до ядра"
 
 #: nm_edit_net.c:54
 msgid "Port forwarding"
-msgstr ""
+msgstr "Пересылка порта"
 
 #: nm_window.c:145
 msgid "Properties"
-msgstr ""
+msgstr "Характеристики"
 
 #: nm_cfg_file.c:466
 msgid "QEMU system targets list, separated by comma"
@@ -712,65 +713,64 @@ msgstr "Список установленных целей QEMU, разделе�
 
 #: nm_qmp_control.c:376
 msgid "QMP: cannot connect to socket, press any key"
-msgstr ""
+msgstr "QMP: не могу связаться с сокетом, нажмите любую кнопку"
 
 #: nm_qmp_control.c:364
 #, fuzzy
 msgid "QMP: cannot create socket, press any key"
-msgstr "%s: ошибка создания потока"
+msgstr "QMP: ошибка создания сокета, нажмите любую кнопку"
 
 #: nm_qmp_control.c:370
 msgid "QMP: cannot set socket options, press any key"
-msgstr ""
+msgstr "QMP: не могу установить опции сокета, нажмите любую кнопку"
 
 #: nm_qmp_control.c:575
 msgid "QMP: execute error, press any key"
-msgstr ""
+msgstr "QMP: ошибка исполнения, нажмите любую кнопку"
 
 #: nm_qmp_control.c:567
 msgid "QMP: no answer, press any key"
-msgstr ""
+msgstr "QMP: он со мной не разговаривает, нажмите любую кнопку"
 
 #: nm_rename_vm.c:34 nm_rename_vm.c:70
 msgid "Rename VM"
-msgstr ""
+msgstr "Переименовать виртуальную машину"
 
 #: nm_vm_snapshot.c:81
 #, fuzzy
 msgid "Revert VM snapshot"
-msgstr " x - откатиться на снепшот"
+msgstr "Откатиться на снепшот"
 
 #: nm_cfg_file.c:462
 msgid "SPICE client arguments"
-msgstr ""
+msgstr "Аргументы клиента SPICE"
 
 #: nm_cfg_file.c:461
 #, fuzzy
 msgid "SPICE client path(enter \"/bin/false\" if you connect other way)"
 msgstr ""
-"Путь до VNC клиента (введите \"/bin/false\" если будете подключаться другим "
-"способом)"
+"Путь до SPICE клиента (введите \"/bin/false\" если будете подключаться другим способом)"
 
 #: nm_viewer.c:34
 msgid "Serial TTY"
-msgstr ""
+msgstr "Перенаправление серийного порта TTY"
 
 #: nm_viewer.c:35
 msgid "Serial socket"
-msgstr "Serial сокет"
+msgstr "Перенаправление серийного сокета"
 
 #: nm_edit_net.c:55
 msgid "Share folder"
-msgstr ""
+msgstr "Поделиться папкой"
 
 #: nm_9p_share.c:59
 #, fuzzy
 msgid "Share host filesystem (9pfs)"
-msgstr " h - общие файловые ресурсы"
+msgstr "Поделиться файловой системой хозяина (9fps)"
 
 #: nm_add_drive.c:15
 msgid "Size [1-"
-msgstr ""
+msgstr "Размер [1-"
 
 #: nm_vm_snapshot.c:22
 msgid "Snapshot"
@@ -782,64 +782,64 @@ msgstr "Имя снепшота"
 
 #: nm_vm_control.c:572
 msgid "Socket is already used!, press any key"
-msgstr ""
+msgstr "Сокет уже задействован, нажмите любую кнопку"
 
 #: nm_ovf_import.c:279 nm_vm_control.c:177
 msgid "Some files was not deleted!, press any key"
-msgstr ""
+msgstr "Некоторые файлы не были удалены, нажмите любую кнопку"
 
 #: nm_viewer.c:29
 msgid "Spice server"
-msgstr ""
+msgstr "Сервер SPICE"
 
 #: nm_main_loop.c:296 nm_main_loop.c:312 nm_main_loop.c:320
 msgid "Start daemon: nemu --daemon, press any key"
-msgstr ""
+msgstr "Запуск демона: nemu --daemon, нажмите любую кнопку"
 
 #: nm_vm_control.c:90
 msgid "Start failed, error was logged, press any key"
-msgstr ""
+msgstr "Не смогла запустить, ошибку внесла в журнал, нажмите любую кнопку"
 
 #: nm_viewer.c:36
 msgid "Sync mouse position"
-msgstr ""
+msgstr "Синхронизировать курсор"
 
 #: nm_vm_control.c:604
 msgid "TTY is missing!, press any key"
-msgstr ""
+msgstr "Нет TTY, нажмите любую кнопку"
 
 #: nm_vm_control.c:611
 msgid "TTY is not terminal!, press any key"
-msgstr ""
+msgstr "TTY это вам не терминал, нажмите любую кнопку"
 
 #: nm_usb_plug.c:157
 msgid "There are no devices attached, press any key"
-msgstr ""
+msgstr "Нет вставленных устройств, нажмите любую кнопку"
 
 #: nm_vm_snapshot.c:218 nm_vm_snapshot.c:308
 #, fuzzy
 msgid "There are no snapshots, press any key"
-msgstr "Нет доступных снепшотов"
+msgstr "Нет доступных снепшотов, нажмите любую кнопку"
 
 #: nm_usb_plug.c:91
 msgid "There are no usb devices, press any key"
-msgstr ""
+msgstr "Нет USB устройств, нажмите любую кнопку"
 
 #: nm_form.c:901
 msgid "These fields cannot be empty:"
-msgstr ""
+msgstr "Эти поля не могут быть пустыми:"
 
 #: nm_edit_net.c:458
 msgid "This mac address is already used, press any key"
-msgstr ""
+msgstr "Это мак адрес уже задействован, нажмите любую кнопку"
 
 #: nm_vm_snapshot.c:484
 msgid "This name is already used, delete it first, press any key"
-msgstr ""
+msgstr "Это имя уже задействовано, сначала удалите его, нажмите любую кнопку"
 
 #: nm_form.c:927
 msgid "This name is already used, press any key"
-msgstr ""
+msgstr "Это имя уже задействовано, нажмите любую кнопку"
 
 #: nm_cfg_file.c:433
 #, c-format
@@ -852,7 +852,7 @@ msgstr ""
 
 #: nm_edit_vm.c:322
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: nm_edit_vm.c:25
 msgid "USB [yes/no]"
@@ -860,28 +860,28 @@ msgstr ""
 
 #: nm_usb_plug.c:84
 msgid "USB must be enabled at boot time, press any key"
-msgstr ""
+msgstr "USB должен быть доступен во время загрузки, нажмите любую кнопку"
 
 #: nm_edit_vm.c:26 nm_edit_vm.c:324
 msgid "USB version"
-msgstr ""
+msgstr "Версия USB"
 
 #: nm_vm_control.c:1138
 msgid "Unused ifaces deleted, press any key"
-msgstr ""
+msgstr "Неиспользованные интерфейсф удалены, нажмите любую кнопку"
 
 #: nm_edit_net.c:53 nm_edit_net.c:445
 msgid "User mode"
-msgstr ""
+msgstr "Режим пользователя"
 
 #: nm_window.c:116
 msgid "VM list"
-msgstr ""
+msgstr "Список виртуальных машин"
 
 #: nm_main_loop.c:250 nm_main_loop.c:273 nm_main_loop.c:328 nm_main_loop.c:340
 #, fuzzy
 msgid "VM must be stopped, press any key"
-msgstr "Гость не выключен"
+msgstr "Гость не выключен, нажмите любую кнопку"
 
 #: nm_cfg_file.c:451
 msgid "VM settings database path"
@@ -893,7 +893,7 @@ msgstr "Директория для хранения виртуальных ма
 
 #: nm_cfg_file.c:458
 msgid "VNC client arguments"
-msgstr ""
+msgstr "Аргументы VNC клиента"
 
 #: nm_cfg_file.c:457
 #, fuzzy
@@ -904,15 +904,15 @@ msgstr ""
 
 #: nm_viewer.c:30
 msgid "VNC/Spice port"
-msgstr ""
+msgstr "Порт VNC/SPICE"
 
 #: nm_form.c:372 nm_main_loop.c:382 nm_window.c:710
 msgid "Window size to small, press any key"
-msgstr ""
+msgstr "Размер окна слишком мал, нажмите любую кнопку"
 
 #: nm_form.c:654
 msgid "Window too small"
-msgstr ""
+msgstr "Окно маловато"
 
 #: nm_cfg_file.c:374
 #, c-format
@@ -939,17 +939,17 @@ msgstr ""
 #: nm_cfg_file.c:576 nm_cfg_file.c:589
 #, c-format
 msgid "cfg error: %s->%s is empty"
-msgstr ""
+msgstr "cfg ошибка: %s->%s is empty"
 
 #: nm_cfg_file.c:574
 #, c-format
 msgid "cfg error: %s->%s is missing"
-msgstr ""
+msgstr "cfg ошибка: %s->%s is missing"
 
 #: nm_cfg_file.c:148 nm_cfg_file.c:197
 #, c-format
 msgid "cfg: %s is not a directory"
-msgstr ""
+msgstr "cfg: %s это не директория"
 
 #: nm_cfg_file.c:221
 #, c-format
@@ -959,32 +959,32 @@ msgstr ""
 #: nm_cfg_file.c:328
 #, c-format
 msgid "cfg: incorrect D-Bus timeout value %ld"
-msgstr ""
+msgstr "cfg: неправильное значение времени ожидания D-Bus %ld"
 
 #: nm_cfg_file.c:256
 #, c-format
 msgid "cfg: incorrect color value %s, example:5fafff"
-msgstr ""
+msgstr "cfg: неправильное значение цвета %s, пример:5fafff"
 
 #: nm_cfg_file.c:273
 #, c-format
 msgid "cfg: incorrect cursor style value %d"
-msgstr ""
+msgstr "cfg: неправильное значение стиля курсора %d"
 
 #: nm_cfg_file.c:269
 #, c-format
 msgid "cfg: incorrect cursor style value %s, example:1"
-msgstr ""
+msgstr "cfg: неправильное значение стиля курсора %s, пример:1"
 
 #: nm_cfg_file.c:199 nm_cfg_file.c:206
 #, c-format
 msgid "cfg: no read + exec access to %s"
-msgstr ""
+msgstr "cfg: нет доступа на чтение и исполнение для %s"
 
 #: nm_cfg_file.c:133 nm_cfg_file.c:150 nm_cfg_file.c:159 nm_cfg_file.c:250
 #, c-format
 msgid "cfg: no write access to %s"
-msgstr ""
+msgstr "cfg: нет прав на чтение для %s"
 
 #: nm_window.c:718 nm_window.c:745
 #, c-format
@@ -1003,11 +1003,11 @@ msgstr ""
 
 #: nm_window.c:125
 msgid "veth list"
-msgstr ""
+msgstr "список интерфейсов veth"
 
 #: nm_window.c:197
 msgid "window to small"
-msgstr ""
+msgstr "уменьшить окно"
 
 #~ msgid "Enter - select a choice, ESC - exit"
 #~ msgstr "Выбрать - ввод, выйти - ESC"
