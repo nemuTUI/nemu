@@ -450,13 +450,15 @@ static int nm_qmp_check_job(const char *jobid, const nm_str_t *answer)
     parsed = json_tokener_parse(answer->data);
     if (!parsed) {
         nm_debug("%s: [more] need more data\n", __func__);
-        return NM_QMP_STATE_MORE;
+        state = NM_QMP_STATE_MORE;
+        goto out;
     }
 
     json_object_object_get_ex(parsed, "return", &ret);
     if (ret == NULL) {
         nm_debug("%s: [next] need more data\n", __func__);
-        return NM_QMP_STATE_NEXT;
+        state = NM_QMP_STATE_NEXT;
+        goto out;
     }
 
     /* skip {"return": {}} */

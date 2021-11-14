@@ -15,7 +15,6 @@ void nm_print_snapshots(const nm_vect_t *v);
 void nm_print_cmd(const nm_str_t *name);
 void nm_print_help(void);
 void nm_lan_help(void);
-void nm_print_nemu(void);
 void nm_create_windows(void);
 void nm_destroy_windows(void);
 void nm_init_action(const char *msg);
@@ -167,6 +166,8 @@ enum nm_key {
     NM_KEY_PLUS     = 43,
     NM_KEY_MINUS    = 45,
     NM_KEY_SLASH    = 47,
+    NM_KEY_PREV     = 91,
+    NM_KEY_NEXT     = 93,
     NM_KEY_A = 97,
     NM_KEY_B = 98,
     NM_KEY_C = 99,

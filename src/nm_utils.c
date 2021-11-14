@@ -20,6 +20,9 @@ enum {
     NM_SOCK_READLEN = 1024,
 };
 
+static int nemu_rc;
+static char nemu_path[PATH_MAX];
+
 #if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
 #include <sys/sendfile.h>
 #endif
@@ -309,13 +312,18 @@ void nm_parse_smp(nm_cpu_t *cpu, const char *src)
     nm_str_free(&buf);
 }
 
-//@TODO call on SIGINT
 void nm_exit(int status)
 {
     if(nm_db_in_transaction())
         nm_db_rollback();
 
+    nemu_rc = status;
     exit(status);
+}
+
+int nm_rc()
+{
+    return nemu_rc;
 }
 
 int nm_mkdir_parent(const nm_str_t *path, mode_t mode)
@@ -346,6 +354,15 @@ int nm_mkdir_parent(const nm_str_t *path, mode_t mode)
     nm_str_free(&buf);
     nm_vect_free(&path_tok, NULL);
     return rc;
+}
+
+const char *nm_nemu_path()
+{
+    if (readlink("/proc/self/exe", nemu_path, PATH_MAX) < 0)
+        nm_bug(_("%s: failed getting nemu binary path (%s)"),
+            __func__, strerror(errno)
+        );
+    return nemu_path;
 }
 
 void nm_get_time(nm_str_t *res, const char *fmt)

@@ -30,6 +30,27 @@ void nm_vect_insert(nm_vect_t *v, const void *data, size_t len, nm_vect_ins_cb_p
     v->n_memb++;
 }
 
+void nm_vect_delete(nm_vect_t *v, size_t index, nm_vect_free_cb_pt cb)
+{
+    if (v == NULL)
+        nm_bug(_("%s: NULL vector pointer value"), __func__);
+
+    if (index >= v->n_memb)
+        nm_bug(_("%s: invalid index"), __func__);
+
+    if (cb != NULL) {
+        cb(v->data[index]);
+    }
+    free(v->data[index]);
+
+    if (v->n_memb > 1 && index != v->n_memb - 1) {
+        memmove(v->data + index, v->data + index + 1,
+                sizeof(void *) * (v->n_memb - index - 1));
+    }
+
+    v->n_memb--;
+}
+
 void *nm_vect_at(const nm_vect_t *v, size_t index)
 {
     if (v == NULL)

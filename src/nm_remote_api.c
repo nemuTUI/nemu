@@ -7,7 +7,11 @@
 #include <nm_vm_control.h>
 #include <nm_database.h>
 #include <nm_utils.h>
+#include <nm_form.h>
 
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
@@ -35,6 +39,7 @@ static void nm_api_md_vmstart(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmstop(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmforcestop(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmgetconnectport(struct json_object *request, nm_str_t *reply);
+static void nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply);
 
 static nm_api_ops_t nm_api[] = {
     { .method = "nemu_version",        .run = nm_api_md_nemu_version     },
@@ -44,7 +49,8 @@ static nm_api_ops_t nm_api[] = {
     { .method = "vm_start",            .run = nm_api_md_vmstart          },
     { .method = "vm_stop",             .run = nm_api_md_vmstop           },
     { .method = "vm_force_stop",       .run = nm_api_md_vmforcestop      },
-    { .method = "vm_get_connect_port", .run = nm_api_md_vmgetconnectport }
+    { .method = "vm_get_connect_port", .run = nm_api_md_vmgetconnectport },
+    { .method = "vm_get_settings",     .run = nm_api_md_vmgetsettings    }
 };
 
 void *nm_api_server(void *ctx)
@@ -107,6 +113,12 @@ void *nm_api_server(void *ctx)
                         }
                         break;
                     }
+                    if (fcntl(cl_sd, F_SETFD, FD_CLOEXEC) == -1) {
+                        nm_debug("%s: fcntl error: %s\n",
+                                __func__, strerror(errno));
+                        goto out;
+                    }
+
                     nm_debug("%s: connect to API from: %s\n",
                             __func__, inet_ntoa(cl_addr.sin_addr));
                     fds[nfds].fd = cl_sd;
@@ -155,7 +167,9 @@ out:
             close(fds[i].fd);
         }
     }
+
     SSL_CTX_free(tls_ctx);
+    nm_db_close();
 
     pthread_exit(NULL);
 }
@@ -293,7 +307,22 @@ static int nm_api_socket(int *sock)
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(nm_cfg_get()->api_port);
-    addr.sin_addr.s_addr = INADDR_ANY;
+
+    if (!nm_cfg_get()->api_iface.len) {
+        addr.sin_addr.s_addr = INADDR_ANY;
+    } else {
+        struct ifreq ifr;
+
+        memset(&ifr, 0, sizeof(ifr));
+        strncpy(ifr.ifr_name, nm_cfg_get()->api_iface.data, IFNAMSIZ - 1);
+
+        if (ioctl(sd, SIOCGIFADDR, &ifr) != 0) {
+            nm_debug("%s: cannot get addr: %s\n", __func__, strerror(errno));
+            return NM_ERR;
+        }
+
+        addr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
+    }
 
     if (bind(sd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
         nm_debug("%s: cannot bind: %s\n", __func__, strerror(errno));
@@ -338,6 +367,7 @@ static int nm_api_check_auth(struct json_object *request, nm_str_t *reply)
     hash_str[NM_API_SHA256_LEN - 1] = '\0';
 
     if (nm_str_cmp_st(&nm_cfg_get()->api_hash, hash_str) == NM_OK) {
+        nm_str_free(&salted_pass);
         return NM_OK;
     }
 
@@ -403,8 +433,6 @@ out:
     json_object_put(request);
 }
 
-/* FIXME nm_vmctl_start() stucks client connection in CLOSE-WAIT state
- * until VM is running */
 static void nm_api_md_vmstart(struct json_object *request, nm_str_t *reply)
 {
     int rc = nm_api_check_auth(request, reply);
@@ -575,6 +603,199 @@ nm_api_md_vmgetconnectport(struct json_object *request, nm_str_t *reply)
 out:
     nm_str_free(&query);
     nm_vect_free(&res, nm_str_vect_free_cb);
+    json_object_put(request);
+}
+
+static struct json_object *
+nm_api_json_kv_int(const char *key, int value)
+{
+    struct json_object *kv, *val;
+
+    if ((kv = json_object_new_object()) == NULL) {
+        return NULL;
+    }
+
+    if ((val = json_object_new_int(value)) == NULL) {
+        json_object_put(kv);
+        return NULL;
+    }
+
+    json_object_object_add(kv, key, val);
+
+    return kv;
+}
+
+static struct json_object *
+nm_api_json_kv_str(const char *key, const char *value)
+{
+    struct json_object *kv, *val;
+
+    if ((kv = json_object_new_object()) == NULL) {
+        return NULL;
+    }
+
+    if ((val = json_object_new_string(value)) == NULL) {
+        json_object_put(kv);
+        return NULL;
+    }
+
+    json_object_object_add(kv, key, val);
+
+    return kv;
+}
+
+static struct json_object *
+nm_api_json_kv_bool(const char *key, json_bool value)
+{
+    struct json_object *kv, *val;
+
+    if ((kv = json_object_new_object()) == NULL) {
+        return NULL;
+    }
+
+    if ((val = json_object_new_boolean(value)) == NULL) {
+        json_object_put(kv);
+        return NULL;
+    }
+
+    json_object_object_add(kv, key, val);
+
+    return kv;
+}
+
+static struct json_object *
+nm_api_json_kv_append_arr_str(struct json_object *kv, const char *key,
+        const char **values)
+{
+    struct json_object *arr;
+
+    if ((arr = json_object_new_array()) == NULL) {
+        return NULL;
+    }
+
+    while (*values) {
+        struct json_object *val = json_object_new_string(*values);
+        if (val == NULL) {
+            json_object_put(arr);
+            return NULL;
+        }
+        json_object_array_add(arr, val);
+        values++;
+    }
+
+    json_object_object_add(kv, key, arr);
+
+    return kv;
+}
+
+static void
+nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply)
+{
+    struct json_object *name, *jrep, *kv;
+    const char **disk_drivers = nm_form_drive_drv;
+    int rc = nm_api_check_auth(request, reply);
+    nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
+    nm_mon_vms_t *vms = mon_data->vms;
+    nm_str_t name_str = NM_INIT_STR;
+    nm_str_t settings = NM_INIT_STR;
+    bool vm_exist = false;
+
+    jrep = kv = NULL;
+
+    if (rc != NM_OK) {
+        goto out;
+    }
+
+    json_object_object_get_ex(request, "name", &name);
+    if (!name) {
+        nm_str_format(reply, NM_API_RET_ERR, "name param is missing");
+        goto out;
+    }
+
+    nm_str_format(&name_str, "%s", json_object_get_string(name));
+    for (size_t n = 0; n < vms->list->n_memb; n++) {
+        if (nm_str_cmp_ss(nm_mon_item_get_name(vms->list, n),
+                    &name_str) ==  NM_OK) {
+            vm_exist = true;
+            break;
+        }
+    }
+
+    if (!vm_exist) {
+        nm_str_format(reply, NM_API_RET_ERR, "VM does not exists");
+        goto out;
+    }
+
+    nm_vmctl_get_data(&name_str, &vm);
+
+    if ((jrep = json_object_new_object()) == NULL) {
+        nm_str_format(reply, NM_API_RET_ERR, "Internal error");
+        goto out;
+    }
+
+    /* CPU count */
+    if ((kv = nm_api_json_kv_str("value", nm_vect_str_ctx(&vm.main, NM_SQL_SMP)))
+            == NULL) {
+        nm_str_format(reply, NM_API_RET_ERR, "Internal error");
+        goto out;
+    }
+    json_object_object_add(jrep, "smp", kv);
+
+    /* the amount of RAM */
+    if ((kv = nm_api_json_kv_int("value", nm_str_stoui(
+                        nm_vect_str(&vm.main, NM_SQL_MEM), 10))) == NULL) {
+        nm_str_format(reply, NM_API_RET_ERR, "Internal error");
+        goto out;
+    }
+    json_object_object_add(jrep, "mem", kv);
+
+    /* KVM status */
+    if ((kv = nm_api_json_kv_bool("value",
+                    (nm_str_cmp_st(nm_vect_str(&vm.main,NM_SQL_KVM), NM_ENABLE)
+                     == NM_OK) ? TRUE : FALSE)) == NULL) {
+        nm_str_format(reply, NM_API_RET_ERR, "Internal error");
+        goto out;
+    }
+    json_object_object_add(jrep, "kvm", kv);
+
+    /* host CPU status */
+    if ((kv = nm_api_json_kv_bool("value",
+                    (nm_str_cmp_st(nm_vect_str(&vm.main,NM_SQL_HCPU), NM_ENABLE)
+                     == NM_OK) ? TRUE : FALSE)) == NULL) {
+        nm_str_format(reply, NM_API_RET_ERR, "Internal error");
+        goto out;
+    }
+    json_object_object_add(jrep, "hcpu", kv);
+
+    /* network interface count */
+    if ((kv = nm_api_json_kv_int("value",
+                    vm.ifs.n_memb / NM_IFS_IDX_COUNT)) == NULL) {
+        nm_str_format(reply, NM_API_RET_ERR, "Internal error");
+        goto out;
+    }
+    json_object_object_add(jrep, "netifs", kv);
+
+    /* disk interface driver */
+    if ((kv = nm_api_json_kv_str("value", nm_vect_str_ctx(&vm.drives,
+                        NM_SQL_DRV_TYPE))) == NULL) {
+        nm_str_format(reply, NM_API_RET_ERR, "Internal error");
+        goto out;
+    }
+    if ((kv = nm_api_json_kv_append_arr_str(kv, "value_list",
+                    disk_drivers)) == NULL) {
+        json_object_put(kv);
+        nm_str_format(reply, NM_API_RET_ERR, "Internal error");
+        goto out;
+    }
+    json_object_object_add(jrep, "disk_iface", kv);
+
+    nm_str_format(reply, "%s", json_object_to_json_string(jrep));
+
+out:
+    json_object_put(jrep);
+    nm_str_free(&name_str);
+    nm_str_free(&settings);
+    nm_vmctl_free_data(&vm);
     json_object_put(request);
 }
 

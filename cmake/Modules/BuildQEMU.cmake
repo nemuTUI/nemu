@@ -86,7 +86,7 @@ macro(build_qemu)
       --target-list=${NM_QEMU_TARGET_LIST}
     INSTALL_COMMAND
       DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/qemu
-      $(MAKE)
+      ${CMAKE_MAKE_PROGRAM}
       install)
 
 endmacro(build_qemu)

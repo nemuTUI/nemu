@@ -637,6 +637,7 @@ static inline void nm_edit_net_iface_free(nm_iface_t *ifp)
 #endif
     nm_str_free(&ifp->netuser);
     nm_str_free(&ifp->hostfwd);
+    nm_str_free(&ifp->smb);
 }
 
 /* TODO add this check in all genmaddr points */

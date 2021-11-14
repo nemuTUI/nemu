@@ -24,7 +24,6 @@
 , withNetworkMap ? false
 , withOVF ? true
 , withSpice ? true
-, withUTF ? false
 , withVNC ? true
 , withRemote ? false
 
@@ -35,13 +34,13 @@
 
 stdenv.mkDerivation rec {
   pname = "nemu";
-  version = "2021-06-13";
+  version = "unstable-2021-09-03";
 
   src = fetchFromGitHub {
     owner = "nemuTUI";
     repo = "nemu";
-    rev = "31d7ca8075a2c70268d7a1d977e9908383bc4e27";
-    sha256 = "13yx63qhwm7lbnjlyzpakxc708xm8g0yhjznlq4hcnamqk8i38hh";
+    rev = "ce526ba4e6a674c193f0d4365bf0d95c45a6ef45";
+    sha256 = "1mbg1pm10vyvy3kwkkilx466srfysqalyy2fcx5i5dxmc1zymr33";
   };
 
   system.requiredKernelConfig = with config.lib.kernelConfig; [
@@ -82,7 +81,6 @@ stdenv.mkDerivation rec {
     ++ lib.optional withNetworkMap "-DNM_WITH_NETWORK_MAP=ON"
     ++ lib.optional withOVF "-DNM_WITH_OVF_SUPPORT=ON"
     ++ lib.optional withSpice "-DNM_WITH_SPICE=ON"
-    ++ lib.optional withUTF "-DNM_USE_UTF=ON"
     ++ lib.optional withVNC "-DNM_WITH_VNC_CLIENT=ON"
     ++ lib.optional withRemote "-DNM_WITH_REMOTE=ON";
 

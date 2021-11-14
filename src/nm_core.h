@@ -24,13 +24,15 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
+#include <nm_utils.h>
 #include <nm_cfg_file.h>
 #include <nm_database.h>
+#include <nm_dbus.h>
 
 #define NM_PROGNAME "nemu"
 
 #ifndef NM_VERSION
-#define NM_VERSION "v3.0.0-RC0"
+#define NM_VERSION "v3.0.0"
 #endif
 
 #define nm_min(a, b) \
@@ -80,9 +82,12 @@ static inline void __attribute__((noreturn)) nm_exit_core()
     if (nm_db_in_transaction())
         nm_db_rollback();
 
+#if defined (NM_WITH_DBUS)
+    nm_dbus_disconnect();
+#endif
     nm_db_close();
     nm_cfg_free();
-    exit(NM_OK);
+    nm_exit(NM_OK);
 }
 static inline int compar_uint32_t(const void *a, const void *b)
 {

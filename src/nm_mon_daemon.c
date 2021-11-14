@@ -30,11 +30,9 @@ typedef struct nm_qmp_w_data {
 
 typedef struct nm_clean_data {
     nm_mon_vms_t vms;
-#if defined (NM_OS_LINUX)
     nm_vect_t *vm_list;
     pthread_t *qmp_worker;
     pthread_t *api_server;
-#endif
     nm_thr_ctrl_t qmp_ctrl;
     nm_thr_ctrl_t api_ctrl;
 } nm_clean_data_t;
@@ -43,35 +41,34 @@ typedef struct nm_clean_data {
 #define NM_CLEAN_INIT (nm_clean_data_t) \
     { NM_MON_VMS_INIT, NULL, NULL, NULL, NM_THR_CTRL_INIT, NM_THR_CTRL_INIT }
 
-#if defined (NM_OS_LINUX)
-static void nm_mon_cleanup(int rc, void *arg)
+static nm_clean_data_t *clean_ptr = NULL;
+
+static void nm_mon_cleanup(void)
 {
-    nm_clean_data_t *data = arg;
     const nm_cfg_t *cfg = nm_cfg_get();
 
-    nm_debug("mon daemon exited: %d\n", rc);
+    nm_debug("mon daemon exited: %d\n", nm_rc());
 
-    nm_vect_free(data->vms.list, NULL);
-    nm_vect_free(data->vm_list, nm_str_vect_free_cb);
+    if (!clean_ptr)
+        return;
 
-#if defined (NM_WITH_DBUS)
-    nm_dbus_disconnect();
-#endif
-    data->qmp_ctrl.stop = true;
-    pthread_join(*data->qmp_worker, NULL);
+    nm_vect_free(clean_ptr->vms.list, NULL);
+    nm_vect_free(clean_ptr->vm_list, nm_str_vect_free_cb);
+
+    clean_ptr->qmp_ctrl.stop = true;
+    pthread_join(*clean_ptr->qmp_worker, NULL);
 #if defined (NM_WITH_REMOTE)
     if (cfg->api_server) {
-        data->api_ctrl.stop = true;
-        pthread_join(*data->api_server, NULL);
+        clean_ptr->api_ctrl.stop = true;
+        pthread_join(*clean_ptr->api_server, NULL);
     }
 #endif
 
     if (unlink(cfg->daemon_pid.data) != 0) {
-        nm_debug("error delete mon daemon pidfile: %s\n", strerror(rc));
+        nm_debug("error delete mon daemon pidfile\n");
     }
     nm_exit_core();
 }
-#endif /* NM_OS_LINUX */
 
 void *nm_qmp_worker(void *data)
 {
@@ -224,24 +221,106 @@ out:
     pthread_exit(NULL);
 }
 
+static bool nm_mon_check_version(pid_t *opid)
+{
+    const char *path = nm_cfg_get()->daemon_pid.data;
+    struct stat info;
+    bool res = false;
+    char *buf, *nl;
+    int fd;
+
+    memset(&info, 0x0, sizeof(info));
+
+    if ((stat(path, &info) == -1) || (!info.st_size))
+        return false;
+
+    buf = nm_calloc(1, info.st_size + 1);
+    fd = open(path, O_RDONLY);
+    if (fd == -1) {
+        nm_debug("%s: error open pid file: %s: %s",
+                __func__, path, strerror(errno));
+        free(buf);
+        return false;
+    }
+
+    if (read(fd, buf, info.st_size) < 0) {
+        nm_debug("%s: error read pid file: %s: %s",
+                __func__, path, strerror(errno));
+        goto out;
+    }
+
+    if ((nl = strchr(buf, '\n')) != NULL) {
+        /* nEMU >= 3.0.0, check and cut version number */
+        nm_debug("%s: daemon version: %s [actual: %s]\n",
+                __func__, nl + 1, NM_VERSION);
+        if (nm_str_cmp_tt(nl + 1, NM_VERSION) != NM_OK) {
+            res = true;
+            *nl = '\0';
+            nm_debug("%s: daemon version different, need restart\n", __func__);
+        }
+    } else {
+        res = true;
+        nm_debug("%s: nEMU < 3.0.0, cannot check version,"
+                " restart anyway\n", __func__);
+    }
+
+    if (res) {
+        *opid = nm_str_ttoul(buf, 10);
+    }
+
+out:
+    close(fd);
+    free(buf);
+    return res;
+}
+
 void nm_mon_start(void)
 {
     const nm_cfg_t *cfg = nm_cfg_get();
-    pid_t pid, wpid;
+    bool need_restart = false;
+    pid_t pid, wpid, opid;
     int wstatus = 0;
 
     if (!cfg->start_daemon)
         return;
 
     if (access(cfg->daemon_pid.data, R_OK) != -1) {
-        return;
+        if ((need_restart = nm_mon_check_version(&opid)) == false) {
+            return;
+        }
+    }
+
+    if (need_restart) {
+        struct timespec ts;
+        bool restart_ok = false;
+
+        memset(&ts, 0, sizeof(ts));
+        ts.tv_nsec = 5e+7; /* 0.05sec */
+
+        if (kill(opid, SIGINT) < 0) {
+            nm_bug("%s: error send signal to pid %d: %s",
+                    __func__, opid, strerror(errno));
+        }
+
+        /* wait for daemon shutdown */
+        for (int try = 0; try < 300; try++) {
+            if (kill(opid, 0) < 0) {
+                restart_ok = true;
+                break;
+            }
+            nanosleep(&ts, NULL);
+        }
+
+        if (!restart_ok) {
+            nm_bug("%s: after 15 seconds the daemon has not exited\n", __func__);
+        }
     }
 
     pid = fork();
 
     switch (pid) {
     case 0: /* child */
-        if (execlp(NM_PROGNAME, NM_PROGNAME, "--daemon", NULL) == -1) {
+        if (execlp(nm_nemu_path(), nm_nemu_path(), "--daemon", NULL) == -1) {
             fprintf(stderr, "%s: execlp error: %s\n", __func__, strerror(errno));
             nm_exit(EXIT_FAILURE);
         }
@@ -265,7 +344,7 @@ void nm_mon_ping(void)
     int fd;
     struct stat info;
     const char *path = nm_cfg_get()->daemon_pid.data;
-    char *buf;
+    char *buf, *nl;
 
     memset(&info, 0x0, sizeof(info));
 
@@ -285,6 +364,11 @@ void nm_mon_ping(void)
         nm_debug("%s: error read pid file: %s: %s",
                 __func__, path, strerror(errno));
         goto out;
+    }
+
+    if ((nl = strchr(buf, '\n')) != NULL) {
+        /* nEMU >= 3.0.0, cut version number */
+        *nl = '\0';
     }
 
     pid = nm_str_ttoul(buf, 10);
@@ -340,17 +424,17 @@ void nm_mon_loop(void)
         nm_exit(EXIT_FAILURE);
     }
 
-#if defined (NM_OS_LINUX)
+    clean_ptr = &clean;
+
     clean.vms.list = &mon_list;
     clean.vm_list = &vm_list;
     clean.qmp_worker = &qmp_thr;
     clean.api_server = &api_srv;
 
-    if (on_exit(nm_mon_cleanup, &clean) != 0) {
+    if (atexit(nm_mon_cleanup) != 0) {
         fprintf(stderr, "%s: on_exit(3) failed\n", __func__);
         nm_exit(EXIT_FAILURE);
     }
-#endif
 
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
@@ -372,11 +456,6 @@ void nm_mon_loop(void)
 
     nm_db_init();
     nm_mon_build_list(&mon_list, &vm_list);
-#if defined (NM_WITH_DBUS)
-    if (nm_dbus_connect() != NM_OK) {
-        nm_exit(EXIT_FAILURE);
-    }
-#endif
     if (pthread_create(&qmp_thr, NULL, nm_qmp_dispatcher, &clean.qmp_ctrl) != 0) {
         nm_exit(EXIT_FAILURE);
     }
@@ -462,7 +541,7 @@ static void nm_mon_signals_handler(int signal)
     case SIGINT:
         nm_exit(EXIT_SUCCESS);
     case SIGTERM:
-        nm_exit(EXIT_FAILURE);
+        nm_exit(SIGTERM);
     }
 }
 
@@ -481,7 +560,7 @@ static int nm_mon_store_pid(void)
     }
 
     pid = getpid();
-    nm_str_format(&res, "%d", pid);
+    nm_str_format(&res, "%d\n%s", pid, NM_VERSION);
 
     if (write(fd, res.data, res.len) < 0) {
         nm_debug("%s: error save pid number\n", __func__);

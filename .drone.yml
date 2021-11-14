@@ -1,83 +1,136 @@
+---
 kind: pipeline
 type: docker
-name: nemu
+name: Linux
+
+platform:
+  os: linux
+  arch: amd64
 
 steps:
 - name: cmake
-  image: grafin1992/nemu-ci:v1.1
-
+  image: grafin1992/nemu-ci:v1.2
   commands:
   - mkdir build && cd build
-  - cmake -G Ninja ../ 
-    -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON
-    -DNM_WITH_REMOTE=ON -DNM_WITH_UNICODE_GLYPHS=ON
-
+  - cmake -G Ninja ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
   depends_on:
   - clone
-
-  when:
-    branch:
-    - master
 
 - name: codeql
-  image: grafin1992/nemu-ci:v1.1
+  image: grafin1992/nemu-ci:v1.2
+  commands:
+  - /codeql/codeql database create lgtm --language=cpp
+  - /codeql/codeql database analyze lgtm --format=sarif-latest --output=./codeql-lgtm.sarif cpp-lgtm.qls
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./codeql-lgtm.sarif
   environment:
     GITHUB_TOKEN:
       from_secret: github_token
-
-  commands:
-  - /codeql/codeql database create lgtm --language=cpp
-  - /codeql/codeql database analyze lgtm --format=sarif-latest
-    --output=./codeql-lgtm.sarif cpp-lgtm.qls
-  - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
-    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
-    --sarif=./codeql-lgtm.sarif
-
+    _JAVA_OPTIONS: -Xmx512m
   depends_on:
   - clone
 
-  when:
-    branch:
-    - master
-
 - name: cppcheck
-  image: grafin1992/nemu-ci:v1.1
+  image: grafin1992/nemu-ci:v1.2
+  commands:
+  - ./ci/cppcheck-sarif.py -a "--enable=all --suppress=missingIncludeSystem --xml -q" -o ./cppcheck.sarif -p src/ ./src
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./cppcheck.sarif
   environment:
     GITHUB_TOKEN:
       from_secret: github_token
-
-  commands:
-  - cd /sarif-multitool
-  - cppcheck --enable=all --suppress=missingIncludeSystem --xml
-    --output-file=./cppcheck.xml /drone/src/src
-  - npx "@microsoft/sarif-multitool" convert ./cppcheck.xml
-    --tool CppCheck --output ./cppcheck.sarif -m --force
-  - npx "@microsoft/sarif-multitool" rebaseuri ./cppcheck.sarif
-    --base-path-value "file:///drone/src" --base-path-token %SRCROOT% -o ./
-    -m --force
-  - /codeql/codeql github upload-results --repository="${DRONE_REPO}"
-    --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}"
-    --sarif=./cppcheck-rebased.sarif
-
   depends_on:
   - clone
 
 - name: codespell
-  image: grafin1992/nemu-ci:v1.1
-
+  image: grafin1992/nemu-ci:v1.2
   commands:
-  - codespell -q 3 -L 'fo,ser,ans,chello'
-    --skip="../lgtm,../_lgtm_detected_source_root" ./
-
+  - ./ci/codespell-sarif.py -a "-q 3 -L fo,ser,ans,chello -S ../lgtm,../_lgtm_detected_source_root" -o ./codespell.sarif ./
+  - /codeql/codeql github upload-results --repository="${DRONE_REPO}" --ref="${DRONE_COMMIT_REF}" --commit="${DRONE_COMMIT_SHA}" --sarif=./codespell.sarif
+  environment:
+    GITHUB_TOKEN:
+      from_secret: github_token
   depends_on:
   - clone
 
 - name: build
-  image: grafin1992/nemu-ci:v1.1
-
+  image: grafin1992/nemu-ci:v1.2
   commands:
   - cd build
   - ninja
-
   depends_on:
   - cmake
+
+trigger:
+  branch:
+  - master
+
+---
+kind: pipeline
+type: ssh
+name: FreeBSD
+
+platform:
+  os: linux
+  arch: amd64
+
+server:
+  host:
+    from_secret: freebsd_host
+  user:
+    from_secret: freebsd_user
+  ssh_key:
+    from_secret: freebsd_key
+
+steps:
+- name: cmake
+  commands:
+  - mkdir build && cd build
+  - cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+  depends_on:
+  - clone
+
+- name: build
+  commands:
+  - cd build
+  - make
+  depends_on:
+  - cmake
+
+trigger:
+  branch:
+  - master
+
+---
+kind: pipeline
+type: docker
+name: musl
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: cmake
+  image: grafin1992/nemu-musl:v1.0
+  commands:
+  - mkdir build && cd build
+  - cmake ../ -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+  depends_on:
+  - clone
+
+- name: build
+  image: grafin1992/nemu-musl:v1.0
+  commands:
+  - cd build
+  - make
+  depends_on:
+  - cmake
+
+trigger:
+  branch:
+  - master
+
+---
+kind: signature
+hmac: 4c66ccde1df91d377400c29867d81ebdecdf60cf565bc5e0f76460f4e85554ac
+
+...

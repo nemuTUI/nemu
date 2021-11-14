@@ -1,43 +1,62 @@
 API for remote control.
-Current version: 0.1
+Current version: 0.2
 
 Get API version (no auth required).
 APIv: >= 0.1
-request: {"exec": "api_version"}
-reply:   {"return": "_version_"}
+request: { "exec": "api_version" }
+reply:   { "return": "_version_" }
 
 Get nEMU version.
 APIv: >= 0.1
-request: {"exec": "nemu_version", "auth": "_pass_"};
-reply:   {"return": "_version_"} or {"return": "err", "error":"_error_"}
+request: { "exec": "nemu_version", "auth": "_pass_" };
+reply:   { "return": "_version_" } or { "return": "err", "error": "_error_" }
 
 Check authentication.
 APIv: >= 0.1
-request: {"exec": "auth", "auth": "_pass_"};
-reply:   {"return": "ok"} or {"return": "err", "error":"_error_"}
+request: { "exec": "auth", "auth": "_pass_" };
+reply:   { "return": "ok" } or { "return": "err", "error": "_error_" }
 
 Get VM list.
 APIv: >= 0.1
-request: {"exec": "vm_list", "auth": "_pass_"}
-reply:   {"return": [{"name": "_name_", "status": _status_}]}
+request: { "exec": "vm_list", "auth": "_pass_" }
+reply:   { "return": [ { "name": "_name_", "status": _status_ } ] }
 typeof:  name: string, status: bool (true: running, false: stopped)
 
 Start VM.
 APIv: >= 0.1
-request: {"exec": "vm_start", "name": "_name_", "auth": "_pass_"}
-reply:   {"return": "ok"} or {"return": "err", "error":"_error_"}
+request: { "exec": "vm_start", "name": "_name_", "auth": "_pass_"}
+reply:   { "return": "ok" } or { "return": "err", "error": "_error_"}
 
 Stop VM.
 APIv: >= 0.1
-request: {"exec": "vm_stop", "name": "_name_", "auth": "_pass_"}
-reply:   {"return": "ok"} or {"return": "err", "error":"_error_"}
+request: { "exec": "vm_stop", "name": "_name_", "auth": "_pass_" }
+reply:   { "return": "ok" } or { "return": "err", "error": "_error_" }
 
 Force stop VM.
 APIv: >= 0.1
-request: {"exec": "vm_force_stop", "name": "_name_", "auth": "_pass_"}
-reply:   {"return": "ok"} or {"return": "err", "error":"_error_"}
+request: { "exec": "vm_force_stop", "name": "_name_", "auth": "_pass_" }
+reply:   { "return": "ok" } or { "return": "err", "error": "_error_" }
 
 Get VNC/SPICE port.
 APIv: >= 0.1
-request: {"exec": "vm_get_connect_port", "name": "_name_", "auth": "_pass_"}
-reply:   {"return": "_port_"} or {"return": "err", "error":"_error_"}
+request: { "exec": "vm_get_connect_port", "name": "_name_", "auth": "_pass_" }
+reply:   { "return": "_port_" } or { "return": "err", "error": "_error_" }
+
+Get VM settings.
+APIv: >= 0.2
+request: { "exec": "vm_get_settings", "name": "_name_", "auth": "_pass_" }
+reply:   { "param": { "value": "_value_", "value_list": [ "_list_" ] } }
+  or { "return": "err", "error": "_error_" }
+param list:
+  smp - CPU count, format: sockets:cores?:threads?
+    typeof: value: string
+  mem - the amount of RAM
+    typeof: value: integer
+  kvm - KVM status
+    typeof: value: bool
+  hcpu - host CPU status
+    typeof: value: bool
+  netifs - network interface count
+    typeof: value: integer
+  disk_iface - disk interface driver
+    typeof: value: string, value_list: array of string

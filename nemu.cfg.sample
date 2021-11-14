@@ -11,6 +11,9 @@ db = /home/user/.nemu.db
 # override highlight color of running VM's. Example:
 # hl_color = 00afd7
 
+# glyph_checkbox = 1
+# glyph_separator = 0
+
 # change cursor style for nemu.
 # see https://terminalguide.namepad.de/seq/csi_sq_t_space/
 # if not set VTE's default cursor style will be used
@@ -66,6 +69,9 @@ dbus_timeout = 2000
 
 # Enable remote control (default: disabled)
 #remote_control = 0
+
+# Remote control listen interface (default: any)
+#remote_interface = eth0
 
 # Remote control port (default: 20509)
 #remote_port = 20509

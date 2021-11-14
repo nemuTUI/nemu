@@ -7,12 +7,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
                       "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 
 include(GNUInstallDirs)
-include(GetGLibcVersion)
 include(CheckSymbolExists)
 include(BuildQEMU)
 include(BuildNcurses)
 include(FindPkgConfig)
 include(FindOpenSSL)
+include(FindIntl)
 
 set(CMAKE_C_FLAGS_SANITIZER "-g -fsanitize=address -fsanitize=pointer-compare -fsanitize=pointer-subtract -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer" CACHE STRING
     "Flags used by the C compiler during sanitizer build."
@@ -69,7 +69,6 @@ option(NM_WITH_DBUS "Build with D-Bus support" OFF)
 option(NM_WITH_QEMU "Build with embedded QEMU" OFF)
 option(NM_WITH_NCURSES "Build with embedded statically linked ncurses" OFF)
 option(NM_WITH_REMOTE "Build with remote control" OFF)
-option(NM_WITH_UNICODE_GLYPHS "Build with unicode glyphs" OFF)
 
 include_directories(src)
 aux_source_directory(src SRC_LIST)
@@ -88,6 +87,18 @@ else()
   set(CURSES_NEED_NCURSES TRUE)
   set(CURSES_NEED_WIDE TRUE)
   find_package(Curses REQUIRED)
+  if(CURSES_HAVE_CURSES_H)
+    add_definitions(-DCURSES_HAVE_CURSES_H="${CURSES_HAVE_CURSES_H}")
+  endif()
+  if(CURSES_HAVE_NCURSES_CURSES_H)
+    add_definitions(-DCURSES_HAVE_NCURSES_CURSES_H="${CURSES_HAVE_NCURSES_CURSES_H}")
+  endif()
+  if(CURSES_HAVE_NCURSES_H)
+    add_definitions(-DCURSES_HAVE_NCURSES_H="${CURSES_HAVE_NCURSES_H}")
+  endif()
+  if(CURSES_HAVE_NCURSES_NCURSES_H)
+    add_definitions(-DCURSES_HAVE_NCURSES_NCURSES_H="${CURSES_HAVE_NCURSES_NCURSES_H}")
+  endif()
 endif()
 
 find_package(Sqlite3 REQUIRED)
@@ -95,14 +106,15 @@ find_package(Threads REQUIRED)
 find_package(RT REQUIRED)
 find_package(libusb-1.0 REQUIRED)
 find_package(UDev REQUIRED)
+find_package(Intl REQUIRED)
 pkg_check_modules(JSONC REQUIRED json-c)
 
 target_link_libraries(
   ${PROJECT_NAME} ${CURSES_LIBRARIES} ${SQLITE3_LIBRARIES} ${JSONC_LINK_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT} ${LIBUSB_1_LIBRARIES} ${UDEV_LIBRARIES}
-  ${RT_LIBRARY})
+  ${RT_LIBRARY} ${Intl_LIBRARIES})
 include_directories(${CURSES_INCLUDE_PATH} ${SQLITE3_INCLUDE_DIR}
-                    ${UDEV_INCLUDE_DIR} ${JSONC_INCLUDE_DIRS})
+                    ${UDEV_INCLUDE_DIR} ${JSONC_INCLUDE_DIRS} ${Intl_INCLUDE_DIRS})
 include_directories(SYSTEM ${LIBUSB_1_INCLUDE_DIRS})
 
 add_definitions(-DNM_FULL_DATAROOTDIR="${CMAKE_INSTALL_FULL_DATAROOTDIR}")
@@ -114,6 +126,10 @@ set_property(
   TARGET ${PROJECT_NAME}
   APPEND_STRING
   PROPERTY COMPILE_FLAGS "-Wall -Wextra -Wformat-security -pedantic -std=c99 ")
+set_property(
+  TARGET ${PROJECT_NAME}
+  APPEND_STRING
+  PROPERTY LINK_FLAGS_RELEASE "-s")
 
 set(NM_WITH_SENDFILE FALSE)
 
@@ -133,14 +149,23 @@ set(NM_DEFAULT_QEMUDIR "/usr/bin" CACHE STRING
 if(NM_OS_LINUX)
   add_definitions(-DNM_OS_LINUX)
 
-  get_glibc_version()
-  if(GLIBC_VERSION VERSION_GREATER 2.18)
-    add_definitions(-D_DEFAULT_SOURCE)
-  else()
-    add_definitions(-D_XOPEN_SOURCE=700 -D_BSD_SOURCE)
+  try_compile(
+    NET_IF
+    "${CMAKE_CURRENT_BINARY_DIR}/CMake_Tests"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Tests/net_if.c"
+    COMPILE_DEFINITIONS "-Wall -Wextra -pedantic -Werror")
+
+  if(NOT NET_IF)
+    add_definitions(-DNM_NET_IF_FIX)
   endif()
 
-  if(GLIBC_VERSION VERSION_GREATER 2.0)
+  try_compile(
+    SENDFILE
+    "${CMAKE_CURRENT_BINARY_DIR}/CMake_Tests"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Tests/sendfile.c"
+    COMPILE_DEFINITIONS "-Wall -Wextra -pedantic -Werror")
+
+  if(SENDFILE)
     set(NM_WITH_SENDFILE TRUE)
     add_definitions(-DNM_WITH_SENDFILE)
   endif()
@@ -160,6 +185,7 @@ if(NM_OS_LINUX)
   endif()
 elseif(NM_OS_FREEBSD)
   add_definitions(-DNM_OS_FREEBSD -D_BSD_SOURCE)
+  set(NM_WITH_NETWORK_MAP FALSE)
   find_package(Intl REQUIRED)
   target_link_libraries(${PROJECT_NAME} ${Intl_LIBRARIES})
 endif()
@@ -170,10 +196,6 @@ endif()
 
 if(NM_WITH_SPICE)
   add_definitions(-DNM_WITH_SPICE)
-endif()
-
-if (NM_WITH_UNICODE_GLYPHS)
-    add_definitions(-DNM_WITH_UNICODE_GLYPHS)
 endif()
 
 if(NM_WITH_OVF_SUPPORT)
@@ -200,7 +222,7 @@ if(NM_WITH_DBUS)
 endif()
 
 if(NM_WITH_REMOTE)
-  find_package(OpenSSL REQUIRED)
+  find_package(OpenSSL 1.1 REQUIRED)
   target_link_libraries(${PROJECT_NAME} ssl)
   target_link_libraries(${PROJECT_NAME} crypto)
   include_directories(${OPENSSL_INCLUDE_DIR})
@@ -231,6 +253,7 @@ if(NOT GIT_TAG_VERSION STREQUAL "")
   message(STATUS "Build from git, version:${GIT_TAG_VERSION}")
   add_definitions(-DNM_VERSION="${GIT_TAG_VERSION}")
 endif()
+string(TIMESTAMP BUILD_DATE "%Y-%m-%d")
 
 add_definitions(-DNM_CFG_NAME="${NM_CFG_NAME}")
 add_definitions(-DNM_DEFAULT_VMDIR="${NM_DEFAULT_VMDIR}")
@@ -241,6 +264,9 @@ add_definitions(-DNM_DEFAULT_QEMUDIR="${NM_DEFAULT_QEMUDIR}")
 
 add_subdirectory(lang)
 add_dependencies(${PROJECT_NAME} lang)
+
+add_subdirectory(man)
+add_dependencies(${PROJECT_NAME} man)
 
 # configure install
 set(NEMU_CONFIG_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cfg.sample")
@@ -334,7 +360,6 @@ message(STATUS "Spice support: ${NM_WITH_SPICE}")
 message(STATUS "Network map export: ${NM_WITH_NETWORK_MAP}")
 message(STATUS "D-Bus support: ${NM_WITH_DBUS}")
 message(STATUS "Remote control support: ${NM_WITH_REMOTE}")
-message(STATUS "Unicode glyphs: ${NM_WITH_UNICODE_GLYPHS}")
 message(STATUS "Embedded QEMU: ${NM_WITH_QEMU}")
 if(NM_WITH_QEMU)
   message(STATUS "Embedded QEMU targets: ${NM_QEMU_TARGET_LIST}")

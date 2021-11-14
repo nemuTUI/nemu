@@ -10,7 +10,7 @@ FILES=$(ls -1 *.c)
 
 # xgettext doesn't recognise this:
 #
-# define MSG "message"
+# #define MSG "message"
 # printf("%s", _(msg));
 #
 # so we feed it with postprocessed files.
@@ -26,7 +26,6 @@ for F in $FILES; do
 done
 
 pushd $TMPDIR > /dev/null
-
 
 # xgettext doesn't recognise this:
 #

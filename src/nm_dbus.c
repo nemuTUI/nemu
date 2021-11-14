@@ -24,12 +24,16 @@ static int nm_dbus_get_error(void)
     return NM_ERR;
 }
 
-int nm_dbus_connect(void)
+static int nm_dbus_connect(void)
 {
     if (!nm_cfg_get()->dbus_enabled)
         return NM_OK;
 
     dbus_error_init(&dbus_err);
+
+    if (dbus_conn && dbus_connection_read_write(dbus_conn, 0) == FALSE)
+        nm_dbus_disconnect();
+
     dbus_conn = dbus_bus_get(DBUS_BUS_SESSION, &dbus_err);
 
     if (nm_dbus_get_error() == NM_OK) {
@@ -41,6 +45,8 @@ int nm_dbus_connect(void)
         return NM_ERR;
     }
 
+    dbus_connection_set_exit_on_disconnect(dbus_conn, FALSE);
+
     return NM_OK;
 }
 
@@ -49,9 +55,11 @@ void nm_dbus_disconnect(void)
     if (!nm_cfg_get()->dbus_enabled)
         return;
 
-    if (dbus_conn) {
+    if (dbus_conn)
         dbus_connection_unref(dbus_conn);
-    }
+
+    dbus_shutdown();
+    dbus_conn = NULL;
 }
 
 static int
@@ -86,6 +94,9 @@ void nm_dbus_send_notify(const char *title, const char *body)
     DBusMessage *msg = NULL;
 
     if (!nm_cfg_get()->dbus_enabled)
+        return;
+
+    if (nm_dbus_connect() != NM_OK)
         return;
 
     if ((msg = dbus_message_new_method_call(

@@ -4,16 +4,16 @@
 
 EAPI=7
 
-inherit cmake-utils linux-info git-r3
+inherit cmake-utils linux-info
 
 DESCRIPTION="Ncurses UI for QEMU"
 HOMEPAGE="https://github.com/nemuTUI/nemu"
-EGIT_REPO_URI="https://github.com/nemuTUI/nemu"
-SRC_URI=""
+SRC_URI="https://github.com/nemuTUI/nemu/archive/v${PV}.tar.gz"
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="+vnc-client +ovf +spice dbus network-map remote-api"
+KEYWORDS="amd64 x86"
+IUSE="+vnc-client +ovf +spice dbus svg glyphs remote-api"
 
 RDEPEND="
 	dev-libs/json-c
@@ -28,7 +28,7 @@ RDEPEND="
 	)
 	dbus? ( sys-apps/dbus )
 	remote-api?  ( dev-libs/openssl )
-	network-map? ( media-gfx/graphviz[svg] )"
+	svg? ( media-gfx/graphviz[svg] )"
 DEPEND="${RDEPEND}
 	sys-devel/gettext"
 
@@ -36,10 +36,11 @@ src_configure() {
 	local mycmakeargs=(
 		-DNM_WITH_VNC_CLIENT=$(usex vnc-client)
 		-DNM_WITH_OVF_SUPPORT=$(usex ovf)
-		-DNM_WITH_NETWORK_MAP=$(usex network-map)
+		-DNM_WITH_NETWORK_MAP=$(usex svg)
 		-DNM_WITH_REMOTE=$(usex remote-api)
 		-DNM_WITH_SPICE=$(usex spice)
 		-DNM_WITH_DBUS=$(usex dbus)
+		-DNM_WITH_UNICODE_GLYPHS=$(usex glyphs)
 		-DCMAKE_INSTALL_PREFIX=/usr
 	)
 	cmake-utils_src_configure

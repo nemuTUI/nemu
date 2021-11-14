@@ -188,14 +188,17 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
 
         nm_str_format(&query,
             "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, "
-            "macvtap, parent_eth, altname, netuser) "
-            "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 0)",
+            "macvtap, parent_eth, altname, netuser, hostfwd, smb) "
+            "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
             dst->data, if_name.data, maddr.data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift)->data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift)->data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift)->data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift)->data,
-            (altname) ? if_name_copy.data : "");
+            (altname) ? if_name_copy.data : "",
+            nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift)->data,
+            nm_vect_str(&vm->ifs, NM_SQL_IF_FWD + idx_shift)->data,
+            nm_vect_str(&vm->ifs, NM_SQL_IF_SMB + idx_shift)->data);
         nm_db_edit(query.data);
 
         nm_str_free(&if_name);
