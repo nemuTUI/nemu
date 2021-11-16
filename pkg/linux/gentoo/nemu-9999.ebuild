@@ -17,7 +17,7 @@ IUSE="+vnc-client +ovf +spice dbus network-map remote-api"
 
 RDEPEND="
 	dev-libs/json-c
-	sys-libs/ncurses:0=[unicode]
+	sys-libs/ncurses
 	dev-db/sqlite:3=
 	dev-libs/libusb:1=
 	|| ( sys-fs/eudev sys-fs/udev sys-apps/systemd )
