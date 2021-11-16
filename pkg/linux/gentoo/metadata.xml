@@ -11,5 +11,6 @@
 		<flag name="remote-api">Adds API for remote control</flag>
 		<flag name="spice">Adds SPICE protocol support</flag>
 		<flag name="ovf">Adds support for OVA/OVF import</flag>
+		<flag name="network-map">Adds possibility of exporting network map to SVG</flag>
 	</use>
 </pkgmetadata>
