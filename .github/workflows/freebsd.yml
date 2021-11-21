@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: FreeBSD-13.0 build test
+      - name: FreeBSD-13.0 build test_
         run: |
           mkdir build && cd build
           cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
