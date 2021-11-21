@@ -1,0 +1,11 @@
+name: freebsd
+
+on: [push]
+
+jobs:
+  freebsd:
+    runs-on: [self-hosted, freebsd-do]
+
+    steps:
+      - name: FreeBSD-13.0 build test
+        run: uname -srm
