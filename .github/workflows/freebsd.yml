@@ -1,11 +1,18 @@
 name: freebsd
 
-on: [push]
+on:
+  push:
+    branches: [ master ]
 
 jobs:
   freebsd:
-    runs-on: freebsd-do
+    runs-on: [ self-hosted, freebsd-do ]
 
     steps:
+      - uses: actions/checkout@v2
+
       - name: FreeBSD-13.0 build test
-        run: uname -srm
+        run: |
+          mkdir build && cd build
+          cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+          make
