@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   freebsd:
-    runs-on: [self-hosted, freebsd-do]
+    runs-on: freebsd-do
 
     steps:
       - name: FreeBSD-13.0 build test
