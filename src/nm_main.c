@@ -8,7 +8,7 @@
 #include <nm_vm_control.h>
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
-
+XXX
 #if defined (NM_OS_LINUX)
     static const char NM_OPT_ARGS[] = "cs:p:f:z:k:i:vhld";
 #else
