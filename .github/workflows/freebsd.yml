@@ -9,7 +9,7 @@ jobs:
     runs-on: [ self-hosted, freebsd-do ]
 
     steps:
-      - name: FreeBSD-13.0 build test_
+      - name: FreeBSD-13.0 build test
         run: |
           git clone https://github.com/nemuTUI/nemu
           cd nemu && mkdir build && cd build
