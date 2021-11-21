@@ -3,6 +3,7 @@
 [![Latest Tag](https://img.shields.io/github/tag/nemuTUI/nemu.svg)](https://github.com/nemuTUI/nemu/tags)
 [![Packaging status](https://repology.org/badge/tiny-repos/nemu.svg)](https://repology.org/project/nemu/versions)
 [![Build Status](https://drone.stepanenko.pw/api/badges/nemuTUI/nemu/status.svg)](https://drone.stepanenko.pw/nemuTUI/nemu)
+[![FreeBSD build](https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml/badge.svg)](https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml)
 
 ## Features
  * Install/delete/clone/rename VM
