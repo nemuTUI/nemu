@@ -7,15 +7,34 @@ on:
     branches: [ master ]
 
 jobs:
-  linux:
+  clone:
     runs-on: [ self-hosted, linux-do ]
     container: grafin1992/nemu-ci:v1.2
 
     steps:
-      - name: Linux build test
+      - name: Get nEMU sources
         run: |
-          git clone https://github.com/nemuTUI/nemu
+          git clone --depth 1 https://github.com/nemuTUI/nemu
+
+  configure:
+    runs-on: [ self-hosted, linux-do ]
+    container: grafin1992/nemu-ci:v1.2
+    needs: clone
+
+    steps:
+      - name: Configure nEMU build
+        run: |
           cd nemu && mkdir build && cd build
           cmake -G Ninja ../ \
             -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+
+  build:
+    runs-on: [ self-hosted, linux-do ]
+    container: grafin1992/nemu-ci:v1.2
+    needs: configure
+
+    steps:
+      - name: Build nEMU
+        run: |
+          cd nemu/build
           ninja
