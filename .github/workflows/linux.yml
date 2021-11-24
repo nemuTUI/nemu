@@ -9,6 +9,7 @@ on:
 jobs:
   cleanup:
     runs-on: [ self-hosted, linux-do ]
+    container: grafin1992/nemu-ci:v1.2
     steps:
       - name: Clean workspace
         run: |
