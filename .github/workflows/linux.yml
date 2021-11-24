@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Clean workspace
         run: |
-          rm -rf "${{ github.workspace }}"
+          rm -rf nemu
 
   clone:
     runs-on: [ self-hosted, linux-do ]
