@@ -5,12 +5,12 @@ on:
     branches: [ master ]
 
 jobs:
-  freebsd:
+  linux:
     runs-on: [ self-hosted, linux-do ]
+    container: grafin1992/nemu-ci:v1.2
 
     steps:
       - name: Linux build test
-        container: grafin1992/nemu-ci:v1.2
         run: |
           git clone https://github.com/nemuTUI/nemu
           cd nemu && mkdir build && cd build
