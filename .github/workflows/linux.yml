@@ -66,7 +66,7 @@ jobs:
     steps:
       - name: Check with cppcheck
         run: |
-          echo "TODO"
+          cd nemu
           ./ci/cppcheck-sarif.py \
             -a "--enable=all --suppress=missingIncludeSystem --xml -q" \
             -o ./cppcheck.sarif -p src/ ./src
