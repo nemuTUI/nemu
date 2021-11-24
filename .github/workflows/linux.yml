@@ -6,6 +6,9 @@ on:
   push:
     branches: [ master ]
 
+permissions:
+  security-events: write
+
 jobs:
   cleanup:
     runs-on: [ self-hosted, linux-do ]
