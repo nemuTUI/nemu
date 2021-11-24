@@ -1,6 +1,8 @@
 name: linux
 
 on:
+  workflow_dispatch:
+    branches: [ master ]
   push:
     branches: [ master ]
 
