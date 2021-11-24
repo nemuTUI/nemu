@@ -65,42 +65,6 @@ trigger:
 
 ---
 kind: pipeline
-type: ssh
-name: FreeBSD
-
-platform:
-  os: linux
-  arch: amd64
-
-server:
-  host:
-    from_secret: freebsd_host
-  user:
-    from_secret: freebsd_user
-  ssh_key:
-    from_secret: freebsd_key
-
-steps:
-- name: cmake
-  commands:
-  - mkdir build && cd build
-  - cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
-  depends_on:
-  - clone
-
-- name: build
-  commands:
-  - cd build
-  - make
-  depends_on:
-  - cmake
-
-trigger:
-  branch:
-  - master
-
----
-kind: pipeline
 type: docker
 name: musl
 
@@ -131,6 +95,6 @@ trigger:
 
 ---
 kind: signature
-hmac: 4c66ccde1df91d377400c29867d81ebdecdf60cf565bc5e0f76460f4e85554ac
+hmac: 2732c805589445df217a34fa60fc160d8c4f7385f1175d47696938b6afe0bb4d
 
 ...
