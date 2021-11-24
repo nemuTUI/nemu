@@ -46,3 +46,39 @@ jobs:
         run: |
           cd nemu/build
           ninja
+
+  codeql:
+    runs-on: [ self-hosted, linux-do ]
+    container: grafin1992/nemu-ci:v1.2
+    needs: configure
+
+    steps:
+      - name: Check with CodeQL
+        run: |
+          echo "TODO"
+
+  cppcheck:
+    runs-on: [ self-hosted, linux-do ]
+    container: grafin1992/nemu-ci:v1.2
+    needs: configure
+
+    steps:
+      - name: Check with cppcheck
+        run: |
+          echo "TODO"
+          ./ci/cppcheck-sarif.py \
+            -a "--enable=all --suppress=missingIncludeSystem --xml -q" \
+            -o ./cppcheck.sarif -p src/ ./src
+          /codeql/codeql github upload-results \
+            --repository="${GITHUB_REPOSITORY}" --ref="${GITHUB_REF}" \
+            --commit="${GITHUB_SHA}" --sarif=./cppcheck.sarif
+
+  codespell:
+    runs-on: [ self-hosted, linux-do ]
+    container: grafin1992/nemu-ci:v1.2
+    needs: configure
+
+    steps:
+      - name: Check with codespell
+        run: |
+          echo "TODO"
