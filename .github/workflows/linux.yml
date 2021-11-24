@@ -1,0 +1,19 @@
+name: linux
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  freebsd:
+    runs-on: [ self-hosted, linux-do ]
+
+    steps:
+      - name: Linux build test
+        container: grafin1992/nemu-ci:v1.2
+        run: |
+          git clone https://github.com/nemuTUI/nemu
+          cd nemu && mkdir build && cd build
+          cmake -G Ninja ../ \
+            -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+          ninja
