@@ -18,8 +18,7 @@ jobs:
     container: grafin1992/nemu-ci:v1.2
     steps:
       - name: Clean workspace
-        run: |
-          rm -rf nemu
+        run: rm -rf nemu
 
   clone:
     runs-on: [ self-hosted, linux-do ]
@@ -28,8 +27,7 @@ jobs:
 
     steps:
       - name: Get nEMU sources
-        run: |
-          git clone --depth 1 https://github.com/nemuTUI/nemu
+        run: git clone --depth 1 https://github.com/nemuTUI/nemu
 
   configure:
     runs-on: [ self-hosted, linux-do ]
@@ -38,8 +36,9 @@ jobs:
 
     steps:
       - name: Configure nEMU build
+        working-directory: ./nemu
         run: |
-          cd nemu && mkdir build && cd build
+          mkdir build && cd build
           cmake -G Ninja ../ \
             -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
 
@@ -50,9 +49,8 @@ jobs:
 
     steps:
       - name: Build nEMU
-        run: |
-          cd nemu/build
-          ninja
+        working-directory: ./nemu/build
+        run: ninja
 
   codeql:
     runs-on: [ self-hosted, linux-do ]
@@ -61,8 +59,8 @@ jobs:
 
     steps:
       - name: Check with CodeQL
-        run: |
-          echo "TODO"
+        working-directory: ./nemu
+        run: echo "TODO"
 
   cppcheck:
     runs-on: [ self-hosted, linux-do ]
@@ -71,8 +69,8 @@ jobs:
 
     steps:
       - name: Check with cppcheck
+        working-directory: ./nemu
         run: |
-          cd nemu
           ./ci/cppcheck-sarif.py \
             -a "--enable=all --suppress=missingIncludeSystem --xml -q" \
             -o ./cppcheck.sarif -p src/ ./src
@@ -87,5 +85,5 @@ jobs:
 
     steps:
       - name: Check with codespell
-        run: |
-          echo "TODO"
+        working-directory: ./nemu
+        run: echo "TODO"
