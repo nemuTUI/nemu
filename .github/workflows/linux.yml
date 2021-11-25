@@ -96,7 +96,7 @@ jobs:
         working-directory: ./nemu
         run: |
           ./ci/codespell-sarif.py \
-            -a "-q 3 -L fo,ser,ans,chello -S ../lgtm,../_lgtm_detected_source_root" \
+            -a "-q 3 -L fo,ser,ans,chello -S ./lgtm,./_lgtm_detected_source_root" \
             -o ./codespell.sarif ./
           /codeql/codeql github upload-results \
             --repository="${GITHUB_REPOSITORY}" --ref="${GITHUB_REF}" \
