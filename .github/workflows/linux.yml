@@ -55,17 +55,25 @@ jobs:
   codeql:
     runs-on: [ self-hosted, linux-do ]
     container: grafin1992/nemu-ci:v1.2
-    needs: configure
+    needs: clone
+    env:
+      _JAVA_OPTIONS: -Xmx1024m
 
     steps:
       - name: Check with CodeQL
         working-directory: ./nemu
-        run: echo "TODO"
+        run: |
+          /codeql/codeql database create lgtm --language=cpp
+          /codeql/codeql database analyze lgtm --format=sarif-latest \
+            --output=./codeql-lgtm.sarif cpp-lgtm.qls
+          /codeql/codeql github upload-results \
+            --repository="${GITHUB_REPOSITORY}" --ref="${GITHUB_REF}" \
+            --commit="${GITHUB_SHA}" --sarif=./codeql-lgtm.sarif
 
   cppcheck:
     runs-on: [ self-hosted, linux-do ]
     container: grafin1992/nemu-ci:v1.2
-    needs: configure
+    needs: clone
 
     steps:
       - name: Check with cppcheck
@@ -81,9 +89,15 @@ jobs:
   codespell:
     runs-on: [ self-hosted, linux-do ]
     container: grafin1992/nemu-ci:v1.2
-    needs: configure
+    needs: clone
 
     steps:
       - name: Check with codespell
         working-directory: ./nemu
-        run: echo "TODO"
+        run: |
+          ./ci/codespell-sarif.py \
+            -a "-q 3 -L fo,ser,ans,chello -S ../lgtm,../_lgtm_detected_source_root" \
+            -o ./codespell.sarif ./
+          /codeql/codeql github upload-results \
+            --repository="${GITHUB_REPOSITORY}" --ref="${GITHUB_REF}" \
+            --commit="${GITHUB_SHA}" --sarif=./codespell.sarif
