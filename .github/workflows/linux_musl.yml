@@ -12,7 +12,7 @@ jobs:
     container: grafin1992/nemu-ci:v1.2
     steps:
       - name: Clean workspace
-        run: rm -rf nemu
+        run: rm -rf nemu_musl
 
   clone:
     runs-on: [ self-hosted, linux-do ]
@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Get nEMU sources
-        run: git clone --depth 1 https://github.com/nemuTUI/nemu
+        run: git clone --depth 1 https://github.com/nemuTUI/nemu nemu_musl
 
   configure:
     runs-on: [ self-hosted, linux-do ]
@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Configure nEMU build
-        working-directory: ./nemu
+        working-directory: ./nemu_musl
         run: |
           mkdir build && cd build
           cmake -G Ninja ../ \
@@ -43,5 +43,5 @@ jobs:
 
     steps:
       - name: Build nEMU
-        working-directory: ./nemu/build
+        working-directory: ./nemu_musl/build
         run: ninja
