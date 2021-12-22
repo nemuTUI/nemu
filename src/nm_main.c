@@ -10,9 +10,9 @@
 #include <nm_lan_settings.h>
 
 #if defined (NM_OS_LINUX)
-    static const char NM_OPT_ARGS[] = "cs:p:f:z:k:i:vhld";
+    static const char NM_OPT_ARGS[] = "cs:p:f:z:k:i:m:vhld";
 #else
-    static const char NM_OPT_ARGS[] = "s:p:f:z:k:i:vhld";
+    static const char NM_OPT_ARGS[] = "s:p:f:z:k:i:m:vhld";
 #endif
 
 static void signals_handler(int signal);
@@ -91,6 +91,7 @@ static void nm_process_args(int argc, char **argv)
         { "reset",       required_argument, NULL, 'z' },
         { "kill",        required_argument, NULL, 'k' },
         { "info",        required_argument, NULL, 'i' },
+        { "cmd",         required_argument, NULL, 'm' },
         { "list",        no_argument,       NULL, 'l' },
         { "daemon",      no_argument,       NULL, 'd' },
         { "version",     no_argument,       NULL, 'v' },
@@ -199,6 +200,29 @@ static void nm_process_args(int argc, char **argv)
             nm_vect_free(&vm_list, NULL);
             nm_str_free(&vmname);
             nm_exit_core();
+        case 'm':
+            nm_init_core();
+            {
+                nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
+                nm_vect_t argv = NM_INIT_VECT;
+                nm_str_t name = NM_INIT_STR;
+                int flags = 0;
+
+                flags |= NM_VMCTL_INFO;
+                nm_str_format(&name, "%s", optarg);
+                nm_vmctl_get_data(&name, &vm);
+                nm_vmctl_gen_cmd(&argv, &vm, &name, &flags, NULL, NULL);
+
+                for (size_t n = 0; n < argv.n_memb; n++) {
+                    printf("%s%s", (char *) nm_vect_at(&argv, n),
+                            (n != argv.n_memb - 1) ? " " : "");
+                }
+
+                nm_str_free(&name);
+                nm_vect_free(&argv, NULL);
+                nm_vmctl_free_data(&vm);
+            }
+            nm_exit_core();
         case 'd':
             nm_mon_loop();
             nm_cfg_free();
@@ -226,6 +250,7 @@ static void nm_process_args(int argc, char **argv)
             printf("%s\n", _("-z, --reset      <name> reset vm"));
             printf("%s\n", _("-k, --kill       <name> kill vm process"));
             printf("%s\n", _("-i, --info       <name> print vm info"));
+            printf("%s\n", _("-m, --cmd        <name> print vm command line"));
             printf("%s\n", _("-l, --list              list vms"));
             printf("%s\n", _("-d, --daemon            vm monitoring daemon"));
 #if defined (NM_OS_LINUX)

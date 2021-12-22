@@ -4,7 +4,7 @@
 nemu \- ncurses UI for QEMU.
 .SH "SYNOPSIS"
 .B nemu
-[\-ldcvh] [\-s name] [\-p name] [\-f name] [\-z name] [\-k name] [\-i name]
+[\-ldcvh] [\-s name] [\-p name] [\-f name] [\-z name] [\-k name] [\-i name] [\-m name]
 .SH "DESCRIPTION"
 nEMU is a ncurses UI for QEMU with many other functions.
 .SH "OPTIONS"
@@ -23,6 +23,9 @@ Send kill signal to QEMU process associated with VM name.
 .TP
 .I \-i name, \-\-info=name
 Displays VM information.
+.TP
+.I \-m name, \-\-cmd=name
+Displays VM command line.
 .TP
 .I \-d, \-\-daemon
 Start nEMU daemon.
