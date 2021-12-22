@@ -73,6 +73,8 @@ void nm_cfg_init(void);
 void nm_cfg_free(void);
 const nm_cfg_t *nm_cfg_get(void);
 
+extern nm_str_t nm_cfg_path;
+
 static inline const char** nm_cfg_get_arch()
 {
     return (const char **)nm_cfg_get()->qemu_targets.data;

@@ -10,9 +10,9 @@
 #include <nm_lan_settings.h>
 
 #if defined (NM_OS_LINUX)
-    static const char NM_OPT_ARGS[] = "cs:p:f:z:k:i:m:vhld";
+    static const char NM_OPT_ARGS[] = "cs:p:f:z:k:i:m:C:vhld";
 #else
-    static const char NM_OPT_ARGS[] = "s:p:f:z:k:i:m:vhld";
+    static const char NM_OPT_ARGS[] = "s:p:f:z:k:i:m:C:vhld";
 #endif
 
 static void signals_handler(int signal);
@@ -92,6 +92,7 @@ static void nm_process_args(int argc, char **argv)
         { "kill",        required_argument, NULL, 'k' },
         { "info",        required_argument, NULL, 'i' },
         { "cmd",         required_argument, NULL, 'm' },
+        { "cfg",         required_argument, NULL, 'C' },
         { "list",        no_argument,       NULL, 'l' },
         { "daemon",      no_argument,       NULL, 'd' },
         { "version",     no_argument,       NULL, 'v' },
@@ -223,6 +224,9 @@ static void nm_process_args(int argc, char **argv)
                 nm_vmctl_free_data(&vm);
             }
             nm_exit_core();
+        case 'C':
+            nm_str_format(&nm_cfg_path, "%s", optarg);
+            break;
         case 'd':
             nm_mon_loop();
             nm_cfg_free();
@@ -251,6 +255,7 @@ static void nm_process_args(int argc, char **argv)
             printf("%s\n", _("-k, --kill       <name> kill vm process"));
             printf("%s\n", _("-i, --info       <name> print vm info"));
             printf("%s\n", _("-m, --cmd        <name> print vm command line"));
+            printf("%s\n", _("-C, --cfg        <path> path to config file"));
             printf("%s\n", _("-l, --list              list vms"));
             printf("%s\n", _("-d, --daemon            vm monitoring daemon"));
 #if defined (NM_OS_LINUX)

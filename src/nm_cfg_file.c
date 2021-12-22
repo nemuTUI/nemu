@@ -89,6 +89,7 @@ static const char * const CURSOR_STYLE_STR[]   = {
     "Steady Bar"
 };
 
+nm_str_t nm_cfg_path;
 static nm_cfg_t cfg;
 
 static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path);
@@ -121,10 +122,15 @@ void nm_cfg_init(void)
     cfg.spice_default = 0;
 #endif
 
-    if (!pw)
+    if (!pw) {
         nm_bug(_("Error get home directory: %s\n"), strerror(errno));
+    }
 
-    nm_str_format(&cfg_path, "%s/%s", pw->pw_dir, NM_CFG_NAME);
+    if (nm_cfg_path.len) {
+        nm_str_copy(&cfg_path, &nm_cfg_path);
+    } else {
+        nm_str_format(&cfg_path, "%s/%s", pw->pw_dir, NM_CFG_NAME);
+    }
 
     nm_generate_cfg(pw->pw_dir, &cfg_path);
     ini = nm_ini_parser_init(&cfg_path);
