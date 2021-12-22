@@ -268,6 +268,8 @@ add_dependencies(${PROJECT_NAME} lang)
 add_subdirectory(man)
 add_dependencies(${PROJECT_NAME} man)
 
+add_subdirectory(test)
+
 # configure install
 set(NEMU_CONFIG_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.cfg.sample")
 set(NEMU_DB_UPGRADE_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/sh/upgrade_db.sh")
