@@ -1,0 +1,24 @@
+[main]
+vmdir = /tmp/%%DIR%%
+db = /tmp/%%DIR%%/.nemu.db
+
+[viewer]
+spice_default = 1
+vnc_bin = /dev/null
+vnc_args = :%p
+spice_bin = /dev/null
+spice_args = --title %t spice://127.0.0.1:%p
+listen_any = 1
+
+[qemu]
+targets = x86_64
+enable_log = 1
+log_cmd = /tmp/%%DIR%%/qemu_last_cmd.log
+qemu_bin_path = /usr/bin
+
+[nemu-monitor]
+autostart = 0
+pid = /tmp/%%DIR%%/nemu-monitor.pid
+dbus_enabled = 0
+dbus_timeout = 5000
+remote_control = 0
