@@ -2,6 +2,7 @@ import os
 import uuid
 import time
 import shutil
+import subprocess
 
 class Nemu():
     def __init__(self):
@@ -17,24 +18,47 @@ class Nemu():
     def cleanup(self):
         shutil.rmtree(self.test_dir)
 
+    def result(self, vm, wait = 0):
+        time.sleep(wait) #FIXME wait somehow for nemu quit
+        sub = subprocess.run([os.getenv("NEMU_BIN_DIR") + "/nemu",
+            "--cfg", "/tmp/" + self.uuid + "/nemu.cfg", "--cmd", vm],
+            capture_output=True)
+        return sub.stdout.decode('utf-8')
+
     def test_dir(self):
         return self.test_dir
 
 class Tmux():
-    def __init__(self, path):
+    def __init__(self):
         self.uuid = uuid.uuid4().hex
-        cmd = "tmux -L " + self.uuid + " new-session -d " + \
-                os.getenv("NEMU_BIN_DIR") + "/nemu --cfg " + path + "/nemu.cfg"
-        print(cmd)
-        os.popen(cmd)
-        time.sleep(0.5)
 
-    def send(self, key):
-        cmd = "tmux -L " + self.uuid + " send-keys " + key
-        os.popen(cmd)
-        time.sleep(0.5)
+    def setup(self, path):
+        sub = subprocess.run(["tmux", "-L", self.uuid,
+                "new-session", "-d", os.getenv("NEMU_BIN_DIR") + "/nemu",
+                "--cfg", path + "/nemu.cfg"])
+
+        # wait for nemu starts
+        dbfile = "/tmp/" + self.uuid + "/.nemu.db"
+        wait_max = 100 # wait for 10 seconds max
+        wait_cur = 0
+        while not os.path.exists(dbfile):
+            time.sleep(0.1)
+            wait_cur += 1
+            if wait_max >= wait_cur:
+                break
+
+        return sub.returncode
+
+    def send(self, key, count = 1):
+        rc = 0
+
+        for i in range(count):
+            sub = subprocess.run(["tmux", "-L", self.uuid, "send-keys", key])
+            rc += sub.returncode
+
+        return rc
 
     def cleanup(self):
-        cmd = "tmux -L " + self.uuid + " kill-server"
-        os.popen(cmd)
-        time.sleep(0.5)
+        sub = subprocess.run(["tmux", "-L", self.uuid, "kill-server"])
+
+        return sub.returncode
