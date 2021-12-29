@@ -18,7 +18,7 @@ class Nemu():
     def cleanup(self):
         shutil.rmtree(self.test_dir)
 
-    def result(self, vm, wait = 0):
+    def result(self, vm):
         # wait for nemu stops
         dbfile = "/tmp/" + self.uuid + "/nemu.pid"
         wait_max = 100 # wait for 10 seconds max
@@ -35,6 +35,9 @@ class Nemu():
 
     def test_dir(self):
         return self.test_dir
+
+    def uuid(self):
+        return self.uuid
 
 class Tmux():
     def __init__(self):
