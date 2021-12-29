@@ -19,7 +19,15 @@ class Nemu():
         shutil.rmtree(self.test_dir)
 
     def result(self, vm, wait = 0):
-        time.sleep(wait) #FIXME wait somehow for nemu quit
+        # wait for nemu stops
+        dbfile = "/tmp/" + self.uuid + "/nemu.pid"
+        wait_max = 100 # wait for 10 seconds max
+        wait_cur = 0
+        while os.path.exists(dbfile):
+            time.sleep(0.1)
+            wait_cur += 1
+            if wait_max >= wait_cur:
+                break
         sub = subprocess.run([os.getenv("NEMU_BIN_DIR") + "/nemu",
             "--cfg", "/tmp/" + self.uuid + "/nemu.cfg", "--cmd", vm],
             capture_output=True)
@@ -38,7 +46,7 @@ class Tmux():
                 "--cfg", path + "/nemu.cfg"])
 
         # wait for nemu starts
-        dbfile = "/tmp/" + self.uuid + "/.nemu.db"
+        dbfile = "/tmp/" + self.uuid + "/nemu.pid"
         wait_max = 100 # wait for 10 seconds max
         wait_cur = 0
         while not os.path.exists(dbfile):

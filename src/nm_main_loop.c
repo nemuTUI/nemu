@@ -34,6 +34,7 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err);
 static int nm_filter_check(const nm_str_t *input);
 static int nm_search_cmp_cb(const void *s1, const void *s2);
 static void nm_iterate_groups(bool forward);
+static void nm_store_pid(void);
 
 static inline void nm_filter_clean()
 {
@@ -52,6 +53,8 @@ void nm_start_main_loop(void)
     nm_vect_t vms_v = NM_INIT_VECT;
     nm_vect_t vm_list = NM_INIT_VECT;
     const nm_cfg_t *cfg = nm_cfg_get();
+
+    nm_store_pid();
 
     nm_filter = NM_INIT_FILTER;
     init_pair(NM_COLOR_BLACK, COLOR_BLACK, COLOR_WHITE);
@@ -179,6 +182,9 @@ void nm_start_main_loop(void)
             nm_menu_scroll(&vms, vm_list_len, ch);
 
         if (ch == NM_KEY_Q) {
+            if (unlink(cfg->pid.data) != 0) {
+                nm_debug("error delete nemu pidfile\n");
+            }
             nm_destroy_windows();
             nm_curses_deinit();
             nm_db_close();
@@ -693,5 +699,30 @@ static void nm_iterate_groups(bool forward)
 
     nm_str_free(&query);
     nm_vect_free(&group_list, nm_str_vect_free_cb);
+}
+
+static void nm_store_pid(void)
+{
+    int fd;
+    pid_t pid;
+    char *path = nm_cfg_get()->pid.data;
+    nm_str_t res = NM_INIT_STR;
+
+    fd = open(path, O_WRONLY | O_CREAT, 0644);
+    if (fd == -1) {
+        nm_debug("%s: error create pid file: %s: %s",
+                __func__, path, strerror(errno));
+        return;
+    }
+
+    pid = getpid();
+    nm_str_format(&res, "%d", pid);
+
+    if (write(fd, res.data, res.len) < 0) {
+        nm_debug("%s: error save pid number\n", __func__);
+    }
+
+    close(fd);
+    nm_str_free(&res);
 }
 /* vim:set ts=4 sw=4: */

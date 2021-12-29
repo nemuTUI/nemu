@@ -40,6 +40,8 @@ static const char NM_DEFAULT_SPICEARG[] = "--title %t spice://127.0.0.1:%p";
 
 static const char NM_DEFAULT_TARGET[]   = "x86_64,i386";
 
+static const char NM_DEFAULT_PID[]      = "/tmp/nemu.pid";
+
 static const char NM_INI_S_MAIN[]       = "main";
 static const char NM_INI_S_VIEW[]       = "viewer";
 static const char NM_INI_S_QEMU[]       = "qemu";
@@ -167,6 +169,10 @@ void nm_cfg_init(void)
     if (access(tmp_buf.data, W_OK) != 0)
         nm_bug(_("cfg: no write access to %s"), tmp_buf.data);
     nm_str_trunc(&tmp_buf, 0);
+
+    if (nm_get_opt_param(ini, NM_INI_S_MAIN, NM_INI_P_PID, &cfg.pid) != NM_OK) {
+        nm_str_alloc_text(&cfg.pid, NM_DEFAULT_PID);
+    }
 
 #ifdef NM_WITH_VNC_CLIENT
     /* Get the VNC client binary path */
@@ -371,6 +377,7 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.spice_args);
 #endif
     nm_str_free(&cfg.log_path);
+    nm_str_free(&cfg.pid);
     nm_str_free(&cfg.daemon_pid);
     nm_str_free(&cfg.qemu_bin_path);
     nm_vect_free(&cfg.qemu_targets, NULL);

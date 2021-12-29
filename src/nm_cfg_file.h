@@ -40,6 +40,7 @@ typedef struct {
     nm_view_args_t vnc_view;
 #endif
     nm_str_t log_path;
+    nm_str_t pid;
     nm_str_t daemon_pid;
     nm_str_t qemu_bin_path;
     nm_vect_t qemu_targets;

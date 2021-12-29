@@ -1,6 +1,7 @@
 [main]
 vmdir = /tmp/%%DIR%%
 db = /tmp/%%DIR%%/.nemu.db
+pid = /tmp/%%DIR%%/nemu.pid
 
 [viewer]
 spice_default = 1
