@@ -51,6 +51,7 @@ class Nemu():
         for line in out:
             if ' (default)' in line:
                 mtype = line.split()[0]
+                break
 
         return mtype
 
