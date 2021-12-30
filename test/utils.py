@@ -8,6 +8,7 @@ class Nemu():
     def __init__(self):
         self.uuid = uuid.uuid4().hex
         self.test_dir = "/tmp/" + self.uuid
+        self.pidfile = self.test_dir + "/nemu.pid"
 
         os.mkdir(self.test_dir)
         with open(self.test_dir + "/nemu.cfg", 'w') as out:
@@ -20,10 +21,9 @@ class Nemu():
 
     def result(self, vm):
         # wait for nemu stops
-        dbfile = "/tmp/" + self.uuid + "/nemu.pid"
         wait_max = 100 # wait for 10 seconds max
         wait_cur = 0
-        while os.path.exists(dbfile):
+        while os.path.exists(self.pidfile):
             time.sleep(0.1)
             wait_cur += 1
             if wait_max >= wait_cur:
@@ -39,6 +39,21 @@ class Nemu():
     def uuid(self):
         return self.uuid
 
+    def qemu_bin(self):
+        return os.getenv("QEMU_BIN_DIR")
+
+    def qemu_mtype(self):
+        cmd = [os.getenv("QEMU_BIN_DIR") + "/qemu-system-x86_64", "-M", "help"]
+        sub = subprocess.run(cmd, capture_output=True)
+        out = sub.stdout.decode('UTF-8')
+        out = str(out).split('\n')
+
+        for line in out:
+            if ' (default)' in line:
+                mtype = line.split()[0]
+
+        return mtype
+
 class Tmux():
     def __init__(self):
         self.uuid = uuid.uuid4().hex
@@ -49,10 +64,10 @@ class Tmux():
                 "--cfg", path + "/nemu.cfg"])
 
         # wait for nemu starts
-        dbfile = "/tmp/" + self.uuid + "/nemu.pid"
+        pidfile = path + "/nemu.pid"
         wait_max = 100 # wait for 10 seconds max
         wait_cur = 0
-        while not os.path.exists(dbfile):
+        while not os.path.exists(pidfile):
             time.sleep(0.1)
             wait_cur += 1
             if wait_max >= wait_cur:
