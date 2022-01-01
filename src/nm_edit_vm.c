@@ -137,7 +137,8 @@ void nm_edit_vm(const nm_str_t *name)
                 );
                 break;
             case NM_FLD_ARGS:
-                fields[n] = nm_field_default_new(n / 2, form_data);
+                fields[n] = nm_field_regexp_new(
+                    n / 2, form_data, "^[^']+ *$");
                 break;
             case NM_FLD_GROUP:
                 fields[n] = nm_field_default_new(n / 2, form_data);
