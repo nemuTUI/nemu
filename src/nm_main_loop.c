@@ -261,6 +261,7 @@ void nm_start_main_loop(void)
 
             case NM_KEY_M:
                 nm_print_cmd(name);
+                werase(help_window);
                 nm_init_side();
                 nm_init_help_main();
                 break;
