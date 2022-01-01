@@ -4,6 +4,7 @@
 #include <nm_menu.h>
 #include <nm_string.h>
 #include <nm_window.h>
+#include <nm_network.h>
 #include <nm_database.h>
 #include <nm_rename_vm.h>
 
@@ -144,23 +145,28 @@ static void nm_rename_vm_in_db(const nm_vmctl_data_t *vm, const nm_str_t *new_na
     // Update ifaces
     count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;
     for (size_t i = 0; i < count; i++) {
+        int altname;
+        nm_str_t maddr = NM_INIT_STR;
         size_t idx_shift = NM_IFS_IDX_COUNT * i;
         nm_str_t *old_iface_name = nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift);
         nm_str_t *old_iface_altname = nm_vect_str(&vm->ifs, NM_SQL_IF_ALT + idx_shift);
 
-        nm_str_copy(&buf_1, old_iface_name);
-        nm_str_replace_text(&buf_1, old_name->data, new_name->data);
+        nm_str_format(&maddr, "%s", nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
+        nm_str_format(&buf_1, "%s_eth%zu", new_name->data, i);
         nm_str_copy(&buf_2, old_iface_altname);
         nm_str_replace_text(&buf_2, old_name->data, new_name->data);
+        altname = nm_net_fix_tap_name(&buf_1, &maddr);
 
         nm_str_format(&query,
             "UPDATE ifaces SET vm_name = '%s', if_name = '%s', altname = '%s' "
                 "WHERE if_name = '%s'",
             new_name->data,
             buf_1.data,
-            buf_2.data,
+            (altname) ? buf_2.data : "",
             old_iface_name->data);
         nm_db_atomic(query.data);
+
+        nm_str_free(&maddr);
     }
 
     // Update usb
