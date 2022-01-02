@@ -39,7 +39,8 @@ class Nemu():
     def uuid(self):
         return self.uuid
 
-    def qemu_bin(self):
+    @staticmethod
+    def qemu_bin():
         return os.getenv("QEMU_BIN_DIR")
 
     def qemu_mtype(self):
