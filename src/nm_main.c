@@ -205,22 +205,22 @@ static void nm_process_args(int argc, char **argv)
             nm_init_core();
             {
                 nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
-                nm_vect_t argv = NM_INIT_VECT;
+                nm_vect_t _argv = NM_INIT_VECT;
                 nm_str_t name = NM_INIT_STR;
                 int flags = 0;
 
                 flags |= NM_VMCTL_INFO;
                 nm_str_format(&name, "%s", optarg);
                 nm_vmctl_get_data(&name, &vm);
-                nm_vmctl_gen_cmd(&argv, &vm, &name, &flags, NULL, NULL);
+                nm_vmctl_gen_cmd(&_argv, &vm, &name, &flags, NULL, NULL);
 
-                for (size_t n = 0; n < argv.n_memb; n++) {
-                    printf("%s%s", (char *) nm_vect_at(&argv, n),
-                            (n != argv.n_memb - 1) ? " " : "");
+                for (size_t n = 0; n < _argv.n_memb; n++) {
+                    printf("%s%s", (char *) nm_vect_at(&_argv, n),
+                            (n != _argv.n_memb - 1) ? " " : "");
                 }
 
                 nm_str_free(&name);
-                nm_vect_free(&argv, NULL);
+                nm_vect_free(&_argv, NULL);
                 nm_vmctl_free_data(&vm);
             }
             nm_exit_core();
