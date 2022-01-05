@@ -225,7 +225,7 @@ static void nm_process_args(int argc, char **argv)
             }
             nm_exit_core();
         case 'C':
-            nm_str_format(&nm_cfg_path, "%s", optarg);
+            nm_cfg_path = optarg;
             break;
         case 'd':
             nm_mon_loop();

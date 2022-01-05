@@ -133,8 +133,6 @@ set_property(
 
 set(NM_WITH_SENDFILE FALSE)
 
-set(NM_CFG_NAME ".nemu.cfg" CACHE STRING
-  "Config file name with subdirectories in users home dir")
 set(NM_DEFAULT_VMDIR "nemu_vm" CACHE STRING
   "Default VM directory with subdirectories in users home dir")
 set(NM_DEFAULT_VNC "/usr/bin/vncviewer" CACHE STRING
@@ -255,7 +253,6 @@ if(NOT GIT_TAG_VERSION STREQUAL "")
 endif()
 string(TIMESTAMP BUILD_DATE "%Y-%m-%d")
 
-add_definitions(-DNM_CFG_NAME="${NM_CFG_NAME}")
 add_definitions(-DNM_DEFAULT_VMDIR="${NM_DEFAULT_VMDIR}")
 add_definitions(-DNM_DEFAULT_VNC="${NM_DEFAULT_VNC}")
 add_definitions(-DNM_DEFAULT_DBFILE="${NM_DEFAULT_DBFILE}")
@@ -342,7 +339,6 @@ add_subdirectory(pkg/linux/rpm)
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "Config name: ${NM_CFG_NAME}")
 message(STATUS "Default VM directory name: ${NM_DEFAULT_VMDIR}")
 message(STATUS "Default VNC client ${NM_DEFAULT_VNC}")
 message(STATUS "Default database name: ${NM_DEFAULT_DBFILE}")

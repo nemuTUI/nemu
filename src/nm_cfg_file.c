@@ -11,10 +11,6 @@
 
 static const char NM_DEFAULT_PLACEHOLDER[] = "DEFAULT";
 
-#ifndef NM_CFG_NAME
-static const char NM_CFG_NAME[]         = ".nemu.cfg";
-#endif /* NM_CFG_NAME */
-
 #ifndef NM_DEFAULT_VMDIR
 static const char NM_DEFAULT_VMDIR[]    = "nemu_vm";
 #endif /* NM_DEFAULT_VMDIR */
@@ -91,9 +87,10 @@ static const char * const CURSOR_STYLE_STR[]   = {
     "Steady Bar"
 };
 
-nm_str_t nm_cfg_path;
+char *nm_cfg_path;
 static nm_cfg_t cfg;
 
+static void nm_locate_cfg(nm_str_t *cfg_path, const char *home);
 static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path);
 static void nm_get_input(const char *msg, nm_str_t *res);
 static inline void nm_get_param(const void *ini, const char *section,
@@ -128,12 +125,7 @@ void nm_cfg_init(void)
         nm_bug(_("Error get home directory: %s\n"), strerror(errno));
     }
 
-    if (nm_cfg_path.len) {
-        nm_str_copy(&cfg_path, &nm_cfg_path);
-    } else {
-        nm_str_format(&cfg_path, "%s/%s", pw->pw_dir, NM_CFG_NAME);
-    }
-
+    nm_locate_cfg(&cfg_path, pw->pw_dir);
     nm_generate_cfg(pw->pw_dir, &cfg_path);
     ini = nm_ini_parser_init(&cfg_path);
 
@@ -388,6 +380,51 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.api_hash);
     nm_str_free(&cfg.api_iface);
 #endif
+}
+
+/* If --cfg(-C) option is passed sets cfg_path to provided path.
+ * Otherwise tries to locate nemu.cfg in following order:
+ * 1) $XDG_CONFIG_HOME/nemu/nemu.cfg (if $XDG_CONFIG_HOME is not set,
+ *    uses $HOME/.config)
+ * 2) $HOME/.nemu.cfg
+ * If it exists, sets cfg_path to first found location.
+ * Otherwise sets it to $XDG_CONFIG_HOME/nemu/nemu.cfg.
+*/
+static void nm_locate_cfg(nm_str_t *cfg_path, const char* home)
+{
+    nm_str_t xdg_config_dir = NM_INIT_STR;
+    const char *xdg_config_home = getenv("XDG_CONFIG_HOME");
+
+    /* --cfg option was used */
+    if (nm_cfg_path) {
+        nm_str_format(cfg_path, "%s", nm_cfg_path);
+        goto out;
+    }
+
+    /* use $HOME/.config as default $XDG_CONFIG_HOME */
+    if (xdg_config_home) {
+        nm_str_format(&xdg_config_dir, "%s/nemu", xdg_config_home);
+    } else {
+        nm_str_format(&xdg_config_dir, "%s/.config/nemu", home);
+    }
+
+    /* nemu.cfg in $XDG_CONFIG_HOME */
+    nm_str_format(cfg_path, "%s/nemu.cfg", xdg_config_dir.data);
+    if (access(cfg_path->data, R_OK) == 0)
+        goto out;
+
+    /* .nemu.cfg in $HOME */
+    nm_str_format(cfg_path, "%s/.nemu.cfg", home);
+    if (access(cfg_path->data, R_OK) == 0)
+        goto out;
+
+    /* not found anywhere, create $XDG_CONFIG_HOME/nemu if doesn't exist
+     * and use $XDG_CONFIG_HOME/nemu/nemu.cfg as cfg_path */
+    nm_mkdir_parent(&xdg_config_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    nm_str_format(cfg_path, "%s/nemu.cfg", xdg_config_dir.data);
+
+out:
+    nm_str_free(&xdg_config_dir);
 }
 
 static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)

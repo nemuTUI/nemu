@@ -27,7 +27,6 @@
 , withVNC ? true
 , withRemote ? false
 
-, configName ? ".config/nemu/nemu.cfg"
 , vmDir ? ".local/share/nemu/vms"
 , databaseName ? ".local/share/nemu/nemu.db"
 }:
@@ -70,7 +69,6 @@ stdenv.mkDerivation rec {
     ++ lib.optional withRemote openssl;
 
   cmakeFlags = [
-    "-DNM_CFG_NAME=${configName}"
     "-DNM_DEFAULT_VMDIR=${vmDir}"
     "-DNM_DEFAULT_VNC=${tigervnc}/bin/vncviewer"
     "-DNM_DEFAULT_DBFILE=${databaseName}"
