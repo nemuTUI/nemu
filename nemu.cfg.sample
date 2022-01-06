@@ -5,6 +5,9 @@ vmdir = /home/user/nemu_vm
 # path to database file.
 db = /home/user/.nemu.db
 
+# path to pid file. Example:
+# pid = /tmp/nemu.pid
+
 # path to debug log file. Example:
 # debug_path = /tmp/nemu_debug.log
 
