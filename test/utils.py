@@ -43,6 +43,10 @@ class Nemu():
     def qemu_bin():
         return os.getenv("QEMU_BIN_DIR")
 
+    @staticmethod
+    def target_os():
+        return os.getenv("NEMU_TARGET_OS")
+
     def qemu_mtype(self):
         cmd = [os.getenv("QEMU_BIN_DIR") + "/qemu-system-x86_64", "-M", "help"]
         sub = subprocess.run(cmd, capture_output=True)
@@ -61,6 +65,16 @@ class Tmux():
         self.uuid = uuid.uuid4().hex
 
     def setup(self, path):
+        # wait for nemu stops if running
+        pidfile = path + "/nemu.pid"
+        wait_max = 100 # wait for 10 seconds max
+        wait_cur = 0
+        while os.path.exists(pidfile):
+            time.sleep(0.1)
+            wait_cur += 1
+            if wait_max >= wait_cur:
+                break
+
         sub = subprocess.run(["tmux", "-L", self.uuid,
                 "new-session", "-d", os.getenv("NEMU_BIN_DIR") + "/nemu",
                 "--cfg", path + "/nemu.cfg"])

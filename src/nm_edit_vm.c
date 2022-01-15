@@ -96,7 +96,7 @@ void nm_edit_vm(const nm_str_t *name)
         switch (n) {
             case NM_FLD_CPUNUM:
                 fields[n] = nm_field_regexp_new(
-                    n / 2, form_data, "^[0-9]{1}(:[0-9]{1})?(:[0-9]{1})? *$");
+                    n / 2, form_data, "^[0-9]+(:[0-9]+)?(:[0-9]+)? *$");
                 break;
             case NM_FLD_RAMTOT:
                 fields[n] = nm_field_integer_new(
