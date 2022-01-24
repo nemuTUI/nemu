@@ -80,8 +80,6 @@ class Tmux():
                 "--cfg", path + "/nemu.cfg"])
 
         # wait for nemu starts
-        pidfile = path + "/nemu.pid"
-        wait_max = 100 # wait for 10 seconds max
         wait_cur = 0
         while not os.path.exists(pidfile):
             time.sleep(0.1)
