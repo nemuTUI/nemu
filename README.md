@@ -10,7 +10,7 @@
  * Show VM status, CPU usage
  * Start/stop/shutdown/reset VM
  * Connect to VM via VNC or SPICE protocol
- * Full VM snapshots (since QEMU-6.0.0, broken in 6.1.0)
+ * Full VM snapshots (since QEMU-6.0.0)
  * Show/Edit VM settings
  * USB support
  * Network via tap/macvtap interfaces
