@@ -21,10 +21,10 @@ void nm_print_dropdown_menu(nm_menu_data_t *values, nm_window_t *w)
     for (size_t n = values->item_first, i = 0; n < values->item_last; n++, i++) {
         if (values->highlight == i + 1) {
             wattron(w, A_REVERSE);
-            mvwprintw(w, y, x, "%s", values->v->data[n]);
+            mvwprintw(w, y, x, "%s", (char *) values->v->data[n]);
             wattroff(w, A_REVERSE);
         } else {
-            mvwprintw(w, y, x, "%s", values->v->data[n]);
+            mvwprintw(w, y, x, "%s", (char *) values->v->data[n]);
         }
 
         y++;

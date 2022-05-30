@@ -110,7 +110,7 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err)
             x+=2;
         }
 
-        mvwprintw(help_window, y, x, _(msg[n]));
+        mvwprintw(help_window, y, x, "%s", _(msg[n]));
         x += mbstowcs(NULL, _(msg[n]), strlen(_(msg[n])));
 
         if (use_glyph && (n == objs - 1)) {
@@ -171,7 +171,7 @@ static void nm_init_window__(nm_window_t *w, const char *msg)
     size_t mb_len = mbstowcs(NULL, msg, strlen(msg));
 
     box(w, 0, 0);
-    mvwprintw(w, 1, (cols - mb_len) / 2, msg);
+    mvwprintw(w, 1, (cols - mb_len) / 2, "%s", msg);
     mvwaddch(w, 2, 0, ACS_LTEE);
     mvwhline(w, 2, 1, ACS_HLINE, cols - 2);
     mvwaddch(w, 2, cols - 1, ACS_RTEE);
