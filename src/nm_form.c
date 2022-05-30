@@ -850,7 +850,7 @@ void *nm_file_progress(void *data)
         stat(dst.data, &dst_info);
         perc = (dst_info.st_size * 100) / img_info.st_size;
         NM_ERASE_TITLE(action, cols);
-        mvwprintw(action_window, 1, 2, "%d%% %ldmb/%ldmb",
+        mvwprintw(action_window, 1, 2, "%ld%% %ldmb/%ldmb",
                 perc, dst_info.st_size / 1024, img_info.st_size / 1024);
         wrefresh(action_window);
 
