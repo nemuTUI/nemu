@@ -5,6 +5,7 @@
 #include <nm_cfg_file.h>
 #include <nm_main_loop.h>
 #include <nm_mon_daemon.h>
+#include <nm_ovf_import.h>
 #include <nm_vm_control.h>
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
@@ -44,6 +45,9 @@ int main(int argc, char **argv)
     nm_mon_start();
 #if defined (NM_OS_LINUX)
     nm_lan_create_veth(NM_FALSE);
+#endif
+#if defined (NM_WITH_OVF_SUPPORT)
+    nm_ovf_init();
 #endif
 
     sigemptyset(&sa.sa_mask);

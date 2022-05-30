@@ -5,6 +5,7 @@
 
 #if defined (NM_WITH_OVF_SUPPORT)
 void nm_ovf_import(void);
+void nm_ovf_init(void);
 #endif
 
 typedef struct {

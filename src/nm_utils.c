@@ -4,6 +4,7 @@
 #include <nm_vector.h>
 #include <nm_ncurses.h>
 #include <nm_vm_control.h>
+#include <nm_ftw.h>
 
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -326,6 +327,24 @@ int nm_rc()
     return nemu_rc;
 }
 
+static int nm_ftw_remove_cb(const char *path, NM_UNUSED const struct stat *st,
+        NM_UNUSED enum nm_ftw_type type, nm_ftw_t *ftw, NM_UNUSED void *ctx)
+{
+    if (ftw->level != 0) {
+        if (remove(path) != 0) {
+            nm_bug(_("%s: %s: %s"), __func__, path, strerror(errno));
+        }
+    }
+
+    return NM_OK;
+}
+
+int nm_cleanup_dir(const nm_str_t *path)
+{
+    return nm_ftw(path, nm_ftw_remove_cb, NULL,
+            NM_FTW_DEPTH_UNLIM, NM_FTW_DNFSL | NM_FTW_MOUNT | NM_FTW_DEPTH);
+}
+
 int nm_mkdir_parent(const nm_str_t *path, mode_t mode)
 {
     int rc = NM_OK;
@@ -343,7 +362,7 @@ int nm_mkdir_parent(const nm_str_t *path, mode_t mode)
         if (rc < 0 && errno != EEXIST) {
             nm_debug(_("%s: failed to create directory \"%s\" (%s)"),
                     __func__, buf.data, strerror(errno));
-            fprintf(stderr, _("%s: failed to create directory \"%s\" (%s)"),
+            fprintf(stderr, _("%s: failed to create directory \"%s\" (%s)\n"),
                     __func__, buf.data, strerror(errno));
             break;
         } else {
@@ -472,5 +491,4 @@ void nm_gen_uid(nm_str_t *res)
     nm_str_free(&time);
     nm_str_free(&rnd);
 }
-
 /* vim:set ts=4 sw=4: */
