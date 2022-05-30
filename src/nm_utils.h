@@ -44,6 +44,7 @@ void nm_exit(int status)
     __attribute__((noreturn));
 int nm_rc();
 
+int nm_cleanup_dir(const nm_str_t *path);
 int nm_mkdir_parent(const nm_str_t *path, mode_t mode);
 
 const char *nm_nemu_path();

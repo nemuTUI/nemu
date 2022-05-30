@@ -30,7 +30,8 @@ const char *nm_ovf_version[] = {
 };
 
 enum {NM_BLOCK_SIZE = 10240};
-static const char NM_OVA_DIR_TEMPL[] = "/tmp/ova_extract_XXXXXX";
+static const char NM_OVA_TMP_DIR[] = ".tmp_ova";
+static const char NM_OVA_DIR_TEMPL[] = "extract_XXXXXX";
 
 static const char NM_LC_OVF_FORM_PATH[] = "Path to OVA";
 static const char NM_LC_OVF_FORM_ARCH[] = "Architecture";
@@ -158,11 +159,38 @@ static void nm_ovf_init_windows(nm_form_t *form)
     nm_print_vm_menu(NULL);
 }
 
+/*
+ * Create a temporary directory for OVA unpacking. During OVA processing,
+ * nEMU may crash and leave garbage. Therefore, at startup, nEMU will
+ * clear the contents of this directory.
+ */
+void nm_ovf_init(void)
+{
+    nm_str_t ova_tmpdir = NM_INIT_STR;
+    struct stat info;
+
+    nm_str_format(&ova_tmpdir, "%s/%s",
+            nm_cfg_get()->vm_dir.data, NM_OVA_TMP_DIR);
+
+    if (stat(ova_tmpdir.data, &info) != 0) {
+        if (nm_mkdir_parent(&ova_tmpdir,
+                    S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != NM_OK) {
+            nm_bug(_("%s: error"), __func__);
+        }
+    } else { /* cleanup content */
+        if (nm_cleanup_dir(&ova_tmpdir) != NM_OK) {
+            nm_bug(_("%s: %s"), __func__, strerror(errno));
+        }
+    }
+
+    nm_str_free(&ova_tmpdir);
+}
+
 void nm_ovf_import(void)
 {
     nm_form_data_t *form_data = NULL;
     nm_form_t *form = NULL;
-    char templ_path[sizeof(NM_OVA_DIR_TEMPL)];
+    nm_str_t templ_path = NM_INIT_STR;
     const char *ovf_file;
     nm_vect_t files = NM_INIT_VECT;
     nm_vect_t drives = NM_INIT_VECT;
@@ -174,7 +202,8 @@ void nm_ovf_import(void)
     pthread_t spin_th = 0;
     int done = 0, version = 0;
 
-    strncpy(templ_path, NM_OVA_DIR_TEMPL, sizeof(templ_path));
+    nm_str_format(&templ_path, "%s/%s/%s",
+            nm_cfg_get()->vm_dir.data, NM_OVA_TMP_DIR, NM_OVA_DIR_TEMPL);
 
     nm_ovf_init_windows(NULL);
 
@@ -228,10 +257,10 @@ void nm_ovf_import(void)
     if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
         nm_bug(_("%s: cannot create thread"), __func__);
 
-    if (mkdtemp(templ_path) == NULL)
+    if (mkdtemp(templ_path.data) == NULL)
         nm_bug("%s: mkdtemp error: %s", __func__, strerror(errno));
 
-    nm_ovf_extract(&vm.srcp, templ_path, &files);
+    nm_ovf_extract(&vm.srcp, templ_path.data, &files);
 
     if ((ovf_file = nm_find_ovf(&files)) == NULL) {
         nm_warn(_(NM_MSG_OVF_MISS));
@@ -240,7 +269,7 @@ void nm_ovf_import(void)
 
     nm_debug("ova: ovf file found: %s\n", ovf_file);
 
-    if ((doc = nm_ovf_open(templ_path, ovf_file)) == NULL) {
+    if ((doc = nm_ovf_open(templ_path.data, ovf_file)) == NULL) {
         nm_warn(_(NM_MSG_OVF_EPAR));
         goto out;
     }
@@ -267,7 +296,7 @@ void nm_ovf_import(void)
     if (nm_form_name_used(&vm.name) != NM_OK)
         goto out;
 
-    nm_ovf_convert_drives(&drives, &vm.name, templ_path);
+    nm_ovf_convert_drives(&drives, &vm.name, templ_path.data);
     nm_ovf_to_db(&vm, &drives);
 
 out:
@@ -275,13 +304,14 @@ out:
     if (spin_th && (pthread_join(spin_th, NULL) != 0))
         nm_bug(_("%s: cannot join thread"), __func__);
 
-    if (nm_clean_temp_dir(templ_path, &files) != NM_OK)
+    if (nm_clean_temp_dir(templ_path.data, &files) != NM_OK)
         nm_warn(_(NM_MSG_INC_DEL));
 
     xmlXPathFreeContext(xpath_ctx);
     xmlFreeDoc(doc);
     xmlCleanupParser();
 
+    nm_str_free(&templ_path);
     nm_vect_free(&files, NULL);
     nm_vect_free(&drives, nm_drive_vect_free_cb);
 
