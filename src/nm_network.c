@@ -32,7 +32,6 @@ extern unsigned int if_nametoindex (const char *__ifname) __THROW;
 #include <linux/rtnetlink.h>
 
 static const char NM_TUNDEV[]      = "/dev/net/tun";
-static const char NM_NET_MACVTAP[] = "macvtap";
 static const char NM_NET_VETH[]    = "veth";
 static const int NM_NET_VETH_INFO_PEER = 1;
 
@@ -127,6 +126,7 @@ void nm_net_del_tap(const nm_str_t *name)
 void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
                         const nm_str_t *maddr, int type)
 {
+    nm_str_t link_type = NM_INIT_STR;
     struct iplink_req req;
     struct rtnl_handle rth;
     struct rtattr *linkinfo, *data;
@@ -163,8 +163,9 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
     }
 
     linkinfo = nm_net_add_attr_nest(&req.n, sizeof(req), IFLA_LINKINFO);
+    nm_str_format(&link_type, "%s", "macvtap");
     if ((nm_net_add_attr(&req.n, sizeof(req), IFLA_INFO_KIND,
-            NM_NET_MACVTAP, strlen(NM_NET_MACVTAP)) != NM_OK)) {
+            link_type.data, link_type.len) != NM_OK)) {
         nm_bug("%s: Error add_attr", __func__);
     }
 
@@ -189,6 +190,7 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
     nm_net_rtnl_open(&rth);
     nm_net_rtnl_talk(&rth, &req.n, NULL, 0);
     close(rth.sd);
+    nm_str_free(&link_type);
 }
 
 void nm_net_add_veth(const nm_str_t *l_name, const nm_str_t *r_name)

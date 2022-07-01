@@ -536,7 +536,7 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
     size_t pos = 0;
     void *match = NULL;
     nm_str_t input = NM_INIT_STR;
-    size_t msg_len = mbstowcs(NULL, _(NM_SEARCH_STR), strlen(NM_SEARCH_STR));
+    size_t msg_len = mbstowcs(NULL, _(NM_SEARCH_STR), 0);
 
     nm_search_init_windows(NULL);
 
