@@ -607,6 +607,7 @@ static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx,
             nm_xml_char_t *xml_id = xmlNodeGetContent(node_id);
 
             char *id = strrchr((char *) xml_id, '/');
+            uint64_t capacity = 0;
 
             if (id == NULL)
                 nm_bug("%s: NULL disk id", __func__);
@@ -616,7 +617,8 @@ static void nm_ovf_get_drives(nm_vect_t *drives, nm_xml_xpath_ctx_pt ctx,
 
             nm_str_format(&xpath, NM_XPATH_DRIVE_CAP, id);
             nm_ovf_get_text(&buf, ctx, xpath.data, "capacity");
-            nm_str_copy(&drive.capacity, &buf);
+            capacity = nm_str_stoul(&buf, 10);
+            nm_str_format(&drive.capacity, "%g", (double) capacity / 1073741824);
 
             nm_str_format(&xpath, NM_XPATH_DRIVE_REF, id);
             nm_ovf_get_text(&buf, ctx, xpath.data, "file ref");
