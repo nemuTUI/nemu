@@ -512,11 +512,11 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         stat(drive_path.data, &img_info);
 
         nm_str_format(&buf,
-                 "disk%zu%-7s%s [%sGb/%.2gGb virt/real, %s discard=%s] %s",
+                 "disk%zu%-7s%s [%.2gGb/%sGb real/virt, %s discard=%s] %s",
                  n, ":",
                  nm_vect_str_ctx(&vm_->drives, NM_SQL_DRV_NAME + idx_shift),
-                 nm_vect_str_ctx(&vm_->drives, NM_SQL_DRV_SIZE + idx_shift),
                  (double) img_info.st_size / 1073741824,
+                 nm_vect_str_ctx(&vm_->drives, NM_SQL_DRV_SIZE + idx_shift),
                  nm_vect_str_ctx(&vm_->drives, NM_SQL_DRV_TYPE + idx_shift),
                  (nm_str_cmp_st(nm_vect_str(&vm_->drives, NM_SQL_DRV_DISC + idx_shift),
                                 NM_ENABLE) == NM_OK) ? "on" : "off",
