@@ -985,17 +985,30 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
     drives_count = vm.drives.n_memb / NM_DRV_IDX_COUNT;
     for (size_t n = 0; n < drives_count; n++) {
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
+        nm_str_t drive_path = NM_INIT_STR;
+        struct stat img_info;
         int boot = 0;
 
         if (nm_str_cmp_st(nm_vect_str(&vm.drives, NM_SQL_DRV_BOOT + idx_shift),
                 NM_ENABLE) == NM_OK)
             boot = 1;
 
-        nm_str_append_format(&info, "disk%zu%-7s%s [%sGb %s] %s\n", n, ":",
+        nm_str_format(&drive_path, "%s/%s/%s",
+                nm_cfg_get()->vm_dir.data,
+                name->data,
+                nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift));
+
+        memset(&img_info, 0, sizeof(img_info));
+        stat(drive_path.data, &img_info);
+
+        nm_str_append_format(&info, "disk%zu%-7s%s [%sGb/%.2gGb virt/real, %s] %s\n", n, ":",
             nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift),
             nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_SIZE + idx_shift),
+            (double) img_info.st_size / 1073741824,
             nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_TYPE + idx_shift),
             boot ? "*" : "");
+
+        nm_str_free(&drive_path);
     }
 
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_9FLG), "1") == NM_OK) {
