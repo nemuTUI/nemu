@@ -4,7 +4,7 @@
 
 EAPI=7
 
-inherit cmake-utils linux-info git-r3
+inherit cmake linux-info git-r3
 
 DESCRIPTION="Ncurses UI for QEMU"
 HOMEPAGE="https://github.com/nemuTUI/nemu"
@@ -42,7 +42,7 @@ src_configure() {
 		-DNM_WITH_DBUS=$(usex dbus)
 		-DCMAKE_INSTALL_PREFIX=/usr
 	)
-	cmake-utils_src_configure
+	cmake_src_configure
 }
 
 pkg_pretend() {
@@ -62,7 +62,7 @@ pkg_pretend() {
 }
 
 src_install() {
-	cmake-utils_src_install
+	cmake_src_install
 	docompress -x /usr/share/man/man1/nemu.1.gz
 }
 
