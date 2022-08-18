@@ -122,9 +122,11 @@ static int nm_do_ftw(char *path, nm_ftw_cb_t cb, void *ctx, int max_depth,
                 path[base_len] = '/';
                 strcpy(path + base_len + 1, de->d_name);
 
-                if ((rc = nm_do_ftw(path, cb, ctx,
-                                (max_depth == NM_FTW_DEPTH_UNLIM) ?
-                                max_depth : max_depth - 1,
+                if (max_depth != NM_FTW_DEPTH_UNLIM) {
+                    max_depth--;
+                }
+
+                if ((rc = nm_do_ftw(path, cb, ctx, max_depth,
                                 flags, &history_new) != NM_OK)) {
                     closedir(d);
                     return rc;
