@@ -127,7 +127,7 @@ static int nm_do_ftw(char *path, nm_ftw_cb_t cb, void *ctx, int max_depth,
                 }
 
                 if ((rc = nm_do_ftw(path, cb, ctx, max_depth,
-                                flags, &history_new) != NM_OK)) {
+                                flags, &history_new)) != NM_OK) {
                     closedir(d);
                     return rc;
                 }
