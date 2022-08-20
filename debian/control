@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Pavel Balaev <balaev@tarantool.org>
 Build-Depends: debhelper (>= 9),
                cmake,
+               cdbs,
                libarchive-dev,
                libdbus-1-dev,
                libgraphviz-dev,
