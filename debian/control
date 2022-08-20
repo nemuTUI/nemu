@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 9),
                libarchive-dev,
                libdbus-1-dev,
                libgraphviz-dev,
-               libjson-c-dev
+               libjson-c-dev,
                libsqlite3-dev,
                libssl-dev,
                libusb-1.0-0-dev,
@@ -23,7 +23,7 @@ VCS-Git: git://github.com/nemuTUI/nemu.git
 Package: nemu
 Architecture: any
 Recommends: virt-viewer
-Depends: qemu-kvm | qemu, ${shlibs:Depends}, ${misc:Depends}
+Depends: qemu-utils, qemu-system-x86, ${shlibs:Depends}, ${misc:Depends}
 Description: nEMU - ncurses interface for QEMU
  nEMU is text-based user interface application for hypervisor QEMU,
  based on ncurses5 library
