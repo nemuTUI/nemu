@@ -1,20 +1,28 @@
 Source: nemu
 Section: universe/utils
-Priority: extra
-Maintainer: Sergei Eremenko <finalitik@gmail.com>
+Priority: optional
+Maintainer: Pavel Balaev <balaev@tarantool.org>
 Build-Depends: debhelper (>= 9),
                cmake,
+               libarchive-dev,
+               libdbus-1-dev,
+               libgraphviz-dev,
+               libjson-c-dev
                libsqlite3-dev,
+               libssl-dev,
                libusb-1.0-0-dev,
                libudev-dev,
                libncurses5-dev,
-               libncursesw5-dev
+               libncursesw5-dev,
+               libxml2-dev
 Standards-Version: 3.9.6
-Homepage: https://unixdev.ru/nemu
+Homepage: https://github.com/nemuTUI/nemu
+VCS-Browser: https://github.com/nemuTUI/nemu
+VCS-Git: git://github.com/nemuTUI/nemu.git
 
 Package: nemu
 Architecture: any
-Recommends: vinagre
+Recommends: virt-viewer
 Depends: qemu-kvm | qemu, ${shlibs:Depends}, ${misc:Depends}
 Description: nEMU - ncurses interface for QEMU
  nEMU is text-based user interface application for hypervisor QEMU,

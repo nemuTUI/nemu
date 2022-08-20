@@ -3,5 +3,13 @@
 # Uncomment this to turn on verbose mode.
 # export DH_VERBOSE=1
 
+DEB_CMAKE_EXTRA_FLAGS := \
+	-DNM_WITH_DBUS=ON \
+	-DNM_WITH_NETWORK_MAP=ON \
+	-DNM_WITH_OVF_SUPPORT=ON \
+	-DNM_WITH_REMOTE=ON \
+	-DNM_WITH_SPICE=ON \
+	-DNM_WITH_VNC_CLIENT=ON
+
 %:
 	dh $@ --parallel --buildsystem=cmake --builddirectory=build
