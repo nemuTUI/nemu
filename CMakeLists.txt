@@ -62,8 +62,6 @@ else()
 endif()
 
 option(NM_WITH_OVF_SUPPORT "Build with OVF support" ON)
-option(NM_WITH_VNC_CLIENT "Build with usage of external VNC client" ON)
-option(NM_WITH_SPICE "Build with Spice protocol support" ON)
 option(NM_WITH_NETWORK_MAP "Build with exporting network map to SVG" OFF)
 option(NM_WITH_DBUS "Build with D-Bus support" OFF)
 option(NM_WITH_QEMU "Build with embedded QEMU" OFF)
@@ -186,14 +184,6 @@ elseif(NM_OS_FREEBSD)
   set(NM_WITH_NETWORK_MAP FALSE)
   find_package(Intl REQUIRED)
   target_link_libraries(${PROJECT_NAME} ${Intl_LIBRARIES})
-endif()
-
-if(NM_WITH_VNC_CLIENT)
-  add_definitions(-DNM_WITH_VNC_CLIENT)
-endif()
-
-if(NM_WITH_SPICE)
-  add_definitions(-DNM_WITH_SPICE)
 endif()
 
 if(NM_WITH_OVF_SUPPORT)
@@ -353,8 +343,6 @@ message(
   STATUS
     "Using alternative names for network interfaces: ${NM_WITH_NEWLINKPROP}")
 message(STATUS "OVF support: ${NM_WITH_OVF_SUPPORT}")
-message(STATUS "VNC/Spice support: ${NM_WITH_VNC_CLIENT}")
-message(STATUS "Spice support: ${NM_WITH_SPICE}")
 message(STATUS "Network map export: ${NM_WITH_NETWORK_MAP}")
 message(STATUS "D-Bus support: ${NM_WITH_DBUS}")
 message(STATUS "Remote control support: ${NM_WITH_REMOTE}")

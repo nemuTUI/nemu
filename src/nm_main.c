@@ -284,20 +284,6 @@ static void nm_print_feset(void)
     nm_str_t msg = NM_INIT_STR;
 
     nm_vect_insert_cstr(&feset,
-#if defined (NM_WITH_VNC_CLIENT)
-            NM_FESET(" VNC", YES, "+")
-#else
-            NM_FESET(" VNC", NO, "-")
-#endif
-            );
-    nm_vect_insert_cstr(&feset,
-#if defined (NM_WITH_SPICE)
-            NM_FESET(" SPICE", YES, "+")
-#else
-            NM_FESET(" SPICE", NO, "-")
-#endif
-            );
-    nm_vect_insert_cstr(&feset,
 #if defined (NM_WITH_OVF_SUPPORT)
             NM_FESET(" OVF import", YES, "+")
 #else

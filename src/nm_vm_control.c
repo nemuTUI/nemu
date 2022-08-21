@@ -18,9 +18,8 @@ enum {
     NM_VIEWER_VNC
 };
 
-#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
-static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port, nm_str_t *cmd, int type);
-#endif
+static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port,
+        nm_str_t *cmd, int type);
 static int nm_vmctl_clear_tap_vect(const nm_vect_t *vms);
 
 void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
@@ -208,7 +207,6 @@ void nm_vmctl_kill(const nm_str_t *name)
     nm_str_free(&pid_file);
 }
 
-#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
 void nm_vmctl_connect(const nm_str_t *name)
 {
     nm_str_t cmd = NM_INIT_STR;
@@ -220,22 +218,18 @@ void nm_vmctl_connect(const nm_str_t *name)
     nm_str_format(&query, NM_VMCTL_GET_VNC_PORT_SQL, name->data);
     nm_db_select(query.data, &res);
     port = nm_str_stoui(nm_vect_str(&res, 0), 10) + NM_STARTING_VNC_PORT;
-#if defined(NM_WITH_SPICE)
     if (nm_str_cmp_st(nm_vect_str(&res, 1), NM_ENABLE) == NM_OK) {
         nm_vmctl_gen_viewer(name, port, &cmd, NM_VIEWER_SPICE);
     } else {
-#endif
         nm_vmctl_gen_viewer(name, port, &cmd, NM_VIEWER_VNC);
-#if defined(NM_WITH_SPICE)
     }
-#endif
+
     unused = system(cmd.data);
 
     nm_vect_free(&res, nm_str_vect_free_cb);
     nm_str_free(&query);
     nm_str_free(&cmd);
 }
-#endif
 
 void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     const nm_str_t *name, int *flags, nm_vect_t *tfds, nm_str_t *snap)
@@ -883,7 +877,6 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         }
     }
 
-#if defined (NM_WITH_SPICE)
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_SPICE), NM_ENABLE) == NM_OK) {
         nm_vect_insert_cstr(argv, "-vga");
         nm_vect_insert_cstr(argv, (nm_vect_str(&vm->main, NM_SQL_DISPLAY))->data);
@@ -894,17 +887,14 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             nm_str_append_format(&buf, ",addr=127.0.0.1");
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
     } else {
-#endif
-    nm_vect_insert_cstr(argv, "-vnc");
-    if (cfg->listen_any)
-        nm_str_format(&buf, ":");
-    else
-        nm_str_format(&buf, "127.0.0.1:");
-    nm_str_add_str(&buf, nm_vect_str(&vm->main, NM_SQL_VNC));
-    nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
-#if defined (NM_WITH_SPICE)
+        nm_vect_insert_cstr(argv, "-vnc");
+        if (cfg->listen_any)
+            nm_str_format(&buf, ":");
+        else
+            nm_str_format(&buf, "127.0.0.1:");
+        nm_str_add_str(&buf, nm_vect_str(&vm->main, NM_SQL_VNC));
+        nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
     }
-#endif
 
     if (nm_vect_str_len(&vm->main, NM_SQL_ARGS)) {
         nm_vect_t args = NM_INIT_VECT;
@@ -1198,13 +1188,16 @@ static int nm_vmctl_clear_tap_vect(const nm_vect_t *vms)
     return clear_done;
 }
 
-#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
-static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port, nm_str_t *cmd, int type)
+static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port,
+        nm_str_t *cmd, int type)
 {
     const nm_cfg_t *cfg = nm_cfg_get();
-    const nm_str_t *bin = (type == NM_VIEWER_SPICE) ? &cfg->spice_bin : &cfg->vnc_bin;
-    const nm_str_t *args = (type == NM_VIEWER_SPICE) ? &cfg->spice_args : &cfg->vnc_args;
-    const nm_view_args_t *pos = (type == NM_VIEWER_SPICE) ? &cfg->spice_view : &cfg->vnc_view;
+    const nm_str_t *bin = (type == NM_VIEWER_SPICE) ?
+        &cfg->spice_bin : &cfg->vnc_bin;
+    const nm_str_t *args = (type == NM_VIEWER_SPICE) ?
+        &cfg->spice_args : &cfg->vnc_args;
+    const nm_view_args_t *pos = (type == NM_VIEWER_SPICE) ?
+        &cfg->spice_view : &cfg->vnc_view;
     char *argsp = args->data;
     size_t total = 0;
     nm_str_t warn_msg = NM_INIT_STR;
@@ -1251,6 +1244,5 @@ out:
     nm_str_free(&buf);
     nm_str_free(&warn_msg);
 }
-#endif
 
 /* vim:set ts=4 sw=4: */
