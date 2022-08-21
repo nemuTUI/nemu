@@ -35,7 +35,7 @@
  * QEMU (>= 2.12.0 [minimum] >= 6.0.0 [all features])
 
 ## Packages
- * Debian and Ubuntu [packages](https://software.opensuse.org/download.html?project=home%3ASmartFinn%3AnEMU&package=nemu)
+ * Debian and Ubuntu [packages](https://software.opensuse.org/download.html?project=home%3A0x501D&package=nemu)
  * Gentoo: `emerge app-emulation/nemu`
  * FreeBSD: `pkg install nemu` or `make -C /usr/ports/emulators/nemu install clean`
  * RPMs: [stable](https://copr.fedorainfracloud.org/coprs/grafin1992/nEMU/), [latest](https://copr.fedorainfracloud.org/coprs/grafin1992/nEMU-latest/)

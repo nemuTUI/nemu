@@ -21,9 +21,3 @@ Edit build parametrs
 
 Executable and lang files directory prefix (default: "/usr")
   - % cmake -DUSR_PREFIX=/usr/local/ .
-
-
-Debian and Ubuntu packages (thanks to Sergey E. (SmartFinn)):
-
-Source: https://build.opensuse.org/package/show/home:SmartFinn:nEMU/nemu
-Packages: https://software.opensuse.org/download.html?project=home:SmartFinn:nEMU&package=nemu
