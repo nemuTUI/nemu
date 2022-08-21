@@ -100,9 +100,7 @@ static inline int nm_get_opt_param(const void *ini, const char *section,
 static inline void nm_cfg_get_color(size_t pos, short *color,
                                     const nm_str_t *buf);
 static void nm_cfg_get_targets(nm_str_t *buf, const nm_str_t *path);
-#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
 static void nm_cfg_get_view(nm_view_args_t *view, const nm_str_t *buf);
-#endif
 
 void nm_cfg_init(void)
 {
@@ -111,15 +109,9 @@ void nm_cfg_init(void)
     nm_str_t cfg_path = NM_INIT_STR;
     nm_str_t tmp_buf = NM_INIT_STR;
     nm_ini_node_t *ini;
-#ifdef NM_WITH_VNC_CLIENT
     cfg.vnc_view = NM_INIT_AD_VIEW;
-#endif
-#ifdef NM_WITH_SPICE
     cfg.spice_view = NM_INIT_AD_VIEW;
-#endif
-#ifndef NM_WITH_SPICE
-    cfg.spice_default = 0;
-#endif
+    cfg.spice_default = 1; /* enable spice by default */
 
     if (!pw) {
         nm_bug(_("Error get home directory: %s\n"), strerror(errno));
@@ -166,7 +158,6 @@ void nm_cfg_init(void)
         nm_str_alloc_text(&cfg.pid, NM_DEFAULT_PID);
     }
 
-#ifdef NM_WITH_VNC_CLIENT
     /* Get the VNC client binary path */
     nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VBIN, &cfg.vnc_bin, NM_DEFAULT_VNC);
 
@@ -175,8 +166,7 @@ void nm_cfg_init(void)
 
     nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VARG, &cfg.vnc_args, NM_DEFAULT_VNCARG);
     nm_cfg_get_view(&cfg.vnc_view, &cfg.vnc_args);
-#endif /* NM_WITH_VNC_CLIENT */
-#ifdef NM_WITH_SPICE
+
     /* Get the SPICE client binary path */
     nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_SBIN, &cfg.spice_bin, NM_DEFAULT_SPICE);
 
@@ -189,7 +179,7 @@ void nm_cfg_init(void)
     nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_PROT, &tmp_buf, NULL);
     cfg.spice_default = !!nm_str_stoui(&tmp_buf, 10);
     nm_str_trunc(&tmp_buf, 0);
-#endif /* NM_WITH_SPICE */
+
     /* Get the VNC listen value */
     nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_VANY, &tmp_buf, NULL);
     cfg.listen_any = !!nm_str_stoui(&tmp_buf, 10);
@@ -362,12 +352,10 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.vm_dir);
     nm_str_free(&cfg.db_path);
     nm_str_free(&cfg.debug_path);
-#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
     nm_str_free(&cfg.vnc_bin);
     nm_str_free(&cfg.spice_bin);
     nm_str_free(&cfg.vnc_args);
     nm_str_free(&cfg.spice_args);
-#endif
     nm_str_free(&cfg.log_path);
     nm_str_free(&cfg.pid);
     nm_str_free(&cfg.daemon_pid);
@@ -448,14 +436,10 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             FILE *cfg_file;
             int ch;
             nm_str_t db = NM_INIT_STR;
-#ifdef NM_WITH_VNC_CLIENT
             nm_str_t vnc_bin = NM_INIT_STR;
             nm_str_t vnc_args = NM_INIT_STR;
-#endif
-#ifdef NM_WITH_SPICE
             nm_str_t spice_bin = NM_INIT_STR;
             nm_str_t spice_args = NM_INIT_STR;
-#endif
             nm_str_t vmdir = NM_INIT_STR;
             nm_str_t qemu_bin_path = NM_INIT_STR;
             nm_str_t targets = NM_INIT_STR;
@@ -467,14 +451,10 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             nm_mkdir_parent(&tmp_dir_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
             nm_str_alloc_text(&db, home);
-#ifdef NM_WITH_VNC_CLIENT
             nm_str_alloc_text(&vnc_bin, NM_DEFAULT_VNC);
             nm_str_alloc_text(&vnc_args, NM_DEFAULT_VNCARG);
-#endif
-#ifdef NM_WITH_SPICE
             nm_str_alloc_text(&spice_bin, NM_DEFAULT_SPICE);
             nm_str_alloc_text(&spice_args, NM_DEFAULT_SPICEARG);
-#endif
             nm_str_alloc_text(&vmdir, home);
             nm_str_alloc_text(&qemu_bin_path, NM_DEFAULT_QEMUDIR);
 
@@ -517,14 +497,10 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                 nm_bug(_("%s: database filepath \"%s\" ends with /"), __func__, db.data);
             nm_str_dirname(&db, &tmp_dir_path);
             nm_mkdir_parent(&tmp_dir_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-#ifdef NM_WITH_VNC_CLIENT
             nm_get_input(_("VNC client path (enter \"/bin/false\" if you connect other way)"), &vnc_bin);
             nm_get_input(_("VNC client arguments"), &vnc_args);
-#endif
-#ifdef NM_WITH_SPICE
             nm_get_input(_("SPICE client path(enter \"/bin/false\" if you connect other way)"), &spice_bin);
             nm_get_input(_("SPICE client arguments"), &spice_args);
-#endif
             nm_get_input(_("Path to directory, where QEMU binary can be found"), &qemu_bin_path);
             nm_cfg_get_targets(&targets, &qemu_bin_path);
             nm_get_input(_("QEMU system targets list, separated by comma"), &targets);
@@ -540,19 +516,11 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                 "# if not set VTE's default cursor style will be used\n"
                 "# cursor_style = 1\n\n");
             fprintf(cfg_file, "[viewer]\n");
-#ifdef NM_WITH_SPICE
             fprintf(cfg_file, "# default protocol (1 - spice, 0 - vnc)\nspice_default = 1\n\n");
-#else
-            fprintf(cfg_file, "# default protocol (1 - spice, 0 - vnc)\nspice_default = 0\n\n");
-#endif
-#ifdef NM_WITH_VNC_CLIENT
             fprintf(cfg_file, "# vnc client path.\nvnc_bin = %s\n\n", vnc_bin.data);
             fprintf(cfg_file, "# vnc client args (%%t - title, %%p - port)\nvnc_args = %s\n\n", vnc_args.data);
-#endif
-#ifdef NM_WITH_SPICE
             fprintf(cfg_file, "# spice client path.\nspice_bin = %s\n\n", spice_bin.data);
             fprintf(cfg_file, "# spice client args (%%t - title, %%p - port)\nspice_args = %s\n\n", spice_args.data);
-#endif
             fprintf(cfg_file, "# listen for vnc|spice connections"
                 " (0 - only localhost, 1 - any address)\nlisten_any = 0\n\n");
             fprintf(cfg_file, "[qemu]\n# path to directory, where QEMU binary can be found.\n"
@@ -592,14 +560,10 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 
             nm_str_free(&tmp_dir_path);
             nm_str_free(&db);
-#ifdef NM_WITH_VNC_CLIENT
             nm_str_free(&vnc_bin);
             nm_str_free(&vnc_args);
-#endif
-#ifdef NM_WITH_SPICE
             nm_str_free(&spice_bin);
             nm_str_free(&spice_args);
-#endif
             nm_str_free(&vmdir);
             nm_str_free(&qemu_bin_path);
             nm_str_free(&targets);
@@ -698,7 +662,6 @@ static void nm_cfg_get_targets(nm_str_t *buf, const nm_str_t *path)
         nm_str_format(buf, "%s", NM_DEFAULT_TARGET);
 }
 
-#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
 static void nm_cfg_get_view(nm_view_args_t *view, const nm_str_t *buf)
 {
     int label_found = 0;
@@ -724,5 +687,4 @@ static void nm_cfg_get_view(nm_view_args_t *view, const nm_str_t *buf)
         }
     }
 }
-#endif
 /* vim:set ts=4 sw=4: */

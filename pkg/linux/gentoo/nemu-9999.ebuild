@@ -1,4 +1,4 @@
-# Copyright 1999-2021 Gentoo Foundation
+# Copyright 1999-2022 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -13,7 +13,7 @@ SRC_URI=""
 
 LICENSE="BSD-2"
 SLOT="0"
-IUSE="+vnc-client +ovf +spice dbus network-map remote-api"
+IUSE="+ovf dbus network-map remote-api"
 
 RDEPEND="
 	dev-libs/json-c
@@ -21,7 +21,7 @@ RDEPEND="
 	dev-db/sqlite:3=
 	dev-libs/libusb:1=
 	|| ( sys-fs/eudev sys-fs/udev sys-apps/systemd )
-	>=app-emulation/qemu-6.0.0-r2[vnc,virtfs,spice?]
+	>=app-emulation/qemu-6.0.0-r2[vnc,virtfs,spice]
 	ovf? (
 		dev-libs/libxml2
 		app-arch/libarchive
@@ -34,11 +34,9 @@ DEPEND="${RDEPEND}
 
 src_configure() {
 	local mycmakeargs=(
-		-DNM_WITH_VNC_CLIENT=$(usex vnc-client)
 		-DNM_WITH_OVF_SUPPORT=$(usex ovf)
 		-DNM_WITH_NETWORK_MAP=$(usex network-map)
 		-DNM_WITH_REMOTE=$(usex remote-api)
-		-DNM_WITH_SPICE=$(usex spice)
 		-DNM_WITH_DBUS=$(usex dbus)
 		-DCMAKE_INSTALL_PREFIX=/usr
 	)

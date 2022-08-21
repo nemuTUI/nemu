@@ -673,10 +673,7 @@ void nm_lan_help(void)
 void nm_print_help(void)
 {
     const char *keys[] = {
-        "r", "t",
-#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
-        "c",
-#endif
+        "r", "t", "c",
         "p", "z", "f", "d", "y", "e",
         "i", "C", "a", "l", "b", "h",
         "m", "v", "u", "P", "R", "S",
@@ -690,9 +687,7 @@ void nm_print_help(void)
     const char *values[] = {
         "start vm",
         "start vm in temporary mode",
-#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
         "connect to vm",
-#endif
         "powerdown vm",
         "reset vm",
         "force stop vm",

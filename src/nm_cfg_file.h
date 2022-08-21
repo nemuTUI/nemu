@@ -4,12 +4,10 @@
 #include <nm_string.h>
 #include <nm_vector.h>
 
-#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
 typedef struct {
     ssize_t title;
     ssize_t port;
 } nm_view_args_t;
-#endif
 
 #define NM_INIT_AD_VIEW (nm_view_args_t) {-1, -1}
 
@@ -31,14 +29,12 @@ typedef struct {
 typedef struct {
     nm_str_t vm_dir;
     nm_str_t db_path;
-#if defined(NM_WITH_VNC_CLIENT) || defined(NM_WITH_SPICE)
     nm_str_t vnc_bin;
     nm_str_t vnc_args;
     nm_str_t spice_bin;
     nm_str_t spice_args;
     nm_view_args_t spice_view;
     nm_view_args_t vnc_view;
-#endif
     nm_str_t log_path;
     nm_str_t pid;
     nm_str_t daemon_pid;
