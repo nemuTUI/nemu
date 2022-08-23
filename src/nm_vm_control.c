@@ -623,12 +623,16 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     /* setup network interfaces */
     for (size_t n = 0; n < ifs_count; n++) {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
+        nm_str_t id = NM_INIT_STR;
+
+        nm_str_copy(&id, nm_vect_str(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
+        nm_str_remove_char(&id, ':');
 
         nm_vect_insert_cstr(argv, "-device");
-        nm_str_format(&buf, "%s,mac=%s,netdev=netdev%zu",
+        nm_str_format(&buf, "%s,mac=%s,id=dev-%s,netdev=net-%s",
             nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift)->data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_MAC + idx_shift)->data,
-            n);
+            id.data, id.data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
         if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
@@ -661,7 +665,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 #endif /* NM_OS_LINUX */
 
             nm_vect_insert_cstr(argv, "-netdev");
-            nm_str_format(&buf, "user,id=netdev%zu", n);
+            nm_str_format(&buf, "user,id=net-%s", id.data);
 
             if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_FWD + idx_shift) != 0) {
                 nm_str_append_format(&buf, ",hostfwd=%s",
@@ -675,8 +679,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         } else if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift),
             NM_DISABLE) == NM_OK) {
             nm_vect_insert_cstr(argv, "-netdev");
-            nm_str_format(&buf, "tap,ifname=%s,script=no,downscript=no,id=netdev%zu",
-                nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)->data, n);
+            nm_str_format(&buf, "tap,ifname=%s,script=no,downscript=no,id=net-%s",
+                nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)->data, id.data);
 
 #if defined (NM_OS_LINUX)
             /* Delete macvtap iface if exists, we using simple tap iface now.
@@ -786,8 +790,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             }
 
             nm_vect_insert_cstr(argv, "-netdev");
-            nm_str_format(&buf, "tap,id=netdev%zu,fd=%d",
-                n, (*flags & NM_VMCTL_INFO) ? -1 : tap_fd);
+            nm_str_format(&buf, "tap,id=net-%s,fd=%d",
+                id.data, (*flags & NM_VMCTL_INFO) ? -1 : tap_fd);
 #endif /* NM_OS_LINUX */
         }
         if ((nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift), NM_ENABLE) == NM_OK) &&
@@ -821,6 +825,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         }
         (void) tfds;
 #endif /* NM_OS_LINUX */
+        nm_str_free(&id);
     }
 
     if (*flags & NM_VMCTL_TEMP)
