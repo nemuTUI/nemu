@@ -48,17 +48,41 @@ static const char NM_QMP_CMD_USB_ADD[]  = \
 static const char NM_QMP_CMD_USB_DEL[]  = \
     "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"usb-%s-%s-%s\"}}";
 
-/* Get peripheral qmp command example
+static const char NM_QMP_NET_TAP_ADD[]  = \
+    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"tap\"," \
+    "\"ifname\":\"%s\",\"id\":\"net-%s\",\"script\":\"no\"," \
+    "\"downscript\":\"no\",\"vhost\":%s}}";
 
-    input:
+static const char NM_QMP_NET_TAP_FD_ADD[]  = \
+    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"tap\"," \
+    "\"ifname\":\"%s\",\"id\":\"net-%s\",\"script\":\"no\"," \
+    "\"downscript\":\"no\",\"vhost\":%s,\"fd\":%d}}";
 
-    {"execute": "qom-list", "arguments": { "path": "/machine/peripheral" }}
+static const char NM_QMP_NET_USER_ADD[]  = \
+    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"user\"," \
+    "\"id\":\"net-%s\"}}";
 
-    output:
+static const char NM_QMP_NET_USER_FWD_ADD[]  = \
+    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"user\"," \
+    "\"id\":\"net-%s\",\"hostfwd\":\"%s\"}}";
 
-    {"return": [{"name": "type", "type": "string"}, {"name": "dev1", "type": "child<usb-host>"},
-        {"name": "dev2", "type": "child<usb-host>"}]}
-*/
+static const char NM_QMP_NET_USER_SMB_ADD[]  = \
+    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"user\"," \
+    "\"id\":\"net-%s\",\"smb\":\"%s\"}}";
+
+static const char NM_QMP_NET_USER_FWD_SMB_ADD[]  = \
+    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"user\"," \
+    "\"id\":\"net-%s\",\"hostfwd\":\"%s\",\"smb\":\"%s\"}}";
+
+static const char NM_QMP_NET_DEL[]  = \
+    "{\"execute\":\"netdev_del\",\"arguments\":{\"id\":\"net-%s\"}}";
+
+static const char NM_QMP_DEV_NET_ADD[]  = \
+    "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"%s\"," \
+    "\"id\":\"dev-%s\",\"netdev\":\"net-%s\",\"mac\":\"%s\"}}";
+
+static const char NM_QMP_DEV_DEL[]  = \
+    "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"dev-%s\"}}";
 
 enum {NM_QMP_READLEN = 1024};
 
@@ -253,6 +277,95 @@ int nm_qmp_usb_detach(const nm_str_t *name, const nm_usb_data_t *usb)
 
     nm_str_free(&qmp_query);
 
+    return rc;
+}
+
+int nm_qmp_nic_attach(const nm_str_t *name, const nm_iface_t *nic)
+{
+    nm_str_t qmp_query = NM_INIT_STR;
+    nm_str_t id = NM_INIT_STR;
+    int rc;
+
+    nm_str_copy(&id, &nic->maddr);
+    nm_str_remove_char(&id, ':');
+
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 5000000 }; /* 5s */
+
+    if (nm_str_cmp_st(&nic->netuser, "yes") == NM_OK) {
+        if (nic->hostfwd.len && nic->smb.len) {
+            nm_str_format(&qmp_query, NM_QMP_NET_USER_FWD_SMB_ADD,
+                    id.data, nic->hostfwd.data, nic->smb.data);
+        } else if (nic->hostfwd.len) {
+            nm_str_format(&qmp_query, NM_QMP_NET_USER_FWD_ADD,
+                    id.data, nic->hostfwd.data);
+        } else if (nic->smb.len) {
+            nm_str_format(&qmp_query, NM_QMP_NET_USER_SMB_ADD,
+                    id.data, nic->smb.data);
+        } else {
+            nm_str_format(&qmp_query, NM_QMP_NET_USER_ADD, id.data);
+        }
+    } else {
+#if defined (NM_OS_LINUX)
+        if (nic->tap_fd == -1) {
+            nm_str_format(&qmp_query, NM_QMP_NET_TAP_ADD,
+                    nic->name.data, id.data,
+                    (nm_str_cmp_st(&nic->vhost, "yes") == NM_OK) ?
+                    "true" : "false");
+        } else {
+            nm_str_format(&qmp_query, NM_QMP_NET_TAP_FD_ADD,
+                    nic->name.data, id.data,
+                    (nm_str_cmp_st(&nic->vhost, "yes") == NM_OK) ?
+                    "true" : "false", nic->tap_fd);
+        }
+    }
+#else
+    nm_str_format(&qmp_query, NM_QMP_NET_TAP_ADD,
+            nic->name.data, id.data, "false");
+#endif /* NM_OS_LINUX */
+
+    nm_debug("exec qmp: %s\n", qmp_query.data);
+    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+    if (rc != NM_OK) {
+        goto out;
+    }
+
+    nm_str_format(&qmp_query, NM_QMP_DEV_NET_ADD,
+                  nic->drv.data, id.data, id.data, nic->maddr.data);
+
+    nm_debug("exec qmp: %s\n", qmp_query.data);
+    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+
+out:
+    nm_str_free(&qmp_query);
+    nm_str_free(&id);
+
+    return rc;
+}
+
+int nm_qmp_nic_detach(const nm_str_t *name, const nm_iface_t *nic)
+{
+    nm_str_t qmp_query = NM_INIT_STR;
+    nm_str_t id = NM_INIT_STR;
+    int rc;
+
+    nm_str_copy(&id, &nic->maddr);
+    nm_str_remove_char(&id, ':');
+
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 5000000 }; /* 5s */
+    nm_str_format(&qmp_query, NM_QMP_DEV_DEL, id.data);
+
+    nm_debug("exec qmp: %s\n", qmp_query.data);
+    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+    if (rc != NM_OK) {
+        goto out;
+    }
+
+    nm_str_format(&qmp_query, NM_QMP_NET_DEL, id.data);
+    nm_debug("exec qmp: %s\n", qmp_query.data);
+    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+out:
+    nm_str_free(&qmp_query);
+    nm_str_free(&id);
     return rc;
 }
 
