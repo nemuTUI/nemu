@@ -12,36 +12,6 @@
 static const size_t NM_NET_MACVTAP_NUM = 2;
 #endif
 
-typedef struct {
-    nm_str_t name;
-    nm_str_t drv;
-    nm_str_t maddr;
-    nm_str_t ipv4;
-    nm_str_t netuser;
-    nm_str_t hostfwd;
-    nm_str_t smb;
-#if defined (NM_OS_LINUX)
-    nm_str_t vhost;
-    nm_str_t macvtap;
-    nm_str_t parent_eth;
-#endif
-} nm_iface_t;
-
-#if defined (NM_OS_LINUX)
-#define NM_INIT_NET_IF (nm_iface_t) { \
-                        NM_INIT_STR, NM_INIT_STR, \
-                        NM_INIT_STR, NM_INIT_STR, \
-                        NM_INIT_STR, NM_INIT_STR, \
-                        NM_INIT_STR, NM_INIT_STR, \
-                        NM_INIT_STR, NM_INIT_STR }
-#else
-#define NM_INIT_NET_IF (nm_iface_t) { \
-                        NM_INIT_STR, NM_INIT_STR, \
-                        NM_INIT_STR, NM_INIT_STR, \
-                        NM_INIT_STR, NM_INIT_STR, \
-                        NM_INIT_STR }
-#endif
-
 static const char NM_LC_EDIT_NET_FORM_NDRV[] = "Net driver";
 static const char NM_LC_EDIT_NET_FORM_MADR[] = "Mac address";
 static const char NM_LC_EDIT_NET_FORM_IPV4[] = "IPv4 address";
