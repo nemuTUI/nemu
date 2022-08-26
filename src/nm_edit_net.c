@@ -5,8 +5,9 @@
 #include <nm_window.h>
 #include <nm_network.h>
 #include <nm_database.h>
-#include <nm_vm_control.h>
 #include <nm_edit_net.h>
+#include <nm_vm_control.h>
+#include <nm_qmp_control.h>
 
 #if defined (NM_OS_LINUX)
 static const size_t NM_NET_MACVTAP_NUM = 2;
@@ -33,6 +34,8 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp);
 static inline void nm_edit_net_iface_free(nm_iface_t *ifp);
 static int nm_edit_net_maddr_busy(const nm_str_t *mac);
 static int nm_edit_net_action(const nm_str_t *name,
+                              const nm_vmctl_data_t *vm, size_t if_idx);
+static int nm_edit_net_unplug(const nm_str_t *name,
                               const nm_vmctl_data_t *vm, size_t if_idx);
 static int nm_verify_portfwd(const nm_str_t *fwd);
 
@@ -92,65 +95,108 @@ static void nm_edit_net_init_edit_windows(nm_form_t *form)
 void nm_edit_net(const nm_str_t *name)
 {
     int ch = 0;
+    bool regen_data = true;
     nm_menu_data_t ifs = NM_INIT_MENU_DATA;
     nm_vect_t ifaces = NM_INIT_VECT;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
-    size_t vm_list_len = (getmaxy(side_window) - 4);
-    size_t iface_count;
+    size_t nic_list_len, old_hl;
 
-    nm_vmctl_get_data(name, &vm);
-
-    if (vm.ifs.n_memb == 0) {
-        nm_warn(_(NM_MSG_NO_IFACES));
-        goto out;
-    }
-
+    nic_list_len = old_hl = 0;
     nm_edit_net_init_main_windows(false);
 
-    iface_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
-
-    ifs.highlight = 1;
-    if (vm_list_len < iface_count)
-        ifs.item_last = vm_list_len;
-    else
-        ifs.item_last = vm_list_len = iface_count;
-
-    for (size_t n = 0; n < iface_count; n++) {
-        size_t idx_shift = NM_IFS_IDX_COUNT * n;
-        nm_vect_insert(&ifaces,
-                       nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
-                       nm_vect_str_len(&vm.ifs, NM_SQL_IF_NAME + idx_shift) + 1,
-                       NULL);
-    }
-
-    ifs.v = &ifaces;
     do {
-        nm_menu_scroll(&ifs, vm_list_len, ch);
-
-        if (ch == NM_KEY_ENTER) {
-            if (nm_edit_net_action(name, &vm, ifs.highlight) == NM_OK) {
-                nm_vmctl_free_data(&vm);
-                nm_vmctl_get_data(name, &vm);
+        switch (ch) {
+        case NM_KEY_ENTER:
+            if (vm.ifs.n_memb) {
+                if (nm_edit_net_action(name, &vm, ifs.highlight) == NM_OK) {
+                    nm_vmctl_free_data(&vm);
+                    nm_vmctl_get_data(name, &vm);
+                }
+                nm_init_help_iface();
             }
-            nm_init_help_iface();
+            break;
+        case NM_KEY_R:
+            {
+                int ans = nm_notify(_(NM_MSG_DELETE));
+                if (ans == 'y') {
+                    if (nm_edit_net_unplug(name, &vm, ifs.highlight) == NM_OK) {
+                        nm_vmctl_free_data(&vm);
+                        nm_vmctl_get_data(name, &vm);
+                        regen_data = true;
+                        old_hl = ifs.highlight;
+                        if (ifs.item_first != 0) {
+                            ifs.item_first--;
+                            ifs.item_last--;
+                        }
+                        werase(side_window);
+                        nm_init_side_if_list();
+                    }
+                }
+            }
+            break;
         }
 
-        nm_print_base_menu(&ifs);
-        werase(action_window);
-        nm_init_action(_(NM_MSG_IF_PROP));
-        nm_print_iface_info(&vm, ifs.highlight);
+        if (regen_data) {
+            size_t iface_count = 0;
+            nm_vect_free(&ifaces, NULL);
+            nm_vmctl_free_data(&vm);
+            nm_vmctl_get_data(name, &vm);
+            iface_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
+            nic_list_len = (getmaxy(side_window) - 4);
+            ifs.highlight = 1;
+
+            if (old_hl > 1) {
+                if (nic_list_len < iface_count) {
+                    ifs.item_last = nic_list_len;
+                } else {
+                    ifs.item_last = nic_list_len = iface_count;
+                }
+                old_hl = 0;
+            }
+
+            if (nic_list_len < iface_count) {
+                ifs.item_last = nic_list_len;
+            } else {
+                ifs.item_last = nic_list_len = iface_count;
+            }
+
+            for (size_t n = 0; n < iface_count; n++) {
+                size_t idx_shift = NM_IFS_IDX_COUNT * n;
+                nm_vect_insert(&ifaces,
+                               nm_vect_str_ctx(&vm.ifs,
+                                   NM_SQL_IF_NAME + idx_shift),
+                               nm_vect_str_len(&vm.ifs,
+                                   NM_SQL_IF_NAME + idx_shift) + 1,
+                               NULL);
+            }
+
+            ifs.v = &ifaces;
+            regen_data = false;
+        }
+
+        if (ifs.v->n_memb > 0) {
+            nm_menu_scroll(&ifs, nic_list_len, ch);
+            werase(action_window);
+            nm_init_action(_(NM_MSG_IF_PROP));
+            nm_print_base_menu(&ifs);
+            nm_print_iface_info(&vm, ifs.highlight);
+        } else {
+            werase(action_window);
+            nm_init_action(_(NM_MSG_IF_PROP));
+        }
 
         if (redraw_window) {
+            size_t iface_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
             nm_edit_net_init_main_windows(true);
 
-            vm_list_len = (getmaxy(side_window) - 4);
+            nic_list_len = (getmaxy(side_window) - 4);
             /* TODO save last pos */
-            if (vm_list_len < iface_count) {
-                ifs.item_last = vm_list_len;
+            if (nic_list_len < iface_count) {
+                ifs.item_last = nic_list_len;
                 ifs.item_first = 0;
                 ifs.highlight = 1;
             } else {
-                ifs.item_last = vm_list_len = iface_count;
+                ifs.item_last = nic_list_len = iface_count;
             }
 
             redraw_window = 0;
@@ -161,9 +207,39 @@ void nm_edit_net(const nm_str_t *name)
     werase(help_window);
     nm_init_help_main();
 
-out:
     nm_vect_free(&ifaces, NULL);
     nm_vmctl_free_data(&vm);
+}
+
+static int
+nm_edit_net_unplug(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_idx)
+{
+    nm_iface_t iface_data = NM_INIT_NET_IF;
+    nm_str_t query = NM_INIT_STR;
+    size_t idx_shift;
+    int rc = NM_OK;
+
+    if (!if_idx) {
+        rc = NM_ERR;
+        goto out;
+    }
+
+    idx_shift = NM_IFS_IDX_COUNT * (--if_idx);
+
+    if (nm_qmp_test_socket(name) == NM_OK) {
+        nm_str_format(&iface_data.maddr, "%s",
+                nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
+        nm_qmp_nic_detach(name, &iface_data);
+    }
+
+    nm_str_format(&query, NM_DEL_IFACE_SQL, name->data,
+        nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+    nm_db_edit(query.data);
+
+out:
+    nm_edit_net_iface_free(&iface_data);
+    nm_str_free(&query);
+    return rc;
 }
 
 static int

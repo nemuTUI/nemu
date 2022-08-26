@@ -42,15 +42,15 @@ static void nm_print_help__(const char **keys, const char **values,
     "q:Back", "?:Help"
 #endif
 
-#define X_NM_HELP_GEN                         \
-    X(main, NM_HELP_MSG)                      \
-    X(lan, NM_LAN_MSG)                        \
-    X(edit, "esc:Cancel", "enter:Save")       \
-    X(import, "esc:Cancel", "enter:Import")   \
-    X(install, "esc:Cancel", "enter:Install") \
-    X(iface, "q:Back", "enter:Edit")          \
-    X(clone, "esc:Cancel", "enter:Clone")     \
-    X(export, "esc:Cancel", "enter:Export")   \
+#define X_NM_HELP_GEN                                     \
+    X(main, NM_HELP_MSG)                                  \
+    X(lan, NM_LAN_MSG)                                    \
+    X(edit, "esc:Cancel", "enter:Save")                   \
+    X(import, "esc:Cancel", "enter:Import")               \
+    X(install, "esc:Cancel", "enter:Install")             \
+    X(iface, "q:Back", "a:Add", "r:Remove", "enter:Edit") \
+    X(clone, "esc:Cancel", "enter:Clone")                 \
+    X(export, "esc:Cancel", "enter:Export")               \
     X(delete, "q:Back", "enter:Delete")
 
 #define X(name, ...)                                         \
