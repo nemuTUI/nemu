@@ -1,3 +1,4 @@
+#include "nm_string.h"
 #include <nm_core.h>
 #include <nm_form.h>
 #include <nm_menu.h>
@@ -13,6 +14,7 @@
 static const size_t NM_NET_MACVTAP_NUM = 2;
 #endif
 
+static const char NM_LC_EDIT_NET_FORM_NAME[] = "Interface name";
 static const char NM_LC_EDIT_NET_FORM_NDRV[] = "Net driver";
 static const char NM_LC_EDIT_NET_FORM_MADR[] = "Mac address";
 static const char NM_LC_EDIT_NET_FORM_IPV4[] = "IPv4 address";
@@ -27,19 +29,25 @@ static const char NM_LC_EDIT_NET_FORM_SMB[]  = "Share folder";
 
 static void nm_edit_net_init_main_windows(bool redraw);
 static void nm_edit_net_init_edit_windows(nm_form_t *form);
-static void nm_edit_net_fields_setup(const nm_vmctl_data_t *vm, size_t if_idx);
+static void nm_edit_net_fields_setup(const nm_vmctl_data_t *vm,
+        size_t if_idx, bool add);
 static size_t nm_edit_net_labels_setup();
-static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp);
-static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp);
+static int nm_edit_net_get_data(const nm_str_t *name,
+        nm_iface_t *ifp, bool add);
+static void nm_edit_net_update_db(const nm_str_t *name,
+        nm_iface_t *ifp, bool add);
 static inline void nm_edit_net_iface_free(nm_iface_t *ifp);
 static int nm_edit_net_maddr_busy(const nm_str_t *mac);
-static int nm_edit_net_action(const nm_str_t *name,
-                              const nm_vmctl_data_t *vm, size_t if_idx);
-static int nm_edit_net_unplug(const nm_str_t *name,
-                              const nm_vmctl_data_t *vm, size_t if_idx);
+static bool nm_check_nic_name_busy(const nm_str_t *name);
+static int nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm,
+        size_t if_idx, bool add);
+static int nm_edit_net_unplug(const nm_str_t *name, const nm_vmctl_data_t *vm,
+        size_t if_idx);
+static void nm_edit_net_plug(const nm_str_t *name, nm_iface_t *ifp);
 static int nm_verify_portfwd(const nm_str_t *fwd);
 
 enum {
+    NM_LBL_NAME, NM_FLD_NAME,
     NM_LBL_NDRV, NM_FLD_NDRV,
     NM_LBL_MADR, NM_FLD_MADR,
     NM_LBL_IPV4, NM_FLD_IPV4,
@@ -108,12 +116,24 @@ void nm_edit_net(const nm_str_t *name)
         switch (ch) {
         case NM_KEY_ENTER:
             if (vm.ifs.n_memb) {
-                if (nm_edit_net_action(name, &vm, ifs.highlight) == NM_OK) {
+                regen_data = true;
+                if (nm_edit_net_action(name, &vm, ifs.highlight, false)
+                        == NM_OK) {
                     nm_vmctl_free_data(&vm);
                     nm_vmctl_get_data(name, &vm);
                 }
                 nm_init_help_iface();
             }
+            break;
+        case NM_KEY_A:
+            regen_data = true;
+            old_hl = ifs.highlight;
+            if (nm_edit_net_action(name, &vm, ifs.highlight, true)
+                    == NM_OK) {
+                nm_vmctl_free_data(&vm);
+                nm_vmctl_get_data(name, &vm);
+            }
+            nm_init_help_iface();
             break;
         case NM_KEY_R:
             {
@@ -146,12 +166,11 @@ void nm_edit_net(const nm_str_t *name)
             ifs.highlight = 1;
 
             if (old_hl > 1) {
-                if (nic_list_len < iface_count) {
-                    ifs.item_last = nic_list_len;
+                if (iface_count < old_hl) {
+                    ifs.highlight = (old_hl - 1);
                 } else {
-                    ifs.item_last = nic_list_len = iface_count;
+                    ifs.highlight = old_hl;
                 }
-                old_hl = 0;
             }
 
             if (nic_list_len < iface_count) {
@@ -211,11 +230,72 @@ void nm_edit_net(const nm_str_t *name)
     nm_vmctl_free_data(&vm);
 }
 
+static void
+nm_edit_net_plug(const nm_str_t *name, nm_iface_t *ifp)
+{
+#if defined (NM_OS_LINUX)
+    /* If we need to setup IPv4 address or altname we must create
+     * the tap interface yourself. */
+    if (ifp->ipv4.len && (nm_str_cmp_st(&ifp->macvtap, "no") == NM_OK)) {
+        nm_net_add_tap(&ifp->name);
+        nm_net_set_ipaddr(&ifp->name, &ifp->ipv4);
+    }
+
+    if ((nm_str_cmp_st(&ifp->macvtap, "no") != NM_OK) && ifp->parent_eth.len) {
+        nm_str_t tap_path = NM_INIT_STR;
+        bool wait_perm = false;
+        uint32_t tap_idx = 0;
+
+        if (nm_net_iface_exists(&ifp->name) != NM_OK) {
+            wait_perm = true;
+            nm_net_add_macvtap(&ifp->name, &ifp->parent_eth, &ifp->maddr,
+                    (nm_str_cmp_st(&ifp->macvtap, "bridge") == NM_OK) ?
+                    NM_MACVTAP_BRIDGE_MODE : NM_MACVTAP_PRIVATE_MODE);
+        }
+        tap_idx = nm_net_iface_idx(&ifp->name);
+        if (tap_idx == 0)
+            nm_bug("%s: MacVTap interface not found", __func__);
+
+        nm_str_format(&tap_path, "/dev/tap%u", tap_idx);
+        /* wait for udev fixes permissions on /dev/tapN */
+        if ((getuid() != 0) && wait_perm) {
+            struct timespec ts;
+            int tap_rw_ok = 0;
+
+            memset(&ts, 0, sizeof(ts));
+            ts.tv_nsec = 5e+7; /* 0.05sec */
+
+            for (int m = 0; m < 40; m++) {
+                if (access(tap_path.data, R_OK | W_OK) == 0) {
+                    tap_rw_ok = 1;
+                    break;
+                }
+                nanosleep(&ts, NULL);
+            }
+            if (!tap_rw_ok) {
+                nm_warn(_(NM_MSG_TAP_EACC));
+                return;
+            }
+        }
+
+        ifp->tap_fd = open(tap_path.data, O_RDWR);
+        if (ifp->tap_fd == -1) {
+            nm_bug("%s: open failed: %s", __func__, strerror(errno));
+        }
+    }
+#endif /* NM_OS_LINUX */
+
+    nm_qmp_nic_attach(name, ifp);
+}
+
 static int
-nm_edit_net_unplug(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_idx)
+nm_edit_net_unplug(const nm_str_t *name, const nm_vmctl_data_t *vm,
+        size_t if_idx)
 {
     nm_iface_t iface_data = NM_INIT_NET_IF;
     nm_str_t query = NM_INIT_STR;
+    uint32_t tap_idx = 0;
+    nm_str_t *if_name;
     size_t idx_shift;
     int rc = NM_OK;
 
@@ -232,9 +312,26 @@ nm_edit_net_unplug(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
         nm_qmp_nic_detach(name, &iface_data);
     }
 
-    nm_str_format(&query, NM_DEL_IFACE_SQL, name->data,
-        nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+    if_name = nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift);
+    nm_str_format(&query, NM_DEL_IFACE_SQL, name->data, if_name->data);
     nm_db_edit(query.data);
+
+    tap_idx = nm_net_iface_idx(if_name);
+    if (tap_idx != 0) { /* iface exist */
+        /* detect iface type */
+        struct stat tap_info;
+        nm_str_t tap_path = NM_INIT_STR;
+
+        nm_str_format(&tap_path, "/dev/tap%u", tap_idx);
+        if (stat(tap_path.data, &tap_info) == 0) {
+            /* iface is macvtap, delete it */
+            nm_net_del_iface(if_name);
+        } else {
+            /* iface is simple tap, delete it */
+            nm_net_del_tap(if_name);
+        }
+        nm_str_free(&tap_path);
+    }
 
 out:
     nm_edit_net_iface_free(&iface_data);
@@ -243,7 +340,8 @@ out:
 }
 
 static int
-nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_idx)
+nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm,
+        size_t if_idx, bool add)
 {
     nm_form_data_t *form_data = NULL;
     nm_form_t *form = NULL;
@@ -260,12 +358,14 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
     idx_shift = NM_IFS_IDX_COUNT * (--if_idx);
     if_idx++; /* restore idx */
 
-    nm_str_format(&iface_data.name, "%s",
-        nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)->data);
+    if (!add) {
+        nm_str_format(&iface_data.name, "%s",
+            nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)->data);
 
-    if (!iface_data.name.len) {
-        rc = NM_ERR;
-        goto out;
+        if (!iface_data.name.len) {
+            rc = NM_ERR;
+            goto out;
+        }
     }
 
     nm_edit_net_init_edit_windows(NULL);
@@ -282,6 +382,10 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
 
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
+            case NM_FLD_NAME:
+                fields[n] = nm_field_regexp_new(n / 2, form_data,
+                        "^[a-zA-Z0-9_]{1,15} *$");
+                break;
             case NM_FLD_NDRV:
                 fields[n] = nm_field_enum_new(
                     n / 2, form_data, nm_form_net_drv, false, false);
@@ -323,7 +427,7 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
     fields[NM_FLD_COUNT] = NULL;
 
     nm_edit_net_labels_setup();
-    nm_edit_net_fields_setup(vm, if_idx);
+    nm_edit_net_fields_setup(vm, if_idx, add);
     nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
@@ -335,12 +439,16 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm, size_t if_id
         goto out;
     }
 
-    if (nm_edit_net_get_data(name, &iface_data) != NM_OK) {
+    if (nm_edit_net_get_data(name, &iface_data, add) != NM_OK) {
         rc = NM_ERR;
         goto out;
     }
 
-    nm_edit_net_update_db(name, &iface_data);
+    nm_edit_net_update_db(name, &iface_data, add);
+
+    if (add && (nm_qmp_test_socket(name) == NM_OK)) {
+        nm_edit_net_plug(name, &iface_data);
+    }
 
 out:
     wtimeout(action_window, -1);
@@ -354,7 +462,8 @@ out:
     return rc;
 }
 
-static void nm_edit_net_fields_setup(const nm_vmctl_data_t *vm, size_t if_idx)
+static void
+nm_edit_net_fields_setup(const nm_vmctl_data_t *vm, size_t if_idx, bool add)
 {
     size_t mvtap_idx = 0;
     size_t idx_shift;
@@ -363,20 +472,39 @@ static void nm_edit_net_fields_setup(const nm_vmctl_data_t *vm, size_t if_idx)
         return;
     idx_shift = NM_IFS_IDX_COUNT * (--if_idx);
 
+    field_opts_off(fields[NM_FLD_NAME], O_STATIC);
     field_opts_off(fields[NM_FLD_MADR], O_STATIC);
     field_opts_off(fields[NM_FLD_IPV4], O_STATIC);
     field_opts_off(fields[NM_FLD_SMB], O_STATIC);
 #if defined (NM_OS_LINUX)
     field_opts_off(fields[NM_FLD_PETH], O_STATIC);
 #endif
+    if (add) {
+        uint64_t last_mac = nm_form_get_last_mac();
+        nm_str_t maddr = NM_INIT_STR;
+        last_mac++;
+        nm_net_mac_n2s(last_mac, &maddr);
+        set_field_buffer(fields[NM_FLD_MADR], 0, maddr.data);
+        nm_str_free(&maddr);
 
+        set_field_buffer(fields[NM_FLD_NDRV], 0, nm_form_net_drv[0]);
+        set_field_buffer(fields[NM_FLD_USER], 0, nm_form_yes_no[1]);
+#if defined (NM_OS_LINUX)
+        set_field_buffer(fields[NM_FLD_VHST], 0, nm_form_yes_no[0]);
+        set_field_buffer(fields[NM_FLD_MTAP], 0, nm_form_macvtap[0]);
+#endif
+        return;
+    }
+
+    set_field_buffer(fields[NM_FLD_NAME], 0,
+        nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
     set_field_buffer(fields[NM_FLD_NDRV], 0,
         nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_DRV + idx_shift));
     set_field_buffer(fields[NM_FLD_MADR], 0,
         nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
     if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) > 0) {
         set_field_buffer(fields[NM_FLD_IPV4], 0,
-            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
+                nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
     }
 #if defined (NM_OS_LINUX)
     set_field_buffer(fields[NM_FLD_VHST], 0,
@@ -415,6 +543,9 @@ static size_t nm_edit_net_labels_setup()
 
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
+        case NM_LBL_NAME:
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_NAME));
+            break;
         case NM_LBL_NDRV:
             nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_NDRV));
             break;
@@ -460,11 +591,18 @@ static size_t nm_edit_net_labels_setup()
     return max_label_len;
 }
 
-static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
+static int
+nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp, bool add)
 {
     int rc;
     nm_vect_t err = NM_INIT_VECT;
 
+    if (!add) {
+        nm_str_copy(&ifp->oldname, &ifp->name);
+        nm_str_trunc(&ifp->name, 0);
+    }
+
+    nm_get_field_buf(fields[NM_FLD_NAME], &ifp->name);
     nm_get_field_buf(fields[NM_FLD_NDRV], &ifp->drv);
     nm_get_field_buf(fields[NM_FLD_MADR], &ifp->maddr);
     nm_get_field_buf(fields[NM_FLD_IPV4], &ifp->ipv4);
@@ -477,6 +615,8 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
     nm_get_field_buf(fields[NM_FLD_FWD], &ifp->hostfwd);
     nm_get_field_buf(fields[NM_FLD_SMB], &ifp->smb);
 
+    if (field_status(fields[NM_FLD_NAME]))
+        nm_form_check_data(_("Interface name"), ifp->name, err);
     if (field_status(fields[NM_FLD_NDRV]))
         nm_form_check_data(_("Net driver"), ifp->drv, err);
     if (field_status(fields[NM_FLD_MADR]))
@@ -502,6 +642,19 @@ static int nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp)
 
         if (nm_edit_net_maddr_busy(&ifp->maddr) != NM_OK) {
             nm_warn(_(NM_MSG_MAC_USED));
+            rc = NM_ERR;
+            goto out;
+        }
+    }
+
+    if (field_status(fields[NM_FLD_NAME])) {
+        if (!add && nm_str_cmp_ss(&ifp->name, &ifp->oldname) != NM_OK &&
+                nm_check_nic_name_busy(&ifp->name)) {
+            nm_warn(_(NM_MSG_NIC_USED));
+            rc = NM_ERR;
+            goto out;
+        } else if (add && nm_check_nic_name_busy(&ifp->name)) {
+            nm_warn(_(NM_MSG_NIC_USED));
             rc = NM_ERR;
             goto out;
         }
@@ -573,11 +726,26 @@ out:
     return rc;
 }
 
-static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
+static void
+nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp, bool add)
 {
     nm_str_t query = NM_INIT_STR;
 
-    if (field_status(fields[NM_FLD_NDRV])) {
+    if (add) {
+        nm_str_format(&query,
+            "INSERT INTO ifaces(vm_name, if_name) VALUES('%s', '%s')",
+            name->data, ifp->name.data);
+        nm_db_edit(query.data);
+    } else {
+        if (field_status(fields[NM_FLD_NAME])) {
+            nm_str_format(&query,
+                "UPDATE ifaces SET if_name='%s' WHERE vm_name='%s' AND if_name='%s'",
+                ifp->name.data, name->data, ifp->oldname.data);
+            nm_db_edit(query.data);
+        }
+    }
+
+    if (field_status(fields[NM_FLD_NDRV]) || add) {
         nm_str_format(&query,
             "UPDATE ifaces SET if_drv='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->drv.data, name->data, ifp->name.data);
@@ -594,14 +762,14 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
 #endif
     }
 
-    if (field_status(fields[NM_FLD_MADR])) {
+    if (field_status(fields[NM_FLD_MADR]) || add) {
         nm_str_format(&query,
             "UPDATE ifaces SET mac_addr='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->maddr.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_IPV4])) {
+    if (field_status(fields[NM_FLD_IPV4]) || add) {
         nm_str_format(&query,
             "UPDATE ifaces SET ipv4_addr='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->ipv4.data, name->data, ifp->name.data);
@@ -609,7 +777,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
     }
 
 #if defined (NM_OS_LINUX)
-    if (field_status(fields[NM_FLD_VHST])) {
+    if (field_status(fields[NM_FLD_VHST]) || add) {
         nm_str_format(&query,
             "UPDATE ifaces SET vhost='%s' WHERE vm_name='%s' AND if_name='%s'",
             (nm_str_cmp_st(&ifp->vhost, "yes") == NM_OK) ? NM_ENABLE : NM_DISABLE,
@@ -617,7 +785,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_MTAP])) {
+    if (field_status(fields[NM_FLD_MTAP]) || add) {
         ssize_t macvtap_idx = -1;
         const char **p = nm_form_macvtap;
 
@@ -637,7 +805,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_PETH])) {
+    if (field_status(fields[NM_FLD_PETH]) || add) {
         nm_str_format(&query,
             "UPDATE ifaces SET parent_eth='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->parent_eth.data, name->data, ifp->name.data);
@@ -645,7 +813,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
     }
 #endif
 
-    if (field_status(fields[NM_FLD_USER])) {
+    if (field_status(fields[NM_FLD_USER]) || add) {
         nm_str_format(&query,
             "UPDATE ifaces SET netuser='%s' WHERE vm_name='%s' AND if_name='%s'",
             (nm_str_cmp_st(&ifp->netuser, "yes") == NM_OK) ?
@@ -653,14 +821,14 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_FWD])) {
+    if (field_status(fields[NM_FLD_FWD]) || add) {
         nm_str_format(&query,
             "UPDATE ifaces SET hostfwd='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->hostfwd.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
 
-    if (field_status(fields[NM_FLD_SMB])) {
+    if (field_status(fields[NM_FLD_SMB]) || add) {
         nm_str_format(&query,
             "UPDATE ifaces SET smb='%s' WHERE vm_name='%s' AND if_name='%s'",
             ifp->smb.data, name->data, ifp->name.data);
@@ -673,6 +841,7 @@ static void nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp)
 static inline void nm_edit_net_iface_free(nm_iface_t *ifp)
 {
     nm_str_free(&ifp->name);
+    nm_str_free(&ifp->oldname);
     nm_str_free(&ifp->drv);
     nm_str_free(&ifp->maddr);
     nm_str_free(&ifp->ipv4);
@@ -703,6 +872,23 @@ static int nm_edit_net_maddr_busy(const nm_str_t *mac)
 
     nm_vect_free(&maddrs, nm_str_vect_free_cb);
 
+    return rc;
+}
+
+static bool nm_check_nic_name_busy(const nm_str_t *name)
+{
+    nm_vect_t names = NM_INIT_VECT;
+    nm_str_t query = NM_INIT_STR;
+    bool rc = false;
+
+    nm_str_format(&query, NM_GET_IFACES_NAMES, name->data);
+    nm_db_select(query.data, &names);
+    if (names.n_memb > 0) {
+        rc = true;
+    }
+
+    nm_str_free(&query);
+    nm_vect_free(&names, nm_str_vect_free_cb);
     return rc;
 }
 

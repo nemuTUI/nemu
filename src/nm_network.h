@@ -16,6 +16,11 @@ typedef struct {
     uint32_t cidr;
 } nm_net_addr_t;
 
+enum {
+    NM_MACVTAP_PRIVATE_MODE = 1,
+    NM_MACVTAP_BRIDGE_MODE = 4
+};
+
 #define NM_INIT_NETADDR (nm_net_addr_t) { {0}, 0 }
 
 int nm_net_iface_exists(const nm_str_t *name);

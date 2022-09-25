@@ -136,6 +136,7 @@ extern nm_filter_t nm_filter;
 #define NM_MSG_MAC_INVAL  "Invalid mac address" NM_MSG_ANY_KEY
 #define NM_MSF_FWD_INVAL  "Invalid portfwd value, format: tcp|udp::[1-65535]-:[1-65535]" NM_MSG_ANY_KEY
 #define NM_MSG_MAC_USED   "This mac address is already used" NM_MSG_ANY_KEY
+#define NM_MSG_NIC_USED   "This interface name is already used" NM_MSG_ANY_KEY
 #define NM_MSG_VHOST_ERR  "vhost can be enabled only on virtio-net" NM_MSG_ANY_KEY
 #define NM_MSG_VTAP_NOP   "MacVTap parent interface does not exists" NM_MSG_ANY_KEY
 #define NM_MSG_NAME_DIFF  "Names must be different" NM_MSG_ANY_KEY

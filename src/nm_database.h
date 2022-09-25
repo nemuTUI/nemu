@@ -142,6 +142,9 @@ static const char NM_DEL_IFACE_SQL[] = \
 static const char NM_GET_IFACES_MACS[] = \
     "SELECT mac_addr FROM ifaces";
 
+static const char NM_GET_IFACES_NAMES[] = \
+    "SELECT id FROM ifaces WHERE if_name='%s'";
+
 static const char NM_GET_IFMAP_SQL[] = \
     "SELECT vm_name, if_name FROM ifaces WHERE parent_eth='%s' " \
     "OR parent_eth='%s'";
