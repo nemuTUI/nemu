@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <mqueue.h>
+#include <time.h>
 
 #include <json.h>
 
@@ -49,40 +50,42 @@ static const char NM_QMP_CMD_USB_DEL[]  = \
     "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"usb-%s-%s-%s\"}}";
 
 static const char NM_QMP_NET_TAP_ADD[]  = \
-    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"tap\"," \
-    "\"ifname\":\"%s\",\"id\":\"net-%s\",\"script\":\"no\"," \
-    "\"downscript\":\"no\",\"vhost\":%s}}";
+    "{'execute':'netdev_add','arguments':{'type':'tap'," \
+    "'ifname':'%s','id':'net-%s','script':'no'," \
+    "'downscript':'no','vhost':%s}}";
 
 static const char NM_QMP_NET_TAP_FD_ADD[]  = \
-    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"tap\"," \
-    "\"ifname\":\"%s\",\"id\":\"net-%s\",\"script\":\"no\"," \
-    "\"downscript\":\"no\",\"vhost\":%s,\"fd\":%d}}";
+    "{'execute':'netdev_add','arguments':{'type':'tap'," \
+    "'id':'net-%s','vhost':%s,'fd':'fd-%s'}}";
 
 static const char NM_QMP_NET_USER_ADD[]  = \
-    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"user\"," \
-    "\"id\":\"net-%s\"}}";
+    "{'execute':'netdev_add','arguments':{'type':'user'," \
+    "'id':'net-%s'}}";
 
 static const char NM_QMP_NET_USER_FWD_ADD[]  = \
-    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"user\"," \
-    "\"id\":\"net-%s\",\"hostfwd\":\"%s\"}}";
+    "{'execute':'netdev_add','arguments':{'type':'user'," \
+    "'id':'net-%s','hostfwd':[{'str':'%s'}]}}";
 
 static const char NM_QMP_NET_USER_SMB_ADD[]  = \
-    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"user\"," \
-    "\"id\":\"net-%s\",\"smb\":\"%s\"}}";
+    "{'execute':'netdev_add','arguments':{'type':'user'," \
+    "'id':'net-%s','smb':'%s'}}";
 
 static const char NM_QMP_NET_USER_FWD_SMB_ADD[]  = \
-    "{\"execute\":\"netdev_add\",\"arguments\":{\"type\":\"user\"," \
-    "\"id\":\"net-%s\",\"hostfwd\":\"%s\",\"smb\":\"%s\"}}";
+    "{'execute':'netdev_add','arguments':{'type':'user'," \
+    "'id':'net-%s','hostfwd':[{'str':'%s'}],'smb':'%s'}}";
 
 static const char NM_QMP_NET_DEL[]  = \
-    "{\"execute\":\"netdev_del\",\"arguments\":{\"id\":\"net-%s\"}}";
+    "{'execute':'netdev_del','arguments':{'id':'net-%s'}}";
 
 static const char NM_QMP_DEV_NET_ADD[]  = \
-    "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"%s\"," \
-    "\"id\":\"dev-%s\",\"netdev\":\"net-%s\",\"mac\":\"%s\"}}";
+    "{'execute':'device_add','arguments':{'driver':'%s'," \
+    "'id':'dev-%s','netdev':'net-%s','mac':'%s'}}";
 
 static const char NM_QMP_DEV_DEL[]  = \
-    "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"dev-%s\"}}";
+    "{'execute':'device_del','arguments':{'id':'dev-%s'}}";
+
+static const char NM_QMP_GETFD[] = \
+    "{'execute':'getfd','arguments':{'fdname':'fd-%s'}}";
 
 enum {NM_QMP_READLEN = 1024};
 
@@ -105,6 +108,8 @@ static int nm_qmp_send(const nm_str_t *cmd);
 static int nm_qmp_check_answer(const nm_str_t *answer);
 static int nm_qmp_parse(const char *jobid, const nm_str_t *answer);
 static int nm_qmp_check_job(const char *jobid, const nm_str_t *answer);
+int nm_qmp_add_macvtap(const nm_str_t *name,
+        const nm_str_t *id, const nm_iface_t *nic);
 
 void nm_qmp_vm_shut(const nm_str_t *name)
 {
@@ -312,16 +317,14 @@ int nm_qmp_nic_attach(const nm_str_t *name, const nm_iface_t *nic)
                     (nm_str_cmp_st(&nic->vhost, "yes") == NM_OK) ?
                     "true" : "false");
         } else {
-            nm_str_format(&qmp_query, NM_QMP_NET_TAP_FD_ADD,
-                    nic->name.data, id.data,
-                    (nm_str_cmp_st(&nic->vhost, "yes") == NM_OK) ?
-                    "true" : "false", nic->tap_fd);
+            rc = nm_qmp_add_macvtap(name, &id, nic);
+            goto out;
         }
-    }
 #else
     nm_str_format(&qmp_query, NM_QMP_NET_TAP_ADD,
             nic->name.data, id.data, "false");
 #endif /* NM_OS_LINUX */
+    }
 
     nm_debug("exec qmp: %s\n", qmp_query.data);
     rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
@@ -330,7 +333,7 @@ int nm_qmp_nic_attach(const nm_str_t *name, const nm_iface_t *nic)
     }
 
     nm_str_format(&qmp_query, NM_QMP_DEV_NET_ADD,
-                  nic->drv.data, id.data, id.data, nic->maddr.data);
+            nic->drv.data, id.data, id.data, nic->maddr.data);
 
     nm_debug("exec qmp: %s\n", qmp_query.data);
     rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
@@ -419,6 +422,96 @@ static int nm_qmp_send(const nm_str_t *cmd)
     mq_close(mq);
 
     return NM_OK;
+}
+
+/* Send macvtap interface fd to QEMU and attach it to internal interface.
+ * All action with fd, sended with SCM_RIGHTS, must be done within single
+ * connection. */
+int nm_qmp_add_macvtap(const nm_str_t *name,
+        const nm_str_t *id, const nm_iface_t *nic)
+{
+    int rc = NM_ERR;
+    struct msghdr msg;
+    struct iovec iov[1];
+    char control[CMSG_SPACE(sizeof(int))];
+    struct cmsghdr *cmsg;
+    nm_str_t sock_path = NM_INIT_STR;
+    nm_str_t qmp_cmd = NM_INIT_STR;
+    nm_qmp_handle_t qmp = NM_INIT_QMP;
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 5000000 }; /* 5s */
+    struct timespec ts;
+
+    nm_qmp_sock_path(name, &sock_path);
+    qmp.sock.sun_family = AF_UNIX;
+    nm_strlcpy(qmp.sock.sun_path, sock_path.data, sizeof(qmp.sock.sun_path));
+
+    if ((qmp.sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+        nm_warn(_(NM_MSG_Q_CR_ERR));
+        goto out;
+    }
+
+    if (connect(qmp.sd, (struct sockaddr *) &qmp.sock,
+                sizeof(qmp.sock)) == -1) {
+        close(qmp.sd);
+        nm_warn(_(NM_MSG_Q_CN_ERR));
+        goto out;
+    }
+
+    memset(&msg, 0, sizeof(msg));
+    memset(control, 0, sizeof(control));
+
+    nm_str_format(&qmp_cmd, "%s", NM_QMP_CMD_INIT);
+    iov[0].iov_base = qmp_cmd.data;
+    iov[0].iov_len = qmp_cmd.len;
+
+    msg.msg_iov = iov;
+    msg.msg_iovlen = 1;
+
+    msg.msg_control = control;
+    msg.msg_controllen = sizeof(control);
+
+    cmsg = CMSG_FIRSTHDR(&msg);
+    cmsg->cmsg_len = CMSG_LEN(sizeof(int));
+    cmsg->cmsg_level = SOL_SOCKET;
+    cmsg->cmsg_type = SCM_RIGHTS;
+    memcpy(CMSG_DATA(cmsg), &nic->tap_fd, sizeof(int));
+
+    do {
+        rc = sendmsg(qmp.sd, &msg, 0);
+    } while (rc < 0 && errno == EINTR);
+
+    close(nic->tap_fd);
+
+    nm_str_format(&qmp_cmd, NM_QMP_GETFD, id->data);
+    nm_debug("exec qmp: %s\n", qmp_cmd.data);
+    rc = nm_qmp_talk(qmp.sd, qmp_cmd.data, qmp_cmd.len, &tv);
+
+    nm_str_format(&qmp_cmd, NM_QMP_NET_TAP_FD_ADD,
+            id->data,
+            (nm_str_cmp_st(&nic->vhost, "yes") == NM_OK) ?
+            "true" : "false", id->data);
+    nm_debug("exec qmp: %s\n", qmp_cmd.data);
+    rc = nm_qmp_talk(qmp.sd, qmp_cmd.data, qmp_cmd.len, &tv);
+
+    nm_str_format(&qmp_cmd, NM_QMP_DEV_NET_ADD,
+            nic->drv.data, id->data, id->data, nic->maddr.data);
+    nm_debug("exec qmp: %s\n", qmp_cmd.data);
+    rc = nm_qmp_talk(qmp.sd, qmp_cmd.data, qmp_cmd.len, &tv);
+
+    /* FIXME We cannot immediately close the socket after network device add.
+     * Fore some reason it does not work, so we need to sleep a little bit.
+     * Solution: wait for the QMP `query-netdev` command (missing in <= 7.1.0)
+     * to appear and use it to check that the device has been created. */
+    memset(&ts, 0, sizeof(ts));
+    ts.tv_nsec = 1e+8; /* 0.1sec */
+    nanosleep(&ts, NULL);
+
+out:
+    close(qmp.sd);
+    nm_str_free(&sock_path);
+    nm_str_free(&qmp_cmd);
+
+    return rc;
 }
 
 static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,

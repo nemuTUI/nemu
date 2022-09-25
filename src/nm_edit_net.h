@@ -5,6 +5,7 @@
 
 typedef struct {
     nm_str_t name;
+    nm_str_t oldname;
     nm_str_t drv;
     nm_str_t maddr;
     nm_str_t ipv4;
@@ -25,13 +26,14 @@ typedef struct {
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
-                        NM_INIT_STR, NM_INIT_STR, -1 }
+                        NM_INIT_STR, NM_INIT_STR, \
+                        NM_INIT_STR, -1 }
 #else
 #define NM_INIT_NET_IF (nm_iface_t) { \
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
-                        NM_INIT_STR }
+                        NM_INIT_STR, NM_INIT_STR }
 #endif
 
 

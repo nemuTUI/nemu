@@ -40,11 +40,6 @@ enum {
     NM_MACVTAP_PRIVATE = 2
 };
 
-enum {
-    NM_MACVTAP_PRIVATE_MODE = 1,
-    NM_MACVTAP_BRIDGE_MODE = 4
-};
-
 struct iplink_req {
     struct nlmsghdr n;
     struct ifinfomsg i;
