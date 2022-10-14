@@ -505,7 +505,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
 
         nm_str_format(&drive_path, "%s/%s/%s",
                 nm_cfg_get()->vm_dir.data,
-                name->data,
+                name_->data,
                 nm_vect_str_ctx(&vm_->drives, NM_SQL_DRV_NAME + idx_shift));
 
         memset(&img_info, 0, sizeof(img_info));
