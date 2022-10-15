@@ -54,10 +54,6 @@ static const char NM_QMP_NET_TAP_ADD[]  = \
     "'ifname':'%s','id':'net-%s','script':'no'," \
     "'downscript':'no','vhost':%s}}";
 
-static const char NM_QMP_NET_TAP_FD_ADD[]  = \
-    "{'execute':'netdev_add','arguments':{'type':'tap'," \
-    "'id':'net-%s','vhost':%s,'fd':'fd-%s'}}";
-
 static const char NM_QMP_NET_USER_ADD[]  = \
     "{'execute':'netdev_add','arguments':{'type':'user'," \
     "'id':'net-%s'}}";
@@ -84,8 +80,14 @@ static const char NM_QMP_DEV_NET_ADD[]  = \
 static const char NM_QMP_DEV_DEL[]  = \
     "{'execute':'device_del','arguments':{'id':'dev-%s'}}";
 
+#if defined NM_OS_LINUX
+static const char NM_QMP_NET_TAP_FD_ADD[]  = \
+    "{'execute':'netdev_add','arguments':{'type':'tap'," \
+    "'id':'net-%s','vhost':%s,'fd':'fd-%s'}}";
+
 static const char NM_QMP_GETFD[] = \
     "{'execute':'getfd','arguments':{'fdname':'fd-%s'}}";
+#endif
 
 enum {NM_QMP_READLEN = 1024};
 

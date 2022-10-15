@@ -294,7 +294,6 @@ nm_edit_net_unplug(const nm_str_t *name, const nm_vmctl_data_t *vm,
 {
     nm_iface_t iface_data = NM_INIT_NET_IF;
     nm_str_t query = NM_INIT_STR;
-    uint32_t tap_idx = 0;
     nm_str_t *if_name;
     size_t idx_shift;
     int rc = NM_OK;
@@ -315,8 +314,8 @@ nm_edit_net_unplug(const nm_str_t *name, const nm_vmctl_data_t *vm,
     if_name = nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift);
     nm_str_format(&query, NM_DEL_IFACE_SQL, name->data, if_name->data);
     nm_db_edit(query.data);
-
-    tap_idx = nm_net_iface_idx(if_name);
+#if defined NM_OS_LINUX
+    uint32_t tap_idx = nm_net_iface_idx(if_name);
     if (tap_idx != 0) { /* iface exist */
         /* detect iface type */
         struct stat tap_info;
@@ -332,6 +331,7 @@ nm_edit_net_unplug(const nm_str_t *name, const nm_vmctl_data_t *vm,
         }
         nm_str_free(&tap_path);
     }
+#endif
 
 out:
     nm_edit_net_iface_free(&iface_data);
