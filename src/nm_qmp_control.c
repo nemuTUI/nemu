@@ -424,6 +424,7 @@ static int nm_qmp_send(const nm_str_t *cmd)
     return NM_OK;
 }
 
+#if defined (NM_OS_LINUX)
 /* Send macvtap interface fd to QEMU and attach it to internal interface.
  * All action with fd, sended with SCM_RIGHTS, must be done within single
  * connection. */
@@ -513,6 +514,7 @@ out:
 
     return rc;
 }
+#endif /* defined NM_OS_LINUX */
 
 static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
                           struct timeval *tv)
