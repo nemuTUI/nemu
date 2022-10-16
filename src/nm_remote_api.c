@@ -346,7 +346,6 @@ static int nm_api_check_auth(struct json_object *request, nm_str_t *reply)
     struct json_object *auth;
     const char *pass;
     nm_str_t salted_pass = NM_INIT_STR;
-    SHA256_CTX sha256;
 
     json_object_object_get_ex(request, "auth", &auth);
     if (!auth) {
@@ -357,9 +356,20 @@ static int nm_api_check_auth(struct json_object *request, nm_str_t *reply)
     pass = json_object_get_string(auth);
     nm_str_format(&salted_pass, "%s%s", pass, nm_cfg_get()->api_salt.data);
 
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
+    SHA256_CTX sha256;
     SHA256_Init(&sha256);
     SHA256_Update(&sha256, salted_pass.data, salted_pass.len);
     SHA256_Final(hash, &sha256);
+#else
+    uint32_t md_len;
+    EVP_MD_CTX *mdctx = EVP_MD_CTX_create();
+    EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL);
+    EVP_DigestUpdate(mdctx, salted_pass.data, salted_pass.len);
+    EVP_DigestFinal_ex(mdctx, hash, &md_len);
+    EVP_MD_CTX_destroy(mdctx);
+    EVP_cleanup();
+#endif
 
     for (int n = 0; n < SHA256_DIGEST_LENGTH; n++) {
         sprintf(hash_str + (n * 2), "%02x", hash[n]);
