@@ -1,8 +1,13 @@
-v3.?.? - ??.??.????
+v3.1.0 - 16.10.1022
 ------------------------
+    - Feature: network hotplug
     - Feature: remote control API listen interface parameter
     - Feature: switch VM groups in VM list window with hotkeys
+    - Feature: new command --cmd
+    - Feature: show virtial and real drive size
     - Bugfix: musl build
+    - Bugfix: cannot setup more then nine cores
+    - Bugfix: fix wrong virtual drive size imported from OVA
     - Bugfix: failing dbus communication led to daemon crash
 
 v3.0.0 - 31.08.2021

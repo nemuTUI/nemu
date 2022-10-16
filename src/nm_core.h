@@ -32,7 +32,7 @@
 #define NM_PROGNAME "nemu"
 
 #ifndef NM_VERSION
-#define NM_VERSION "v3.0.0"
+#define NM_VERSION "v3.1.0"
 #endif
 
 #define nm_min(a, b) \
