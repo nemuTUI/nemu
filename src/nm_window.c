@@ -521,6 +521,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
                  (nm_str_cmp_st(nm_vect_str(&vm_->drives, NM_SQL_DRV_DISC + idx_shift),
                                 NM_ENABLE) == NM_OK) ? "on" : "off",
                  boot ? "*" : "");
+        mvwhline(action_window, y, 1, ' ', cols - 4);
         NM_PR_VM_INFO();
 
         nm_str_free(&drive_path);
