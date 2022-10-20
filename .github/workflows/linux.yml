@@ -2,7 +2,7 @@ name: linux
 
 on:
   pull_request:
-    types: [ open, reopen, syncronize ]
+    types: [ open, reopen, synchronize ]
   workflow_dispatch:
     branches: [ master ]
   push:
