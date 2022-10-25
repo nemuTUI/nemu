@@ -12,7 +12,8 @@ typedef struct {
     uint8_t dev_addr;
 } nm_usb_dev_t;
 
-#define NM_INIT_USB (nm_usb_dev_t) { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, 0, 0 }
+#define NM_INIT_USB (nm_usb_dev_t) { NM_INIT_STR, NM_INIT_STR, \
+    NM_INIT_STR, 0, 0 }
 
 typedef struct {
     nm_str_t serial;

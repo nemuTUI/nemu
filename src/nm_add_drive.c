@@ -16,7 +16,7 @@ static const char NM_LC_DRIVE_FORM_SZ_START[] = "Size [1-";
 static const char NM_LC_DRIVE_FORM_SZ_END[]   = "]Gb";
 
 static void nm_add_drive_init_windows(nm_form_t *form);
-static size_t nm_add_drive_labels_setup();
+static size_t nm_add_drive_labels_setup(void);
 static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
                                const nm_str_t *type, const nm_vect_t *drives,
                                const nm_str_t *discard);
@@ -35,8 +35,10 @@ static void nm_add_drive_init_windows(nm_form_t *form)
     if (form) {
         nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if (form_data)
+
+        if (form_data) {
             form_data->parent_window = action_window;
+        }
     } else {
         werase(action_window);
         werase(help_window);
@@ -63,6 +65,7 @@ void nm_add_drive(const nm_str_t *name)
     nm_vmctl_get_data(name, &vm);
     if ((vm.drives.n_memb / 4) == NM_DRIVE_LIMIT) {
         nm_str_t warn_msg = NM_INIT_STR;
+
         nm_str_format(&warn_msg, _("%zu %s"), NM_DRIVE_LIMIT, NM_NSG_DRV_LIM);
         nm_warn(warn_msg.data);
         nm_str_free(&warn_msg);
@@ -74,28 +77,30 @@ void nm_add_drive(const nm_str_t *name)
     msg_len = nm_add_drive_labels_setup();
 
     form_data = nm_form_data_new(
-        action_window, nm_add_drive_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
+        action_window, nm_add_drive_init_windows, msg_len,
+        NM_FLD_COUNT / 2, NM_TRUE);
 
-    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK) {
         goto out;
+    }
 
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
-            case NM_FLD_DRVSIZE:
-                fields[n] = nm_field_integer_new(
-                    n / 2, form_data, 0, 1, nm_hw_disk_free());
-                break;
-            case NM_FLD_DRVTYPE:
-                fields[n] = nm_field_enum_new(
-                    n / 2, form_data, nm_form_drive_drv, false, false);
-                break;
-            case NM_FLD_DISCARD:
-                fields[n] = nm_field_enum_new(
-                    n / 2, form_data, nm_form_yes_no, false, false);
-                break;
-            default:
-                fields[n] = nm_field_label_new(n / 2, form_data);
-                break;
+        case NM_FLD_DRVSIZE:
+            fields[n] = nm_field_integer_new(
+                n / 2, form_data, 0, 1, nm_hw_disk_free());
+            break;
+        case NM_FLD_DRVTYPE:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_drive_drv, false, false);
+            break;
+        case NM_FLD_DISCARD:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_yes_no, false, false);
+            break;
+        default:
+            fields[n] = nm_field_label_new(n / 2, form_data);
+            break;
         }
     }
     fields[NM_FLD_COUNT] = NULL;
@@ -108,8 +113,9 @@ void nm_add_drive(const nm_str_t *name)
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
 
-    if (nm_form_draw(&form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK) {
         goto out;
+    }
 
     nm_get_field_buf(fields[NM_FLD_DRVSIZE], &drv_size);
     nm_get_field_buf(fields[NM_FLD_DRVTYPE], &drv_type);
@@ -125,8 +131,9 @@ void nm_add_drive(const nm_str_t *name)
         goto out;
     }
 
-    if (nm_add_drive_to_fs(name, &drv_size, &vm.drives) != NM_OK)
+    if (nm_add_drive_to_fs(name, &drv_size, &vm.drives) != NM_OK) {
         nm_bug(_("%s: cannot create image file"), __func__);
+    }
     nm_add_drive_to_db(name, &drv_size, &drv_type, &vm.drives, &discard);
 
 out:
@@ -140,7 +147,7 @@ out:
     nm_str_free(&discard);
 }
 
-static size_t nm_add_drive_labels_setup()
+static size_t nm_add_drive_labels_setup(void)
 {
     nm_str_t buf = NM_INIT_STR;
     size_t max_label_len = 0;
@@ -164,11 +171,13 @@ static size_t nm_add_drive_labels_setup()
         }
 
         msg_len = mbstowcs(NULL, buf.data, buf.len);
-        if (msg_len > max_label_len)
+        if (msg_len > max_label_len) {
             max_label_len = msg_len;
+        }
 
-        if (fields[n])
+        if (fields[n]) {
             set_field_buffer(fields[n], 0, buf.data);
+        }
     }
 
     nm_str_free(&buf);
@@ -203,13 +212,15 @@ void nm_del_drive(const nm_str_t *name)
     nm_init_help_delete();
 
     m_drvs.highlight = 1;
-    if (drv_list_len < drv_count)
+    if (drv_list_len < drv_count) {
         m_drvs.item_last = drv_list_len;
-    else
+    } else {
         m_drvs.item_last = drv_list_len = drv_count;
+    }
 
     for (size_t n = 0; n < drv_count; n++) {
         size_t idx_shift = 2 * n;
+
         nm_vect_insert(&drv_list,
                        nm_vect_str_ctx(&drives, idx_shift),
                        nm_vect_str_len(&drives, idx_shift) + 1,
@@ -254,15 +265,17 @@ void nm_del_drive(const nm_str_t *name)
         }
     } while ((ch = wgetch(action_window)) != NM_KEY_Q);
 
-    if (!delete_drive)
+    if (!delete_drive) {
         goto quit;
+    }
 
     nm_str_format(&drive_path, "%s/%s/%s",
         nm_cfg_get()->vm_dir.data, name->data,
         nm_vect_str_ctx(&drives, 2 * (m_drvs.highlight - 1)));
 
-    if (unlink(drive_path.data) == -1)
+    if (unlink(drive_path.data) == -1) {
         nm_warn(_(NM_MSG_DRV_EDEL));
+    }
 
     nm_str_format(&query, NM_DEL_DRIVE_SQL,
         name->data, nm_vect_str_ctx(&drives, 2 * (m_drvs.highlight - 1)));
@@ -293,15 +306,19 @@ int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
     nm_vect_insert_cstr(&argv, "-f");
     nm_vect_insert_cstr(&argv, "qcow2");
 
-//@TODO Fix conversion from size_t to char (might be a problem if there is too many drives)
+/*
+ * @TODO Fix conversion from size_t to char
+ * (might be a problem if there is too many drives)
+ */
     size_t drive_count = 0;
 
-    if (drives != NULL)
+    if (drives != NULL) {
         drive_count = drives->n_memb / 4;
+    }
 
     char drv_ch = 'a' + drive_count;
 
-//@TODO Why add VM name twice (in directory name and in filename)?
+/* @TODO Why add VM name twice (in directory name and in filename)? */
     nm_str_format(&buf, "%s/%s/%s_%c.img",
         nm_cfg_get()->vm_dir.data, name->data, name->data, drv_ch);
     nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
@@ -310,8 +327,9 @@ int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
     nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
 
     nm_vect_end_zero(&argv);
-    if (nm_spawn_process(&argv, NULL) != NM_OK)
+    if (nm_spawn_process(&argv, NULL) != NM_OK) {
         return NM_ERR;
+    }
 
     nm_str_free(&buf);
     nm_vect_free(&argv, NULL);
@@ -323,14 +341,17 @@ static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
                                const nm_str_t *type, const nm_vect_t *drives,
                                const nm_str_t *discard)
 {
-//@TODO Fix conversion from size_t to char (might be a problem if there is too many drives)
+/*
+ * @TODO Fix conversion from size_t to char
+ * (might be a problem if there is too many drives)
+ */
     size_t drive_count = drives->n_memb / 4;
     char drv_ch = 'a' + drive_count;
     nm_str_t query = NM_INIT_STR;
 
     nm_str_format(&query, "INSERT INTO drives("
-        "vm_name, drive_name, drive_drv, capacity, boot, discard) \
-VALUES('%s', '%s_%c.img', '%s', '%s', '0', '%s')",
+        "vm_name, drive_name, drive_drv, capacity, boot, discard) "
+        "VALUES('%s', '%s_%c.img', '%s', '%s', '0', '%s')",
         name->data, name->data, drv_ch, type->data, size->data,
         (nm_str_cmp_st(discard, "yes") == NM_OK) ? NM_ENABLE : NM_DISABLE);
     nm_db_edit(query.data);

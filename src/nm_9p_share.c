@@ -30,7 +30,7 @@ static const char NM_LC_9P_FORM_NAME[] = "Name of the share";
 
 static void nm_9p_init_windows(nm_form_t *form);
 static void nm_9p_fields_setup(const nm_vmctl_data_t *cur);
-static size_t nm_9p_labels_setup();
+static size_t nm_9p_labels_setup(void);
 static int nm_9p_get_data(nm_9p_data_t *data, const nm_vmctl_data_t *cur);
 static void nm_9p_update_db(const nm_str_t *name, const nm_9p_data_t *data);
 
@@ -48,8 +48,10 @@ static void nm_9p_init_windows(nm_form_t *form)
     if (form) {
         nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if (form_data)
+
+        if (form_data) {
             form_data->parent_window = action_window;
+        }
     } else {
         werase(action_window);
         werase(help_window);
@@ -79,24 +81,25 @@ void nm_9p_share(const nm_str_t *name)
     form_data = nm_form_data_new(
         action_window, nm_9p_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
 
-    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK) {
         goto out;
+    }
 
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
-            case NM_FLD_9PMODE:
-                fields[n] = nm_field_enum_new(
-                    n / 2, form_data, nm_form_yes_no, false, false);
-                break;
-            case NM_FLD_9PPATH:
-                fields[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
-                break;
-            case NM_FLD_9PNAME:
-                fields[n] = nm_field_regexp_new(n / 2, form_data, ".*");
-                break;
-            default:
-                fields[n] = nm_field_label_new(n / 2, form_data);
-                break;
+        case NM_FLD_9PMODE:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_yes_no, false, false);
+            break;
+        case NM_FLD_9PPATH:
+            fields[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
+            break;
+        case NM_FLD_9PNAME:
+            fields[n] = nm_field_regexp_new(n / 2, form_data, ".*");
+            break;
+        default:
+            fields[n] = nm_field_label_new(n / 2, form_data);
+            break;
         }
     }
     fields[NM_FLD_COUNT] = NULL;
@@ -108,11 +111,13 @@ void nm_9p_share(const nm_str_t *name)
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
 
-    if (nm_form_draw(&form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK) {
         goto out;
+    }
 
-    if (nm_9p_get_data(&data, &vm) != NM_OK)
+    if (nm_9p_get_data(&data, &vm) != NM_OK) {
         goto out;
+    }
 
     nm_9p_update_db(name, &data);
 
@@ -135,11 +140,13 @@ static void nm_9p_fields_setup(const nm_vmctl_data_t *cur)
     set_field_buffer(fields[NM_FLD_9PMODE], 0,
         (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_9FLG),
             NM_ENABLE) == NM_OK) ? "yes" : "no");
-    set_field_buffer(fields[NM_FLD_9PPATH], 0, nm_vect_str_ctx(&cur->main, NM_SQL_9PTH));
-    set_field_buffer(fields[NM_FLD_9PNAME], 0, nm_vect_str_ctx(&cur->main, NM_SQL_9ID));
+    set_field_buffer(fields[NM_FLD_9PPATH], 0,
+            nm_vect_str_ctx(&cur->main, NM_SQL_9PTH));
+    set_field_buffer(fields[NM_FLD_9PNAME], 0,
+            nm_vect_str_ctx(&cur->main, NM_SQL_9ID));
 }
 
-static size_t nm_9p_labels_setup()
+static size_t nm_9p_labels_setup(void)
 {
     nm_str_t buf = NM_INIT_STR;
     size_t max_label_len = 0;
@@ -161,11 +168,13 @@ static size_t nm_9p_labels_setup()
         }
 
         msg_len = mbstowcs(NULL, buf.data, buf.len);
-        if (msg_len > max_label_len)
+        if (msg_len > max_label_len) {
             max_label_len = msg_len;
+        }
 
-        if (fields[n])
+        if (fields[n]) {
             set_field_buffer(fields[n], 0, buf.data);
+        }
     }
 
     nm_str_free(&buf);
@@ -182,17 +191,20 @@ static int nm_9p_get_data(nm_9p_data_t *data, const nm_vmctl_data_t *cur)
     nm_get_field_buf(fields[NM_FLD_9PNAME], &data->name);
 
     if (field_status(fields[NM_FLD_9PMODE])) {
-        if (nm_str_cmp_st(&data->mode, "no") == NM_OK)
+        if (nm_str_cmp_st(&data->mode, "no") == NM_OK) {
+            goto out;
+        }
+    } else if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_9FLG),
+                NM_ENABLE) != NM_OK) {
             goto out;
     }
-    else if (nm_str_cmp_st(nm_vect_str(&cur->main, NM_SQL_9FLG), NM_ENABLE) != NM_OK)
-            goto out;
 
     nm_form_check_data(_(NM_LC_9P_FORM_PATH), data->path, err);
     nm_form_check_data(_(NM_LC_9P_FORM_NAME), data->name, err);
 
-    if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
+    if ((rc = nm_print_empty_fields(&err)) == NM_ERR) {
         nm_vect_free(&err, NULL);
+    }
 
 out:
     return rc;
@@ -201,11 +213,11 @@ out:
 static void nm_9p_update_db(const nm_str_t *name, const nm_9p_data_t *data)
 {
     nm_str_t query = NM_INIT_STR;
-    nm_str_free(&query);
 
     if (field_status(fields[NM_FLD_9PMODE])) {
         nm_str_format(&query, NM_9P_SET_MODE_SQL,
-            (nm_str_cmp_st(&data->mode, "yes") == NM_OK) ? "1" : "0", name->data);
+            (nm_str_cmp_st(&data->mode, "yes") == NM_OK) ?
+            "1" : "0", name->data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }

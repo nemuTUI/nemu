@@ -11,8 +11,10 @@
 static const char NM_LC_RENAME_FORM_MSG[] = "New VM name";
 
 static void nm_rename_init_windows(nm_form_t *form);
-static void nm_rename_vm_in_db(const nm_vmctl_data_t *vm, const nm_str_t *new_name);
-static void nm_rename_vm_in_fs(const nm_vmctl_data_t *vm, const nm_str_t *new_name);
+static void nm_rename_vm_in_db(const nm_vmctl_data_t *vm,
+        const nm_str_t *new_name);
+static void nm_rename_vm_in_fs(const nm_vmctl_data_t *vm,
+        const nm_str_t *new_name);
 
 enum {
     NM_LBL_NEWNAME = 0, NM_FLD_NEWNAME,
@@ -24,8 +26,10 @@ static void nm_rename_init_windows(nm_form_t *form)
     if (form) {
         nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if (form_data)
+
+        if (form_data) {
             form_data->parent_window = action_window;
+        }
     } else {
         werase(action_window);
         werase(help_window);
@@ -53,16 +57,16 @@ void nm_rename_vm(const nm_str_t *name)
     int done = 0;
 
     nm_rename_init_windows(NULL);
-
     nm_vmctl_get_data(name, &vm);
+    msg_len = mbstowcs(NULL, _(NM_LC_RENAME_FORM_MSG),
+            strlen(_(NM_LC_RENAME_FORM_MSG)));
 
-    msg_len = mbstowcs(NULL, _(NM_LC_RENAME_FORM_MSG), strlen(_(NM_LC_RENAME_FORM_MSG)));
+    form_data = nm_form_data_new(action_window, nm_rename_init_windows,
+            msg_len, NM_FLD_COUNT / 2, NM_TRUE);
 
-    form_data = nm_form_data_new(
-        action_window, nm_rename_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
-
-    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK) {
         goto out;
+    }
 
     fields[0] = nm_field_label_new(0, form_data);
     fields[1] = nm_field_regexp_new(0, form_data, "^[a-zA-Z0-9_-]{1,30} *$");
@@ -76,8 +80,9 @@ void nm_rename_vm(const nm_str_t *name)
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
 
-    if (nm_form_draw(&form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK) {
         goto out;
+    }
 
     nm_get_field_buf(fields[1], &new_name);
     nm_form_check_data(_(NM_LC_RENAME_FORM_MSG), new_name, err);
@@ -87,13 +92,17 @@ void nm_rename_vm(const nm_str_t *name)
         goto out;
     }
 
-    if (nm_str_cmp_ss(&new_name, name) == 0 || nm_form_name_used(&new_name) == NM_ERR)
+    if (nm_str_cmp_ss(&new_name, name) == 0 ||
+            nm_form_name_used(&new_name) == NM_ERR) {
         goto out;
+    }
 
     sp_data.stop = &done;
 
-    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
+    if (pthread_create(&spin_th, NULL,
+                nm_progress_bar, (void *) &sp_data) != 0) {
         nm_bug(_("%s: cannot create thread"), __func__);
+    }
 
     nm_vmctl_clear_tap(name);
 
@@ -103,8 +112,9 @@ void nm_rename_vm(const nm_str_t *name)
     nm_db_commit();
 
     done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
+    if (pthread_join(spin_th, NULL) != 0) {
         nm_bug(_("%s: cannot join thread"), __func__);
+    }
 
 out:
     NM_FORM_EXIT();
@@ -116,7 +126,8 @@ out:
     nm_str_free(&new_name);
 }
 
-static void nm_rename_vm_in_db(const nm_vmctl_data_t *vm, const nm_str_t *new_name)
+static void
+nm_rename_vm_in_db(const nm_vmctl_data_t *vm, const nm_str_t *new_name)
 {
     nm_str_t query = NM_INIT_STR;
     nm_str_t buf_1 = NM_INIT_STR;
@@ -129,7 +140,8 @@ static void nm_rename_vm_in_db(const nm_vmctl_data_t *vm, const nm_str_t *new_na
     count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
     for (size_t i = 0; i < count; i++) {
         size_t idx_shift = NM_DRV_IDX_COUNT * i;
-        nm_str_t *old_drive_name = nm_vect_str(&vm->drives, NM_SQL_DRV_NAME + idx_shift);
+        nm_str_t *old_drive_name = nm_vect_str(&vm->drives,
+                NM_SQL_DRV_NAME + idx_shift);
 
         nm_str_copy(&buf_1, old_drive_name);
         nm_str_replace_text(&buf_1, old_name->data, new_name->data);
@@ -148,10 +160,13 @@ static void nm_rename_vm_in_db(const nm_vmctl_data_t *vm, const nm_str_t *new_na
         int altname;
         nm_str_t maddr = NM_INIT_STR;
         size_t idx_shift = NM_IFS_IDX_COUNT * i;
-        nm_str_t *old_iface_name = nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift);
-        nm_str_t *old_iface_altname = nm_vect_str(&vm->ifs, NM_SQL_IF_ALT + idx_shift);
+        nm_str_t *old_iface_name = nm_vect_str(&vm->ifs,
+                NM_SQL_IF_NAME + idx_shift);
+        nm_str_t *old_iface_altname = nm_vect_str(&vm->ifs,
+                NM_SQL_IF_ALT + idx_shift);
 
-        nm_str_format(&maddr, "%s", nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
+        nm_str_format(&maddr, "%s", nm_vect_str_ctx(&vm->ifs,
+                    NM_SQL_IF_MAC + idx_shift));
         nm_str_format(&buf_1, "%s_eth%zu", new_name->data, i);
         nm_str_copy(&buf_2, old_iface_altname);
         nm_str_replace_text(&buf_2, old_name->data, new_name->data);
@@ -196,7 +211,8 @@ static void nm_rename_vm_in_db(const nm_vmctl_data_t *vm, const nm_str_t *new_na
 }
 
 //@TODO Make atomic? (copy on rename/track changes and undo on fail)
-static void nm_rename_vm_in_fs(const nm_vmctl_data_t *vm, const nm_str_t *new_name)
+static void
+nm_rename_vm_in_fs(const nm_vmctl_data_t *vm, const nm_str_t *new_name)
 {
     nm_str_t old_vm_dir = NM_INIT_STR;
     nm_str_t new_vm_dir = NM_INIT_STR;
@@ -213,28 +229,32 @@ static void nm_rename_vm_in_fs(const nm_vmctl_data_t *vm, const nm_str_t *new_na
     nm_str_format(&new_vm_dir, "%s/%s",
         nm_cfg_get()->vm_dir.data, new_name->data);
 
-    if (stat(new_vm_dir.data, &stats) != -1)
+    if (stat(new_vm_dir.data, &stats) != -1) {
        nm_bug(_("%s: path \"%s\" already exists"), __func__, new_vm_dir.data);
-    else if (ENOENT != errno)
+    } else if (errno != ENOENT) {
        nm_bug(_("%s: stat error: %s"), __func__, strerror(errno));
+    }
 
-    if (rename(old_vm_dir.data, new_vm_dir.data) != 0)
+    if (rename(old_vm_dir.data, new_vm_dir.data) != 0) {
         nm_bug(_("%s: rename error: %s"), __func__, strerror(errno));
+    }
 
     drives_count = vm->drives.n_memb / NM_DRV_IDX_COUNT;
-    for (size_t i = 0; i < drives_count; i++)
-    {
+    for (size_t i = 0; i < drives_count; i++) {
         size_t idx_shift = NM_DRV_IDX_COUNT * i;
-        nm_str_t *old_drive_name = nm_vect_str(&vm->drives, NM_SQL_DRV_NAME + idx_shift);
+        nm_str_t *old_drive_name = nm_vect_str(&vm->drives,
+                NM_SQL_DRV_NAME + idx_shift);
 
-        nm_str_format(&old_path, "%s/%s", new_vm_dir.data, old_drive_name->data);
+        nm_str_format(&old_path, "%s/%s", new_vm_dir.data,
+                old_drive_name->data);
 
         nm_str_copy(&new_drive_name, old_drive_name);
         nm_str_replace_text(&new_drive_name, old_name->data, new_name->data);
         nm_str_format(&new_path, "%s/%s", new_vm_dir.data, new_drive_name.data);
 
-        if (rename(old_path.data, new_path.data) != 0)
+        if (rename(old_path.data, new_path.data) != 0) {
             nm_bug(_("%s: rename error: %s"), __func__, strerror(errno));
+        }
     }
 
     nm_str_free(&old_vm_dir);

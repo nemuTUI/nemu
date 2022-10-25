@@ -11,14 +11,14 @@
 #include <nm_cfg_file.h>
 #include <nm_lan_settings.h>
 
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
 
 const char NM_LC_LAN_FORM_LNAME[] = "Name";
 const char NM_LC_LAN_FORM_RNAME[] = "Peer name";
 
 static void nm_lan_init_main_windows(bool redraw);
 static void nm_lan_init_add_windows(nm_form_t *form);
-static size_t nm_lan_labels_setup();
+static size_t nm_lan_labels_setup(void);
 static void nm_lan_add_veth(void);
 static void nm_lan_del_veth(const nm_str_t *name);
 static void nm_lan_up_veth(const nm_str_t *name);
@@ -34,7 +34,7 @@ enum {
 
 static nm_field_t *fields_lan[NM_LAN_FLD_COUNT + 1];
 
-#if defined (NM_WITH_NETWORK_MAP)
+#if defined(NM_WITH_NETWORK_MAP)
 const char *nm_form_svg_state[] = {
     "UP",
     "DOWN",
@@ -54,8 +54,8 @@ const char NM_LC_SVG_FORM_LAYT[] = "Layout";
 const char NM_LC_SVG_FORM_GROUP[] = "Group";
 
 static void nm_svg_init_windows(nm_form_t *form);
-static void nm_svg_fields_setup();
-static size_t nm_svg_labels_setup();
+static void nm_svg_fields_setup(void);
+static size_t nm_svg_labels_setup(void);
 static void nm_lan_export_svg(const nm_vect_t *veths);
 
 enum {
@@ -91,8 +91,10 @@ static void nm_lan_init_add_windows(nm_form_t *form)
     if (form) {
         nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if(form_data)
+
+        if (form_data) {
             form_data->parent_window = action_window;
+        }
     } else {
         werase(action_window);
         werase(help_window);
@@ -150,13 +152,13 @@ void nm_lan_settings(void)
                 nm_lan_up_veth(nm_vect_item_name_cur(&veths_data));
                 renew_status = 1;
             }
-        }
-#if defined (NM_WITH_NETWORK_MAP)
-        else if (ch == NM_KEY_E) {
-            if (veths.n_memb > 0)
+#if defined(NM_WITH_NETWORK_MAP)
+        } else if (ch == NM_KEY_E) {
+            if (veths.n_memb > 0) {
                 nm_lan_export_svg(&veths);
-        }
+            }
 #endif
+        }
 
         if (regen_data) {
             nm_vect_free(&veths_list, NULL);
@@ -167,20 +169,23 @@ void nm_lan_settings(void)
             veths_data.highlight = 1;
 
             if (old_hl > 1) {
-                if (veths.n_memb < old_hl)
+                if (veths.n_memb < old_hl) {
                     veths_data.highlight = (old_hl - 1);
-                else
+                } else {
                     veths_data.highlight = old_hl;
+                }
                 old_hl = 0;
             }
 
-            if (veth_list_len < veths.n_memb)
+            if (veth_list_len < veths.n_memb) {
                 veths_data.item_last = veth_list_len;
-            else
+            } else {
                 veths_data.item_last = veth_list_len = veths.n_memb;
+            }
 
             for (size_t n = 0; n < veths.n_memb; n++) {
                 nm_menu_item_t veth = NM_INIT_MENU_ITEM;
+
                 veth.name = (nm_str_t *) nm_vect_at(&veths, n);
                 nm_vect_insert(&veths_list, &veth, sizeof(veth), NULL);
             }
@@ -198,8 +203,9 @@ void nm_lan_settings(void)
             nm_print_veth_menu(&veths_data, renew_status);
             nm_lan_veth_info(nm_vect_item_name_cur(&veths_data));
 
-            if (renew_status)
+            if (renew_status) {
                 renew_status = 0;
+            }
         } else {
             werase(action_window);
             nm_init_action(_(NM_MSG_LAN));
@@ -243,25 +249,26 @@ static void nm_lan_add_veth(void)
 
     msg_len = nm_lan_labels_setup();
 
-    form_data = nm_form_data_new(
-        action_window, nm_lan_init_add_windows, msg_len, NM_LAN_FLD_COUNT / 2, NM_TRUE);
+    form_data = nm_form_data_new(action_window, nm_lan_init_add_windows,
+            msg_len, NM_LAN_FLD_COUNT / 2, NM_TRUE);
 
-    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK) {
         goto out;
+    }
 
     for (size_t n = 0; n < NM_LAN_FLD_COUNT; n++) {
         switch (n) {
-            case NM_LAN_FLD_LNAME:
-                fields_lan[n] = nm_field_regexp_new(
-                    n / 2, form_data, "^[a-zA-Z0-9_-]{1,15} *$");
-                break;
-            case NM_LAN_FLD_RNAME:
-                fields_lan[n] = nm_field_regexp_new(
-                    n / 2, form_data, "^[a-zA-Z0-9_-]{1,15} *$");
-                break;
-            default:
-                fields_lan[n] = nm_field_label_new(n / 2, form_data);
-                break;
+        case NM_LAN_FLD_LNAME:
+            fields_lan[n] = nm_field_regexp_new(
+                n / 2, form_data, "^[a-zA-Z0-9_-]{1,15} *$");
+            break;
+        case NM_LAN_FLD_RNAME:
+            fields_lan[n] = nm_field_regexp_new(
+                n / 2, form_data, "^[a-zA-Z0-9_-]{1,15} *$");
+            break;
+        default:
+            fields_lan[n] = nm_field_label_new(n / 2, form_data);
+            break;
         }
     }
     fields_lan[NM_LAN_FLD_COUNT] = NULL;
@@ -272,11 +279,13 @@ static void nm_lan_add_veth(void)
     form = nm_form_new(form_data, fields_lan);
     nm_form_post(form);
 
-    if (nm_form_draw(&form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK) {
         goto out;
+    }
 
-    if (nm_lan_add_get_data(&l_name, &r_name) != NM_OK)
+    if (nm_lan_add_get_data(&l_name, &r_name) != NM_OK) {
         goto out;
+    }
 
     nm_net_add_veth(&l_name, &r_name);
     nm_net_link_up(&l_name);
@@ -297,7 +306,7 @@ out:
     nm_str_free(&query);
 }
 
-static size_t nm_lan_labels_setup()
+static size_t nm_lan_labels_setup(void)
 {
     nm_str_t buf = NM_INIT_STR;
     size_t max_label_len = 0;
@@ -316,11 +325,13 @@ static size_t nm_lan_labels_setup()
         }
 
         msg_len = mbstowcs(NULL, buf.data, buf.len);
-        if (msg_len > max_label_len)
+        if (msg_len > max_label_len) {
             max_label_len = msg_len;
+        }
 
-        if (fields_lan[n])
+        if (fields_lan[n]) {
             set_field_buffer(fields_lan[n], 0, buf.data);
+        }
     }
 
     nm_str_free(&buf);
@@ -438,11 +449,13 @@ static void nm_lan_veth_info(const nm_str_t *name)
     nm_db_select(query.data, &ifs);
 
     nm_str_add_char(&buf, ':');
-    if (ifs.n_memb > 0)
-        for (size_t n = 0; n < ifs.n_memb; n++)
+    if (ifs.n_memb > 0) {
+        for (size_t n = 0; n < ifs.n_memb; n++) {
             nm_str_append_format(&buf, " %s", nm_vect_str_ctx(&ifs, n));
-    else
+        }
+    } else {
         nm_str_add_text(&buf, _(" [none]"));
+    }
 
     NM_PR_VM_INFO();
     nm_str_trunc(&buf, 0);
@@ -454,11 +467,13 @@ static void nm_lan_veth_info(const nm_str_t *name)
     nm_db_select(query.data, &ifs);
 
     nm_str_add_char(&buf, ':');
-    if (ifs.n_memb > 0)
-        for (size_t n = 0; n < ifs.n_memb; n++)
+    if (ifs.n_memb > 0) {
+        for (size_t n = 0; n < ifs.n_memb; n++) {
             nm_str_append_format(&buf, " %s", nm_vect_str_ctx(&ifs, n));
-    else
+        }
+    } else {
         nm_str_add_text(&buf, _(" [none]"));
+    }
     NM_PR_VM_INFO();
 
     nm_vect_free(&ifs, nm_str_vect_free_cb);
@@ -503,12 +518,14 @@ void nm_lan_create_veth(int info)
         const nm_str_t *l_name = nm_vect_str(&veths, idx_shift);
         const nm_str_t *r_name = nm_vect_str(&veths, idx_shift + 1);
 
-        if (info)
+        if (info) {
             printf("Checking \"%s <-> %s\"...", l_name->data, r_name->data);
+        }
 
         if (nm_net_iface_exists(l_name) != NM_OK) {
-            if (info)
+            if (info) {
                 printf("\t[not found]\n");
+            }
 
             nm_net_add_veth(l_name, r_name);
             nm_net_link_up(l_name);
@@ -516,27 +533,31 @@ void nm_lan_create_veth(int info)
 
             veth_created++;
         } else {
-            if (info)
+            if (info) {
                 printf("\t[found]\n");
+            }
         }
     }
 
-    if (info && !veth_created)
+    if (info && !veth_created) {
         printf("Nothing to do.\n");
-    else if (info && veth_created)
+    } else if (info && veth_created) {
         printf("%zu VETH interface[s] was created.\n", veth_created);
+    }
 
     nm_vect_free(&veths, nm_str_vect_free_cb);
 }
 
-#if defined (NM_WITH_NETWORK_MAP)
+#if defined(NM_WITH_NETWORK_MAP)
 static void nm_svg_init_windows(nm_form_t *form)
 {
     if (form) {
         nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if (form_data)
+
+        if (form_data) {
             form_data->parent_window = action_window;
+        }
     } else {
         werase(action_window);
         werase(help_window);
@@ -566,31 +587,32 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
 
     msg_len = nm_svg_labels_setup();
 
-    form_data = nm_form_data_new(
-        action_window, nm_svg_init_windows, msg_len, NM_SVG_FLD_COUNT / 2, NM_TRUE);
+    form_data = nm_form_data_new(action_window, nm_svg_init_windows,
+            msg_len, NM_SVG_FLD_COUNT / 2, NM_TRUE);
 
-    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK) {
         goto out;
+    }
 
     for (size_t n = 0; n < NM_SVG_FLD_COUNT; n++) {
         switch (n) {
-            case NM_SVG_FLD_PATH:
-                fields_svg[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
-                break;
-            case NM_SVG_FLD_TYPE:
-                fields_svg[n] = nm_field_enum_new(
-                    n / 2, form_data, nm_form_svg_state, false, false);
-                break;
-            case NM_SVG_FLD_LAYT:
-                fields_svg[n] = nm_field_enum_new(
-                    n / 2, form_data, nm_form_svg_layout, false, false);
-                break;
-            case NM_SVG_FLD_GROUP:
-                fields_svg[n] = nm_field_default_new(n / 2, form_data);
-                break;
-            default:
-                fields_svg[n] = nm_field_label_new(n / 2, form_data);
-                break;
+        case NM_SVG_FLD_PATH:
+            fields_svg[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
+            break;
+        case NM_SVG_FLD_TYPE:
+            fields_svg[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_svg_state, false, false);
+            break;
+        case NM_SVG_FLD_LAYT:
+            fields_svg[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_svg_layout, false, false);
+            break;
+        case NM_SVG_FLD_GROUP:
+            fields_svg[n] = nm_field_default_new(n / 2, form_data);
+            break;
+        default:
+            fields_svg[n] = nm_field_label_new(n / 2, form_data);
+            break;
         }
     }
     fields_svg[NM_SVG_FLD_COUNT] = NULL;
@@ -602,8 +624,9 @@ static void nm_lan_export_svg(const nm_vect_t *veths)
     form = nm_form_new(form_data, fields_svg);
     nm_form_post(form);
 
-    if (nm_form_draw(&form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK) {
         goto out;
+    }
 
     nm_get_field_buf(fields_svg[NM_SVG_FLD_PATH], &path);
     nm_get_field_buf(fields_svg[NM_SVG_FLD_TYPE], &type);
@@ -641,7 +664,7 @@ out:
     nm_fields_free(fields_svg);
 }
 
-static void nm_svg_fields_setup()
+static void nm_svg_fields_setup(void)
 {
     nm_vect_t vgroup = NM_INIT_VECT;
     const char **groups;
@@ -649,8 +672,9 @@ static void nm_svg_fields_setup()
 
     nm_db_select(NM_GET_GROUPS_SQL, &vgroup);
     groups = nm_calloc(vgroup.n_memb + 1, sizeof(char *));
-    for (size_t n = 0; n < vgroup.n_memb; n++)
+    for (size_t n = 0; n < vgroup.n_memb; n++) {
         groups[n] = strdup(nm_vect_str_ctx(&vgroup, n));
+    }
     groups[vgroup.n_memb] = NULL;
 
     groups_args.enum_arg.strings = groups;
@@ -669,7 +693,7 @@ static void nm_svg_fields_setup()
     nm_vect_free(&vgroup, nm_str_vect_free_cb);
 }
 
-static size_t nm_svg_labels_setup()
+static size_t nm_svg_labels_setup(void)
 {
     nm_str_t buf = NM_INIT_STR;
     size_t max_label_len = 0;
@@ -694,11 +718,13 @@ static size_t nm_svg_labels_setup()
         }
 
         msg_len = mbstowcs(NULL, buf.data, buf.len);
-        if (msg_len > max_label_len)
+        if (msg_len > max_label_len) {
             max_label_len = msg_len;
+        }
 
-        if (fields_svg[n])
+        if (fields_svg[n]) {
             set_field_buffer(fields_svg[n], 0, buf.data);
+        }
     }
 
     nm_str_free(&buf);

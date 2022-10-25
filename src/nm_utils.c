@@ -24,11 +24,11 @@ enum {
 static int nemu_rc;
 static char nemu_path[PATH_MAX];
 
-#if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
+#if defined(NM_OS_LINUX) && defined(NM_WITH_SENDFILE)
 #include <sys/sendfile.h>
 #endif
 
-#if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
+#if defined(NM_OS_LINUX) && defined(NM_WITH_SENDFILE)
 static void nm_copy_file_sendfile(int in_fd, int out_fd);
 #else
 static void nm_copy_file_default(int in_fd, int out_fd);
@@ -37,6 +37,7 @@ static void nm_copy_file_default(int in_fd, int out_fd);
 void nm_bug(const char *fmt, ...)
 {
     va_list args;
+
     va_start(args, fmt);
 
     nm_curses_deinit();
@@ -52,8 +53,9 @@ void *nm_alloc(size_t size)
 {
     void *p;
 
-    if ((p = malloc(size)) == NULL)
+    if ((p = malloc(size)) == NULL) {
         nm_bug("malloc: %s\n", strerror(errno));
+    }
 
     return p;
 }
@@ -62,8 +64,9 @@ void *nm_calloc(size_t nmemb, size_t size)
 {
     void *p;
 
-    if ((p = calloc(nmemb, size)) == NULL)
+    if ((p = calloc(nmemb, size)) == NULL) {
         nm_bug("cmalloc: %s\n", strerror(errno));
+    }
 
     return p;
 }
@@ -72,8 +75,9 @@ void *nm_realloc(void *p, size_t size)
 {
     void *p_new;
 
-    if ((p_new = realloc(p, size)) == NULL)
+    if ((p_new = realloc(p, size)) == NULL) {
         nm_bug("realloc: %s\n", strerror(errno));
+    }
 
     return p_new;
 }
@@ -124,7 +128,7 @@ void nm_copy_file(const nm_str_t *src, const nm_str_t *dst)
             __func__, dst->data, strerror(errno));
     }
 
-#if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
+#if defined(NM_OS_LINUX) && defined(NM_WITH_SENDFILE)
     nm_copy_file_sendfile(in_fd, out_fd);
 #else
     nm_copy_file_default(in_fd, out_fd);
@@ -134,7 +138,7 @@ void nm_copy_file(const nm_str_t *src, const nm_str_t *dst)
     close(out_fd);
 }
 
-#if defined (NM_OS_LINUX) && defined (NM_WITH_SENDFILE)
+#if defined(NM_OS_LINUX) && defined(NM_WITH_SENDFILE)
 static void nm_copy_file_sendfile(int in_fd, int out_fd)
 {
     off_t offset = 0;
@@ -142,21 +146,26 @@ static void nm_copy_file_sendfile(int in_fd, int out_fd)
 
     memset(&file_info, 0, sizeof(file_info));
 
-    if (fstat(in_fd, &file_info) != 0)
-        nm_bug("%s: cannot get file info %d: %s", __func__, in_fd, strerror(errno));
+    if (fstat(in_fd, &file_info) != 0) {
+        nm_bug("%s: cannot get file info %d: %s",
+                __func__, in_fd, strerror(errno));
+    }
 
     while (offset < file_info.st_size) {
         int rc;
 
-        if ((rc = sendfile(out_fd, in_fd, &offset, file_info.st_size)) == -1)
+        if ((rc = sendfile(out_fd, in_fd, &offset, file_info.st_size)) == -1) {
             nm_bug("%s: cannot copy file: %s", __func__, strerror(errno));
+        }
 
-        if (rc == 0)
+        if (rc == 0) {
             break;
+        }
     }
 
-    if (offset != file_info.st_size)
+    if (offset != file_info.st_size) {
             nm_bug("%s: incomplete transfer from sendfile", __func__);
+    }
 }
 #else
 static void nm_copy_file_default(int in_fd, int out_fd)
@@ -182,8 +191,9 @@ static void nm_copy_file_default(int in_fd, int out_fd)
         } while (nread > 0);
     }
 
-    if (nread != 0)
+    if (nread != 0) {
         nm_bug("%s: copy was not complete.", __func__);
+    }
 
     free(buf);
 }
@@ -195,8 +205,9 @@ int nm_spawn_process(const nm_vect_t *argv, nm_str_t *answer)
     int fd[2];
     pid_t child_pid = 0;
 
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd) == -1)
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fd) == -1) {
         nm_bug("%s: error create socketpair: %s", __func__, strerror(errno));
+    }
 
     switch (child_pid = fork()) {
     case (-1):  /* error*/
@@ -232,7 +243,8 @@ int nm_spawn_process(const nm_vect_t *argv, nm_str_t *answer)
                 nm_debug("exec_error: %s", err_msg.data);
                 nm_str_free(&err_msg);
                 rc = NM_ERR;
-            } else if (answer && (w_rc == child_pid) && (WEXITSTATUS(wstatus) == 0)) {
+            } else if (answer && (w_rc == child_pid) &&
+                    (WEXITSTATUS(wstatus) == 0)) {
                 while (read(fd[0], buf, sizeof(buf) - 1) > 0) {
                     nm_str_add_text(answer, buf);
                     memset(buf, 0, sizeof(buf));
@@ -249,14 +261,17 @@ int nm_spawn_process(const nm_vect_t *argv, nm_str_t *answer)
 void nm_debug(const char *fmt, ...)
 {
     const nm_cfg_t *cfg = nm_cfg_get();
-    if(!cfg->debug)
+
+    if (!cfg->debug) {
         return;
+    }
 
     va_list args;
     FILE *fp;
 
-    if ((fp = fopen(cfg->debug_path.data, "a+")) == NULL)
+    if ((fp = fopen(cfg->debug_path.data, "a+")) == NULL) {
         return;
+    }
 
     va_start(args, fmt);
     vfprintf(fp, fmt, args);
@@ -267,17 +282,20 @@ void nm_debug(const char *fmt, ...)
 
 void nm_cmd_str(nm_str_t *str, const nm_vect_t *argv)
 {
-    if (str->len > 0)
+    if (str->len > 0) {
         nm_str_trunc(str, 0);
+    }
 
     for (size_t m = 0; m < argv->n_memb; m++) {
         nm_str_append_format(str, "%s ", (char *)nm_vect_at(argv, m));
     }
 }
 
-/* SMP format: sockets:cores?:threads?
+/*
+ * SMP format: sockets:cores?:threads?
  * if only one value is specified we assume that
- * N processors with one core are used */
+ * N processors with one core are used
+ */
 void nm_parse_smp(nm_cpu_t *cpu, const char *src)
 {
     nm_str_t buf = NM_INIT_STR;
@@ -307,7 +325,8 @@ void nm_parse_smp(nm_cpu_t *cpu, const char *src)
         cpu->smp = cpu->sockets;
         cpu->sockets = 0;
     } else {
-        cpu->smp = cpu->sockets * cpu->cores * ((cpu->threads) ? cpu->threads : 1);
+        cpu->smp = cpu->sockets * cpu->cores * ((cpu->threads) ?
+                cpu->threads : 1);
     }
 
     nm_str_free(&buf);
@@ -315,14 +334,15 @@ void nm_parse_smp(nm_cpu_t *cpu, const char *src)
 
 void nm_exit(int status)
 {
-    if(nm_db_in_transaction())
+    if (nm_db_in_transaction()) {
         nm_db_rollback();
+    }
 
     nemu_rc = status;
     exit(status);
 }
 
-int nm_rc()
+int nm_rc(void)
 {
     return nemu_rc;
 }
@@ -351,8 +371,9 @@ int nm_mkdir_parent(const nm_str_t *path, mode_t mode)
     nm_vect_t path_tok = NM_INIT_VECT;
     nm_str_t buf = NM_INIT_STR;
 
-    if (path->len > PATH_MAX)
+    if (path->len > PATH_MAX) {
         nm_bug(_("%s: path \"%s\" too long"), __func__, path->data);
+    }
 
     nm_str_append_to_vect(path, &path_tok, "/");
 
@@ -375,12 +396,14 @@ int nm_mkdir_parent(const nm_str_t *path, mode_t mode)
     return rc;
 }
 
-const char *nm_nemu_path()
+const char *nm_nemu_path(void)
 {
-    if (readlink("/proc/self/exe", nemu_path, PATH_MAX) < 0)
+    if (readlink("/proc/self/exe", nemu_path, PATH_MAX) < 0) {
         nm_bug(_("%s: failed getting nemu binary path (%s)"),
             __func__, strerror(errno)
         );
+    }
+
     return nemu_path;
 }
 

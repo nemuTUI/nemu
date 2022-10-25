@@ -28,11 +28,11 @@ static const char NM_LC_VM_FORM_NET_IFS[]   = "Network interfaces";
 static const char NM_LC_VM_FORM_NET_DRV[]   = "Net driver";
 
 static void nm_add_vm_init_windows(nm_form_t *form);
-static void nm_add_vm_fields_setup();
-static size_t nm_add_vm_labels_setup();
+static void nm_add_vm_fields_setup(void);
+static size_t nm_add_vm_labels_setup(void);
 static int nm_add_vm_get_data(nm_vm_t *vm);
 static void nm_add_vm_to_fs(nm_vm_t *vm);
-static void nm_add_vm_main();
+static void nm_add_vm_main(void);
 
 enum {
     NM_LBL_VMNAME = 0, NM_FLD_VMNAME,
@@ -68,8 +68,10 @@ static void nm_add_vm_init_windows(nm_form_t *form)
     if (form) {
         nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if (form_data)
+
+        if (form_data) {
             form_data->parent_window = action_window;
+        }
     } else {
         werase(action_window);
         werase(help_window);
@@ -87,7 +89,7 @@ static void nm_add_vm_init_windows(nm_form_t *form)
     nm_print_vm_menu(NULL);
 }
 
-static void nm_add_vm_main()
+static void nm_add_vm_main(void)
 {
     nm_form_data_t *form_data = NULL;
     nm_form_t *form = NULL;
@@ -104,55 +106,57 @@ static void nm_add_vm_main()
     msg_len = nm_add_vm_labels_setup();
 
     form_data = nm_form_data_new(
-        action_window, nm_add_vm_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
+        action_window, nm_add_vm_init_windows, msg_len,
+        NM_FLD_COUNT / 2, NM_TRUE);
 
-    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK) {
         goto out;
+    }
 
     for (size_t n = 0; n < NM_FLD_COUNT; n++) {
         switch (n) {
-            case NM_FLD_VMNAME:
-                fields[n] = nm_field_regexp_new(
-                    n / 2, form_data, "^[a-zA-Z0-9_-]{1,30} *$");
-                break;
-            case NM_FLD_VMARCH:
-                fields[n] = nm_field_enum_new(
-                    n / 2, form_data, nm_cfg_get_arch(), false, false);
-                break;
-            case NM_FLD_CPUNUM:
-                fields[n] = nm_field_regexp_new(
-                    n / 2, form_data, "^[0-9]{1}(:[0-9]{1})?(:[0-9]{1})? *$");
-                break;
-            case NM_FLD_RAMTOT:
-                fields[n] = nm_field_integer_new(n / 2, form_data,
-                    0, 4, nm_hw_total_ram());
-                break;
-            case NM_FLD_DISKSZ:
-                fields[n] = nm_field_integer_new(n / 2, form_data,
-                    0, 1, nm_hw_disk_free());
-                break;
-            case NM_FLD_DISKIN:
-                fields[n] = nm_field_enum_new(
-                    n / 2, form_data, nm_form_drive_drv, false, false);
-                break;
-            case NM_FLD_DISCARD:
-                fields[n] = nm_field_enum_new(
-                    n / 2, form_data, nm_form_yes_no, false, false);
-                break;
-            case NM_FLD_SOURCE:
-                fields[n] = nm_field_regexp_new(
-                    n / 2, form_data, "^/.*");
-                break;
-            case NM_FLD_IFSCNT:
-                fields[n] = nm_field_integer_new(n / 2, form_data, 1, 0, 64);
-                break;
-            case NM_FLD_IFSDRV:
-                fields[n] = nm_field_enum_new(
-                    n / 2, form_data, nm_form_net_drv, false, false);
-                break;
-            default:
-                fields[n] = nm_field_label_new(n / 2, form_data);
-                break;
+        case NM_FLD_VMNAME:
+            fields[n] = nm_field_regexp_new(
+                n / 2, form_data, "^[a-zA-Z0-9_-]{1,30} *$");
+            break;
+        case NM_FLD_VMARCH:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_cfg_get_arch(), false, false);
+            break;
+        case NM_FLD_CPUNUM:
+            fields[n] = nm_field_regexp_new(
+                n / 2, form_data, "^[0-9]{1}(:[0-9]{1})?(:[0-9]{1})? *$");
+            break;
+        case NM_FLD_RAMTOT:
+            fields[n] = nm_field_integer_new(n / 2, form_data,
+                0, 4, nm_hw_total_ram());
+            break;
+        case NM_FLD_DISKSZ:
+            fields[n] = nm_field_integer_new(n / 2, form_data,
+                0, 1, nm_hw_disk_free());
+            break;
+        case NM_FLD_DISKIN:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_drive_drv, false, false);
+            break;
+        case NM_FLD_DISCARD:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_yes_no, false, false);
+            break;
+        case NM_FLD_SOURCE:
+            fields[n] = nm_field_regexp_new(
+                n / 2, form_data, "^/.*");
+            break;
+        case NM_FLD_IFSCNT:
+            fields[n] = nm_field_integer_new(n / 2, form_data, 1, 0, 64);
+            break;
+        case NM_FLD_IFSDRV:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_net_drv, false, false);
+            break;
+        default:
+            fields[n] = nm_field_label_new(n / 2, form_data);
+            break;
         }
     }
     fields[NM_FLD_COUNT] = NULL;
@@ -164,23 +168,27 @@ static void nm_add_vm_main()
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
 
-    if (nm_form_draw(&form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK) {
         goto out;
+    }
 
     last_mac = nm_form_get_last_mac();
     last_vnc = nm_form_get_free_vnc();
 
     nm_str_format(&vm.vncp, "%u", last_vnc);
 
-    if (nm_add_vm_get_data(&vm) != NM_OK)
+    if (nm_add_vm_get_data(&vm) != NM_OK) {
         goto out;
+    }
 
     if (import) {
         sp_data.stop = &done;
         sp_data.ctx = &vm;
 
-        if (pthread_create(&spin_th, NULL, nm_file_progress, (void *) &sp_data) != 0)
+        if (pthread_create(&spin_th, NULL, nm_file_progress,
+                    (void *) &sp_data) != 0) {
             nm_bug(_("%s: cannot create thread"), __func__);
+        }
     }
 
     nm_add_vm_to_fs(&vm);
@@ -188,8 +196,9 @@ static void nm_add_vm_main()
 
     if (import) {
         done = 1;
-        if (pthread_join(spin_th, NULL) != 0)
+        if (pthread_join(spin_th, NULL) != 0) {
             nm_bug(_("%s: cannot join thread"), __func__);
+        }
     }
 
 out:
@@ -200,9 +209,10 @@ out:
     nm_fields_free(fields);
 }
 
-static void nm_add_vm_fields_setup()
+static void nm_add_vm_fields_setup(void)
 {
-    set_field_buffer(fields[NM_FLD_VMARCH], 0, *nm_cfg_get()->qemu_targets.data);
+    set_field_buffer(fields[NM_FLD_VMARCH], 0,
+            *nm_cfg_get()->qemu_targets.data);
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, "1");
     set_field_buffer(fields[NM_FLD_DISKIN], 0, NM_DEFAULT_DRVINT);
     set_field_buffer(fields[NM_FLD_DISCARD], 0, nm_form_yes_no[1]);
@@ -216,7 +226,7 @@ static void nm_add_vm_fields_setup()
     field_opts_off(fields[NM_FLD_SOURCE], O_STATIC);
 }
 
-static size_t nm_add_vm_labels_setup()
+static size_t nm_add_vm_labels_setup(void)
 {
     nm_str_t buf = NM_INIT_STR;
     size_t max_label_len = 0;
@@ -235,11 +245,13 @@ static size_t nm_add_vm_labels_setup()
             break;
         case NM_LBL_RAMTOT:
             nm_str_format(&buf, "%s%u%s",
-                _(NM_LC_VM_FORM_MEM_BEGIN), nm_hw_total_ram(), _(NM_LC_VM_FORM_MEM_END));
+                _(NM_LC_VM_FORM_MEM_BEGIN), nm_hw_total_ram(),
+                _(NM_LC_VM_FORM_MEM_END));
             break;
         case NM_LBL_DISKSZ:
             nm_str_format(&buf, "%s%u%s",
-                _(NM_LC_VM_FORM_DRV_BEGIN), nm_hw_disk_free(), _(NM_LC_VM_FORM_DRV_END));
+                _(NM_LC_VM_FORM_DRV_BEGIN), nm_hw_disk_free(),
+                _(NM_LC_VM_FORM_DRV_END));
             break;
         case NM_LBL_DISKIN:
             nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_DRV_IF));
@@ -248,10 +260,11 @@ static size_t nm_add_vm_labels_setup()
             nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_DRV_DIS));
             break;
         case NM_LBL_SOURCE:
-            if (import)
+            if (import) {
                 nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_IMP_PATH));
-            else
+            } else {
                 nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_INS_PATH));
+            }
             break;
         case NM_LBL_IFSCNT:
             nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_NET_IFS));
@@ -264,11 +277,13 @@ static size_t nm_add_vm_labels_setup()
         }
 
         msg_len = mbstowcs(NULL, buf.data, buf.len);
-        if (msg_len > max_label_len)
+        if (msg_len > max_label_len) {
             max_label_len = msg_len;
+        }
 
-        if (fields[n])
+        if (fields[n]) {
             set_field_buffer(fields[n], 0, buf.data);
+        }
     }
 
     nm_str_free(&buf);
@@ -287,8 +302,9 @@ static int nm_add_vm_get_data(nm_vm_t *vm)
     nm_get_field_buf(fields[NM_FLD_CPUNUM], &vm->cpus);
     nm_get_field_buf(fields[NM_FLD_RAMTOT], &vm->memo);
     nm_get_field_buf(fields[NM_FLD_SOURCE], &vm->srcp);
-    if (!import)
+    if (!import) {
         nm_get_field_buf(fields[NM_FLD_DISKSZ], &vm->drive.size);
+    }
     nm_get_field_buf(fields[NM_FLD_DISCARD], &discard);
     nm_get_field_buf(fields[NM_FLD_DISKIN], &vm->drive.driver);
     nm_get_field_buf(fields[NM_FLD_IFSCNT], &ifs_buf);
@@ -298,8 +314,9 @@ static int nm_add_vm_get_data(nm_vm_t *vm)
     nm_form_check_data(_("Architecture"), vm->arch, err);
     nm_form_check_data(_("CPU cores"), vm->cpus, err);
     nm_form_check_data(_("Memory"), vm->memo, err);
-    if (!import)
+    if (!import) {
         nm_form_check_data(_("Disk"), vm->drive.size, err);
+    }
     nm_form_check_data(_("Disk interface"), vm->drive.driver, err);
     nm_form_check_data(_("Discard mode"), discard, err);
     nm_form_check_data(_("Path to ISO/IMG"), vm->srcp, err);
@@ -310,20 +327,23 @@ static int nm_add_vm_get_data(nm_vm_t *vm)
         vm->drive.discard = 1;
     }
 
-    if ((rc = nm_print_empty_fields(&err)) == NM_ERR)
+    if ((rc = nm_print_empty_fields(&err)) == NM_ERR) {
         goto out;
+    }
 
     /* Check for free space for importing drive image */
     if (import) {
         off_t size_gb = 0;
         struct stat img_info;
+
         memset(&img_info, 0, sizeof(img_info));
 
         if (stat(vm->srcp.data, &img_info) == 0) {
             size_gb = img_info.st_size / 1024 / 1024 / 1024;
             nm_str_format(&vm->drive.size, "%ld", size_gb);
         } else {
-            nm_bug(_("%s: cannot get stat of file: %s"), __func__, vm->srcp.data);
+            nm_bug(_("%s: cannot get stat of file: %s"),
+                    __func__, vm->srcp.data);
         }
 
         if (size_gb >= nm_hw_disk_free()) {
@@ -355,10 +375,11 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
 
     /* insert main VM data */
     nm_str_format(&query,
-        "INSERT INTO vms(name, mem, smp, kvm, hcpu, vnc, arch, iso, install, machine, "
-        "mouse_override, usb, usb_type, fs9p_enable, spice, debug_port, debug_freeze, display_type) "
-        "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "
-        "'%s', '%s', '%s', '%s', '%s', '%s')",
+        "INSERT INTO vms(name, mem, smp, kvm, hcpu, vnc, arch, iso, "
+        "install, machine, mouse_override, usb, usb_type, fs9p_enable, "
+        "spice, debug_port, debug_freeze, display_type) "
+        "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "
+        "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
         vm->name.data, vm->memo.data, vm->cpus.data,
 #if (NM_OS_LINUX)
         NM_ENABLE, NM_ENABLE, /* enable KVM and host CPU by default */
@@ -367,13 +388,15 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
 #endif
         vm->vncp.data, vm->arch.data,
         imported ? "" : vm->srcp.data,
-        imported ? NM_DISABLE : NM_ENABLE, /* if imported, then no need to install */
+        /* if imported, then no need to install */
+        imported ? NM_DISABLE : NM_ENABLE,
         nm_mach_get_default(&vm->arch), /* setup default machine type */
         NM_DISABLE, /* mouse override */
         vm->usb_enable ? NM_ENABLE : NM_DISABLE, /* USB enabled */
         NM_DEFAULT_USBVER, /* set USB 3.0 by default */
         NM_DISABLE, /* disable 9pfs by default */
-        (nm_cfg_get()->spice_default) ? NM_ENABLE : NM_DISABLE, /* SPICE enabled */
+        /* SPICE enabled */
+        (nm_cfg_get()->spice_default) ? NM_ENABLE : NM_DISABLE,
         "", /* GDB debug port */
         NM_DISABLE, /* disable GDB debug by default */
         NM_DEFAULT_DISPLAY /* Display type */
@@ -384,9 +407,11 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     /* insert drive info */
     if (drives == NULL) {
         nm_str_format(&query,
-            "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot, discard) "
+            "INSERT INTO drives(vm_name, drive_name, drive_drv, "
+            "capacity, boot, discard) "
             "VALUES('%s', '%s_a.img', '%s', '%s', '%s', '%s')",
-            vm->name.data, vm->name.data, vm->drive.driver.data, vm->drive.size.data,
+            vm->name.data, vm->name.data, vm->drive.driver.data,
+            vm->drive.size.data,
             NM_ENABLE, /* boot flag */
             vm->drive.discard ? NM_ENABLE : NM_DISABLE
             );
@@ -394,7 +419,8 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     } else { /* imported from OVF */
         for (size_t n = 0; n < drives->n_memb; n++) {
             nm_str_format(&query,
-                "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot, discard) "
+                "INSERT INTO drives(vm_name, drive_name, drive_drv, "
+                "capacity, boot, discard) "
                 "VALUES('%s', '%s', '%s', '%s', '%s', '%s')",
                 vm->name.data,
                 nm_drive_file(drives->data[n])->data, NM_DEFAULT_DRVINT,
@@ -412,6 +438,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         nm_str_t if_name = NM_INIT_STR;
         nm_str_t if_name_copy = NM_INIT_STR;
         nm_str_t maddr = NM_INIT_STR;
+
         mac++;
 
         nm_net_mac_n2s(mac, &maddr);
@@ -426,7 +453,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
             vm->name.data, if_name.data, maddr.data, vm->ifs.driver.data,
 #if defined (NM_OS_LINUX)
             nm_str_cmp_st(&vm->ifs.driver, NM_DEFAULT_NETDRV) == NM_OK ?
-            "1" : "0", /* Enable vhost by default for virtio-net-pci device on Linux */
+            "1" : "0", /* Enable vhost by default for virtio-net-pci device */
 #else
             "0",
 #endif
@@ -456,8 +483,9 @@ static void nm_add_vm_to_fs(nm_vm_t *vm)
     }
 
     if (!import) {
-        if (nm_add_drive_to_fs(&vm->name, &vm->drive.size, NULL) != NM_OK)
+        if (nm_add_drive_to_fs(&vm->name, &vm->drive.size, NULL) != NM_OK) {
             nm_bug(_("%s: cannot create image file"), __func__);
+        }
     } else {
         nm_str_format(&buf, "%s/%s_a.img", vm_dir.data, vm->name.data);
         nm_copy_file(&vm->srcp, &buf);

@@ -37,25 +37,25 @@
 
 #define nm_min(a, b) \
     __extension__({ \
-        __typeof__ (a) _a = (a); \
-        __typeof__ (b) _b = (b); \
+        __typeof__(a) _a = (a); \
+        __typeof__(b) _b = (b); \
         _a < _b ? _a : _b; \
     })
 #define nm_max(a, b) \
     __extension__({ \
-        __typeof__ (a) _a = (a); \
-        __typeof__ (b) _b = (b); \
+        __typeof__(a) _a = (a); \
+        __typeof__(b) _b = (b); \
         _a > _b ? _a : _b; \
     })
 #define nm_arr_len(p) (sizeof(p) / sizeof((p)[0]))
 
 #define NM_UNUSED __attribute__((__unused__))
 
-static const int NM_OK  = 0;
+static const int NM_OK;
 static const int NM_ERR = -1;
 
 static const bool NM_TRUE  = true;
-static const bool NM_FALSE = false;
+static const bool NM_FALSE;
 
 static const char NM_ENABLE[]  = "1";
 static const char NM_DISABLE[] = "0";
@@ -68,19 +68,20 @@ static const char NM_VM_QMP_FILE[]     = "qmp.sock";
 static const char NM_DEFAULT_DISPLAY[] = "qxl";
 static const char NM_MQ_PATH[]         = "/nemu-qmp";
 
-static inline char * __attribute__((format_arg (1))) _(const char *str)
+static inline char *__attribute__((format_arg(1))) _(const char *str)
 {
     return gettext(str);
 }
-static inline void nm_init_core()
+static inline void nm_init_core(void)
 {
     nm_cfg_init();
     nm_db_init();
 }
 static inline void __attribute__((noreturn)) nm_exit_core()
 {
-    if (nm_db_in_transaction())
+    if (nm_db_in_transaction()) {
         nm_db_rollback();
+    }
 
 #if defined (NM_WITH_DBUS)
     nm_dbus_disconnect();
@@ -91,10 +92,12 @@ static inline void __attribute__((noreturn)) nm_exit_core()
 }
 static inline int compar_uint32_t(const void *a, const void *b)
 {
-    const uint32_t _a = *(const uint32_t*)a;
-    const uint32_t _b = *(const uint32_t*)b;
-    if (_a != _b)
+    const uint32_t _a = *(const uint32_t *)a;
+    const uint32_t _b = *(const uint32_t *)b;
+
+    if (_a != _b) {
         return _a < _b ? -1 : 1;
+    }
 
     return 0;
 }

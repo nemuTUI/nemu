@@ -18,7 +18,8 @@ struct nm_ini_node_s {
 };
 
 static nm_ini_node_t *nm_ini_node_push(nm_ini_node_t **head, nm_str_t *name);
-static void nm_ini_value_push(nm_ini_node_t *head, nm_str_t *name, nm_str_t *value);
+static void nm_ini_value_push(nm_ini_node_t *head,
+        nm_str_t *name, nm_str_t *value);
 
 nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
 {
@@ -41,8 +42,9 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
 
     for (off_t n = 0; n < file.size; n++, buf_ini++) {
         /* skip spaces and tabs */
-        if (!look_for_value_end && ((*buf_ini == ' ') || (*buf_ini == '\t')))
+        if (!look_for_value_end && ((*buf_ini == ' ') || (*buf_ini == '\t'))) {
             continue;
+        }
 
         if (*buf_ini == '[') {
             look_for_sec_end = 1;
@@ -50,8 +52,9 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
         }
 
         /* skip comments '#...' */
-        if (comment_block && (*buf_ini != '\n'))
+        if (comment_block && (*buf_ini != '\n')) {
             continue;
+        }
 
         if (*buf_ini == '#') {
             comment_block = 1;
@@ -81,20 +84,25 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
                 look_for_value_end = 1;
                 continue;
             }
-            if (*buf_ini != '\n')
+            if (*buf_ini != '\n') {
                 nm_str_add_char_opt(&par_name, *buf_ini);
+            }
         }
 
         /* collect values */
         if (look_for_value_end) {
             if (*buf_ini == '\n') {
                 nm_str_t value = NM_INIT_STR;
-                char* begin = par_value.data - 1;
-                char* end = par_value.data + par_value.len;
+                char *begin = par_value.data - 1;
+                char *end = par_value.data + par_value.len;
 
-                while(--end != begin && (*end == ' ' || *end == '\t'));
+                while (--end != begin && (*end == ' ' || *end == '\t')) {
+                    ;
+                }
                 ++end;
-                while(++begin != end && (*begin == ' ' || *begin == '\t'));
+                while (++begin != end && (*begin == ' ' || *begin == '\t')) {
+                    ;
+                }
 
                 if (begin != end) {
                     value.data = begin;
@@ -114,8 +122,9 @@ nm_ini_node_t *nm_ini_parser_init(const nm_str_t *path)
 
     nm_unmap_file(&file);
 
-    if (look_for_sec_end)
+    if (look_for_sec_end) {
         nm_bug(_("Bad INI file: missing \"]\" at section name"));
+    }
 
     return head;
 }
@@ -124,8 +133,9 @@ void nm_ini_parser_dump(const nm_ini_node_t *head)
 {
     const nm_ini_node_t *curr = head;
 
-    if (curr == NULL)
+    if (curr == NULL) {
         return;
+    }
 
     nm_debug("-=ini cfg start=-\n");
     while (curr != NULL) {
@@ -146,8 +156,9 @@ void nm_ini_parser_free(nm_ini_node_t *head)
 {
     nm_ini_node_t *curr = head;
 
-    if (curr == NULL)
+    if (curr == NULL) {
         return;
+    }
 
     while (curr != NULL) {
         nm_ini_node_t *old = curr;
@@ -155,6 +166,7 @@ void nm_ini_parser_free(nm_ini_node_t *head)
 
         while (values != NULL) {
             nm_ini_value_t *old_val = values;
+
             nm_str_free(&values->name);
             nm_str_free(&values->value);
             values = values->next;
@@ -177,8 +189,9 @@ static nm_ini_node_t *nm_ini_node_push(nm_ini_node_t **head, nm_str_t *name)
         goto fill_data;
     }
 
-    while (curr->next != NULL)
+    while (curr->next != NULL) {
         curr = curr->next;
+    }
 
     curr->next = nm_calloc(1, sizeof(nm_ini_node_t));
     curr = curr->next;
@@ -189,12 +202,14 @@ fill_data:
     return curr;
 }
 
-static void nm_ini_value_push(nm_ini_node_t *head, nm_str_t *name, nm_str_t *value)
+static void
+nm_ini_value_push(nm_ini_node_t *head, nm_str_t *name, nm_str_t *value)
 {
     nm_ini_value_t *curr;
 
-    if (head == NULL)
+    if (head == NULL) {
         nm_bug(_("NULL list head pointer"));
+    }
 
     curr = head->values_head;
 
@@ -204,8 +219,9 @@ static void nm_ini_value_push(nm_ini_node_t *head, nm_str_t *name, nm_str_t *val
         goto fill_data;
     }
 
-    while (curr->next != NULL)
+    while (curr->next != NULL) {
         curr = curr->next;
+    }
 
     curr->next = nm_calloc(1, sizeof(nm_ini_value_t));
     curr = curr->next;
@@ -221,14 +237,16 @@ int nm_ini_parser_find(const nm_ini_node_t *head, const char *section,
     const nm_ini_node_t *curr = head;
     int ret = NM_ERR, found = 0;
 
-    if (curr == NULL)
+    if (curr == NULL) {
         nm_bug(_("NULL list head pointer"));
+    }
 
     while (curr != NULL) {
         const nm_ini_value_t *values;
 
-        if (found)
+        if (found) {
             break;
+        }
 
         if (nm_str_cmp_st(&curr->name, section) == NM_OK) {
             values = curr->values_head;

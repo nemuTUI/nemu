@@ -70,7 +70,7 @@ typedef struct {
     nm_field_type_t type;
     size_t row;
     nm_vect_t children;
-    void (*on_change)(nm_field_t *);
+    void (*on_change)(nm_field_t *field);
     nm_field_type_args_t type_args;
 } nm_field_data_t;
 
@@ -101,7 +101,7 @@ typedef struct {
     nm_vect_t h_lines;
     nm_window_t *parent_window;
     nm_window_t *form_window;
-    void (*on_redraw)(nm_form_t *);
+    void (*on_redraw)(nm_form_t *form);
 } nm_form_data_t;
 
 typedef struct {
@@ -178,8 +178,10 @@ nm_field_t *nm_field_new(
 );
 nm_field_t *nm_field_label_new(int row, nm_form_data_t *form_data);
 nm_field_t *nm_field_default_new(int row, nm_form_data_t *form_data);
-nm_field_t *nm_field_alnum_new(int row, nm_form_data_t *form_data, int min_width);
-nm_field_t *nm_field_alpha_new(int row, nm_form_data_t *form_data, int min_width);
+nm_field_t *nm_field_alnum_new(int row, nm_form_data_t *form_data,
+        int min_width);
+nm_field_t *nm_field_alpha_new(int row, nm_form_data_t *form_data,
+        int min_width);
 nm_field_t *nm_field_enum_new(
     int row, nm_form_data_t *form_data,
     const char **strings, int case_sens, int uniq_match);
@@ -187,7 +189,8 @@ nm_field_t *nm_field_integer_new(
     int row, nm_form_data_t *form_data, int prec, long min, long max);
 nm_field_t *nm_field_numeric_new(
     int row, nm_form_data_t *form_data, int prec, double min, double max);
-nm_field_t *nm_field_regexp_new(int row, nm_form_data_t *form_data, const char *exp);
+nm_field_t *nm_field_regexp_new(int row, nm_form_data_t *form_data,
+        const char *exp);
 void nm_set_field_type(
     nm_field_t *field, nm_field_type_t type, nm_field_type_args_t args);
 void nm_field_free(nm_field_t *field);
@@ -198,11 +201,12 @@ nm_form_data_t *nm_form_data_new(
     nm_window_t *parent, void (*on_redraw)(nm_form_t *),
     size_t msg_len, size_t field_lines, int color
 );
-int nm_form_data_update(nm_form_data_t *form_data, size_t msg_len, size_t field_lines);
+int nm_form_data_update(nm_form_data_t *form_data,
+        size_t msg_len, size_t field_lines);
 void nm_form_data_free(nm_form_data_t *form_data);
 
 nm_form_t *nm_form_new(nm_form_data_t *form_data, nm_field_t **field);
-void nm_form_window_init();
+void nm_form_window_init(void);
 void nm_form_add_hline(nm_form_t *form, int y);
 void nm_form_post(nm_form_t *form);
 int nm_form_draw(nm_form_t **form);

@@ -10,7 +10,7 @@
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
 
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
     static const char NM_OPT_ARGS[] = "cs:p:f:z:k:i:m:C:vhld";
 #else
     static const char NM_OPT_ARGS[] = "s:p:f:z:k:i:m:C:vhld";
@@ -20,7 +20,7 @@ static void signals_handler(int signal);
 static void nm_process_args(int argc, char **argv);
 static void nm_print_feset(void);
 
-volatile sig_atomic_t redraw_window = 0;
+volatile sig_atomic_t redraw_window;
 
 nm_window_t *help_window;
 nm_window_t *side_window;
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 {
     struct sigaction sa;
 
-    setlocale(LC_ALL,"");
+    setlocale(LC_ALL, "");
     bindtextdomain(NM_PROGNAME, NM_FULL_LOCALEDIR);
     textdomain(NM_PROGNAME);
 
@@ -120,8 +120,9 @@ static void nm_process_args(int argc, char **argv)
 
             for (size_t n = 0; n < vm_list.n_memb; n++) {
                 nm_str_alloc_text(&vmname, vm_list.data[n]);
-                if (nm_qmp_test_socket(&vmname) != NM_OK)
+                if (nm_qmp_test_socket(&vmname) != NM_OK) {
                     nm_vmctl_start(&vmname, 0);
+                }
             }
 
             nm_str_free(&vmnames);
@@ -197,6 +198,7 @@ static void nm_process_args(int argc, char **argv)
             for (size_t n = 0; n < vm_list.n_memb; n++) {
                 nm_str_alloc_text(&vmname, vm_list.data[n]);
                 nm_str_t info = nm_vmctl_info(&vmname);
+
                 printf(n < vm_list.n_memb - 1 ? "%s\n" : "%s", info.data);
                 nm_str_free(&info);
             }
@@ -241,7 +243,9 @@ static void nm_process_args(int argc, char **argv)
             for (size_t i = 0; i < vm_list.n_memb; ++i) {
                 const nm_str_t *name = (nm_str_t *)vm_list.data[i];
                 int status = nm_qmp_test_socket(name);
-                printf("%s - %s\n", name->data, status == NM_OK ? "running" : "stopped");
+
+                printf("%s - %s\n", name->data, status == NM_OK ?
+                        "running" : "stopped");
             }
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
             nm_exit_core();
@@ -319,11 +323,13 @@ static void nm_print_feset(void)
 #endif
             );
 
-    for (size_t n = 0; n < feset.n_memb; n++)
+    for (size_t n = 0; n < feset.n_memb; n++) {
         nm_str_append_format(&msg, " %s\n", (char *) nm_vect_at(&feset, n));
+    }
 
-    if (msg.len)
+    if (msg.len) {
         printf("%s", msg.data);
+    }
 
     nm_vect_free(&feset, NULL);
     nm_str_free(&msg);

@@ -27,8 +27,9 @@ static void nm_stat_cpu_total_time(void)
     char *token_b = NULL, *token_e = NULL;
     uint64_t res = 0;
 
-    if ((fd = open(NM_STAT_PATH, O_RDONLY)) == -1)
+    if ((fd = open(NM_STAT_PATH, O_RDONLY)) == -1) {
         return;
+    }
 
     while ((read(fd, &ch, 1) > 0) && ch != '\n') {
         buf[nread] = ch;
@@ -36,10 +37,11 @@ static void nm_stat_cpu_total_time(void)
     }
 
     for (size_t n = 0; n < nread; n++) {
-        if (buf[n] == 0x20)
+        if (buf[n] == 0x20) {
             space_num++;
-        else
+        } else {
             continue;
+        }
 
         if (space_num == 2) {
             token_b = buf + n + 1;
@@ -53,14 +55,16 @@ static void nm_stat_cpu_total_time(void)
             memset(buf_time, 0, sizeof(buf_time));
         }
 
-        if (space_num == 6)
+        if (space_num == 6) {
             break;
+        }
     }
 
-    if (nm_cpu_iter)
+    if (nm_cpu_iter) {
         nm_total_cpu_after = res;
-    else
+    } else {
         nm_total_cpu_before = res;
+    }
 
     close(fd);
 }
@@ -77,19 +81,22 @@ static void nm_stat_cpu_proc_time(int pid)
 
     nm_str_format(&path, "/proc/%d/stat", pid);
 
-    if ((fd = open(path.data, O_RDONLY)) == -1)
+    if ((fd = open(path.data, O_RDONLY)) == -1) {
         goto out;
+    }
 
-    if ((nread = read(fd, buf, sizeof(buf))) <= 0)
+    if ((nread = read(fd, buf, sizeof(buf))) <= 0) {
         goto out;
+    }
 
     buf[nread - 1] = '\0';
 
     for (ssize_t n = 0; n < nread; n++) {
-        if (buf[n] == 0x20)
+        if (buf[n] == 0x20) {
             space_num++;
-        else
+        } else {
             continue;
+        }
 
         if (space_num == 13) {
             token_b = buf + n + 1;
@@ -113,10 +120,11 @@ static void nm_stat_cpu_proc_time(int pid)
 
     close(fd);
 
-    if (nm_cpu_iter)
+    if (nm_cpu_iter) {
         nm_proc_cpu_after = utime + stime;
-    else
+    } else {
         nm_proc_cpu_before = utime + stime;
+    }
 
 out:
     nm_str_free(&path);
@@ -134,8 +142,10 @@ double nm_stat_get_usage(int pid)
     ta = (double)nm_total_cpu_after;
     tb = (double)nm_total_cpu_before;
 
-    if (nm_cpu_iter)
-        nm_cpu_usage = ((pa - pb) / (ta - tb)) * 100.0 * (double)sysconf(_SC_NPROCESSORS_ONLN);
+    if (nm_cpu_iter) {
+        nm_cpu_usage = ((pa - pb) / (ta - tb)) * 100.0 *
+            (double)sysconf(_SC_NPROCESSORS_ONLN);
+    }
 
     nm_cpu_iter ^= 1;
 

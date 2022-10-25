@@ -62,7 +62,8 @@ const char *nm_form_displaytype[] = {
 };
 
 static int nm_append_path(nm_str_t *path);
-static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data);
+static nm_field_t *nm_field_resize(nm_field_t *field,
+        nm_form_data_t *form_data);
 static nm_form_t *nm_form_redraw(nm_form_t *form);
 static void nm_field_free_type(nm_field_data_t *field_data);
 
@@ -87,19 +88,21 @@ nm_field_t *nm_field_new(
     field_data->on_change = NULL;
 
     switch (type) {
-        case NM_FIELD_LABEL:
-            width = form_data->msg_len;
-            left = 0;
-            break;
-        default:
-            width = (form_data->form_len - form_data->msg_len - form_data->field_hpad);
-            left = (form_data->msg_len + form_data->field_hpad);
-            break;
+    case NM_FIELD_LABEL:
+        width = form_data->msg_len;
+        left = 0;
+        break;
+    default:
+        width = (form_data->form_len - form_data->msg_len -
+                form_data->field_hpad);
+        left = (form_data->msg_len + form_data->field_hpad);
+        break;
     }
 
     field = new_field(height, width, top, left, 0, 0);
-    if (field == NULL)
+    if (field == NULL) {
          nm_bug("%s: %s", __func__, strerror(errno));
+    }
     set_field_userptr(field, field_data);
 
     nm_set_field_type(field, type, type_args);
@@ -116,34 +119,39 @@ nm_field_t *nm_field_new(
 nm_field_t *nm_field_label_new(int row, nm_form_data_t *form_data)
 {
     nm_field_type_args_t args = {0};
+
     return nm_field_new(NM_FIELD_LABEL, args, row, form_data);
 }
 
 nm_field_t *nm_field_default_new(int row, nm_form_data_t *form_data)
 {
     nm_field_type_args_t args = {0};
+
     return nm_field_new(NM_FIELD_DEFAULT, args, row, form_data);
 }
 
 /* cppcheck-suppress unusedFunction */
-nm_field_t *nm_field_alnum_new(int row, nm_form_data_t *form_data, int min_width)
+nm_field_t
+*nm_field_alnum_new(int row, nm_form_data_t *form_data, int min_width)
 {
     nm_field_type_args_t args = {0};
+
     args.alnum_arg.min_width = min_width;
     return nm_field_new(NM_FIELD_ALNUM, args, row, form_data);
 }
 
 /* cppcheck-suppress unusedFunction */
-nm_field_t *nm_field_alpha_new(int row, nm_form_data_t *form_data, int min_width)
+nm_field_t
+*nm_field_alpha_new(int row, nm_form_data_t *form_data, int min_width)
 {
     nm_field_type_args_t args = {0};
+
     args.alpha_arg.min_width = min_width;
     return nm_field_new(NM_FIELD_ALPHA, args, row, form_data);
 }
 
-nm_field_t *nm_field_enum_new(
-    int row, nm_form_data_t *form_data,
-    const char **strings, int case_sens, int uniq_match)
+nm_field_t *nm_field_enum_new(int row, nm_form_data_t *form_data,
+        const char **strings, int case_sens, int uniq_match)
 {
     nm_field_t *field;
     char **strings_ = NULL;
@@ -151,13 +159,16 @@ nm_field_t *nm_field_enum_new(
 
     if (strings) {
         size_t count = 0;
-        for (char **p = (char **)strings; *p; p++)
+
+        for (char **p = (char **)strings; *p; p++) {
             count++;
+        }
 
         strings_ = nm_calloc(count + 1, sizeof(char *));
 
-        for (size_t n = 0; n < count; n++)
+        for (size_t n = 0; n < count; n++) {
             strings_[n] = strdup(strings[n]);
+        }
         strings_[count] = NULL;
     }
 
@@ -167,16 +178,18 @@ nm_field_t *nm_field_enum_new(
 
     field = nm_field_new(NM_FIELD_ENUM, args, row, form_data);
 
-    if (!strings_)
+    if (!strings_) {
         field_opts_off(field, O_ACTIVE);
+    }
 
     return field;
 }
 
-nm_field_t *nm_field_integer_new(
-    int row, nm_form_data_t *form_data, int prec, long min, long max)
+nm_field_t *nm_field_integer_new(int row, nm_form_data_t *form_data, int prec,
+        long min, long max)
 {
     nm_field_type_args_t args = {0};
+
     args.integer_arg.prec = prec;
     args.integer_arg.min = min;
     args.integer_arg.max = max;
@@ -184,76 +197,80 @@ nm_field_t *nm_field_integer_new(
 }
 
 /* cppcheck-suppress unusedFunction */
-nm_field_t *nm_field_numeric_new(
-    int row, nm_form_data_t *form_data, int prec, double min, double max)
+nm_field_t *nm_field_numeric_new(int row, nm_form_data_t *form_data, int prec,
+        double min, double max)
 {
     nm_field_type_args_t args = {0};
+
     args.numeric_arg.prec = prec;
     args.numeric_arg.min = min;
     args.numeric_arg.max = max;
     return nm_field_new(NM_FIELD_NUMERIC, args, row, form_data);
 }
 
-nm_field_t *nm_field_regexp_new(int row, nm_form_data_t *form_data, const char *exp)
+nm_field_t
+*nm_field_regexp_new(int row, nm_form_data_t *form_data, const char *exp)
 {
     nm_field_type_args_t args = {0};
+
     args.regexp_arg.exp = strdup(exp);
     return nm_field_new(NM_FIELD_REGEXP, args, row, form_data);
 }
 
-void nm_set_field_type(
-    nm_field_t *field, nm_field_type_t type, nm_field_type_args_t args)
+void nm_set_field_type(nm_field_t *field, nm_field_type_t type,
+        nm_field_type_args_t args)
 {
     nm_field_data_t *field_data = (nm_field_data_t *)field_userptr(field);
+
     field_data->type = type;
     field_data->type_args = args;
 
     switch (type) {
-        case NM_FIELD_LABEL:
-            field_opts_off(field, O_ACTIVE);
-            break;
-        case NM_FIELD_DEFAULT:
-            field_opts_off(field, O_STATIC);
-            break;
-        case NM_FIELD_ALNUM:
-            field_opts_off(field, O_STATIC);
-            set_field_type(field, TYPE_ALNUM, args.alnum_arg.min_width);
-            break;
-        case NM_FIELD_ALPHA:
-            field_opts_off(field, O_STATIC);
-            set_field_type(field, TYPE_ALPHA, args.alpha_arg.min_width);
-            break;
-        case NM_FIELD_ENUM:
-            field_opts_off(field, O_STATIC);
-            set_field_type(
-                field, TYPE_ENUM,
-                args.enum_arg.strings,
-                args.enum_arg.case_sens,
-                args.enum_arg.uniq_match
-            );
-            break;
-        case NM_FIELD_INTEGER:
-            field_opts_off(field, O_STATIC);
-            set_field_type(
-                field, TYPE_INTEGER,
-                args.integer_arg.prec,
-                args.integer_arg.min,
-                args.integer_arg.max
-            );
-            break;
-        case NM_FIELD_NUMERIC:
-            field_opts_off(field, O_STATIC);
-            set_field_type(
-                field, TYPE_NUMERIC,
-                args.numeric_arg.prec,
-                args.numeric_arg.min,
-                args.numeric_arg.max
-            );
-            break;
-        case NM_FIELD_REGEXP:
-            field_opts_off(field, O_STATIC);
-            set_field_type(field, TYPE_REGEXP, args.regexp_arg.exp);
-            break;
+    case NM_FIELD_LABEL:
+        field_opts_off(field, O_ACTIVE);
+        break;
+    case NM_FIELD_DEFAULT:
+        field_opts_off(field, O_STATIC);
+        break;
+    case NM_FIELD_ALNUM:
+        field_opts_off(field, O_STATIC);
+        set_field_type(field, TYPE_ALNUM, args.alnum_arg.min_width);
+        break;
+    case NM_FIELD_ALPHA:
+        field_opts_off(field, O_STATIC);
+        set_field_type(field, TYPE_ALPHA, args.alpha_arg.min_width);
+        break;
+    case NM_FIELD_ENUM:
+        field_opts_off(field, O_STATIC);
+        set_field_type(
+            field, TYPE_ENUM,
+            args.enum_arg.strings,
+            args.enum_arg.case_sens,
+            args.enum_arg.uniq_match
+        );
+        break;
+    case NM_FIELD_INTEGER:
+        field_opts_off(field, O_STATIC);
+        set_field_type(
+            field, TYPE_INTEGER,
+            args.integer_arg.prec,
+            args.integer_arg.min,
+            args.integer_arg.max
+        );
+        break;
+    case NM_FIELD_NUMERIC:
+        field_opts_off(field, O_STATIC);
+        set_field_type(
+            field, TYPE_NUMERIC,
+            args.numeric_arg.prec,
+            args.numeric_arg.min,
+            args.numeric_arg.max
+        );
+        break;
+    case NM_FIELD_REGEXP:
+        field_opts_off(field, O_STATIC);
+        set_field_type(field, TYPE_REGEXP, args.regexp_arg.exp);
+        break;
     }
 }
 
@@ -267,19 +284,21 @@ static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data)
     int left;
 
     switch (field_data->type) {
-        case NM_FIELD_LABEL:
-            width = form_data->msg_len;
-            left = 0;
-            break;
-        default:
-            width = (form_data->form_len - form_data->msg_len - form_data->field_hpad);
-            left = (form_data->msg_len + form_data->field_hpad);
-            break;
+    case NM_FIELD_LABEL:
+        width = form_data->msg_len;
+        left = 0;
+        break;
+    default:
+        width = (form_data->form_len - form_data->msg_len -
+                form_data->field_hpad);
+        left = (form_data->msg_len + form_data->field_hpad);
+        break;
     }
 
     field_ = new_field(height, width, top, left, 0, 0);
-    if (field_ == NULL)
+    if (field_ == NULL) {
          nm_bug("%s: %s", __func__, strerror(errno));
+    }
 
     set_field_userptr(field_, field_data);
     set_field_opts(field_, field_opts(field));
@@ -288,7 +307,7 @@ static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data)
     set_field_back(field_, field_back(field));
     nm_set_field_type(field_, field_data->type, field_data->type_args);
     set_field_status(field_, field_status(field));
-    //@TODO update children somehow
+    /* @TODO update children somehow */
 
     free_field(field);
 
@@ -297,10 +316,12 @@ static nm_field_t *nm_field_resize(nm_field_t *field, nm_form_data_t *form_data)
 
 void nm_field_free(nm_field_t *field)
 {
-    if (!field)
+    if (!field) {
         return;
+    }
 
     nm_field_data_t *field_data = (nm_field_data_t *)field_userptr(field);
+
     if (field_data) {
         nm_field_free_type(field_data);
         nm_vect_free(&field_data->children, NULL);
@@ -319,15 +340,17 @@ void nm_fields_free(nm_field_t **fields)
 
 void nm_fields_unset_status(nm_field_t **fields)
 {
-    for (; *fields; fields++)
+    for (; *fields; fields++) {
         set_field_status(*fields, 0);
+    }
 }
 
-nm_form_data_t *nm_form_data_new(
-    nm_window_t *parent, void (*on_redraw)(nm_form_t *),
-    size_t msg_len, size_t field_lines, int color)
+nm_form_data_t *nm_form_data_new(nm_window_t *parent,
+        void (*on_redraw)(nm_form_t *),
+        size_t msg_len, size_t field_lines, int color)
 {
     nm_form_data_t *form_data = nm_calloc(1, sizeof(nm_form_data_t));
+
     form_data->parent_window = parent;
     form_data->form_window = NULL;
     form_data->on_redraw = on_redraw;
@@ -342,39 +365,44 @@ nm_form_data_t *nm_form_data_new(
     form_data->form_ratio = FORM_RATIO;
     form_data->min_edit_size = MIN_EDIT_SIZE;
 
-    form_data->w_rows = (ROW_HEIGHT + form_data->field_vpad) * field_lines \
-        + form_data->form_vpad;
+    form_data->w_rows = (ROW_HEIGHT + form_data->field_vpad) * field_lines +
+        form_data->form_vpad;
     form_data->w_start_y = NM_WINDOW_HEADER_HEIGHT;
 
     return form_data;
 }
 
-int nm_form_data_update(nm_form_data_t *form_data, size_t msg_len, size_t field_lines)
+int nm_form_data_update(nm_form_data_t *form_data, size_t msg_len,
+        size_t field_lines)
 {
     size_t cols, rows;
 
     getmaxyx(form_data->parent_window, rows, cols);
 
-    if (msg_len)
+    if (msg_len) {
         form_data->msg_len = msg_len;
-    if (field_lines)
+    }
+    if (field_lines) {
         form_data->field_lines = field_lines;
+    }
 
-    form_data->w_rows = (ROW_HEIGHT + form_data->field_vpad) * form_data->field_lines \
-        + form_data->form_vpad;
+    form_data->w_rows = (ROW_HEIGHT + form_data->field_vpad) *
+        form_data->field_lines + form_data->form_vpad;
     form_data->w_cols = cols * form_data->form_ratio;
-    form_data->form_len = form_data->w_cols \
-        - form_data->field_hpad  - form_data->form_hpad;
+    form_data->form_len = form_data->w_cols - form_data->field_hpad -
+        form_data->form_hpad;
     form_data->w_start_x = ((1 - form_data->form_ratio) * cols) / 2;
 
     if (form_data->w_cols < (form_data->msg_len + form_data->min_edit_size) ||
-        form_data->w_rows > rows - form_data->w_start_y - form_data->form_vpad) {
+            form_data->w_rows > rows - form_data->w_start_y -
+            form_data->form_vpad) {
         nm_warn(_(NM_MSG_SMALL_WIN));
         return NM_ERR;
     }
 
-    if (form_data->form_window)
+    if (form_data->form_window) {
         delwin(form_data->form_window);
+    }
 
     form_data->form_window = derwin(
         form_data->parent_window,
@@ -389,19 +417,21 @@ void nm_form_data_free(nm_form_data_t *form_data)
 {
     if (form_data) {
         nm_vect_free(&form_data->h_lines, NULL);
-        if (form_data->form_window)
+        if (form_data->form_window) {
             delwin(form_data->form_window);
+        }
         free(form_data);
     }
 }
 
 nm_form_t *nm_form_new(nm_form_data_t *form_data, nm_field_t **field)
 {
-    nm_form_t* form;
+    nm_form_t *form;
 
     form = new_form(field);
-    if (form == NULL)
+    if (form == NULL) {
          nm_bug("%s: %s", __func__, strerror(errno));
+    }
 
     set_form_userptr(form, form_data);
     set_form_win(form, form_data->form_window);
@@ -409,7 +439,7 @@ nm_form_t *nm_form_new(nm_form_data_t *form_data, nm_field_t **field)
     return form;
 }
 
-void nm_form_window_init()
+void nm_form_window_init(void)
 {
     nm_destroy_windows();
     endwin();
@@ -429,8 +459,9 @@ void nm_form_post(nm_form_t *form)
     int rows, cols;
     nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
 
-    if (form_data->color)
+    if (form_data->color) {
         wbkgd(form_data->form_window, COLOR_PAIR(NM_COLOR_BLACK));
+    }
 
     scale_form(form, &rows, &cols);
     set_form_sub(form,
@@ -458,8 +489,9 @@ int nm_form_draw(nm_form_t **form)
 
     wtimeout(form_data->parent_window, 100);
 
-    while (confirm != NM_OK && (ch = wgetch(form_data->parent_window)) != NM_KEY_ESC) {
-        switch(ch) {
+    while (confirm != NM_OK &&
+            (ch = wgetch(form_data->parent_window)) != NM_KEY_ESC) {
+        switch (ch) {
         case KEY_DOWN:
             form_driver(*form, REQ_VALIDATION);
             form_driver(*form, REQ_NEXT_FIELD);
@@ -473,17 +505,19 @@ int nm_form_draw(nm_form_t **form)
             break;
 
         case KEY_LEFT:
-            if (field_type(current_field(*form)) == TYPE_ENUM)
+            if (field_type(current_field(*form)) == TYPE_ENUM) {
                 form_driver(*form, REQ_PREV_CHOICE);
-            else
+            } else {
                 form_driver(*form, REQ_PREV_CHAR);
+            }
             break;
 
         case KEY_RIGHT:
-            if (field_type(current_field(*form)) == TYPE_ENUM)
+            if (field_type(current_field(*form)) == TYPE_ENUM) {
                 form_driver(*form, REQ_NEXT_CHOICE);
-            else
+            } else {
                 form_driver(*form, REQ_NEXT_CHAR);
+            }
             break;
 
         case KEY_HOME:
@@ -500,8 +534,9 @@ int nm_form_draw(nm_form_t **form)
             break;
 
         case 0x9: /* TAB KEY */
-            if (field_type(current_field(*form)) != TYPE_REGEXP)
+            if (field_type(current_field(*form)) != TYPE_REGEXP) {
                 break;
+            }
             {
                 form_driver(*form, REQ_NEXT_FIELD);
                 form_driver(*form, REQ_PREV_FIELD);
@@ -532,6 +567,7 @@ int nm_form_draw(nm_form_t **form)
                 for (ssize_t n = 0; n < args->count; n++) {
                     const char *keyword = args->kwds[n];
                     size_t key_len = strlen(keyword);
+
                     if (max_len < key_len) {
                         max_len = key_len;
                     }
@@ -539,34 +575,37 @@ int nm_form_draw(nm_form_t **form)
                 }
 
                 getyx(form_data->parent_window, y, x);
-                x = getbegx(form_sub(*form)) \
-                    + form_data->msg_len + form_data->field_hpad;
+                x = getbegx(form_sub(*form)) + form_data->msg_len +
+                    form_data->field_hpad;
 
                 list.highlight = 1;
                 list_len -= y;
-                if (list_len < args->count)
+                if (list_len < args->count) {
                     list.item_last = list_len;
-                else
+                } else {
                     list.item_last = list_len = args->count;
+                }
                 list.v = &values;
 
                 drop = newwin(list_len + 2, max_len + 4, y + 1, x);
                 keypad(drop, TRUE);
                 panel = new_panel(drop);
-                for(;;) {
+                for (;;) {
                     werase(drop);
                     if (redraw_window) {
                         hide_panel(panel);
                         del_panel(panel);
                         delwin(drop);
 
-                        ((nm_form_data_t *)form_userptr(*form))->on_redraw(*form);
+                        ((nm_form_data_t *) form_userptr(*form))->on_redraw(
+                            *form
+                        );
                         *form = nm_form_redraw(*form);
                         wtimeout(form_data->parent_window, 100);
 
                         getyx(form_data->parent_window, y, x);
-                        x = getbegx(form_sub(*form)) \
-                            + form_data->msg_len + form_data->field_hpad;
+                        x = getbegx(form_sub(*form)) + form_data->msg_len +
+                            form_data->field_hpad;
 
                         drop = newwin(list_len + 2, max_len + 4, y + 1, x);
                         keypad(drop, TRUE);
@@ -586,8 +625,10 @@ int nm_form_draw(nm_form_t **form)
 
                 if (drop_ch == NM_KEY_ENTER) {
                     nm_args_t *cur_args = field_arg(current_field(*form));
+
                     set_field_buffer(current_field(*form), 0,
-                            cur_args->kwds[(list.item_first + list.highlight) - 1]);
+                            cur_args->kwds[(list.item_first +
+                                list.highlight) -1]);
                 }
 
                 nm_vect_free(list.v, NULL);
@@ -602,8 +643,9 @@ int nm_form_draw(nm_form_t **form)
 
         case NM_KEY_ENTER:
             confirm = NM_OK;
-            if (form_driver(*form, REQ_VALIDATION) != E_OK)
+            if (form_driver(*form, REQ_VALIDATION) != E_OK) {
                 rc = NM_ERR;
+            }
             break;
 
         default:
@@ -650,7 +692,8 @@ static nm_form_t *nm_form_redraw(nm_form_t *form)
 
     form_driver(form, REQ_VALIDATION);
 
-    if (nm_form_data_update(form_data, form_data->msg_len, form_data->field_lines) != NM_OK) {
+    if (nm_form_data_update(form_data, form_data->msg_len,
+                form_data->field_lines) != NM_OK) {
         mvwaddstr(form_data->parent_window, 3, 1, _("Window too small"));
         wrefresh(form_data->parent_window);
         return form;
@@ -660,7 +703,7 @@ static nm_form_t *nm_form_redraw(nm_form_t *form)
     free_form(form);
 
     for (int n = 0; n < maxfield; n++) {
-        if(fields[n] == cur_field) {
+        if (fields[n] == cur_field) {
             fields[n] = nm_field_resize(fields[n], form_data);
             cur_field = fields[n];
         } else {
@@ -669,8 +712,9 @@ static nm_form_t *nm_form_redraw(nm_form_t *form)
     }
 
     form_ = nm_form_new(form_data, fields);
-    if (form_ == NULL)
+    if (form_ == NULL) {
          nm_bug("%s: %s", __func__, strerror(errno));
+    }
 
     nm_form_post(form_);
     if (cur_field) {
@@ -683,13 +727,15 @@ static nm_form_t *nm_form_redraw(nm_form_t *form)
 
 static void nm_field_free_type(nm_field_data_t *field_data)
 {
-    if (field_data->type == NM_FIELD_REGEXP)
+    if (field_data->type == NM_FIELD_REGEXP) {
         free((char *)field_data->type_args.regexp_arg.exp);
-    else if (field_data->type == NM_FIELD_ENUM) {
+    } else if (field_data->type == NM_FIELD_ENUM) {
         char **strings = (char **)field_data->type_args.enum_arg.strings;
+
         if (strings) {
-            for (char **s = strings; *s; s++)
+            for (char **s = strings; *s; s++) {
                 free(*s);
+            }
             free(strings);
         }
     }
@@ -702,14 +748,16 @@ void nm_get_field_buf(nm_field_t *f, nm_str_t *res)
 {
     char *buf, *s;
 
-    if ((buf = field_buffer(f, 0)) == NULL)
+    if ((buf = field_buffer(f, 0)) == NULL) {
         nm_bug("%s: %s", __func__, strerror(errno));
+    }
 
     s = strrchr(buf, 0x20);
 
     if (s != NULL) {
-        while ((s > buf) && (s[-1] == 0x20))
+        while ((s > buf) && (s[-1] == 0x20)) {
             --s;
+        }
 
         *s = '\0';
     }
@@ -730,8 +778,9 @@ static int nm_append_path(nm_str_t *path)
         nm_str_t new_path = NM_INIT_STR;
         const char *home;
 
-        if ((home = getenv("HOME")) == NULL)
+        if ((home = getenv("HOME")) == NULL) {
             return NM_ERR;
+        }
 
         nm_str_format(&new_path, "%s%s", home,
                       (path->len > 1) ? path->data + 1 : "");
@@ -751,8 +800,9 @@ static int nm_append_path(nm_str_t *path)
                 nm_str_free(&tmp);
                 rc = NM_OK;
                 if (stat(path->data, &file_info) != -1) {
-                    if (S_ISDIR(file_info.st_mode) && path->len > 1)
+                    if (S_ISDIR(file_info.st_mode) && path->len > 1) {
                         nm_str_add_char(path, '/');
+                    }
                 }
                 goto out;
             }
@@ -767,14 +817,16 @@ static int nm_append_path(nm_str_t *path)
         nm_str_add_text(path, rp);
         rc = NM_OK;
         if (stat(path->data, &file_info) != -1) {
-            if (S_ISDIR(file_info.st_mode) && path->len > 1)
+            if (S_ISDIR(file_info.st_mode) && path->len > 1) {
                 nm_str_add_char(path, '/');
+            }
         }
     }
 
 out:
-    if (rp)
+    if (rp) {
         free(rp);
+    }
     globfree(&res);
 
     return rc;
@@ -794,8 +846,9 @@ void *nm_progress_bar(void *data)
     curs_set(0);
 
     for (;;) {
-        if (*dp->stop)
+        if (*dp->stop) {
             break;
+        }
 
         NM_ERASE_TITLE(action, cols);
         mvwaddch(action_window, 1, x1, x1_v ? '<' : '>');
@@ -805,15 +858,19 @@ void *nm_progress_bar(void *data)
         (x1_v == 0) ? x1++ : x1--;
         (x2_v == 0) ? x2++ : x2--;
 
-        if (x1 == cols - 2)
+        if (x1 == cols - 2) {
             x1_v = 1;
-        if (x1 == 1)
+        }
+        if (x1 == 1) {
             x1_v = 0;
+        }
 
-        if (x2 == 1)
+        if (x2 == 1) {
             x2_v = 0;
-        if (x2 == cols - 2)
+        }
+        if (x2 == cols - 2) {
             x2_v = 1;
+        }
 
         nanosleep(&ts, NULL);
     }
@@ -842,10 +899,12 @@ void *nm_file_progress(void *data)
 
     for (;;) {
         int64_t perc;
+
         memset(&dst_info, 0x0, sizeof(dst_info));
 
-        if (*dp->stop)
+        if (*dp->stop) {
             break;
+        }
 
         stat(dst.data, &dst_info);
         perc = (dst_info.st_size * 100) / img_info.st_size;
@@ -861,47 +920,22 @@ void *nm_file_progress(void *data)
     pthread_exit(NULL);
 }
 
-#if 0
-void *nm_spinner(void *data)
-{
-    const char spin_chars[] ="/-\\|";
-    nm_spinner_data_t *dp = data;
-    struct timespec ts;
-
-    memset(&ts, 0, sizeof(ts));
-    ts.tv_nsec = 3e+7; /* 0.03sec */
-
-    if (dp == NULL)
-        nm_bug(_("%s: NULL pointer"), __func__);
-
-    for (uint32_t i = 0 ;; i++) {
-        if (*dp->stop)
-            break;
-
-        curs_set(0);
-        mvaddch(dp->y, dp->x, spin_chars[i & 3]);
-        refresh();
-        nanosleep(&ts, NULL);
-    }
-
-    pthread_exit(NULL);
-}
-#endif
-
-//@TODO Does this work at all?
+/* @TODO Does this work at all? */
 int nm_print_empty_fields(const nm_vect_t *v)
 {
     nm_str_t msg = NM_INIT_STR;
 
-    if (v->n_memb == 0)
+    if (v->n_memb == 0) {
         return NM_OK;
+    }
 
     NM_FORM_RESET();
 
     nm_str_alloc_text(&msg, _(NM_MSG_NULL_FLD));
 
-    for (size_t n = 0; n < v->n_memb; n++)
+    for (size_t n = 0; n < v->n_memb; n++) {
         nm_str_append_format(&msg, " '%s'", (char *) v->data[n]);
+    }
 
     nm_warn(msg.data);
     nm_str_free(&msg);
@@ -933,12 +967,13 @@ int nm_form_name_used(const nm_str_t *name)
     return rc;
 }
 
-uint64_t nm_form_get_last_mac()
+uint64_t nm_form_get_last_mac(void)
 {
     uint64_t mac;
     nm_vect_t res = NM_INIT_VECT;
 
-    nm_db_select("SELECT COALESCE(MAX(mac_addr), 'de:ad:be:ef:00:00') FROM ifaces", &res);
+    nm_db_select("SELECT COALESCE(MAX(mac_addr), 'de:ad:be:ef:00:00') "
+            "FROM ifaces", &res);
 
     mac = nm_net_mac_s2n(res.data[0]);
 
@@ -947,15 +982,14 @@ uint64_t nm_form_get_last_mac()
     return mac;
 }
 
-uint32_t nm_form_get_free_vnc()
+uint32_t nm_form_get_free_vnc(void)
 {
     uint32_t vnc;
     nm_vect_t res = NM_INIT_VECT;
 
-    nm_db_select("\
-SELECT DISTINCT vnc + 1 FROM vms \
-UNION SELECT 0 EXCEPT SELECT DISTINCT vnc FROM vms \
-ORDER BY vnc ASC LIMIT 1", &res);
+    nm_db_select("SELECT DISTINCT vnc + 1 FROM vms "
+            "UNION SELECT 0 EXCEPT SELECT DISTINCT vnc FROM vms "
+            "ORDER BY vnc ASC LIMIT 1", &res);
 
     vnc = nm_str_stoui(res.data[0], 10);
 

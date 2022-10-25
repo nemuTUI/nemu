@@ -27,31 +27,38 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status);
 void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch);
 void nm_print_dropdown_menu(nm_menu_data_t *values, nm_window_t *w);
 
-static inline nm_menu_item_t *nm_vect_item(const nm_vect_t *v, const size_t index)
+static inline nm_menu_item_t
+*nm_vect_item(const nm_vect_t *v, const size_t index)
 {
     return (nm_menu_item_t *)nm_vect_at(v, index);
 }
-static inline nm_str_t *nm_vect_item_name(const nm_vect_t *v, const size_t index)
+static inline nm_str_t
+*nm_vect_item_name(const nm_vect_t *v, const size_t index)
 {
-    return (nm_str_t*)nm_vect_item(v, index)->name;
+    return (nm_str_t *)nm_vect_item(v, index)->name;
 }
-static inline char *nm_vect_item_name_ctx(const nm_vect_t *v, const size_t index)
+static inline char
+*nm_vect_item_name_ctx(const nm_vect_t *v, const size_t index)
 {
     return nm_vect_item_name(v, index)->data;
 }
-static inline nm_str_t *nm_vect_item_name_cur(const nm_menu_data_t *p)
+static inline nm_str_t
+*nm_vect_item_name_cur(const nm_menu_data_t *p)
 {
     return nm_vect_item_name(p->v, (p->item_first + p->highlight) - 1);
 }
-static inline int nm_vect_item_status(const nm_vect_t *v, const size_t index)
+static inline int
+nm_vect_item_status(const nm_vect_t *v, const size_t index)
 {
     return nm_vect_item(v, index)->status;
 }
-static inline int nm_vect_item_status_cur(const nm_menu_data_t *p)
+static inline int
+nm_vect_item_status_cur(const nm_menu_data_t *p)
 {
     return nm_vect_item_status(p->v, (p->item_first + p->highlight) - 1);
 }
-static inline void nm_vect_set_item_status(nm_vect_t *v, const size_t index, const int s)
+static inline void
+nm_vect_set_item_status(nm_vect_t *v, const size_t index, const int s)
 {
     nm_vect_item(v, index)->status = s;
 }

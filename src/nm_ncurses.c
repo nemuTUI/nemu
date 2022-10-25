@@ -12,12 +12,14 @@ void _nc_freeall(void);
 inline void nm_ncurses_init(void)
 {
     uint32_t cursor_style = nm_cfg_get()->cursor_style;
+
     initscr();
     raw();
     noecho();
     curs_set(0);
-    if (cursor_style)
+    if (cursor_style) {
         printf("\033[%u q\n", cursor_style);
+    }
 #if NCURSES_REENTRANT
     set_escdelay(1);
 #else
@@ -29,8 +31,10 @@ inline void nm_ncurses_init(void)
 
 inline void nm_curses_deinit(void)
 {
-    if (nm_cfg_get()->cursor_style)
-        puts("\033[0 q"); /* DECSCUSR 0 - set cursor to default (or blinking block) */
+    /* DECSCUSR 0 - set cursor to default (or blinking block) */
+    if (nm_cfg_get()->cursor_style) {
+        puts("\033[0 q");
+    }
     clear();
     refresh();
     endwin();
@@ -42,8 +46,9 @@ nm_window_t *nm_init_window(const nm_cord_t *pos)
     nm_window_t *w;
 
     w = newwin(pos->lines, pos->cols, pos->y, pos->x);
-    if (w == NULL)
+    if (w == NULL) {
         nm_bug(_("%s: cannot create window"), __func__);
+    }
 
     keypad(w, TRUE);
 
@@ -56,8 +61,9 @@ void nm_clear_screen(void)
 
     getmaxyx(stdscr, y, x);
 
-    for (int i = 0; i <= y; i++)
+    for (int i = 0; i <= y; i++) {
         mvhline(i, 0, ' ', x);
+    }
 }
 
 /* vim:set ts=4 sw=4: */
