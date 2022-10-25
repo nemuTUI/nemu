@@ -18,7 +18,8 @@ void nm_print_dropdown_menu(nm_menu_data_t *values, nm_window_t *w)
     curs_set(0);
     wattroff(w, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
-    for (size_t n = values->item_first, i = 0; n < values->item_last; n++, i++) {
+    for (size_t n = values->item_first, i = 0; n < values->item_last;
+            n++, i++) {
         if (values->highlight == i + 1) {
             wattron(w, A_REVERSE);
             mvwprintw(w, y, x, "%s", (char *) values->v->data[n]);
@@ -36,13 +37,15 @@ void nm_print_base_menu(nm_menu_data_t *ifs)
 {
     int x = 2, y = 3;
     size_t screen_x;
-    static nm_menu_data_t *ifs_ = NULL;
+    static nm_menu_data_t *ifs_;
 
-    if (ifs)
+    if (ifs) {
         ifs_ = ifs;
+    }
 
-    if (!ifs_)
+    if (!ifs_) {
         return;
+    }
 
     wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
 
@@ -57,16 +60,18 @@ void nm_print_base_menu(nm_menu_data_t *ifs)
         nm_str_t if_name = NM_INIT_STR;
         int space_num;
 
-        if (n >= ifs_->v->n_memb)
+        if (n >= ifs_->v->n_memb) {
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
+        }
 
         nm_str_alloc_text(&if_name, (char *) ifs_->v->data[n]);
         nm_align2line(&if_name, screen_x);
 
         space_num = (screen_x - if_name.len - 4);
         if (space_num > 0) {
-            for (int s = 0; s < space_num; s++)
+            for (int s = 0; s < space_num; s++) {
                 nm_str_add_char_opt(&if_name, ' ');
+            }
         }
 
         if (ifs_->highlight == i + 1) {
@@ -87,13 +92,15 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
 {
     int x = 2, y = 3;
     size_t screen_x;
-    static nm_menu_data_t *vm_ = NULL;
+    static nm_menu_data_t *vm_;
 
-    if (vm)
+    if (vm) {
         vm_ = vm;
+    }
 
-    if(!vm_)
+    if (!vm_) {
         return;
+    }
 
     screen_x = getmaxx(side_window);
     if (screen_x < 20) { /* window to small */
@@ -108,16 +115,18 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         int space_num;
         nm_str_t vm_name = NM_INIT_STR;
 
-        if (n >= vm_->v->n_memb)
+        if (n >= vm_->v->n_memb) {
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
+        }
 
         nm_str_alloc_text(&vm_name, nm_vect_item_name_ctx(vm_->v, n));
         nm_align2line(&vm_name, screen_x);
 
         space_num = (screen_x - vm_name.len - 4);
         if (space_num > 0) {
-            for (int s = 0; s < space_num; s++)
+            for (int s = 0; s < space_num; s++) {
                 nm_str_add_char_opt(&vm_name, ' ');
+            }
         }
 
         if (nm_qmp_test_socket(nm_vect_item_name(vm_->v, n)) == NM_OK) {
@@ -164,9 +173,11 @@ void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
         menu->item_first = 0;
         menu->item_last = list_len;
     } else if (ch == KEY_DOWN) {
-        if ((menu->highlight == menu->v->n_memb) && (menu->v->n_memb <= list_len)) {
+        if ((menu->highlight == menu->v->n_memb) &&
+                (menu->v->n_memb <= list_len)) {
             menu->highlight = 1;
-        } else if ((menu->highlight == list_len) && (menu->item_last < menu->v->n_memb)) {
+        } else if ((menu->highlight == list_len) &&
+                (menu->item_last < menu->v->n_memb)) {
             menu->item_first++;
             menu->item_last++;
         } else {
@@ -182,8 +193,9 @@ void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
         menu->item_last = menu->v->n_memb;
     }
 
-    if (ch == KEY_UP || ch == KEY_DOWN || ch == KEY_HOME || ch == KEY_END)
+    if (ch == KEY_UP || ch == KEY_DOWN || ch == KEY_HOME || ch == KEY_END) {
         NM_STAT_CLEAN();
+    }
 }
 
 #if defined (NM_OS_LINUX)
@@ -195,13 +207,15 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
     nm_str_t veth_copy = NM_INIT_STR;
     nm_str_t veth_lname = NM_INIT_STR;
     nm_str_t veth_rname = NM_INIT_STR;
-    static nm_menu_data_t *veth_ = NULL;
+    static nm_menu_data_t *veth_;
 
-    if (veth)
+    if (veth) {
         veth_ = veth;
+    }
 
-    if (!veth_)
+    if (!veth_) {
         return;
+    }
 
     screen_x = getmaxx(side_window);
     if (screen_x < 20) { /* window to small */
@@ -215,8 +229,9 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
     for (size_t n = veth_->item_first, i = 0; n < veth_->item_last; n++, i++) {
         int space_num;
 
-        if (n >= veth_->v->n_memb)
+        if (n >= veth_->v->n_memb) {
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
+        }
 
         nm_str_alloc_text(&veth_name, nm_vect_item_name_ctx(veth_->v, n));
         nm_str_copy(&veth_copy, &veth_name);
@@ -225,21 +240,24 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
 
         space_num = (screen_x - veth_name.len - 4);
         if (space_num > 0) {
-            for (int s = 0; s < space_num; s++)
+            for (int s = 0; s < space_num; s++) {
                 nm_str_add_char_opt(&veth_name, ' ');
+            }
         }
 
         if (get_status) {
-            if (nm_net_link_status(&veth_lname) == NM_OK)
+            if (nm_net_link_status(&veth_lname) == NM_OK) {
                 nm_vect_set_item_status(veth_->v, n, 1);
-            else
+            } else {
                 nm_vect_set_item_status(veth_->v, n, 0);
+            }
         }
 
-        if (nm_vect_item_status(veth_->v, n))
+        if (nm_vect_item_status(veth_->v, n)) {
             wattron(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
-        else
+        } else {
             wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
+        }
 
         if (veth_->highlight == i + 1) {
             wattron(side_window, A_REVERSE);

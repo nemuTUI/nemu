@@ -44,7 +44,8 @@ uint64_t nm_net_mac_s2n(const nm_str_t *addr);
 int nm_net_verify_mac(const nm_str_t *mac);
 int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
                           nm_str_t *err);
-int nm_net_check_port(const uint16_t port, const int type, const uint32_t inaddr);
+int nm_net_check_port(const uint16_t port, const int type,
+        const uint32_t inaddr);
 
 #endif /*NM_NETWORK_H_ */
 /* vim:set ts=4 sw=4: */

@@ -16,7 +16,7 @@
 
 #include <json.h>
 
-static volatile sig_atomic_t nm_mon_rebuild = 0;
+static volatile sig_atomic_t nm_mon_rebuild;
 
 static void nm_mon_check_vms(const nm_vect_t *mon_list);
 static void nm_mon_build_list(nm_vect_t *list, nm_vect_t *vms);
@@ -41,7 +41,7 @@ typedef struct nm_clean_data {
 #define NM_CLEAN_INIT (nm_clean_data_t) \
     { NM_MON_VMS_INIT, NULL, NULL, NULL, NM_THR_CTRL_INIT, NM_THR_CTRL_INIT }
 
-static nm_clean_data_t *clean_ptr = NULL;
+static nm_clean_data_t *clean_ptr;
 
 static void nm_mon_cleanup(void)
 {
@@ -49,8 +49,9 @@ static void nm_mon_cleanup(void)
 
     nm_debug("mon daemon exited: %d\n", nm_rc());
 
-    if (!clean_ptr)
+    if (!clean_ptr) {
         return;
+    }
 
     nm_vect_free(clean_ptr->vms.list, NULL);
     nm_vect_free(clean_ptr->vm_list, nm_str_vect_free_cb);
@@ -115,6 +116,7 @@ void *nm_qmp_worker(void *data)
      */
     for (size_t sep = 0; sep < 7; sep++) {
         char *dash = strrchr(jobid_copy.data, '-');
+
         if (dash) {
             *dash = '\0';
         } else {
@@ -231,8 +233,9 @@ static bool nm_mon_check_version(pid_t *opid)
 
     memset(&info, 0x0, sizeof(info));
 
-    if ((stat(path, &info) == -1) || (!info.st_size))
+    if ((stat(path, &info) == -1) || (!info.st_size)) {
         return false;
+    }
 
     buf = nm_calloc(1, info.st_size + 1);
     fd = open(path, O_RDONLY);
@@ -281,8 +284,9 @@ void nm_mon_start(void)
     pid_t pid, wpid, opid;
     int wstatus = 0;
 
-    if (!cfg->start_daemon)
+    if (!cfg->start_daemon) {
         return;
+    }
 
     if (access(cfg->daemon_pid.data, R_OK) != -1) {
         if ((need_restart = nm_mon_check_version(&opid)) == false) {
@@ -312,7 +316,8 @@ void nm_mon_start(void)
         }
 
         if (!restart_ok) {
-            nm_bug("%s: after 15 seconds the daemon has not exited\n", __func__);
+            nm_bug("%s: after 15 seconds the daemon has not exited\n",
+                    __func__);
         }
     }
 
@@ -321,7 +326,8 @@ void nm_mon_start(void)
     switch (pid) {
     case 0: /* child */
         if (execlp(nm_nemu_path(), nm_nemu_path(), "--daemon", NULL) == -1) {
-            fprintf(stderr, "%s: execlp error: %s\n", __func__, strerror(errno));
+            fprintf(stderr, "%s: execlp error: %s\n",
+                    __func__, strerror(errno));
             nm_exit(EXIT_FAILURE);
         }
         break;
@@ -348,8 +354,9 @@ void nm_mon_ping(void)
 
     memset(&info, 0x0, sizeof(info));
 
-    if ((stat(path, &info) == -1) || (!info.st_size))
+    if ((stat(path, &info) == -1) || (!info.st_size)) {
         return;
+    }
 
     buf = nm_calloc(1, info.st_size + 1);
     fd = open(path, O_RDONLY);
@@ -404,7 +411,7 @@ void nm_mon_loop(void)
 
     pid = fork();
 
-    switch(pid) {
+    switch (pid) {
     case 0: /* child */
         break;
     case -1: /* error */
@@ -456,7 +463,8 @@ void nm_mon_loop(void)
 
     nm_db_init();
     nm_mon_build_list(&mon_list, &vm_list);
-    if (pthread_create(&qmp_thr, NULL, nm_qmp_dispatcher, &clean.qmp_ctrl) != 0) {
+    if (pthread_create(&qmp_thr, NULL,
+                nm_qmp_dispatcher, &clean.qmp_ctrl) != 0) {
         nm_exit(EXIT_FAILURE);
     }
 #if defined (NM_OS_LINUX)

@@ -72,7 +72,7 @@ const nm_cfg_t *nm_cfg_get(void);
 
 extern char *nm_cfg_path;
 
-static inline const char** nm_cfg_get_arch()
+static inline const char **nm_cfg_get_arch(void)
 {
     return (const char **)nm_cfg_get()->qemu_targets.data;
 }

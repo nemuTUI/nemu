@@ -32,22 +32,26 @@ void nm_mon_ping(void);
 
 static const int NM_MON_SLEEP = 1000;
 
-static inline int8_t nm_mon_item_get_status(const nm_vect_t *v, const size_t idx)
+static inline int8_t
+nm_mon_item_get_status(const nm_vect_t *v, const size_t idx)
 {
     return ((nm_mon_item_t *) nm_vect_at(v, idx))->state;
 }
 
-static inline void nm_mon_item_set_status(const nm_vect_t *v, const size_t idx, int8_t s)
+static inline void
+nm_mon_item_set_status(const nm_vect_t *v, const size_t idx, int8_t s)
 {
     ((nm_mon_item_t *) nm_vect_at(v, idx))->state = s;
 }
 
-static inline nm_str_t *nm_mon_item_get_name(const nm_vect_t *v, const size_t idx)
+static inline nm_str_t
+*nm_mon_item_get_name(const nm_vect_t *v, const size_t idx)
 {
     return ((nm_mon_item_t *) nm_vect_at(v, idx))->name;
 }
 
-static inline char *nm_mon_item_get_name_cstr(const nm_vect_t *v, const size_t idx)
+static inline char
+*nm_mon_item_get_name_cstr(const nm_vect_t *v, const size_t idx)
 {
     return ((nm_mon_item_t *) nm_vect_at(v, idx))->name->data;
 }

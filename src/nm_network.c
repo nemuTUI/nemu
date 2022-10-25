@@ -4,20 +4,23 @@
 
 #include <sys/ioctl.h>
 
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
 
 #ifdef NM_NET_IF_FIX
 /* Temporary work-around for broken glibc vs. linux kernel header definitions
  * This is already fixed upstream, remove this when distributions have updated.
- * net/if.h fuckup should be removed someday in future, when kernels <= 4.2 will not be supported
- * https://github.com/systemd/systemd/commit/08ce521fb2546921f2642bef067d2cc02158b121
- * https://github.com/systemd/systemd/commit/6f270e6bd8b78aedf9f77534d6d11141ea0bf8ca
+ * net/if.h fuckup should be removed someday in future, when kernels <= 4.2
+ * will not be supported
+ * https://github.com/systemd/systemd/commit/ \
+ *   08ce521fb2546921f2642bef067d2cc02158b121
+ * https://github.com/systemd/systemd/commit/ \
+ *   6f270e6bd8b78aedf9f77534d6d11141ea0bf8ca
  */
 #define _NET_IF_H 1
 #include <net/if.h>
 #ifndef IFNAMSIZ
 #define IFNAMSIZ 16
-extern unsigned int if_nametoindex (const char *__ifname) __THROW;
+extern unsigned int if_nametoindex(const char *__ifname) __THROW;
 #endif
 #include <linux/if.h>
 #else
@@ -70,7 +73,7 @@ static struct rtattr *nm_net_add_attr_nest(struct nlmsghdr *n, size_t mlen,
                                            int type);
 static int nm_net_add_attr_nest_end(struct nlmsghdr *n, struct rtattr *nest);
 
-static struct rtattr *NLMSG_TAIL(struct nlmsghdr* n)
+static struct rtattr *NLMSG_TAIL(struct nlmsghdr *n)
 {
     return (struct rtattr *)((char *)n + NLMSG_ALIGN(n->nlmsg_len));
 }
@@ -96,8 +99,9 @@ static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *net,
 
 int nm_net_iface_exists(const nm_str_t *name)
 {
-    if (if_nametoindex(name->data) == 0)
+    if (if_nametoindex(name->data) == 0) {
         return NM_ERR;
+    }
 
     return NM_OK;
 }
@@ -131,8 +135,9 @@ void nm_net_add_macvtap(const nm_str_t *name, const nm_str_t *parent,
 
     memset(&req, 0, sizeof(req));
 
-    if ((dev_index = if_nametoindex(parent->data)) == 0)
+    if ((dev_index = if_nametoindex(parent->data)) == 0) {
         nm_bug("%s: if_nametoindex: %s", __func__, strerror(errno));
+    }
 
     req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
     req.n.nlmsg_flags = NLM_F_REQUEST | NLM_F_CREATE | NLM_F_EXCL;
@@ -265,8 +270,9 @@ void nm_net_del_iface(const nm_str_t *name)
 
     memset(&req, 0, sizeof(req));
 
-    if ((dev_index = if_nametoindex(name->data)) == 0)
+    if ((dev_index = if_nametoindex(name->data)) == 0) {
         nm_bug("%s: if_nametoindex: %s", __func__, strerror(errno));
+    }
 
     req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
     req.n.nlmsg_flags = NLM_F_REQUEST;
@@ -294,18 +300,21 @@ void nm_net_set_altname(const nm_str_t *name, const nm_str_t *altname)
     struct rtattr *props;
     struct iplink_req req = {
         .n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg)),
-        .n.nlmsg_flags = NLM_F_REQUEST | NLM_F_EXCL | NLM_F_CREATE | NLM_F_APPEND,
+        .n.nlmsg_flags = NLM_F_REQUEST | NLM_F_EXCL | NLM_F_CREATE |
+            NLM_F_APPEND,
         .n.nlmsg_type = RTM_NEWLINKPROP,
         .i.ifi_family = AF_UNSPEC
     };
 
-    props = nm_net_add_attr_nest(&req.n, sizeof(req), IFLA_PROP_LIST | NLA_F_NESTED);
+    props = nm_net_add_attr_nest(&req.n, sizeof(req),
+            IFLA_PROP_LIST | NLA_F_NESTED);
     nm_net_add_attr(&req.n, sizeof(req), IFLA_ALT_IFNAME,
             altname->data, altname->len + 1);
     nm_net_add_attr_nest_end(&req.n, props);
 
-    if ((dev_index = if_nametoindex(name->data)) == 0)
+    if ((dev_index = if_nametoindex(name->data)) == 0) {
         nm_bug("%s: if_nametoindex: %s", __func__, strerror(errno));
+    }
     req.i.ifi_index = dev_index;
 
     nm_net_rtnl_open(&rth);
@@ -327,8 +336,9 @@ int nm_net_verify_mac(const nm_str_t *mac)
         nm_bug("%s: regcomp failed", __func__);
     }
 
-    if (regexec(&reg, mac->data, 0, NULL, 0) == 0)
+    if (regexec(&reg, mac->data, 0, NULL, 0) == 0) {
         rc = NM_OK;
+    }
 
     regfree(&reg);
 
@@ -362,13 +372,15 @@ int nm_net_verify_ipaddr4(const nm_str_t *src, nm_net_addr_t *net,
         case 1:
             {
                 nm_str_t tmp = NM_INIT_STR;
+
                 nm_str_alloc_text(&tmp, token);
                 netaddr.cidr = nm_str_stoui(&tmp, 10);
                 nm_str_free(&tmp);
             }
             break;
         default:
-            nm_str_alloc_text(err, _("Invalid address format: expected IPv4/CIDR"));
+            nm_str_alloc_text(err,
+                    _("Invalid address format: expected IPv4/CIDR"));
             rc = NM_ERR;
             goto out;
         }
@@ -423,10 +435,11 @@ void nm_net_mac_n2s(uint64_t maddr, nm_str_t *res)
 
     for (int byte = 0; byte < 6; byte++) {
         uint32_t octet = ((maddr >> 40) & 0xff);
-
         int n = snprintf(buf + pos, sizeof(buf) - pos, "%02x:", octet);
-        if (n < 0 || n >= (int)(sizeof(buf) - pos))
+
+        if (n < 0 || n >= (int)(sizeof(buf) - pos)) {
             nm_bug(_("%s: snprintf failed"), __func__);
+        }
 
         pos += n;
         maddr <<= 8;
@@ -456,8 +469,9 @@ static size_t nm_net_mac_s2a(const nm_str_t *addr, char *res, size_t len)
 
         res[n] = nm_str_stoui(&copy, 16);
 
-        if (!cp)
+        if (!cp) {
             break;
+        }
         copy.data = cp;
     }
 
@@ -473,10 +487,11 @@ uint64_t nm_net_mac_s2n(const nm_str_t *addr)
     unsigned char buf[6];
     const size_t buf_len = nm_arr_len(buf);
 
-    nm_net_mac_s2a(addr, (char *)buf, buf_len);
+    nm_net_mac_s2a(addr, (char *) buf, buf_len);
 
-    for (size_t i = 0; i < buf_len; ++i)
-        mac |= ((uint64_t)buf[i]) << 8 * (buf_len - 1 - i);
+    for (size_t i = 0; i < buf_len; ++i) {
+        mac |= ((uint64_t) buf[i]) << 8 * (buf_len - 1 - i);
+    }
 
     return mac;
 }
@@ -486,40 +501,48 @@ static void nm_net_manage_tap(const nm_str_t *name, int on_off)
     struct ifreq ifr;
 
     memset(&ifr, 0, sizeof(ifr));
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
     int fd;
+
     ifr.ifr_flags |= (IFF_NO_PI | IFF_TAP);
     nm_strlcpy(ifr.ifr_name, name->data, IFNAMSIZ);
 
-    if ((fd = open(NM_TUNDEV, O_RDWR)) < 0)
+    if ((fd = open(NM_TUNDEV, O_RDWR)) < 0) {
         nm_bug(_("%s: cannot open TUN device: %s"), __func__, strerror(errno));
+    }
 
-    if (ioctl(fd, TUNSETIFF, &ifr) == -1)
+    if (ioctl(fd, TUNSETIFF, &ifr) == -1) {
         nm_bug("%s: ioctl(TUNSETIFF): %s", __func__, strerror(errno));
+    }
 
-    if (ioctl(fd, TUNSETPERSIST, on_off) == -1)
+    if (ioctl(fd, TUNSETPERSIST, on_off) == -1) {
         nm_bug("%s: ioctl(TUNSETPERSIST): %s", __func__, strerror(errno));
+    }
 
-    if (on_off == NM_TAP_ON)
+    if (on_off == NM_TAP_ON) {
         nm_net_link_up(name);
+    }
 
     close(fd);
-#elif defined (NM_OS_FREEBSD)
+#elif defined(NM_OS_FREEBSD)
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock == -1)
+
+    if (sock == -1) {
         nm_bug("%s: socket: %s", __func__, strerror(errno));
+    }
 
     strlcpy(ifr.ifr_name, name->data, sizeof(ifr.ifr_name));
 
     if (on_off == NM_TAP_OFF) {
-        if (ioctl(sock, SIOCIFDESTROY, &ifr) == -1)
+        if (ioctl(sock, SIOCIFDESTROY, &ifr) == -1) {
             nm_bug("%s: ioctl(SIOCIFDESTROY): %s", __func__, strerror(errno));
+        }
     }
     close(sock);
 #endif /* NM_OS_LINUX */
 }
 
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
 static void nm_net_rtnl_open(struct rtnl_handle *rth)
 {
     memset(rth, 0, sizeof(*rth));
@@ -527,8 +550,10 @@ static void nm_net_rtnl_open(struct rtnl_handle *rth)
     rth->sa.nl_family = AF_NETLINK;
     rth->sa.nl_groups = 0;
 
-    if ((rth->sd = socket(AF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, NETLINK_ROUTE)) == -1)
+    if ((rth->sd = socket(AF_NETLINK,
+                    SOCK_RAW | SOCK_CLOEXEC, NETLINK_ROUTE)) == -1) {
         nm_bug("%s: cannot open netlink socket: %s", __func__, strerror(errno));
+    }
 
     if (bind(rth->sd, (struct sockaddr *) &rth->sa, sizeof(rth->sa)) == -1) {
         close(rth->sd);
@@ -551,8 +576,9 @@ static int nm_net_add_attr(struct nlmsghdr *n, size_t mlen,
     rta = (struct rtattr *) (((char *) n) + NLMSG_ALIGN(n->nlmsg_len));
     rta->rta_type = type;
     rta->rta_len = len;
-    if (data)
+    if (data) {
         memcpy(RTA_DATA(rta), data, dlen);
+    }
     n->nlmsg_len = NLMSG_ALIGN(n->nlmsg_len) + RTA_ALIGN(len);
 
     return NM_OK;
@@ -563,8 +589,9 @@ static struct rtattr *nm_net_add_attr_nest(struct nlmsghdr *n, size_t mlen,
 {
     struct rtattr *nest = NLMSG_TAIL(n);
 
-    if (nm_net_add_attr(n, mlen, type, NULL, 0) != NM_OK)
+    if (nm_net_add_attr(n, mlen, type, NULL, 0) != NM_OK) {
         nm_bug("%s: Error add_attr", __func__);
+    }
 
     return nest;
 }
@@ -601,8 +628,9 @@ static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n,
     n->nlmsg_flags |= NLM_F_ACK;
     n->nlmsg_seq = ++rth->seq;
 
-    if ((len = sendmsg(rth->sd, &msg, 0)) < 0)
+    if ((len = sendmsg(rth->sd, &msg, 0)) < 0) {
         nm_bug("%s: cannot talk to rtnetlink", __func__);
+    }
 
     memset(buf, 0, sizeof(buf));
 
@@ -613,17 +641,21 @@ static void nm_net_rtnl_talk(struct rtnl_handle *rth, struct nlmsghdr *n,
 
     for (nh = (struct nlmsghdr *) buf; NLMSG_OK(nh, len);
          nh = NLMSG_NEXT(nh, len)) {
-        if (nh->nlmsg_type == NLMSG_DONE)
+        if (nh->nlmsg_type == NLMSG_DONE) {
             return;
+        }
         if (nh->nlmsg_type == NLMSG_ERROR) {
             struct nlmsgerr *nlerr = (struct nlmsgerr *) NLMSG_DATA(nh);
-            if (!nlerr->error)
+
+            if (!nlerr->error) {
                 return;
+            }
             nm_bug("%s: RTNETLINK answers: %s",
                 __func__, strerror(-nlerr->error));
         }
-        if (res)
+        if (res) {
             memcpy(res, nh, nm_min(res_len, nh->nlmsg_len));
+        }
     }
 }
 
@@ -665,8 +697,10 @@ int nm_net_link_status(const nm_str_t *name)
 
     {
         struct ifinfomsg *ifi = NLMSG_DATA(&result.n);
-        if (!(ifi->ifi_flags & IFF_UP))
+
+        if (!(ifi->ifi_flags & IFF_UP)) {
             return NM_ERR;
+        }
     }
 
     return NM_OK;
@@ -680,8 +714,9 @@ static void nm_net_set_link_status(const nm_str_t *name, int action)
 
     memset(&req, 0, sizeof(req));
 
-    if ((dev_index = if_nametoindex(name->data)) == 0)
+    if ((dev_index = if_nametoindex(name->data)) == 0) {
         nm_bug("%s: if_nametoindex: %s", __func__, strerror(errno));
+    }
 
     req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
     req.n.nlmsg_flags = NLM_F_REQUEST;
@@ -716,8 +751,9 @@ static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *src,
 
     memset(&req, 0, sizeof(req));
 
-    if ((dev_index = if_nametoindex(name->data)) == 0)
+    if ((dev_index = if_nametoindex(name->data)) == 0) {
         nm_bug("%s: if_nametoindex: %s", __func__, strerror(errno));
+    }
 
     req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifaddrmsg));
     req.n.nlmsg_flags = NLM_F_REQUEST | NLM_F_CREATE | NLM_F_EXCL;
@@ -735,8 +771,9 @@ static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *src,
             nm_net_addr_t net = NM_INIT_NETADDR;
             nm_str_t errmsg = NM_INIT_STR;
 
-            if (nm_net_verify_ipaddr4(src, &net, &errmsg) != NM_OK)
+            if (nm_net_verify_ipaddr4(src, &net, &errmsg) != NM_OK) {
                 nm_bug("%s: %s", __func__, errmsg.data);
+            }
 
             mask.s_addr = ~((1 << (32 - net.cidr)) - 1);
             mask.s_addr = htonl(mask.s_addr);
@@ -765,14 +802,17 @@ static void nm_net_addr_change(const nm_str_t *name, const nm_str_t *src,
 #endif /* NM_OS_LINUX */
 }
 
-int nm_net_check_port(const uint16_t port, const int type, const uint32_t inaddr)
+int
+nm_net_check_port(const uint16_t port, const int type, const uint32_t inaddr)
 {
     int ret = 0;
     struct sockaddr_in addr;
 
     int sock = socket(AF_INET, type, 0);
-    if (!sock)
+
+    if (!sock) {
         nm_bug("%s: couldn't create socket", __func__);
+    }
 
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);

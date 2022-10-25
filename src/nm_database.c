@@ -7,7 +7,8 @@
 
 #include <pthread.h>
 
-static const char db_script[] = NM_FULL_DATAROOTDIR "/nemu/scripts/upgrade_db.sh";
+static const char db_script[] = NM_FULL_DATAROOTDIR
+    "/nemu/scripts/upgrade_db.sh";
 static pthread_key_t db_conn_key;
 static pthread_once_t key_once = PTHREAD_ONCE_INIT;
 
@@ -16,7 +17,7 @@ static int nm_db_update(void);
 static int nm_db_select_cb(void *v, int argc, char **argv,
                            char **unused NM_UNUSED);
 
-static void nm_db_init_key()
+static void nm_db_init_key(void)
 {
     if (pthread_key_create(&db_conn_key, NULL) != 0) {
         nm_bug(_("%s: pthread_key_create error: %s"),
@@ -42,30 +43,37 @@ void nm_db_init(void)
             "mouse_override integer, kernel_append char, tty_path char, "
             "socket_path char, initrd char, machine char, fs9p_enable integer, "
             "fs9p_path char, fs9p_name char, usb_type char, spice integer, "
-            "debug_port integer, debug_freeze integer, cmdappend char, team char, display_type char)",
+            "debug_port integer, debug_freeze integer, cmdappend char, "
+            "team char, display_type char)",
         "CREATE TABLE ifaces(id integer primary key autoincrement, "
             "vm_name char, if_name char, mac_addr char, ipv4_addr char, "
-            "if_drv char, vhost integer, macvtap integer, parent_eth char, altname char, "
-            "netuser integer, hostfwd char, smb char)",
-        "CREATE TABLE drives(id integer primary key autoincrement, vm_name char, "
-            "drive_name char, drive_drv char, capacity integer, boot integer, discard integer)",
+            "if_drv char, vhost integer, macvtap integer, parent_eth char, "
+            "altname char, netuser integer, hostfwd char, smb char)",
+        "CREATE TABLE drives(id integer primary key autoincrement, "
+            "vm_name char, drive_name char, drive_drv char, capacity integer, "
+            "boot integer, discard integer)",
         "CREATE TABLE vmsnapshots(id integer primary key autoincrement, "
             "vm_name char, snap_name char, load integer, timestamp char)",
-        "CREATE TABLE veth(id integer primary key autoincrement, l_name char, r_name char)",
+        "CREATE TABLE veth(id integer primary key autoincrement, l_name char, "
+            "r_name char)",
         "CREATE TABLE usb(id integer primary key autoincrement, "
-            "vm_name char, dev_name char, vendor_id char, product_id char, serial char)"
+            "vm_name char, dev_name char, vendor_id char, product_id char, "
+            "serial char)"
     };
 
-    if (stat(cfg->db_path.data, &file_info) == -1)
+    if (stat(cfg->db_path.data, &file_info) == -1) {
         need_create_db = 1;
+    }
 
     db_conn = nm_calloc(1, sizeof(*db_conn));
     db_conn->in_transaction = false;
 
-    if ((rc = sqlite3_open(cfg->db_path.data, &db_conn->handler)) != SQLITE_OK)
+    if ((rc = sqlite3_open(cfg->db_path.data,
+                    &db_conn->handler)) != SQLITE_OK) {
         nm_bug(_("%s: database error: %s"), __func__, sqlite3_errstr(rc));
-    else
+    } else {
         nm_debug("%s: db handler %p\n", __func__, (void *) db_conn->handler);
+    }
 
     if (pthread_once(&key_once, nm_db_init_key) != 0) {
         nm_bug(_("%s: pthread_once error: %s"), __func__, strerror(errno));
@@ -86,8 +94,9 @@ void nm_db_init(void)
     for (size_t n = 0; n < nm_arr_len(query); n++) {
         nm_debug("%s: \"%s\"\n", __func__, query[n]);
 
-        if (db_conn->in_transaction)
+        if (db_conn->in_transaction) {
             nm_bug(_("%s: database in transaction"), __func__);
+        }
 
         if (sqlite3_exec(db_conn->handler, query[n],
                     NULL, NULL, &db_errmsg) != SQLITE_OK)
@@ -104,8 +113,9 @@ void nm_db_select(const char *query, nm_vect_t *v)
         nm_bug(_("%s: got NULL db_conn"), __func__);
     }
 
-    if (db->in_transaction)
+    if (db->in_transaction) {
         nm_bug(_("%s: database in transaction"), __func__);
+    }
 
     nm_debug("%s: \"%s\"\n", __func__, query);
 
@@ -124,16 +134,18 @@ void nm_db_edit(const char *query)
         nm_bug(_("%s: got NULL db_conn"), __func__);
     }
 
-    if (db->in_transaction)
+    if (db->in_transaction) {
         nm_bug(_("%s: database in transaction"), __func__);
+    }
 
     nm_debug("%s: \"%s\"\n", __func__, query);
 
-    if (sqlite3_exec(db->handler, query, NULL, NULL, &db_errmsg) != SQLITE_OK)
+    if (sqlite3_exec(db->handler, query, NULL, NULL, &db_errmsg) != SQLITE_OK) {
         nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
+    }
 }
 
-bool nm_db_in_transaction()
+bool nm_db_in_transaction(void)
 {
     db_conn_t *db;
 
@@ -143,7 +155,7 @@ bool nm_db_in_transaction()
     return (db) ? db->in_transaction : false;
 }
 
-void nm_db_begin_transaction()
+void nm_db_begin_transaction(void)
 {
     char *db_errmsg;
     db_conn_t *db;
@@ -152,13 +164,16 @@ void nm_db_begin_transaction()
         nm_bug(_("%s: got NULL db_conn"), __func__);
     }
 
-    if (db->in_transaction)
+    if (db->in_transaction) {
         nm_bug(_("%s: database already in transaction"), __func__);
+    }
 
     nm_debug("%s: BEGIN TRANSACTION\n", __func__);
 
-    if (sqlite3_exec(db->handler, "BEGIN TRANSACTION", NULL, NULL, &db_errmsg) != SQLITE_OK)
+    if (sqlite3_exec(db->handler, "BEGIN TRANSACTION",
+                NULL, NULL, &db_errmsg) != SQLITE_OK) {
         nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
+    }
 
     db->in_transaction = true;
 }
@@ -172,16 +187,19 @@ void nm_db_atomic(const char *query)
         nm_bug(_("%s: got NULL db_conn"), __func__);
     }
 
-    if (!db->in_transaction)
+    if (!db->in_transaction) {
         nm_bug(_("%s: database not in transaction"), __func__);
+    }
 
     nm_debug("%s: \"%s\"\n", __func__, query);
 
-    if (sqlite3_exec(db->handler, query, NULL, NULL, &db_errmsg) != SQLITE_OK)
+    if (sqlite3_exec(db->handler, query,
+                NULL, NULL, &db_errmsg) != SQLITE_OK) {
         nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
+    }
 }
 
-void nm_db_commit()
+void nm_db_commit(void)
 {
     char *db_errmsg;
     db_conn_t *db;
@@ -190,18 +208,20 @@ void nm_db_commit()
         nm_bug(_("%s: got NULL db_conn"), __func__);
     }
 
-    if (!db->in_transaction)
+    if (!db->in_transaction) {
         nm_bug(_("%s: database not in transaction"), __func__);
+    }
 
     nm_debug("%s: COMMIT\n", __func__);
 
-    if (sqlite3_exec(db->handler, "COMMIT", NULL, NULL, &db_errmsg) != SQLITE_OK)
+    if (sqlite3_exec(db->handler, "COMMIT",
+                NULL, NULL, &db_errmsg) != SQLITE_OK)
         nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
 
     db->in_transaction = false;
 }
 
-void nm_db_rollback()
+void nm_db_rollback(void)
 {
     char *db_errmsg;
     db_conn_t *db;
@@ -210,13 +230,16 @@ void nm_db_rollback()
         nm_bug(_("%s: got NULL db_conn"), __func__);
     }
 
-    if (!db->in_transaction)
+    if (!db->in_transaction) {
         nm_bug(_("%s: database not in transaction"), __func__);
+    }
 
     nm_debug("%s: ROLLBACK\n", __func__);
 
-    if (sqlite3_exec(db->handler, "ROLLBACK", NULL, NULL, &db_errmsg) != SQLITE_OK)
+    if (sqlite3_exec(db->handler, "ROLLBACK",
+                NULL, NULL, &db_errmsg) != SQLITE_OK) {
         nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
+    }
 
     db->in_transaction = false;
 }
@@ -275,8 +298,9 @@ static int nm_db_update(void)
         nm_bug(_("%s: got NULL db_conn"), __func__);
     }
 
-    if (db->in_transaction)
+    if (db->in_transaction) {
         nm_bug(_("%s: database in transaction"), __func__);
+    }
 
     nm_str_format(&backup, "%s-backup", cfg->db_path.data);
     nm_copy_file(&cfg->db_path, &backup);
@@ -293,8 +317,9 @@ static int nm_db_update(void)
         nm_copy_file(&backup, &cfg->db_path);
     }
 
-    if (answer.len)
+    if (answer.len) {
         printf("%s\n", answer.data);
+    }
 
     unlink(backup.data);
 

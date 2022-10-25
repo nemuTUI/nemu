@@ -32,14 +32,17 @@ static void nm_api_reply(const char *request, nm_str_t *reply);
 
 /* API methods */
 static void nm_api_md_version(struct json_object *request, nm_str_t *reply);
-static void nm_api_md_nemu_version(struct json_object *request, nm_str_t *reply);
+static void
+nm_api_md_nemu_version(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_auth(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmlist(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmstart(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmstop(struct json_object *request, nm_str_t *reply);
 static void nm_api_md_vmforcestop(struct json_object *request, nm_str_t *reply);
-static void nm_api_md_vmgetconnectport(struct json_object *request, nm_str_t *reply);
-static void nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply);
+static void
+nm_api_md_vmgetconnectport(struct json_object *request, nm_str_t *reply);
+static void
+nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply);
 
 static nm_api_ops_t nm_api[] = {
     { .method = "nemu_version",        .run = nm_api_md_nemu_version     },
@@ -58,6 +61,7 @@ void *nm_api_server(void *ctx)
     struct pollfd fds[NM_API_POLL_MAXFDS];
     int sd, timeout, nfds = 1;
     SSL_CTX *tls_ctx = NULL;
+
     mon_data = ctx;
 
     SSL_library_init();
@@ -98,7 +102,8 @@ void *nm_api_server(void *ctx)
 
             /* check for unexpected result */
             if (fds[n].revents != POLLIN) {
-                nm_debug("%s: unexpected event: %d\n", __func__, fds[n].revents);
+                nm_debug("%s: unexpected event: %d\n",
+                        __func__, fds[n].revents);
                 goto out;
             }
 
@@ -217,6 +222,7 @@ static void nm_api_serve(SSL *tls)
     nread = SSL_read(tls, buf, sizeof(buf));
     if (nread > 0) {
         nm_str_t reply = NM_INIT_STR;
+
         buf[nread] = '\0';
         if (buf[nread - 1] == '\n') {
             buf[nread - 1] = '\0';
@@ -226,6 +232,7 @@ static void nm_api_serve(SSL *tls)
 
         if (reply.len) {
             int rc;
+
             rc = SSL_write(tls, reply.data, reply.len);
             if (rc <= 0) {
                 nm_debug("%s: %s\n", __func__,
@@ -358,12 +365,14 @@ static int nm_api_check_auth(struct json_object *request, nm_str_t *reply)
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
     SHA256_CTX sha256;
+
     SHA256_Init(&sha256);
     SHA256_Update(&sha256, salted_pass.data, salted_pass.len);
     SHA256_Final(hash, &sha256);
 #else
     uint32_t md_len;
     EVP_MD_CTX *mdctx = EVP_MD_CTX_create();
+
     EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL);
     EVP_DigestUpdate(mdctx, salted_pass.data, salted_pass.len);
     EVP_DigestFinal_ex(mdctx, hash, &md_len);
@@ -685,6 +694,7 @@ nm_api_json_kv_append_arr_str(struct json_object *kv, const char *key,
 
     while (*values) {
         struct json_object *val = json_object_new_string(*values);
+
         if (val == NULL) {
             json_object_put(arr);
             return NULL;
@@ -744,8 +754,8 @@ nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply)
     }
 
     /* CPU count */
-    if ((kv = nm_api_json_kv_str("value", nm_vect_str_ctx(&vm.main, NM_SQL_SMP)))
-            == NULL) {
+    if ((kv = nm_api_json_kv_str("value",
+                    nm_vect_str_ctx(&vm.main, NM_SQL_SMP))) == NULL) {
         nm_str_format(reply, NM_API_RET_ERR, "Internal error");
         goto out;
     }
@@ -761,7 +771,8 @@ nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply)
 
     /* KVM status */
     if ((kv = nm_api_json_kv_bool("value",
-                    (nm_str_cmp_st(nm_vect_str(&vm.main,NM_SQL_KVM), NM_ENABLE)
+                    (nm_str_cmp_st(nm_vect_str(&vm.main,
+                                               NM_SQL_KVM), NM_ENABLE)
                      == NM_OK) ? TRUE : FALSE)) == NULL) {
         nm_str_format(reply, NM_API_RET_ERR, "Internal error");
         goto out;
@@ -770,7 +781,8 @@ nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply)
 
     /* host CPU status */
     if ((kv = nm_api_json_kv_bool("value",
-                    (nm_str_cmp_st(nm_vect_str(&vm.main,NM_SQL_HCPU), NM_ENABLE)
+                    (nm_str_cmp_st(nm_vect_str(&vm.main,
+                                               NM_SQL_HCPU), NM_ENABLE)
                      == NM_OK) ? TRUE : FALSE)) == NULL) {
         nm_str_format(reply, NM_API_RET_ERR, "Internal error");
         goto out;

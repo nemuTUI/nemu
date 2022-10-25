@@ -62,7 +62,8 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
             nm_str_trunc(nm_vect_str(&vm.main, NM_SQL_INST), 0);
             nm_str_add_text(nm_vect_str(&vm.main, NM_SQL_INST), NM_DISABLE);
 
-            nm_str_alloc_text(&query, "UPDATE vms SET install='0' WHERE name='");
+            nm_str_alloc_text(&query,
+                    "UPDATE vms SET install='0' WHERE name='");
             nm_str_add_str(&query, name);
             nm_str_add_char(&query, '\'');
             nm_db_edit(query.data);
@@ -81,8 +82,9 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
                 nm_cfg_get()->vm_dir.data, name->data, NM_VM_QMP_FILE);
 
             /* must delete qmp sock file if exists */
-            if (stat(qmp_path.data, &qmp_info) != -1)
+            if (stat(qmp_path.data, &qmp_info) != -1) {
                 unlink(qmp_path.data);
+            }
 
             nm_str_free(&qmp_path);
 
@@ -93,8 +95,9 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
             nm_vmctl_log_last(&buf);
 
             /* close all tap file descriptors */
-            for (size_t n = 0; n < tfds.n_memb; n++)
+            for (size_t n = 0; n < tfds.n_memb; n++) {
                 close(*((int *) tfds.data[n]));
+            }
 
             /* load snapshot and resume vm after suspend */
             if (flags & NM_VMCTL_CONT) {
@@ -126,10 +129,13 @@ void nm_vmctl_delete(const nm_str_t *name)
 
     for (size_t n = 0; n < drives.n_memb; n++) {
         nm_str_t img_path = NM_INIT_STR;
-        nm_str_format(&img_path, "%s%s", vmdir.data, nm_vect_str(&drives, n)->data);
 
-        if (unlink(img_path.data) == -1)
+        nm_str_format(&img_path, "%s%s",
+                vmdir.data, nm_vect_str(&drives, n)->data);
+
+        if (unlink(img_path.data) == -1) {
             delete_ok = NM_FALSE;
+        }
 
         nm_str_free(&img_path);
     }
@@ -139,20 +145,23 @@ void nm_vmctl_delete(const nm_str_t *name)
 
         nm_str_format(&path, "%s%s", vmdir.data, NM_VM_PID_FILE);
 
-        if (unlink(path.data) == -1 && errno != ENOENT)
+        if (unlink(path.data) == -1 && errno != ENOENT) {
             delete_ok = NM_FALSE;
+        }
 
         nm_str_trunc(&path, vmdir.len);
         nm_str_add_text(&path, NM_VM_QMP_FILE);
-        if (unlink(path.data) == -1 && errno != ENOENT)
+        if (unlink(path.data) == -1 && errno != ENOENT) {
             delete_ok = NM_FALSE;
+        }
 
         nm_str_free(&path);
     }
 
     if (delete_ok) {
-        if (rmdir(vmdir.data) == -1)
+        if (rmdir(vmdir.data) == -1) {
             delete_ok = NM_FALSE;
+        }
     }
 
     nm_vmctl_clear_tap(name);
@@ -172,8 +181,9 @@ void nm_vmctl_delete(const nm_str_t *name)
     nm_str_format(&query, NM_DEL_VM_SQL, name->data);
     nm_db_edit(query.data);
 
-    if (!delete_ok)
+    if (!delete_ok) {
         nm_warn(_(NM_MSG_INC_DEL));
+    }
 
     nm_str_free(&vmdir);
     nm_str_free(&query);
@@ -191,8 +201,9 @@ void nm_vmctl_kill(const nm_str_t *name)
     nm_str_format(&pid_file, "%s/%s/%s",
         nm_cfg_get()->vm_dir.data, name->data, NM_VM_PID_FILE);
 
-    if ((fd = open(pid_file.data, O_RDONLY)) == -1)
+    if ((fd = open(pid_file.data, O_RDONLY)) == -1) {
         return;
+    }
 
     if (read(fd, buf, sizeof(buf)) <= 0) {
          close(fd);
@@ -213,6 +224,7 @@ void nm_vmctl_connect(const nm_str_t *name)
     nm_str_t query = NM_INIT_STR;
     nm_vect_t res = NM_INIT_VECT;
     uint32_t port;
+
     int unused __attribute__((unused));
 
     nm_str_format(&query, NM_VMCTL_GET_VNC_PORT_SQL, name->data);
@@ -251,7 +263,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
     nm_vect_insert_cstr(argv, "-daemonize");
 
-    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBF), NM_ENABLE) == NM_OK) {
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBF),
+                NM_ENABLE) == NM_OK) {
         size_t usb_count = vm->usb.n_memb / NM_USB_IDX_COUNT;
         nm_vect_t usb_list = NM_INIT_VECT;
         nm_vect_t serial_cache = NM_INIT_VECT;
@@ -260,15 +273,19 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_vect_insert_cstr(argv, "-usb");
         nm_vect_insert_cstr(argv, "-device");
 
-        if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBT), NM_DEFAULT_USBVER) == NM_OK)
+        if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBT),
+                    NM_DEFAULT_USBVER) == NM_OK) {
             nm_vect_insert_cstr(argv, "qemu-xhci,id=usbbus");
-        else if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBT), *nm_form_usbtype) == NM_OK)
+        } else if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_USBT),
+                    *nm_form_usbtype) == NM_OK) {
             nm_vect_insert_cstr(argv, "usb-ehci,id=usbbus");
-        else
+        } else {
             nm_vect_insert_cstr(argv, "nec-usb-xhci,id=usbbus");
+        }
 
-        if (usb_count > 0)
+        if (usb_count > 0) {
             nm_usb_get_devs(&usb_list);
+        }
 
         for (size_t n = 0; n < usb_count; n++) {
             int found_in_cache = 0;
@@ -276,9 +293,12 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             size_t idx_shift = NM_USB_IDX_COUNT * n;
             nm_usb_dev_t *usb = NULL;
 
-            const char *vid = nm_vect_str_ctx(&vm->usb, NM_SQL_USB_VID + idx_shift);
-            const char *pid = nm_vect_str_ctx(&vm->usb, NM_SQL_USB_PID + idx_shift);
-            const char *ser = nm_vect_str_ctx(&vm->usb, NM_SQL_USB_SERIAL + idx_shift);
+            const char *vid = nm_vect_str_ctx(&vm->usb,
+                    NM_SQL_USB_VID + idx_shift);
+            const char *pid = nm_vect_str_ctx(&vm->usb,
+                    NM_SQL_USB_PID + idx_shift);
+            const char *ser = nm_vect_str_ctx(&vm->usb,
+                    NM_SQL_USB_SERIAL + idx_shift);
 
             /* look for cached data first, libusb_open() is very expensive */
             for (size_t m = 0; m < serial_cache.n_memb; m++) {
@@ -295,9 +315,11 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
             if (found_in_cache && usb) {
                 nm_vect_insert_cstr(argv, "-device");
-                nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s,bus=usbbus.0",
-                    *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),
-                    nm_usb_vendor_id(usb)->data, nm_usb_product_id(usb)->data, ser);
+                nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,"
+                        "id=usb-%s-%s-%s,bus=usbbus.0",
+                        *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),
+                        nm_usb_vendor_id(usb)->data,
+                        nm_usb_product_id(usb)->data, ser);
                 nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
                 continue;
@@ -307,8 +329,9 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                 usb = (nm_usb_dev_t *) usb_list.data[m];
                 if ((nm_str_cmp_st(nm_usb_vendor_id(usb), vid) == NM_OK) &&
                     (nm_str_cmp_st(nm_usb_product_id(usb), pid) == NM_OK)) {
-                    if (serial.len)
+                    if (serial.len) {
                         nm_str_trunc(&serial, 0);
+                    }
 
                     nm_usb_get_serial(usb, &serial);
                     if (nm_str_cmp_st(&serial, ser) == NM_OK) {
@@ -317,6 +340,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                     } else {
                         /* save result in cache */
                         nm_usb_data_t usb_data = NM_INIT_USB_DATA;
+
                         nm_str_copy(&usb_data.serial, &serial);
                         usb_data.dev = usb;
                         nm_vect_insert(&serial_cache, &usb_data,
@@ -328,9 +352,12 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
             if (found_in_devs && usb) {
                 nm_vect_insert_cstr(argv, "-device");
-                nm_str_format(&buf, "usb-host,hostbus=%d,hostaddr=%d,id=usb-%s-%s-%s,bus=usbbus.0",
-                    *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),
-                    nm_usb_vendor_id(usb)->data, nm_usb_product_id(usb)->data, ser);
+                nm_str_format(&buf,
+                        "usb-host,hostbus=%d,hostaddr=%d,"
+                        "id=usb-%s-%s-%s,bus=usbbus.0",
+                        *nm_usb_bus_num(usb), *nm_usb_dev_addr(usb),
+                        nm_usb_vendor_id(usb)->data,
+                        nm_usb_product_id(usb)->data, ser);
                 nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
                 continue;
@@ -343,7 +370,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     }
 
     /* setup install source */
-    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_INST), NM_ENABLE) == NM_OK) {
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_INST),
+                NM_ENABLE) == NM_OK) {
         const char *iso = nm_vect_str_ctx(&vm->main, NM_SQL_ISO);
         size_t srcp_len = strlen(iso);
 
@@ -364,7 +392,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
             nm_vect_insert_cstr(argv, "-device");
-            nm_vect_insert_cstr(argv, "usb-storage,drive=usb0,bus=usbbus.0,bootindex=1");
+            nm_vect_insert_cstr(argv,
+                    "usb-storage,drive=usb0,bus=usbbus.0,bootindex=1");
         }
     } else { /* just mount cdrom */
         const char *iso = nm_vect_str_ctx(&vm->main, NM_SQL_ISO);
@@ -392,9 +421,12 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         int nvme_drv = NM_FALSE;
         int scsi_drv = NM_FALSE;
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
-        const nm_str_t *drive_img = nm_vect_str(&vm->drives, NM_SQL_DRV_NAME + idx_shift);
-        const nm_str_t *blk_drv = nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift);
-        const nm_str_t *discard = nm_vect_str(&vm->drives, NM_SQL_DRV_DISC + idx_shift);
+        const nm_str_t *drive_img = nm_vect_str(&vm->drives,
+                NM_SQL_DRV_NAME + idx_shift);
+        const nm_str_t *blk_drv = nm_vect_str(&vm->drives,
+                NM_SQL_DRV_TYPE + idx_shift);
+        const nm_str_t *discard = nm_vect_str(&vm->drives,
+                NM_SQL_DRV_DISC + idx_shift);
         const char *blk_drv_type = blk_drv->data;
 
         if (nm_str_cmp_st(blk_drv, "nvme") == NM_OK) {
@@ -416,15 +448,18 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                 (*flags & NM_VMCTL_TEMP) ? "id" : "node-name",
                 n, blk_drv_type, vmdir.data, drive_img->data);
         if (scsi_added && (nm_str_cmp_st(discard, NM_ENABLE) == NM_OK)) {
-            nm_str_append_format(&buf, "%s", ",discard=unmap,detect-zeroes=unmap");
+            nm_str_append_format(&buf, "%s",
+                    ",discard=unmap,detect-zeroes=unmap");
         }
 
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
         if (nvme_drv) {
-            long int host_id = labs(gethostid());
+            long host_id = labs(gethostid());
+
             nm_vect_insert_cstr(argv, "-device");
-            nm_str_format(&buf, "nvme,drive=hd%zu,serial=%lX%zX", n, host_id, n);
+            nm_str_format(&buf, "nvme,drive=hd%zu,serial=%lX%zX",
+                    n, host_id, n);
             nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
         } else if (scsi_drv) {
             nm_vect_insert_cstr(argv, "-device");
@@ -485,7 +520,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
      * guest mount example:
      * mount -t 9p -o trans=virtio,version=9p2000.L hostshare /mnt/host
      */
-    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_9FLG), NM_ENABLE) == NM_OK) {
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_9FLG),
+                NM_ENABLE) == NM_OK) {
         nm_vect_insert_cstr(argv, "-fsdev");
         nm_str_format(&buf, "local,security_model=none,id=fsdev0,path=%s",
             nm_vect_str(&vm->main, NM_SQL_9PTH)->data);
@@ -499,16 +535,20 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_KVM), NM_ENABLE) == NM_OK) {
         nm_vect_insert_cstr(argv, "-enable-kvm");
-        if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_HCPU), NM_ENABLE) == NM_OK) {
+        if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_HCPU),
+                    NM_ENABLE) == NM_OK) {
             nm_vect_insert_cstr(argv, "-cpu");
             nm_vect_insert_cstr(argv, "host");
         }
     }
 
-    /* Save info about usb subsystem status at boot time.
-     * Needed for USB hotplug feature. */
+    /*
+     * Save info about usb subsystem status at boot time.
+     * Needed for USB hotplug feature.
+     */
     if (!(*flags & NM_VMCTL_INFO)) {
         nm_str_t query = NM_INIT_STR;
+
         nm_str_format(&query,
                       NM_USB_UPDATE_STATE_SQL,
                       nm_vect_str_ctx(&vm->main, NM_SQL_USBF),
@@ -552,7 +592,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             nm_vect_str(&vm->main, NM_SQL_INIT)->len + 1, NULL);
     }
 
-    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_OVER), NM_ENABLE) == NM_OK) {
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_OVER),
+                NM_ENABLE) == NM_OK) {
         nm_vect_insert_cstr(argv, "-device");
         nm_vect_insert_cstr(argv, "usb-tablet,bus=usbbus.0");
     }
@@ -586,15 +627,18 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             nm_vect_str(&vm->main, NM_SQL_DEBP)->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
     }
-    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_DEBF), NM_ENABLE) == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_DEBF),
+                NM_ENABLE) == NM_OK) {
         nm_vect_insert_cstr(argv, "-S");
+    }
 
     /* setup serial TTY */
     if (nm_vect_str_len(&vm->main, NM_SQL_TTY)) {
         if (!(*flags & NM_VMCTL_INFO)) {
             int fd;
 
-            if ((fd = open(nm_vect_str_ctx(&vm->main, NM_SQL_TTY), O_RDONLY)) == -1) {
+            if ((fd = open(nm_vect_str_ctx(&vm->main, NM_SQL_TTY),
+                            O_RDONLY)) == -1) {
                 nm_warn(_(NM_MSG_TTY_MISS));
                 nm_vect_free(argv, NULL);
                 goto out;
@@ -641,6 +685,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             if (!(*flags & NM_VMCTL_INFO)) {
                 /* Delete iface if exists, we are in user mode */
                 uint32_t tap_idx = 0;
+
                 tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
                             NM_SQL_IF_NAME + idx_shift));
 
@@ -676,17 +721,24 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                         nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_SMB + idx_shift));
             }
 
-        } else if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift),
-            NM_DISABLE) == NM_OK) {
+        } else if (nm_str_cmp_st(nm_vect_str(&vm->ifs,
+                        NM_SQL_IF_MVT + idx_shift),
+                    NM_DISABLE) == NM_OK) {
             nm_vect_insert_cstr(argv, "-netdev");
-            nm_str_format(&buf, "tap,ifname=%s,script=no,downscript=no,id=net-%s",
-                nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)->data, id.data);
+            nm_str_format(&buf,
+                    "tap,ifname=%s,script=no,downscript=no,id=net-%s",
+                    nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)->data,
+                    id.data);
 
-#if defined (NM_OS_LINUX)
-            /* Delete macvtap iface if exists, we using simple tap iface now.
-             * We do not need to create tap interface: QEMU will create it itself. */
+#if defined(NM_OS_LINUX)
+            /*
+             * Delete macvtap iface if exists, we using simple tap iface now.
+             * We do not need to create tap interface:
+             * QEMU will create it itself.
+             */
             if (!(*flags & NM_VMCTL_INFO)) {
                 uint32_t tap_idx = 0;
+
                 tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
                     NM_SQL_IF_NAME + idx_shift));
 
@@ -706,18 +758,22 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             }
 #endif /* NM_OS_LINUX */
         } else {
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
             int tap_fd = 0, wait_perm = 0;
 
             if (!(*flags & NM_VMCTL_INFO)) {
                 nm_str_t tap_path = NM_INIT_STR;
                 uint32_t tap_idx = 0;
 
-                /* Delete simple tap iface if exists, we using macvtap iface now */
+                /*
+                 * Delete simple tap iface if exists,
+                 * we using macvtap iface now
+                 */
                 if ((tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
                         NM_SQL_IF_NAME + idx_shift))) != 0) {
                     /* is this iface simple tap? */
                     struct stat tap_info;
+
                     nm_str_format(&tap_path, "/dev/tap%u", tap_idx);
                     if (stat(tap_path.data, &tap_info) != 0) {
                         /* iface is simple tap, delete it */
@@ -728,33 +784,43 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                     tap_idx = 0;
                 }
 
-                if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK) {
+                if (nm_net_iface_exists(nm_vect_str(&vm->ifs,
+                                NM_SQL_IF_NAME + idx_shift)) != NM_OK) {
                     wait_perm = 1;
                     int macvtap_type = nm_str_stoui(nm_vect_str(&vm->ifs,
-                                                                NM_SQL_IF_MVT + idx_shift), 10);
+                                NM_SQL_IF_MVT +
+                                idx_shift), 10);
 
                     /* check for lower iface (parent) exists */
-                    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_PET + idx_shift) == 0) {
+                    if (nm_vect_str_len(&vm->ifs,
+                                NM_SQL_IF_PET + idx_shift) == 0) {
                         nm_warn(_(NM_MSG_MTAP_NSET));
                         nm_vect_free(argv, NULL);
                         goto out;
                     }
 
-                    nm_net_add_macvtap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
-                                       nm_vect_str(&vm->ifs, NM_SQL_IF_PET + idx_shift),
-                                       nm_vect_str(&vm->ifs, NM_SQL_IF_MAC + idx_shift),
-                                       macvtap_type);
+                    nm_net_add_macvtap(nm_vect_str(&vm->ifs,
+                                NM_SQL_IF_NAME + idx_shift),
+                            nm_vect_str(&vm->ifs,
+                                NM_SQL_IF_PET + idx_shift),
+                            nm_vect_str(&vm->ifs,
+                                NM_SQL_IF_MAC + idx_shift),
+                            macvtap_type);
 
-                    if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_ALT + idx_shift) != 0) {
-                        nm_net_set_altname(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
-                                nm_vect_str(&vm->ifs, NM_SQL_IF_ALT + idx_shift));
+                    if (nm_vect_str_len(&vm->ifs,
+                                NM_SQL_IF_ALT + idx_shift) != 0) {
+                        nm_net_set_altname(nm_vect_str(&vm->ifs,
+                                    NM_SQL_IF_NAME + idx_shift),
+                                nm_vect_str(&vm->ifs,
+                                    NM_SQL_IF_ALT + idx_shift));
                     }
                 }
 
                 tap_idx = nm_net_iface_idx(nm_vect_str(&vm->ifs,
                     NM_SQL_IF_NAME + idx_shift));
-                if (tap_idx == 0)
+                if (tap_idx == 0) {
                     nm_bug("%s: MacVTap interface not found", __func__);
+                }
 
                 nm_str_format(&tap_path, "/dev/tap%u", tap_idx);
 
@@ -781,10 +847,12 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                 }
 
                 tap_fd = open(tap_path.data, O_RDWR);
-                if (tap_fd == -1)
+                if (tap_fd == -1) {
                     nm_bug("%s: open failed: %s", __func__, strerror(errno));
-                if (tfds == NULL)
+                }
+                if (tfds == NULL) {
                     nm_bug("%s: tfds is NULL", __func__);
+                }
                 nm_vect_insert(tfds, &tap_fd, sizeof(int), NULL);
                 nm_str_free(&tap_path);
             }
@@ -794,33 +862,46 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                 id.data, (*flags & NM_VMCTL_INFO) ? -1 : tap_fd);
 #endif /* NM_OS_LINUX */
         }
-        if ((nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift), NM_ENABLE) == NM_OK) &&
-            (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift), NM_DISABLE) == NM_OK))
+        if ((nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift),
+                        NM_ENABLE) == NM_OK) &&
+            (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
+                           NM_DISABLE) == NM_OK))
             nm_str_add_text(&buf, ",vhost=on");
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
-#if defined (NM_OS_LINUX)
-        /* Simple tap interface additional setup:
+#if defined(NM_OS_LINUX)
+        /*
+         * Simple tap interface additional setup:
          * If we need to setup IPv4 address or altname we must create
-         * the tap interface yourself. */
-        if ((nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift), NM_DISABLE) == NM_OK)) {
+         * the tap interface yourself.
+         */
+        if ((nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
+                        NM_DISABLE) == NM_OK)) {
             if ((!(*flags & NM_VMCTL_INFO)) &&
-                    (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) != NM_OK) &&
-                    (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift), NM_DISABLE) == NM_OK)) {
-                nm_net_add_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
+                    (nm_net_iface_exists(nm_vect_str(&vm->ifs,
+                                                     NM_SQL_IF_NAME +
+                                                     idx_shift)) != NM_OK) &&
+                    (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT +
+                                               idx_shift),
+                                   NM_DISABLE) == NM_OK)) {
+                nm_net_add_tap(nm_vect_str(&vm->ifs,
+                            NM_SQL_IF_NAME + idx_shift));
 
                 if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) != 0) {
-                    nm_net_set_ipaddr(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                    nm_net_set_ipaddr(nm_vect_str(&vm->ifs,
+                                NM_SQL_IF_NAME + idx_shift),
                             nm_vect_str(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
                 }
                 if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_ALT + idx_shift) != 0) {
-                    nm_net_set_altname(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift),
+                    nm_net_set_altname(nm_vect_str(&vm->ifs,
+                                NM_SQL_IF_NAME + idx_shift),
                             nm_vect_str(&vm->ifs, NM_SQL_IF_ALT + idx_shift));
                 }
             }
         }
-#elif defined (NM_OS_FREEBSD)
-        if (nm_net_iface_exists(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift)) == NM_OK) {
+#elif defined(NM_OS_FREEBSD)
+        if (nm_net_iface_exists(nm_vect_str(&vm->ifs,
+                        NM_SQL_IF_NAME + idx_shift)) == NM_OK) {
             nm_net_del_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
         }
         (void) tfds;
@@ -828,8 +909,9 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_str_free(&id);
     }
 
-    if (*flags & NM_VMCTL_TEMP)
+    if (*flags & NM_VMCTL_TEMP) {
         nm_vect_insert_cstr(argv, "-snapshot");
+    }
 
     nm_vect_insert_cstr(argv, "-pidfile");
     nm_str_format(&buf, "%s%s",
@@ -844,9 +926,11 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     /* Check if vnc/spice port is available, generate new one if not */
     if (!(*flags & NM_VMCTL_INFO)) {
         uint32_t in_addr = cfg->listen_any ? INADDR_ANY : INADDR_LOOPBACK;
-        uint32_t curr_port = nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT;
-        if (curr_port > 0xffff)
+        uint32_t curr_port = nm_str_stoui(nm_vect_str(&vm->main,
+                    NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT;
+        if (curr_port > 0xffff) {
             nm_bug("%s: port number overflow", __func__);
+        }
 
         if (!nm_net_check_port((uint16_t)curr_port, SOCK_STREAM, in_addr)) {
             nm_vect_t vms_ports = NM_INIT_VECT;
@@ -854,49 +938,69 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
             nm_db_select("SELECT vnc FROM vms ORDER BY vnc ASC", &vms_ports);
 
-            occupied_ports = (uint32_t *)calloc(vms_ports.n_memb, sizeof(uint32_t));
-            if (vms_ports.n_memb > 0 && !occupied_ports)
-                nm_bug("%s: couldn't allocate memory for occupied ports", __func__);
-
-            for (size_t i = 0; i < vms_ports.n_memb; ++i)
-                occupied_ports[i] = nm_str_stoui(vms_ports.data[i], 10) + NM_STARTING_VNC_PORT;
-
-            for (curr_port = NM_STARTING_VNC_PORT; curr_port <= 0xffff; ++curr_port) {
-                if (bsearch(&curr_port, occupied_ports, vms_ports.n_memb, sizeof(uint32_t), compar_uint32_t))
-                    continue;
-
-                if (nm_net_check_port((uint16_t)curr_port, SOCK_STREAM, in_addr))
-                    break;
+            occupied_ports = (uint32_t *)calloc(vms_ports.n_memb,
+                    sizeof(uint32_t));
+            if (vms_ports.n_memb > 0 && !occupied_ports) {
+                nm_bug("%s: couldn't allocate memory for occupied ports",
+                        __func__);
             }
 
-            nm_str_format(nm_vect_str(&vm->main, NM_SQL_VNC), "%u", curr_port - NM_STARTING_VNC_PORT);
+            for (size_t i = 0; i < vms_ports.n_memb; ++i) {
+                occupied_ports[i] = nm_str_stoui(vms_ports.data[i], 10) +
+                    NM_STARTING_VNC_PORT;
+            }
+
+            for (curr_port = NM_STARTING_VNC_PORT; curr_port <= 0xffff;
+                    ++curr_port) {
+                if (bsearch(&curr_port, occupied_ports,
+                            vms_ports.n_memb, sizeof(uint32_t),
+                            compar_uint32_t)) {
+                    continue;
+                }
+
+                if (nm_net_check_port((uint16_t)curr_port,
+                            SOCK_STREAM, in_addr)) {
+                    break;
+                }
+            }
+
+            nm_str_format(nm_vect_str(&vm->main, NM_SQL_VNC), "%u",
+                    curr_port - NM_STARTING_VNC_PORT);
             nm_str_t query = NM_INIT_STR;
+
             nm_str_format(&query, "UPDATE vms SET vnc='%u' WHERE name='%s'",
-                curr_port - NM_STARTING_VNC_PORT, nm_vect_str_ctx(&vm->main, NM_SQL_NAME));
+                curr_port - NM_STARTING_VNC_PORT,
+                nm_vect_str_ctx(&vm->main, NM_SQL_NAME));
             nm_db_edit(query.data);
 
-            if (occupied_ports)
+            if (occupied_ports) {
                 free(occupied_ports);
+            }
             nm_str_free(&query);
             nm_vect_free(&vms_ports, nm_str_vect_free_cb);
         }
     }
 
-    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_SPICE), NM_ENABLE) == NM_OK) {
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_SPICE),
+                NM_ENABLE) == NM_OK) {
         nm_vect_insert_cstr(argv, "-vga");
-        nm_vect_insert_cstr(argv, (nm_vect_str(&vm->main, NM_SQL_DISPLAY))->data);
+        nm_vect_insert_cstr(argv,
+                (nm_vect_str(&vm->main, NM_SQL_DISPLAY))->data);
         nm_vect_insert_cstr(argv, "-spice");
         nm_str_format(&buf, "port=%u,disable-ticketing=on",
-            nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT);
-        if (!cfg->listen_any)
+            nm_str_stoui(nm_vect_str(&vm->main, NM_SQL_VNC), 10) +
+            NM_STARTING_VNC_PORT);
+        if (!cfg->listen_any) {
             nm_str_append_format(&buf, ",addr=127.0.0.1");
+        }
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
     } else {
         nm_vect_insert_cstr(argv, "-vnc");
-        if (cfg->listen_any)
+        if (cfg->listen_any) {
             nm_str_format(&buf, ":");
-        else
+        } else {
             nm_str_format(&buf, "127.0.0.1:");
+        }
         nm_str_add_str(&buf, nm_vect_str(&vm->main, NM_SQL_VNC));
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
     }
@@ -906,8 +1010,9 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
         nm_str_append_to_vect(nm_vect_str(&vm->main, NM_SQL_ARGS), &args, " ");
 
-        for (size_t n = 0; n < args.n_memb; n++)
+        for (size_t n = 0; n < args.n_memb; n++) {
             nm_vect_insert_cstr(argv, args.data[n]);
+        }
 
         nm_vect_free(&args, NULL);
     }
@@ -941,14 +1046,17 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
         nm_vect_str_ctx(&vm.main, NM_SQL_ARCH));
     nm_str_append_format(&info, "%-12s%s\n", "cores: ",
         nm_vect_str_ctx(&vm.main, NM_SQL_SMP));
-    nm_str_append_format(&info, "%-12s%s Mb\n","memory: ",
+    nm_str_append_format(&info, "%-12s%s Mb\n", "memory: ",
         nm_vect_str_ctx(&vm.main, NM_SQL_MEM));
 
     if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_KVM), NM_ENABLE) == NM_OK) {
-        if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
-            nm_str_append_format(&info, "%-12s%s\n", "kvm: ", "enabled [+hostcpu]");
-        else
+        if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_HCPU),
+                    NM_ENABLE) == NM_OK) {
+            nm_str_append_format(&info, "%-12s%s\n", "kvm: ",
+                    "enabled [+hostcpu]");
+        } else {
             nm_str_append_format(&info, "%-12s%s\n", "kvm: ", "enabled");
+        }
     } else {
         nm_str_append_format(&info, "%-12s%s\n", "kvm: ", "disabled");
     }
@@ -962,7 +1070,8 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
 
     nm_str_append_format(&info, "%-12s%s [%u]\n", "vnc port: ",
         nm_vect_str_ctx(&vm.main, NM_SQL_VNC),
-        nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT);
+        nm_str_stoui(nm_vect_str(&vm.main, NM_SQL_VNC), 10) +
+        NM_STARTING_VNC_PORT);
 
     ifs_count = vm.ifs.n_memb / NM_IFS_IDX_COUNT;
     for (size_t n = 0; n < ifs_count; n++) {
@@ -996,12 +1105,13 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
         memset(&img_info, 0, sizeof(img_info));
         stat(drive_path.data, &img_info);
 
-        nm_str_append_format(&info, "disk%zu%-7s%s [%.2gGb/%sGb real/virt, %s] %s\n", n, ":",
-            nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift),
-            (double) img_info.st_size / 1073741824,
-            nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_SIZE + idx_shift),
-            nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_TYPE + idx_shift),
-            boot ? "*" : "");
+        nm_str_append_format(&info, "disk%zu%-7s%s [%.2gGb/%sGb real/virt, %s] "
+                "%s\n", n, ":",
+                nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift),
+                (double) img_info.st_size / 1073741824,
+                nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_SIZE + idx_shift),
+                nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_TYPE + idx_shift),
+                boot ? "*" : "");
 
         nm_str_free(&drive_path);
     }
@@ -1012,50 +1122,61 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
             nm_vect_str_ctx(&vm.main, NM_SQL_9ID));
     }
 
-    if (nm_vect_str_len(&vm.main, NM_SQL_MACH))
+    if (nm_vect_str_len(&vm.main, NM_SQL_MACH)) {
         nm_str_append_format(&info, "%-12s%s\n", "machine: ",
             nm_vect_str_ctx(&vm.main, NM_SQL_MACH));
+    }
 
-    if (nm_vect_str_len(&vm.main, NM_SQL_BIOS))
-        nm_str_append_format(&info,"%-12s%s\n", "bios: ",
+    if (nm_vect_str_len(&vm.main, NM_SQL_BIOS)) {
+        nm_str_append_format(&info, "%-12s%s\n", "bios: ",
             nm_vect_str_ctx(&vm.main, NM_SQL_BIOS));
+    }
 
-    if (nm_vect_str_len(&vm.main, NM_SQL_KERN))
-        nm_str_append_format(&info,"%-12s%s\n", "kernel: ",
+    if (nm_vect_str_len(&vm.main, NM_SQL_KERN)) {
+        nm_str_append_format(&info, "%-12s%s\n", "kernel: ",
             nm_vect_str_ctx(&vm.main, NM_SQL_KERN));
+    }
 
-    if (nm_vect_str_len(&vm.main, NM_SQL_KAPP))
+    if (nm_vect_str_len(&vm.main, NM_SQL_KAPP)) {
         nm_str_append_format(&info, "%-12s%s\n", "cmdline: ",
             nm_vect_str_ctx(&vm.main, NM_SQL_KAPP));
+    }
 
-    if (nm_vect_str_len(&vm.main, NM_SQL_INIT))
+    if (nm_vect_str_len(&vm.main, NM_SQL_INIT)) {
         nm_str_append_format(&info, "%-12s%s\n", "initrd: ",
             nm_vect_str_ctx(&vm.main, NM_SQL_INIT));
+    }
 
-    if (nm_vect_str_len(&vm.main, NM_SQL_TTY))
+    if (nm_vect_str_len(&vm.main, NM_SQL_TTY)) {
         nm_str_append_format(&info, "%-12s%s\n", "tty: ",
             nm_vect_str_ctx(&vm.main, NM_SQL_TTY));
+    }
 
-    if (nm_vect_str_len(&vm.main, NM_SQL_SOCK))
+    if (nm_vect_str_len(&vm.main, NM_SQL_SOCK)) {
         nm_str_append_format(&info, "%-12s%s\n", "socket: ",
             nm_vect_str_ctx(&vm.main, NM_SQL_SOCK));
+    }
 
-    if (nm_vect_str_len(&vm.main, NM_SQL_DEBP))
+    if (nm_vect_str_len(&vm.main, NM_SQL_DEBP)) {
         nm_str_append_format(&info, "%-12s%s\n", "gdb port: ",
             nm_vect_str_ctx(&vm.main, NM_SQL_DEBP));
+    }
 
-    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_DEBF), NM_ENABLE) == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&vm.main, NM_SQL_DEBF), NM_ENABLE) == NM_OK) {
         nm_str_append_format(&info, "%-12s\n", "freeze cpu: yes");
+    }
 
-    if (nm_vect_str_len(&vm.main, NM_SQL_ARGS))
-        nm_str_append_format(&info,"%-12s%s\n", "extra args: ",
+    if (nm_vect_str_len(&vm.main, NM_SQL_ARGS)) {
+        nm_str_append_format(&info, "%-12s%s\n", "extra args: ",
             nm_vect_str_ctx(&vm.main, NM_SQL_ARGS));
+    }
 
     for (size_t n = 0; n < ifs_count; n++) {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
 
-        if (!nm_vect_str_len(&vm.ifs, NM_SQL_IF_IP4 + idx_shift))
+        if (!nm_vect_str_len(&vm.ifs, NM_SQL_IF_IP4 + idx_shift)) {
             continue;
+        }
 
         nm_str_append_format(&info, "%-12s%s [%s]\n", "host IP: ",
             nm_vect_str_ctx(&vm.ifs, NM_SQL_IF_NAME + idx_shift),
@@ -1076,9 +1197,11 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
             if ((nread = read(fd, pid, sizeof(pid))) > 0) {
                 pid[nread - 1] = '\0';
                 int pid_num = atoi(pid);
+
                 nm_str_append_format(&info, "%-12s%d\n", "pid: ", pid_num);
 #if defined (NM_OS_LINUX)
                 struct timespec ts;
+
                 memset(&ts, 0, sizeof(ts));
                 ts.tv_nsec = 1e+8; // 0.1 s
 
@@ -1086,7 +1209,8 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
                 nanosleep(&ts, NULL);
                 double usage = nm_stat_get_usage(pid_num);
 
-                nm_str_append_format(&info, "%-12s%0.1f%%\n", "cpu usage: ", usage);
+                nm_str_append_format(&info, "%-12s%0.1f%%\n",
+                        "cpu usage: ", usage);
 #endif
             }
             close(fd);
@@ -1112,8 +1236,9 @@ void nm_vmctl_log_last(const nm_str_t *msg)
     FILE *fp;
     const nm_cfg_t *cfg = nm_cfg_get();
 
-    if ((msg->len == 0) || (!cfg->log_enabled))
+    if ((msg->len == 0) || (!cfg->log_enabled)) {
         return;
+    }
 
     if ((fp = fopen(cfg->log_path.data, "w+")) == NULL) {
         nm_bug(_("%s: cannot open file %s:%s"),
@@ -1161,10 +1286,13 @@ static int nm_vmctl_clear_tap_vect(const nm_vect_t *vms)
         nm_vect_t ifaces = NM_INIT_VECT;
 
         nm_str_format(&lock_path, "%s/%s/%s",
-            nm_cfg_get()->vm_dir.data, nm_vect_str(vms, n)->data, NM_VM_QMP_FILE);
+            nm_cfg_get()->vm_dir.data,
+            nm_vect_str(vms, n)->data,
+            NM_VM_QMP_FILE);
 
-        if (stat(lock_path.data, &file_info) == 0)
+        if (stat(lock_path.data, &file_info) == 0) {
             continue;
+        }
 
         nm_str_format(&query, NM_VM_GET_IFACES_SQL, nm_vect_str_ctx(vms, n));
         nm_db_select(query.data, &ifaces);
@@ -1172,11 +1300,15 @@ static int nm_vmctl_clear_tap_vect(const nm_vect_t *vms)
 
         for (size_t ifn = 0; ifn < ifs_count; ifn++) {
             size_t idx_shift = NM_IFS_IDX_COUNT * ifn;
-            if (nm_net_iface_exists(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift)) == NM_OK) {
+
+            if (nm_net_iface_exists(nm_vect_str(&ifaces,
+                            NM_SQL_IF_NAME + idx_shift)) == NM_OK) {
 #if defined (NM_OS_LINUX)
-                nm_net_del_iface(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift));
+                nm_net_del_iface(nm_vect_str(&ifaces,
+                            NM_SQL_IF_NAME + idx_shift));
 #else
-                nm_net_del_tap(nm_vect_str(&ifaces, NM_SQL_IF_NAME + idx_shift));
+                nm_net_del_tap(nm_vect_str(&ifaces,
+                            NM_SQL_IF_NAME + idx_shift));
 #endif
                 clear_done = 1;
             }

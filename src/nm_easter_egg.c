@@ -34,7 +34,7 @@ static void nm_si_game(void)
         nm_si_type_t type;
     } nm_si_t;
 
-    static bool si_player_init = false;
+    static bool si_player_init;
     static size_t bullets_cnt;
     static nm_si_t player;
     static size_t score;
@@ -88,7 +88,8 @@ static void nm_si_game(void)
             .hit = false,
             .type = NM_SI_PLAYER
         };
-        score = 0, bullets_cnt = NM_SI_BULLETS;
+        score = 0;
+        bullets_cnt = NM_SI_BULLETS;
         si_player_init = true;
         speed = NM_SI_EMEMIE_ROTATE;
         level = 0;
@@ -155,7 +156,8 @@ static void nm_si_game(void)
 
         werase(action_window);
         if (!boss_active) {
-            nm_str_format(&info, "Level %zu [score: %zu hp: %d ammo: %zu ap: %zu]",
+            nm_str_format(&info, "Level %zu "
+                    "[score: %zu hp: %d ammo: %zu ap: %zu]",
                     level, score, player.health, bullets_cnt, gain);
         } else {
             size_t boss_health;
@@ -165,8 +167,10 @@ static void nm_si_game(void)
             } else {
                 boss_health = ((nm_si_t *) nm_vect_at(&enemies, 0))->health;
             }
-            nm_str_format(&info, "Level %zu - Boss %zu%% [score: %zu hp: %d ammo: %zu ap: %zu]",
-                    level, boss_health, score, player.health, bullets_cnt, gain);
+            nm_str_format(&info, "Level %zu - Boss %zu%% "
+                    "[score: %zu hp: %d ammo: %zu ap: %zu]",
+                    level, boss_health, score, player.health,
+                    bullets_cnt, gain);
         }
         nm_init_action(info.data);
 
@@ -231,42 +235,43 @@ static void nm_si_game(void)
                                 ((boss_active) ? 4 : 2))) &&
                         (e->pos_y == b->pos_y)) {
                     size_t hp_hit = e->health;
+
                     e->health -= b->health;
                     b->health -= hp_hit;
                     if (e->health <= 0) {
                         switch (e->type) {
-                            case NM_SI_SHIP_1:
-                                score += 10;
-                                break;
-                            case NM_SI_SHIP_2:
-                                score += 20;
-                                break;
-                            case NM_SI_SHIP_3:
-                                score += 30;
-                                break;
-                            case NM_SI_BOSS:
-                                score += 1000;
-                                break;
-                            default:
-                                break;
+                        case NM_SI_SHIP_1:
+                            score += 10;
+                            break;
+                        case NM_SI_SHIP_2:
+                            score += 20;
+                            break;
+                        case NM_SI_SHIP_3:
+                            score += 30;
+                            break;
+                        case NM_SI_BOSS:
+                            score += 1000;
+                            break;
+                        default:
+                            break;
                         }
                     } else {
                         e->hit = true;
                         switch (e->type) {
-                            case NM_SI_SHIP_1:
-                                score += 1;
-                                break;
-                            case NM_SI_SHIP_2:
-                                score += 2;
-                                break;
-                            case NM_SI_SHIP_3:
-                                score += 3;
-                                break;
-                            case NM_SI_BOSS:
-                                score += 10;
-                                break;
-                            default:
-                                break;
+                        case NM_SI_SHIP_1:
+                            score += 1;
+                            break;
+                        case NM_SI_SHIP_2:
+                            score += 2;
+                            break;
+                        case NM_SI_SHIP_3:
+                            score += 3;
+                            break;
+                        case NM_SI_BOSS:
+                            score += 10;
+                            break;
+                        default:
+                            break;
                         }
                     }
                     if (b->health <= 0) {
@@ -280,6 +285,7 @@ static void nm_si_game(void)
             if (e->health > 0) {
                 bool can_shoot = true;
                 const char *shape;
+
                 switch (e->type) {
                 case NM_SI_SHIP_1:
                     shape = shape_ship0;
@@ -315,6 +321,7 @@ static void nm_si_game(void)
 
                 for (size_t no = n; no < enemies.n_memb; no++) {
                     nm_si_t *eo = nm_vect_at(&enemies, no);
+
                     if (((eo->pos_y - 1 >= e->pos_y &&
                           eo->pos_y - 1 <= e->pos_y + 5)) &&
                           (e->pos_x == eo->pos_x)) {
@@ -371,6 +378,7 @@ static void nm_si_game(void)
         if (enemies.n_memb && change_dir) {
             for (size_t n = 0; n < enemies.n_memb; n++) {
                 nm_si_t *e = nm_vect_at(&enemies, n);
+
                 if (!boss_active) {
                     e->pos_y += 1;
                 }
@@ -385,7 +393,9 @@ static void nm_si_game(void)
 
         for (size_t n = 0; n < pl_bullets.n_memb; n++) {
             nm_si_t *b = nm_vect_at(&pl_bullets, n);
-            mvwaddch(action_window, b->pos_y, b->pos_x, gain_active ? '^' : '*');
+
+            mvwaddch(action_window, b->pos_y, b->pos_x,
+                    gain_active ? '^' : '*');
             b->pos_y--;
 
             if (b->pos_y == 1) {
@@ -403,7 +413,8 @@ static void nm_si_game(void)
             for (size_t n = 0; n < pl_bullets.n_memb; n++) {
                 nm_si_t *b = nm_vect_at(&pl_bullets, n);
 
-                if (((b->pos_x >= bonus.pos_x && b->pos_x <= bonus.pos_x + 2)) &&
+                if (((b->pos_x >= bonus.pos_x &&
+                                b->pos_x <= bonus.pos_x + 2)) &&
                         (bonus.pos_y == b->pos_y)) {
                     bonus.hit = true;
                     b->health--;
@@ -454,6 +465,7 @@ static void nm_si_game(void)
 
         for (size_t n = 0; n < en_bullets.n_memb; n++) {
             nm_si_t *b = nm_vect_at(&en_bullets, n);
+
             mvwaddch(action_window, b->pos_y, b->pos_x, '|');
 
             if (((b->pos_x >= player.pos_x && b->pos_x <= player.pos_x + 2)) &&
@@ -475,7 +487,8 @@ static void nm_si_game(void)
                 mvwaddstr(action_window, player.pos_y, player.pos_x, shape_hit);
                 player.hit = false;
             } else {
-                mvwaddstr(action_window, player.pos_y, player.pos_x, shape_player);
+                mvwaddstr(action_window, player.pos_y, player.pos_x,
+                        shape_player);
             }
         } else {
             mvwaddstr(action_window, player.pos_y, player.pos_x, shape_dead);
@@ -565,8 +578,10 @@ void nm_print_nemu(void)
         "                           ..                              "
     };
 
-    for (size_t l = 3, n = 0; n < (max_y - 4) && n < nm_arr_len(nemu); n++, l++)
+    for (size_t l = 3, n = 0; n < (max_y - 4) && n < nm_arr_len(nemu);
+            n++, l++) {
         mvwprintw(action_window, l, 1, "%s", nemu[n]);
+    }
 
     ch = wgetch(action_window);
     if (ch == NM_KEY_S) {

@@ -8,7 +8,8 @@
 
 static const size_t NM_WINDOW_HEADER_HEIGHT = 3;
 
-void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status);
+void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm,
+        int status);
 void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx);
 void nm_print_drive_info(const nm_vect_t *v, size_t idx);
 void nm_print_snapshots(const nm_vect_t *v);
@@ -104,9 +105,11 @@ extern nm_filter_t nm_filter;
 #define NM_MSG_VDRIVE_DEL "Delete virtual drive"
 #define NM_MSG_ADD_VETH   "Create VETH interface"
 #define NM_MSG_INST_CONF  "Already installed (y/n)"
-#define NM_MSG_SNAP_OVER  "This name is already used, delete it first" NM_MSG_ANY_KEY
+#define NM_MSG_SNAP_OVER  "This name is already used, delete it first" \
+    NM_MSG_ANY_KEY
 #define NM_MSG_RUNNING    "Already running" NM_MSG_ANY_KEY
-#define NM_MSG_NO_SPACE   "No space left for importing drive image" NM_MSG_ANY_KEY
+#define NM_MSG_NO_SPACE   "No space left for importing drive image" \
+    NM_MSG_ANY_KEY
 #define NM_MSG_IFCLR_DONE "Unused ifaces deleted" NM_MSG_ANY_KEY
 #define NM_MSG_IFCLR_NONE "No unused ifaces" NM_MSG_ANY_KEY
 #define NM_MSG_ISO_MISS   "ISO/IMG path not set" NM_MSG_ANY_KEY
@@ -128,17 +131,21 @@ extern nm_filter_t nm_filter;
 #define NM_MSG_MTAP_NSET  "MacVTap parent iface is not set" NM_MSG_ANY_KEY
 #define NM_MSG_TAP_EACC   "Access to tap iface is missing" NM_MSG_ANY_KEY
 #define NM_MSG_NO_SNAPS   "There are no snapshots" NM_MSG_ANY_KEY
-#define NM_MSG_SNAP_USB   "Cannot create snapshot with USB device attached" NM_MSG_ANY_KEY
+#define NM_MSG_SNAP_USB   "Cannot create snapshot with USB device attached" \
+    NM_MSG_ANY_KEY
 #define NM_NSG_DRV_LIM    "disks limit reached" NM_MSG_ANY_KEY
 #define NM_MSG_DRV_NONE   "No additional disks" NM_MSG_ANY_KEY
 #define NM_MSG_DRV_EDEL   "Cannot delete drive from filesystem" NM_MSG_ANY_KEY
 #define NM_MSG_DRV_SIZE   "Incorrect drive size" NM_MSG_ANY_KEY
 #define NM_MSG_MAC_INVAL  "Invalid mac address" NM_MSG_ANY_KEY
-#define NM_MSF_FWD_INVAL  "Invalid portfwd value, format: tcp|udp::[1-65535]-:[1-65535]" NM_MSG_ANY_KEY
+#define NM_MSF_FWD_INVAL  "Invalid portfwd value, format: " \
+    "tcp|udp::[1-65535]-:[1-65535]" NM_MSG_ANY_KEY
 #define NM_MSG_MAC_USED   "This mac address is already used" NM_MSG_ANY_KEY
 #define NM_MSG_NIC_USED   "This interface name is already used" NM_MSG_ANY_KEY
-#define NM_MSG_VHOST_ERR  "vhost can be enabled only on virtio-net" NM_MSG_ANY_KEY
-#define NM_MSG_VTAP_NOP   "MacVTap parent interface does not exists" NM_MSG_ANY_KEY
+#define NM_MSG_VHOST_ERR  "vhost can be enabled only on virtio-net" \
+    NM_MSG_ANY_KEY
+#define NM_MSG_VTAP_NOP   "MacVTap parent interface does not exists" \
+    NM_MSG_ANY_KEY
 #define NM_MSG_NAME_DIFF  "Names must be different" NM_MSG_ANY_KEY
 #define NM_MSG_OVF_MISS   "OVF file is not found" NM_MSG_ANY_KEY
 #define NM_MSG_OVF_EPAR   "Cannot parse OVF file" NM_MSG_ANY_KEY
@@ -209,10 +216,10 @@ enum nm_key_upper {
 };
 
 /*
-** Fit string in action window.
-** ch1 and ch2 need for snapshot tree.
-** I dont know how to print ACS_* chars in mvwprintw().
-*/
+ * Fit string in action window.
+ * ch1 and ch2 need for snapshot tree.
+ * I dont know how to print ACS_* chars in mvwprintw().
+ */
 #define NM_PR_VM_INFO()                                         \
     do {                                                        \
         if (y > (rows - 3)) {                                   \
@@ -220,8 +227,8 @@ enum nm_key_upper {
             return;                                             \
         }                                                       \
         if (ch1 && ch2) {                                       \
-            mvwaddch(action_window, y, x, ch1 );                \
-            mvwaddch(action_window, y, x + 1, ch2 );            \
+            mvwaddch(action_window, y, x, ch1);                 \
+            mvwaddch(action_window, y, x + 1, ch2);             \
         }                                                       \
         nm_align2line(&buf, (ch1 && ch2) ? cols - 2 : cols);    \
         mvwprintw(action_window, y++,                           \

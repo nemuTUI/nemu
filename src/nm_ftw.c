@@ -67,8 +67,12 @@ static int nm_do_ftw(char *path, nm_ftw_cb_t cb, void *ctx, int max_depth,
     } else {
         size_t n = base_len;
 
-        for(; n && path[n] == '/'; n--);
-        for(; n && path[n] != '/'; n--);
+        for (; n && path[n] == '/'; n--) {
+            ;
+        }
+        for (; n && path[n] != '/'; n--) {
+            ;
+        }
         ftw.base = n;
     }
 

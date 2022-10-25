@@ -19,7 +19,8 @@ static void nm_print_help__(const char **keys, const char **values,
 #if defined (NM_OS_LINUX)
   #if defined (NM_WITH_OVF_SUPPORT)
     #define NM_HELP_MSG \
-      "q:Quit", "I:Install VM", "O:Import OVA", "A:Import image", "N:Network", "?:Help"
+      "q:Quit", "I:Install VM", "O:Import OVA", "A:Import image", \
+      "N:Network", "?:Help"
   #else
     #define NM_HELP_MSG \
       "q:Quit", "I:Install VM", "A:Import image", "N:Network", "?:Help"
@@ -54,7 +55,8 @@ static void nm_print_help__(const char **keys, const char **values,
     X(delete, "q:Back", "enter:Delete")
 
 #define X(name, ...)                                         \
-    void nm_init_help_ ## name(void) {                       \
+    void nm_init_help_ ## name(void)                         \
+    {                                                        \
         const char *msg[] = { __VA_ARGS__ };                 \
         nm_print_help_lines(msg, nm_arr_len(msg), NM_FALSE); \
     }
@@ -73,7 +75,8 @@ void nm_create_windows(void)
 
     help_size = NM_SET_POS(1, screen_x, 0, 0);
     side_size = NM_SET_POS(screen_y - 1, screen_x - action_cols, 0, 1);
-    action_size = NM_SET_POS(screen_y - 1, action_cols, screen_x - action_cols, 1);
+    action_size = NM_SET_POS(screen_y - 1, action_cols,
+            screen_x - action_cols, 1);
 
     help_window = nm_init_window(&help_size);
     side_window = nm_init_window(&side_size);
@@ -91,8 +94,9 @@ void nm_init_help(const char *msg, int err)
 
 static void nm_print_help_lines(const char **msg, size_t objs, int err)
 {
-    if (!msg)
+    if (!msg) {
         return;
+    }
 
     int x = 1, y = 0;
     int use_glyph = nm_cfg_get()->glyphs.separator;
@@ -107,7 +111,7 @@ static void nm_print_help_lines(const char **msg, size_t objs, int err)
             } else {
                 mvwaddch(help_window, y, x, ACS_VLINE);
             }
-            x+=2;
+            x += 2;
         }
 
         mvwprintw(help_window, y, x, "%s", _(msg[n]));
@@ -200,8 +204,8 @@ void nm_print_cmd(const nm_str_t *name)
     nm_vect_t res = NM_INIT_VECT;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     int off, start = 3, flags = 0;
-
     int col = getmaxx(stdscr);
+
     flags |= NM_VMCTL_INFO;
 
     nm_vmctl_get_data(name, &vm);
@@ -224,12 +228,14 @@ void nm_print_cmd(const nm_str_t *name)
 
     for (size_t n = 0; n < argv.n_memb; n++) {
         const char *arg = nm_vect_at(&argv, n);
+
         off = buf.len;
         off += strlen(arg);
         off += 2;
 
         if (off > col) {
             nm_str_t tmp = NM_INIT_STR;
+
             nm_str_append_format(&tmp, "%s\\", buf.data);
             nm_vect_insert_cstr(&res, tmp.data);
             nm_str_trunc(&buf, 0);
@@ -271,8 +277,8 @@ void nm_print_snapshots(const nm_vect_t *v)
     size_t y = 7, x = 2;
     size_t cols, rows;
     chtype ch1, ch2;
-    ch1 = ch2 = 0;
 
+    ch1 = ch2 = 0;
     getmaxyx(action_window, rows, cols);
 
     enum {
@@ -299,18 +305,18 @@ void nm_print_snapshots(const nm_vect_t *v)
 
 void nm_print_drive_info(const nm_vect_t *v, size_t idx)
 {
-    if (!idx)
+    if (!idx) {
         return;
+    }
 
     nm_str_t buf = NM_INIT_STR;
     size_t y = 3, x = 2;
     size_t cols, rows;
     size_t idx_shift;
     chtype ch1, ch2;
+
     ch1 = ch2 = 0;
-
     idx_shift = 2 * (--idx);
-
     getmaxyx(action_window, rows, cols);
 
     nm_str_format(&buf, "%-12s%sGb", "capacity: ",
@@ -322,14 +328,16 @@ void nm_print_drive_info(const nm_vect_t *v, size_t idx)
 
 void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
 {
-    if (!idx)
+    if (!idx) {
         return;
+    }
 
     nm_str_t buf = NM_INIT_STR;
     size_t y = 3, x = 2;
     size_t cols, rows;
     size_t idx_shift, mvtap_idx = 0;
     chtype ch1, ch2;
+
     ch1 = ch2 = 0;
 
     idx_shift = NM_IFS_IDX_COUNT * (--idx);
@@ -374,18 +382,22 @@ void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
                            NM_ENABLE) == NM_OK) ? "yes" : "no");
     NM_PR_VM_INFO();
 
-    mvtap_idx = nm_str_stoui(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT + idx_shift), 10);
-    if (!mvtap_idx)
+    mvtap_idx = nm_str_stoui(nm_vect_str(&vm->ifs,
+                NM_SQL_IF_MVT + idx_shift), 10);
+    if (!mvtap_idx) {
         nm_str_format(&buf, "%-12s%s", "MacVTap: ", nm_form_macvtap[mvtap_idx]);
-    else
-        nm_str_format(&buf, "%-12s%s [iface: %s]", "MacVTap: ", nm_form_macvtap[mvtap_idx],
-            nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_PET + idx_shift));
+    } else {
+        nm_str_format(&buf, "%-12s%s [iface: %s]", "MacVTap: ",
+                nm_form_macvtap[mvtap_idx],
+                nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_PET + idx_shift));
+    }
     NM_PR_VM_INFO();
 out:
     nm_str_free(&buf);
 }
 
-void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status)
+void
+nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status)
 {
     nm_str_t buf = NM_INIT_STR;
     size_t y = 3, x = 2;
@@ -393,11 +405,12 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
     size_t ifs_count, drives_count;
     chtype ch1, ch2;
     nm_cpu_t cpu = NM_INIT_CPU;
+
     ch1 = ch2 = 0;
 
-    static const nm_str_t *name_ = NULL;
-    static const nm_vmctl_data_t *vm_ = NULL;
-    static int status_ = 0;
+    static const nm_str_t *name_;
+    static const nm_vmctl_data_t *vm_;
+    static int status_;
 
     if (name && vm) {
         name_ = name;
@@ -405,8 +418,9 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         status_ = status;
     }
 
-    if (!name_ || !vm_)
+    if (!name_ || !vm_) {
         return;
+    }
 
     getmaxyx(action_window, rows, cols);
 
@@ -427,11 +441,14 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         nm_vect_str_ctx(&vm_->main, NM_SQL_MEM), "Mb");
     NM_PR_VM_INFO();
 
-    if (nm_str_cmp_st(nm_vect_str(&vm_->main, NM_SQL_KVM), NM_ENABLE) == NM_OK) {
-        if (nm_str_cmp_st(nm_vect_str(&vm_->main, NM_SQL_HCPU), NM_ENABLE) == NM_OK)
+    if (nm_str_cmp_st(nm_vect_str(&vm_->main, NM_SQL_KVM),
+                NM_ENABLE) == NM_OK) {
+        if (nm_str_cmp_st(nm_vect_str(&vm_->main, NM_SQL_HCPU), NM_ENABLE) ==
+                NM_OK) {
             nm_str_format(&buf, "%-12s%s", "kvm: ", "enabled [+hostcpu]");
-        else
+        } else {
             nm_str_format(&buf, "%-12s%s", "kvm: ", "enabled");
+        }
     } else {
         nm_str_format(&buf, "%-12s%s", "kvm: ", "disabled");
     }
@@ -462,8 +479,9 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
     }
 
     nm_str_format(&buf, "%-12s%s [%u]", "vnc port: ",
-             nm_vect_str_ctx(&vm_->main, NM_SQL_VNC),
-             nm_str_stoui(nm_vect_str(&vm_->main, NM_SQL_VNC), 10) + NM_STARTING_VNC_PORT);
+            nm_vect_str_ctx(&vm_->main, NM_SQL_VNC),
+            nm_str_stoui(nm_vect_str(&vm_->main, NM_SQL_VNC), 10) +
+            NM_STARTING_VNC_PORT);
     NM_PR_VM_INFO();
 
     /* print network interfaces info */
@@ -471,6 +489,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
 
     for (size_t n = 0; n < ifs_count; n++) {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
+
         if (nm_str_cmp_st(nm_vect_str(&vm_->ifs, NM_SQL_IF_USR + idx_shift),
                     NM_ENABLE) == NM_OK) {
             nm_str_format(&buf, "eth%zu%-8s%s [user mode]",
@@ -482,7 +501,8 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
                     nm_vect_str_ctx(&vm_->ifs, NM_SQL_IF_NAME + idx_shift),
                     nm_vect_str_ctx(&vm_->ifs, NM_SQL_IF_MAC + idx_shift),
                     nm_vect_str_ctx(&vm_->ifs, NM_SQL_IF_DRV + idx_shift),
-                    (nm_str_cmp_st(nm_vect_str(&vm_->ifs, NM_SQL_IF_VHO + idx_shift),
+                    (nm_str_cmp_st(nm_vect_str(&vm_->ifs,
+                                               NM_SQL_IF_VHO + idx_shift),
                                    NM_ENABLE) == NM_OK) ? "+vhost" : "");
         }
 
@@ -498,8 +518,8 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         struct stat img_info;
         int boot = 0;
 
-        if (nm_str_cmp_st(nm_vect_str(&vm_->drives, NM_SQL_DRV_BOOT + idx_shift),
-                NM_ENABLE) == NM_OK) {
+        if (nm_str_cmp_st(nm_vect_str(&vm_->drives,
+                        NM_SQL_DRV_BOOT + idx_shift), NM_ENABLE) == NM_OK) {
             boot = 1;
         }
 
@@ -518,7 +538,8 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
                  (double) img_info.st_size / 1073741824,
                  nm_vect_str_ctx(&vm_->drives, NM_SQL_DRV_SIZE + idx_shift),
                  nm_vect_str_ctx(&vm_->drives, NM_SQL_DRV_TYPE + idx_shift),
-                 (nm_str_cmp_st(nm_vect_str(&vm_->drives, NM_SQL_DRV_DISC + idx_shift),
+                 (nm_str_cmp_st(nm_vect_str(&vm_->drives,
+                                            NM_SQL_DRV_DISC + idx_shift),
                                 NM_ENABLE) == NM_OK) ? "on" : "off",
                  boot ? "*" : "");
         mvwhline(action_window, y, 1, ' ', cols - 4);
@@ -542,12 +563,12 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
         NM_PR_VM_INFO();
     }
     if (nm_vect_str_len(&vm_->main, NM_SQL_BIOS)) {
-        nm_str_format(&buf,"%-12s%s", "bios: ",
+        nm_str_format(&buf, "%-12s%s", "bios: ",
                 nm_vect_str_ctx(&vm_->main, NM_SQL_BIOS));
         NM_PR_VM_INFO();
     }
     if (nm_vect_str_len(&vm_->main, NM_SQL_KERN)) {
-        nm_str_format(&buf,"%-12s%s", "kernel: ",
+        nm_str_format(&buf, "%-12s%s", "kernel: ",
                 nm_vect_str_ctx(&vm_->main, NM_SQL_KERN));
         NM_PR_VM_INFO();
     }
@@ -576,17 +597,18 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
                 nm_vect_str_ctx(&vm_->main, NM_SQL_DEBP));
         NM_PR_VM_INFO();
     }
-    if (nm_str_cmp_st(nm_vect_str(&vm_->main, NM_SQL_DEBF), NM_ENABLE) == NM_OK) {
+    if (nm_str_cmp_st(nm_vect_str(&vm_->main, NM_SQL_DEBF),
+                NM_ENABLE) == NM_OK) {
         nm_str_format(&buf, "%-12s", "freeze cpu: yes");
         NM_PR_VM_INFO();
     }
     if (nm_vect_str_len(&vm_->main, NM_SQL_ARGS)) {
-        nm_str_format(&buf,"%-12s%s", "extra args: ",
+        nm_str_format(&buf, "%-12s%s", "extra args: ",
                 nm_vect_str_ctx(&vm_->main, NM_SQL_ARGS));
         NM_PR_VM_INFO();
     }
     if (nm_vect_str_len(&vm_->main, NM_SQL_GROUP)) {
-        nm_str_format(&buf,"%-12s%s", "group: ",
+        nm_str_format(&buf, "%-12s%s", "group: ",
                 nm_vect_str_ctx(&vm_->main, NM_SQL_GROUP));
         NM_PR_VM_INFO();
     }
@@ -595,8 +617,9 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
     for (size_t n = 0; n < ifs_count; n++) {
         size_t idx_shift = NM_IFS_IDX_COUNT * n;
 
-        if (!nm_vect_str_len(&vm_->ifs, NM_SQL_IF_IP4 + idx_shift))
+        if (!nm_vect_str_len(&vm_->ifs, NM_SQL_IF_IP4 + idx_shift)) {
             continue;
+        }
 
         nm_str_format(&buf, "%-12s%s [%s]", "host IP: ",
             nm_vect_str_ctx(&vm_->ifs, NM_SQL_IF_NAME + idx_shift),
@@ -630,6 +653,7 @@ void nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int statu
 #if defined (NM_OS_LINUX)
             if (pid_num) {
                 double usage = nm_stat_get_usage(pid_num);
+
                 nm_str_format(&buf, "%-12s%0.1f%%", "cpu usage: ", usage);
                 mvwhline(action_window, y, 1, ' ', cols - 4);
                 NM_PR_VM_INFO();
@@ -682,7 +706,7 @@ void nm_print_help(void)
 #if defined (NM_OS_LINUX)
         "+", "-",
 #endif
-        "k", "/" , "[", "]"
+        "k", "/", "[", "]"
 };
 
     const char *values[] = {
@@ -745,16 +769,19 @@ nm_print_help__(const char **keys, const char **values,
     }
 
     perc = (hotkey_num > rows) ? ((rows * 100) / hotkey_num) : 100;
-    if (perc == 100)
+    if (perc == 100) {
         nm_str_format(&help_title, _("nEMU %s - help [all]"), NM_VERSION);
-    else
-        nm_str_format(&help_title, _("nEMU %s - help [%d%%]") , NM_VERSION, perc);
+    } else {
+        nm_str_format(&help_title, _("nEMU %s - help [%d%%]"), NM_VERSION,
+                perc);
+    }
 
     werase(action_window);
     nm_init_action(help_title.data);
 
-    for (size_t y = 3; n < rows && n < hotkey_num; n++, y++)
+    for (size_t y = 3; n < rows && n < hotkey_num; n++, y++) {
         mvwprintw(action_window, y, 2, "%-10s%s", keys[n], values[n]);
+    }
 
     if (perc != 100) {
         size_t shift = 0;
@@ -769,15 +796,20 @@ nm_print_help__(const char **keys, const char **values,
                 n = shift;
                 werase(action_window);
 
-                for (size_t y = 3, l = 0; l < rows && n < hotkey_num; n++, y++, l++)
-                    mvwprintw(action_window, y, 2, "%-10s%s", keys[n], values[n]);
+                for (size_t y = 3, l = 0; l < rows && n < hotkey_num;
+                        n++, y++, l++) {
+                    mvwprintw(action_window, y, 2, "%-10s%s",
+                            keys[n], values[n]);
+                }
 
                 last = n;
                 if (last < hotkey_num) {
                     perc = 100 * last / hotkey_num;
-                    nm_str_format(&help_title, _("nEMU %s - help [%d%%]") , NM_VERSION, perc);
+                    nm_str_format(&help_title, _("nEMU %s - help [%d%%]"),
+                            NM_VERSION, perc);
                 } else {
-                    nm_str_format(&help_title, _("nEMU %s - help [end]"), NM_VERSION);
+                    nm_str_format(&help_title, _("nEMU %s - help [end]"),
+                            NM_VERSION);
                 }
 
                 nm_init_action(help_title.data);
@@ -801,8 +833,9 @@ nm_print_help__(const char **keys, const char **values,
 
 void nm_align2line(nm_str_t *str, size_t line_len)
 {
-    if (line_len <= 4)
+    if (line_len <= 4) {
         return;
+    }
 
     if (str->len > (line_len - 4)) {
         nm_str_trunc(str, line_len - 7);
@@ -812,13 +845,15 @@ void nm_align2line(nm_str_t *str, size_t line_len)
 
 size_t nm_max_msg_len(const char **msg)
 {
-    if (!msg)
+    if (!msg) {
         return 0;
+    }
 
     size_t len = 0;
 
     while (*msg) {
         size_t mb_len = mbstowcs(NULL, _(*msg), strlen(_(*msg)));
+
         len = (mb_len > len) ? mb_len : len;
         msg++;
     }
@@ -828,14 +863,17 @@ size_t nm_max_msg_len(const char **msg)
 
 static int nm_warn__(const char *msg, int red)
 {
-    if (!msg)
+    if (!msg) {
         return ERR;
+    }
 
     int ch;
 
     werase(help_window);
     nm_init_help(msg, red);
-    while ((ch = wgetch(help_window)) == KEY_RESIZE);
+    while ((ch = wgetch(help_window)) == KEY_RESIZE) {
+        ;
+    }
     werase(help_window);
     nm_init_help_main();
 
@@ -854,8 +892,9 @@ int nm_notify(const char *msg)
 
 int nm_window_scale_inc(void)
 {
-    if (nm_window_scale > 0.8)
+    if (nm_window_scale > 0.8) {
         return NM_ERR;
+    }
 
     nm_window_scale += 0.02;
 
@@ -864,8 +903,9 @@ int nm_window_scale_inc(void)
 
 int nm_window_scale_dec(void)
 {
-    if (nm_window_scale < 0.2)
+    if (nm_window_scale < 0.2) {
         return NM_ERR;
+    }
 
     nm_window_scale -= 0.02;
 

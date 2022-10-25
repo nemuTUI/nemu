@@ -18,7 +18,8 @@ static void nm_usb_plug_list(nm_vect_t *devs, nm_vect_t *names);
 static int nm_usb_plug_get_data(const nm_str_t *name, nm_usb_data_t *usb,
         const nm_vect_t *usb_list);
 static int nm_usb_unplug_get_data(nm_usb_data_t *usb, const nm_vect_t *db_list);
-static void nm_usb_plug_update_db(const nm_str_t *name, const nm_usb_data_t *usb);
+static void nm_usb_plug_update_db(const nm_str_t *name,
+        const nm_usb_data_t *usb);
 
 enum {
     NM_LBL_USB_DEV = 0, NM_FLD_USB_DEV,
@@ -32,8 +33,10 @@ static void nm_usb_attach_init_windows(nm_form_t *form)
     if (form) {
         nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if (form_data)
+
+        if (form_data) {
             form_data->parent_window = action_window;
+        }
     } else {
         werase(action_window);
         werase(help_window);
@@ -51,8 +54,10 @@ static void nm_usb_detach_init_windows(nm_form_t *form)
     if (form) {
         nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if (form_data)
+
+        if (form_data) {
             form_data->parent_window = action_window;
+        }
     } else {
         werase(action_window);
         werase(help_window);
@@ -74,13 +79,15 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
     nm_vect_t usb_names = NM_INIT_VECT;
     nm_vect_t db_result = NM_INIT_VECT;
     nm_usb_data_t usb = NM_INIT_USB_DATA;
-    size_t msg_len = mbstowcs(NULL, _(NM_LC_USB_FORM_MSG), strlen(_(NM_LC_USB_FORM_MSG)));
+    size_t msg_len = mbstowcs(NULL,
+            _(NM_LC_USB_FORM_MSG), strlen(_(NM_LC_USB_FORM_MSG)));
 
     /* check for usb enabled first */
     nm_str_format(&buf, NM_USB_CHECK_SQL, name->data);
     nm_db_select(buf.data, &db_result);
 
-    if (vm_status && nm_str_cmp_st(nm_vect_str(&db_result, 0), NM_DISABLE) == NM_OK) {
+    if (vm_status && nm_str_cmp_st(nm_vect_str(&db_result, 0),
+                NM_DISABLE) == NM_OK) {
         nm_warn(_(NM_MSG_USB_DIS));
         goto out;
     }
@@ -94,11 +101,12 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
 
     nm_usb_attach_init_windows(NULL);
 
-    form_data = nm_form_data_new(
-        action_window, nm_usb_attach_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
+    form_data = nm_form_data_new(action_window,
+            nm_usb_attach_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
 
-    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK) {
         goto out;
+    }
 
     fields[0] = nm_field_label_new(0, form_data);
     fields[1] = nm_field_enum_new(0, form_data,
@@ -113,15 +121,19 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
 
-    if (nm_form_draw(&form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK) {
         goto out;
+    }
 
-    if ((nm_usb_plug_get_data(name, &usb, &usb_devs)) != NM_OK)
+    if ((nm_usb_plug_get_data(name, &usb, &usb_devs)) != NM_OK) {
         goto out;
+    }
 
-    if (vm_status)
-        if (nm_qmp_usb_attach(name, &usb) != NM_OK)
+    if (vm_status) {
+        if (nm_qmp_usb_attach(name, &usb) != NM_OK) {
             goto out;
+        }
+    }
 
     nm_usb_plug_update_db(name, &usb);
 
@@ -146,7 +158,8 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
     nm_usb_dev_t usb_dev = NM_INIT_USB;
     nm_vect_t usb_names = NM_INIT_VECT;
     nm_vect_t db_result = NM_INIT_VECT;
-    size_t msg_len = mbstowcs(NULL, _(NM_LC_USB_FORM_MSG), strlen(_(NM_LC_USB_FORM_MSG)));
+    size_t msg_len = mbstowcs(NULL,
+            _(NM_LC_USB_FORM_MSG), strlen(_(NM_LC_USB_FORM_MSG)));
 
     usb_data.dev = &usb_dev;
 
@@ -159,14 +172,14 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
     }
 
     nm_usb_unplug_list(&db_result, &usb_names, true);
-
     nm_usb_detach_init_windows(NULL);
 
-    form_data = nm_form_data_new(
-        action_window, nm_usb_detach_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
+    form_data = nm_form_data_new(action_window,
+            nm_usb_detach_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
 
-    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK) {
         goto out;
+    }
 
     fields[0] = nm_field_label_new(0, form_data);
     fields[1] = nm_field_enum_new(0, form_data,
@@ -181,14 +194,17 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
 
-    if (nm_form_draw(&form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK) {
         goto out;
+    }
 
-    if (nm_usb_unplug_get_data(&usb_data, &db_result) != NM_OK)
+    if (nm_usb_unplug_get_data(&usb_data, &db_result) != NM_OK) {
         goto out;
+    }
 
-    if (vm_status)
+    if (vm_status) {
         (void) nm_qmp_usb_detach(name, &usb_data);
+    }
 
     nm_str_format(&buf, NM_USB_DELETE_SQL,
             name->data,
@@ -257,7 +273,8 @@ static void nm_usb_plug_list(nm_vect_t *devs, nm_vect_t *names)
     nm_str_t dev_name = NM_INIT_STR;
 
     for (size_t n = 0; n < devs->n_memb; n++) {
-        nm_str_format(&dev_name, "%zu:%s", n + 1, nm_usb_name(devs->data[n])->data);
+        nm_str_format(&dev_name, "%zu:%s", n + 1,
+                nm_usb_name(devs->data[n])->data);
         nm_vect_insert(names, dev_name.data, dev_name.len + 1, NULL);
 
         nm_debug("usb >> %03u:%03u %s:%s %s\n",
@@ -370,7 +387,8 @@ out:
     return rc;
 }
 
-static void nm_usb_plug_update_db(const nm_str_t *name, const nm_usb_data_t *usb)
+static void
+nm_usb_plug_update_db(const nm_str_t *name, const nm_usb_data_t *usb)
 {
     nm_str_t query = NM_INIT_STR;
 

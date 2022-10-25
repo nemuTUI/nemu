@@ -2,8 +2,10 @@
 #include <nm_utils.h>
 #include <nm_usb_devices.h>
 
-/* Disable USB on FreeBSD while libudev-devd
- * will not supports calls udev_hwdb_* */
+/*
+ * Disable USB on FreeBSD while libudev-devd
+ * will not supports calls udev_hwdb_*
+ */
 
 enum {NM_USB_SERIAL_LEN = 127};
 
@@ -17,34 +19,39 @@ static const char *nm_usb_hwdb_get(const char *modalias, const char *key);
 static const char *nm_usb_get_vendor(uint16_t vid);
 static const char *nm_usb_get_product(uint16_t vid, uint16_t pid);
 static int nm_usb_get_vendor_str(char *buf, size_t size, uint16_t vid);
-static int nm_usb_get_product_str(char *buf, size_t size, uint16_t vid, uint16_t pid);
+static int nm_usb_get_product_str(char *buf, size_t size,
+        uint16_t vid, uint16_t pid);
 
-static struct udev_hwdb *hwdb = NULL;
+static struct udev_hwdb *hwdb;
 #endif /* NM_OS_LINUX */
 
 void nm_usb_get_devs(nm_vect_t *v)
 {
-#if defined (NM_OS_LINUX)
-    libusb_context *ctx = NULL;
+#if defined(NM_OS_LINUX)
     libusb_device **list = NULL;
+    libusb_context *ctx = NULL;
     struct udev *udev = NULL;
     int rc;
     ssize_t dev_count, n;
     char vendor[128], product[128];
 
-    if ((udev = udev_new()) == NULL)
+    if ((udev = udev_new()) == NULL) {
         nm_bug(_("%s: udev_new failed"), __func__);
+    }
 
-    if ((hwdb = udev_hwdb_new(udev)) == NULL)
+    if ((hwdb = udev_hwdb_new(udev)) == NULL) {
         nm_bug(_("%s: udev_hwdb_new failed"), __func__);
+    }
 
-    if ((rc = libusb_init(&ctx)) != 0)
+    if ((rc = libusb_init(&ctx)) != 0) {
         nm_bug("%s: %s", __func__, libusb_strerror(rc));
+    }
 
-    if ((dev_count = libusb_get_device_list(ctx, &list)) < 1)
+    if ((dev_count = libusb_get_device_list(ctx, &list)) < 1) {
         nm_bug(_("%s: libusb_get_device_list failed"), __func__);
+    }
 
-    //@TODO Some of variables may be moved outside, and freed only once
+    /* @TODO Some of variables may be moved outside, and freed only once */
     for (n = 0; n < dev_count; n++) {
         nm_usb_dev_t dev = NM_INIT_USB;
         libusb_device *device = list[n];
@@ -52,18 +59,22 @@ void nm_usb_get_devs(nm_vect_t *v)
 
         memset(&desc, 0, sizeof(desc));
 
-        if (libusb_get_device_descriptor(device, &desc) != 0)
+        if (libusb_get_device_descriptor(device, &desc) != 0) {
             continue;
+        }
 
-        if (nm_usb_get_vendor_str(vendor, sizeof(vendor), desc.idVendor) == 0)
+        if (nm_usb_get_vendor_str(vendor, sizeof(vendor), desc.idVendor) == 0) {
             nm_str_alloc_text(&dev.name, "vendor-unknown");
-        else
+        } else {
             nm_str_alloc_text(&dev.name, vendor);
+        }
 
-        if (nm_usb_get_product_str(product, sizeof(product), desc.idVendor, desc.idProduct) == 0)
+        if (nm_usb_get_product_str(product, sizeof(product),
+                    desc.idVendor, desc.idProduct) == 0) {
             nm_str_add_text(&dev.name, " product-unknown");
-        else
+        } else {
             nm_str_add_text(&dev.name, product);
+        }
 
         dev.bus_num = libusb_get_bus_number(device);
         dev.dev_addr = libusb_get_device_address(device);
@@ -94,14 +105,17 @@ int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
     int usb_rc;
     ssize_t dev_count;
 
-    if (dev == NULL)
+    if (dev == NULL) {
         nm_bug(_("%s: null nm_usb_dev_t pointer"), __func__);
+    }
 
-    if ((usb_rc = libusb_init(&ctx)) != 0)
+    if ((usb_rc = libusb_init(&ctx)) != 0) {
         nm_bug("%s: %s", __func__, libusb_strerror(usb_rc));
+    }
 
-    if ((dev_count = libusb_get_device_list(ctx, &list)) < 1)
+    if ((dev_count = libusb_get_device_list(ctx, &list)) < 1) {
         nm_bug(_("%s: libusb_get_device_list failed"), __func__);
+    }
 
     for (ssize_t n = 0; n < dev_count; n++) {
         uint8_t bus_num, dev_addr;
@@ -118,11 +132,13 @@ int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
 
             memset(&desc, 0, sizeof(desc));
 
-            if (libusb_get_device_descriptor(device, &desc) != 0)
+            if (libusb_get_device_descriptor(device, &desc) != 0) {
                 break;
+            }
 
-            if ((usb_rc = libusb_open(device, &handle)) != 0)
+            if ((usb_rc = libusb_open(device, &handle)) != 0) {
                 nm_bug("%s: %s", __func__, libusb_strerror(usb_rc));
+            }
 
             if (libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
                         (uint8_t *) serial_buf, NM_USB_SERIAL_LEN) > 0) {
@@ -192,9 +208,11 @@ static const char *nm_usb_hwdb_get(const char *modalias, const char *key)
 {
     struct udev_list_entry *entry = NULL;
 
-    udev_list_entry_foreach(entry, udev_hwdb_get_properties_list_entry(hwdb, modalias, 0)) {
-        if (strcmp(udev_list_entry_get_name(entry), key) == 0)
+    udev_list_entry_foreach(entry,
+            udev_hwdb_get_properties_list_entry(hwdb, modalias, 0)) {
+        if (strcmp(udev_list_entry_get_name(entry), key) == 0) {
             return udev_list_entry_get_value(entry);
+        }
     }
 
     return NULL;
@@ -220,28 +238,33 @@ static int nm_usb_get_vendor_str(char *buf, size_t size, uint16_t vid)
 {
     const char *cp;
 
-    if (size < 1)
+    if (size < 1) {
         return 0;
+    }
 
     *buf = 0;
 
-    if (!(cp = nm_usb_get_vendor(vid)))
+    if (!(cp = nm_usb_get_vendor(vid))) {
         return 0;
+    }
 
     return snprintf(buf, size, "%s ", cp);
 }
 
-static int nm_usb_get_product_str(char *buf, size_t size, uint16_t vid, uint16_t pid)
+static int
+nm_usb_get_product_str(char *buf, size_t size, uint16_t vid, uint16_t pid)
 {
     const char *cp;
 
-    if (size < 1)
+    if (size < 1) {
         return 0;
+    }
 
     *buf = 0;
 
-    if (!(cp = nm_usb_get_product(vid, pid)))
+    if (!(cp = nm_usb_get_product(vid, pid))) {
         return 0;
+    }
 
     return snprintf(buf, size, "%s", cp);
 }

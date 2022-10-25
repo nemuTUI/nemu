@@ -24,8 +24,10 @@ static void nm_clone_vm_init_windows(nm_form_t *form)
     if (form) {
         nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if (form_data)
+
+        if (form_data) {
             form_data->parent_window = action_window;
+        }
     } else {
         werase(action_window);
         werase(help_window);
@@ -56,13 +58,16 @@ void nm_clone_vm(const nm_str_t *name)
 
     nm_vmctl_get_data(name, &vm);
 
-    msg_len = mbstowcs(NULL, _(NM_LC_CLONE_NAME_MSG), strlen(_(NM_LC_CLONE_NAME_MSG)));
+    msg_len = mbstowcs(NULL, _(NM_LC_CLONE_NAME_MSG),
+            strlen(_(NM_LC_CLONE_NAME_MSG)));
 
     form_data = nm_form_data_new(
-        action_window, nm_clone_vm_init_windows, msg_len, NM_FLD_COUNT / 2, NM_TRUE);
+            action_window, nm_clone_vm_init_windows, msg_len,
+            NM_FLD_COUNT / 2, NM_TRUE);
 
-    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK) {
         goto out;
+    }
 
     fields[0] = nm_field_label_new(0, form_data);
     fields[1] = nm_field_regexp_new(0, form_data, "^[a-zA-Z0-9_-]{1,30} *$");
@@ -76,8 +81,9 @@ void nm_clone_vm(const nm_str_t *name)
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
 
-    if (nm_form_draw(&form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK) {
         goto out;
+    }
 
     nm_get_field_buf(fields[1], &cl_name);
     nm_form_check_data(_(NM_LC_CLONE_NAME_MSG), cl_name, err);
@@ -87,20 +93,24 @@ void nm_clone_vm(const nm_str_t *name)
         goto out;
     }
 
-    if (nm_form_name_used(&cl_name) == NM_ERR)
+    if (nm_form_name_used(&cl_name) == NM_ERR) {
         goto out;
+    }
 
     sp_data.stop = &done;
 
-    if (pthread_create(&spin_th, NULL, nm_progress_bar, (void *) &sp_data) != 0)
+    if (pthread_create(&spin_th, NULL, nm_progress_bar,
+                (void *) &sp_data) != 0) {
         nm_bug(_("%s: cannot create thread"), __func__);
+    }
 
     nm_clone_vm_to_fs(name, &cl_name, &vm.drives);
     nm_clone_vm_to_db(name, &cl_name, &vm);
 
     done = 1;
-    if (pthread_join(spin_th, NULL) != 0)
+    if (pthread_join(spin_th, NULL) != 0) {
         nm_bug(_("%s: cannot join thread"), __func__);
+    }
 
 out:
     NM_FORM_EXIT();
@@ -179,6 +189,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         nm_str_t if_name = NM_INIT_STR;
         nm_str_t if_name_copy = NM_INIT_STR;
         nm_str_t maddr = NM_INIT_STR;
+
         last_mac++;
 
         nm_net_mac_n2s(last_mac, &maddr);
@@ -189,7 +200,8 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         nm_str_format(&query,
             "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, "
             "macvtap, parent_eth, altname, netuser, hostfwd, smb) "
-            "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+            "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', "
+            "'%s', '%s', '%s', '%s')",
             dst->data, if_name.data, maddr.data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift)->data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift)->data,
@@ -213,7 +225,8 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
 
         nm_str_format(&query,
-            "INSERT INTO drives(vm_name, drive_name, drive_drv, capacity, boot, discard) "
+            "INSERT INTO drives(vm_name, drive_name, drive_drv, "
+            "capacity, boot, discard) "
             "VALUES('%s', '%s_%c.img', '%s', '%s', '%s', '%s')",
             dst->data, dst->data, drv_ch,
             nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift)->data,

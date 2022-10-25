@@ -37,7 +37,8 @@ int nm_strn_cmp_ss(const nm_str_t *str1, const nm_str_t *str2);
 int nm_str_case_cmp_tt(const char *text1, const char *text2);
 size_t nm_strlcpy(char *dst, const char *src, size_t buflen);
 void nm_str_remove_char(nm_str_t *str, char ch);
-void nm_str_append_to_vect(const nm_str_t *src, nm_vect_t *v, const char *delim);
+void nm_str_append_to_vect(const nm_str_t *src, nm_vect_t *v,
+        const char *delim);
 void nm_str_format(nm_str_t *str, const char *fmt, ...)
     __attribute__ ((format(printf, 2, 3)));
 void nm_str_append_format(nm_str_t *str, const char *fmt, ...)

@@ -36,7 +36,7 @@ static int nm_search_cmp_cb(const void *s1, const void *s2);
 static void nm_iterate_groups(bool forward);
 static void nm_store_pid(void);
 
-static inline void nm_filter_clean()
+static inline void nm_filter_clean(void)
 {
     nm_str_free(&nm_filter.query);
     nm_filter.type = NM_FILTER_NONE;
@@ -103,7 +103,8 @@ void nm_start_main_loop(void)
                 nm_str_format(&query, "%s", NM_GET_VMS_SQL);
                 break;
             case NM_FILTER_GROUP:
-                nm_str_format(&query, NM_GET_VMS_FILTER_GROUP_SQL, nm_filter.query.data);
+                nm_str_format(&query, NM_GET_VMS_FILTER_GROUP_SQL,
+                        nm_filter.query.data);
                 break;
             }
 
@@ -115,20 +116,23 @@ void nm_start_main_loop(void)
             vms.highlight = 1;
 
             if (old_hl > 1) {
-                if (vm_list.n_memb < old_hl)
+                if (vm_list.n_memb < old_hl) {
                     vms.highlight = (old_hl - 1);
-                else
+                } else {
                     vms.highlight = old_hl;
+                }
                 old_hl = 0;
             }
 
-            if (vm_list_len < vm_list.n_memb)
+            if (vm_list_len < vm_list.n_memb) {
                 vms.item_last = vm_list_len;
-            else
+            } else {
                 vms.item_last = vm_list_len = vm_list.n_memb;
+            }
 
             for (size_t n = 0; n < vm_list.n_memb; n++) {
                 nm_menu_item_t vm = NM_INIT_MENU_ITEM;
+
                 vm.name = (nm_str_t *) nm_vect_at(&vm_list, n);
                 nm_vect_insert(&vms_v, &vm, sizeof(vm), NULL);
             }
@@ -173,13 +177,17 @@ void nm_start_main_loop(void)
 
         ch = wgetch(side_window);
 
-        /* Clear action window only if key pressed.
-         * Otherwise text will be flicker in tty. */
-        if (ch != ERR)
+        /*
+         * Clear action window only if key pressed.
+         * Otherwise text will be flicker in tty.
+         */
+        if (ch != ERR) {
             clear_action = 1;
+        }
 
-        if (vm_list.n_memb > 0)
+        if (vm_list.n_memb > 0) {
             nm_menu_scroll(&vms, vm_list_len, ch);
+        }
 
         if (ch == NM_KEY_Q) {
             if (unlink(cfg->pid.data) != 0) {
@@ -223,38 +231,45 @@ void nm_start_main_loop(void)
                 break;
 
             case NM_KEY_P:
-                if (vm_status)
+                if (vm_status) {
                     nm_qmp_vm_shut(name);
+                }
                 break;
 
             case NM_KEY_F:
-                if (vm_status)
+                if (vm_status) {
                     nm_qmp_vm_stop(name);
+                }
                 break;
 
             case NM_KEY_Z:
-                if (vm_status)
+                if (vm_status) {
                     nm_qmp_vm_reset(name);
+                }
                 break;
 
             case NM_KEY_P_UP:
-                if (vm_status)
+                if (vm_status) {
                     nm_qmp_vm_pause(name);
+                }
                 break;
 
             case NM_KEY_R_UP:
-                if (vm_status)
+                if (vm_status) {
                     nm_qmp_vm_resume(name);
+                }
                 break;
 
             case NM_KEY_K:
-                if (vm_status)
+                if (vm_status) {
                     nm_vmctl_kill(name);
+                }
                 break;
 
             case NM_KEY_C:
-                if (vm_status)
+                if (vm_status) {
                     nm_vmctl_connect(name);
+                }
                 break;
 
             case NM_KEY_M:
@@ -277,7 +292,7 @@ void nm_start_main_loop(void)
                 nm_init_side();
                 break;
 
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
             case NM_KEY_PLUS:
                 nm_usb_plug(name, vm_status);
                 break;
@@ -365,6 +380,7 @@ void nm_start_main_loop(void)
                 }
                 {
                     int ans = nm_notify(_(NM_MSG_DELETE));
+
                     if (ans == 'y') {
                         nm_vmctl_delete(name);
                         regen_data = 1;
@@ -387,7 +403,7 @@ void nm_start_main_loop(void)
                 nm_init_side();
                 break;
 
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
             case NM_KEY_N_UP:
                 nm_lan_settings();
                 nm_init_side();
@@ -437,7 +453,7 @@ void nm_start_main_loop(void)
         if (ch == NM_KEY_U) {
             nm_vmctl_clear_all_tap();
         }
-#if defined (NM_WITH_OVF_SUPPORT)
+#if defined(NM_WITH_OVF_SUPPORT)
         if (ch == NM_KEY_O_UP) {
             nm_ovf_import();
             regen_data = 1;
@@ -451,22 +467,27 @@ void nm_start_main_loop(void)
         }
 
         if (ch == KEY_LEFT) {
-            if (nm_window_scale_inc() == NM_OK)
+            if (nm_window_scale_inc() == NM_OK) {
                 redraw_window = 1;
+            }
         }
 
         if (ch == KEY_RIGHT) {
-            if (nm_window_scale_dec() == NM_OK)
+            if (nm_window_scale_dec() == NM_OK) {
                 redraw_window = 1;
+            }
         }
 
         if (ch == 0x6e || ch == 0x45 || ch == 0x4d || ch == 0x55) {
-            if (ch == 0x6e && !nemu)
+            if (ch == 0x6e && !nemu) {
                  nemu++;
-            if (ch == 0x45 && nemu == 1)
+            }
+            if (ch == 0x45 && nemu == 1) {
                  nemu++;
-            if (ch == 0x4d && nemu == 2)
+            }
+            if (ch == 0x4d && nemu == 2) {
                  nemu++;
+            }
             if (ch == 0x55 && nemu == 3) {
                 werase(action_window);
                 nm_init_action("Nemu Kurotsuchi");
@@ -490,9 +511,9 @@ void nm_start_main_loop(void)
                 vms.item_last = vm_list_len;
                 vms.item_first = 0;
                 vms.highlight = 1;
-            }
-            else
+            } else {
                 vms.item_last = vm_list_len = vm_list.n_memb;
+            }
 
             redraw_window = 0;
         }
@@ -509,8 +530,10 @@ static void nm_search_init_windows(nm_form_t *form)
     if (form) {
         nm_form_window_init();
         nm_form_data_t *form_data = (nm_form_data_t *)form_userptr(form);
-        if (form_data)
+
+        if (form_data) {
             form_data->parent_window = side_window;
+        }
     }
 
     nm_init_side();
@@ -525,8 +548,9 @@ static void nm_search_init_windows(nm_form_t *form)
 
 static size_t nm_search_vm(const nm_vect_t *list, int *err)
 {
-    if (!err)
+    if (!err) {
         return 0;
+    }
 
     nm_form_data_t *form_data = NULL;
     nm_form_t *form = NULL;
@@ -551,8 +575,9 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
     form_data->form_vpad = 0;
     form_data->w_start_y = 1;
 
-    if (nm_form_data_update(form_data, 0, 0) != NM_OK)
+    if (nm_form_data_update(form_data, 0, 0) != NM_OK) {
         goto out;
+    }
 
     fields[0] = nm_field_label_new(0, form_data);
     fields[1] = nm_field_default_new(0, form_data);
@@ -566,37 +591,46 @@ static size_t nm_search_vm(const nm_vect_t *list, int *err)
     form = nm_form_new(form_data, fields);
     nm_form_post(form);
 
-    if (nm_form_draw(&form) != NM_OK)
+    if (nm_form_draw(&form) != NM_OK) {
         goto out;
+    }
 
     nm_get_field_buf(fields[1], &input);
-    if (!input.len)
+    if (!input.len) {
         goto out;
+    }
 
-    if (nm_filter_check(&input) == NM_OK)
+    if (nm_filter_check(&input) == NM_OK) {
         goto out;
+    }
 
-    match = bsearch(&input, list->data, list->n_memb, sizeof(void *), nm_search_cmp_cb);
+    match = bsearch(&input, list->data, list->n_memb, sizeof(void *),
+            nm_search_cmp_cb);
 
     if (match != NULL) {
-        pos = (((unsigned char *)match - (unsigned char *)list->data) / sizeof(void *));
+        pos = (((unsigned char *)match - (unsigned char *)list->data) /
+                sizeof(void *));
         pos++;
     }
 
-    /* An incomplete match can happen not at the
+    /*
+     * An incomplete match can happen not at the
      * beginning of the list with the same prefixes
      * in nm_search_cmp_cb.
-     * So use backward linear search to fix it */
-    if (pos <= 1)
+     * So use backward linear search to fix it
+     */
+    if (pos <= 1) {
         goto out;
+    }
 
     for (uint32_t n = pos - 1; n != 0; n--) {
         char *fo = strstr(nm_vect_str_ctx(list, n - 1), input.data);
 
-        if (fo != NULL && fo == nm_vect_str_ctx(list, n - 1))
+        if (fo != NULL && fo == nm_vect_str_ctx(list, n - 1)) {
             pos--;
-        else
+        } else {
             break;
+        }
     }
 
 out:
@@ -610,11 +644,13 @@ out:
 
 static int nm_filter_check(const nm_str_t *input)
 {
-    if (input->len < 2)
+    if (input->len < 2) {
         return NM_ERR;
+    }
 
-    if (input->data[0] != 'g' && input->data[1] != ':')
+    if (input->data[0] != 'g' && input->data[1] != ':') {
         return NM_ERR;
+    }
 
     if (input->len == 2) {
         nm_filter.flags |= NM_FILTER_RESET;
@@ -638,8 +674,10 @@ static int nm_search_cmp_cb(const void *s1, const void *s2)
 
     if (rc != 0) {
         char *fo = strstr((*str2)->data, str1->data);
-        if (fo != NULL && fo == (*str2)->data)
+
+        if (fo != NULL && fo == (*str2)->data) {
             rc = 0;
+        }
     }
 
     return rc;
