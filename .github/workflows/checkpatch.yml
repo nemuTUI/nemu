@@ -1,0 +1,24 @@
+name: checkpatch
+
+on:
+  pull_request:
+    types: [open, reopen, synchronize]
+  workflow_dispatch:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  checkpatch:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Get sources
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Run checkpatch
+        uses: nemuTUI/checkpatch/.github/actions/checkpatch@main
+        with:
+          revision-range: HEAD~${{ github.event.pull_request.commits }}..HEAD
