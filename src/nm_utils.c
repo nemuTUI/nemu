@@ -34,6 +34,10 @@ static void nm_copy_file_sendfile(int in_fd, int out_fd);
 static void nm_copy_file_default(int in_fd, int out_fd);
 #endif
 
+#if defined(NM_OS_FREEBSD)
+#include <sys/sysctl.h>
+#endif
+
 void nm_bug(const char *fmt, ...)
 {
     va_list args;
@@ -398,7 +402,18 @@ int nm_mkdir_parent(const nm_str_t *path, mode_t mode)
 
 const char *nm_nemu_path(void)
 {
-    if (readlink("/proc/self/exe", nemu_path, PATH_MAX) < 0) {
+    int rc;
+
+#if defined(NM_OS_LINUX)
+    rc = readlink("/proc/self/exe", nemu_path, PATH_MAX);
+#elif defined(NM_OS_FREEBSD)
+    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+    size_t len = sizeof(nemu_path);
+
+    rc = sysctl(mib, 4, nemu_path, &len, NULL, 0);
+#endif
+
+    if (rc < 0) {
         nm_bug(_("%s: failed getting nemu binary path (%s)"),
             __func__, strerror(errno)
         );
