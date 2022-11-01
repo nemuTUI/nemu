@@ -13,9 +13,9 @@ jobs:
     runs-on: [ self-hosted, freebsd-do ]
 
     steps:
+      - uses: actions/checkout@v3
       - name: FreeBSD-13.0 build test
         run: |
-          git clone https://github.com/nemuTUI/nemu
-          cd nemu && mkdir build && cd build
+          mkdir build && cd build
           cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
           make
