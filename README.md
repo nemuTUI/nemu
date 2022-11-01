@@ -20,6 +20,7 @@
  * Import OVA (OVF 1.0/2.0)
  * D-Bus support
  * Remote control API
+ * Many other function
 
 ## UI demo
 [![Alt New user interface](https://img.youtube.com/vi/y8RT6-AF1BA/3.jpg)](https://www.youtube.com/watch?v=y8RT6-AF1BA)
