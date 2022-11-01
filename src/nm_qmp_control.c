@@ -492,6 +492,9 @@ int nm_qmp_add_macvtap(const nm_str_t *name,
     nm_str_format(&qmp_cmd, NM_QMP_GETFD, id->data);
     nm_debug("exec qmp: %s\n", qmp_cmd.data);
     rc = nm_qmp_talk(qmp.sd, qmp_cmd.data, qmp_cmd.len, &tv);
+    if (rc != NM_OK) {
+        goto out;
+    }
 
     nm_str_format(&qmp_cmd, NM_QMP_NET_TAP_FD_ADD,
             id->data,
@@ -499,6 +502,9 @@ int nm_qmp_add_macvtap(const nm_str_t *name,
             "true" : "false", id->data);
     nm_debug("exec qmp: %s\n", qmp_cmd.data);
     rc = nm_qmp_talk(qmp.sd, qmp_cmd.data, qmp_cmd.len, &tv);
+    if (rc != NM_OK) {
+        goto out;
+    }
 
     nm_str_format(&qmp_cmd, NM_QMP_DEV_NET_ADD,
             nic->drv.data, id->data, id->data, nic->maddr.data);
