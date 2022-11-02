@@ -8,6 +8,7 @@
 [![gif-demo](https://user-images.githubusercontent.com/5861368/152040930-cb4e7e69-08b0-4902-bc20-925e061ae414.png)](https://user-images.githubusercontent.com/5861368/152041148-f6acc0a3-445f-40a1-9fa2-e4c16ca76b0f.gif)
 
 ## Features
+ * No conflicts
  * Install/delete/clone/rename VM
  * Show VM status, CPU usage
  * Start/stop/shutdown/reset VM
