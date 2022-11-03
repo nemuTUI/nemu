@@ -21,8 +21,8 @@ qemu-xhci,id=usbbus -boot d -cdrom /dev/null.iso -drive \
 node-name=hd0,media=disk,if=virtio,file=\
 /tmp/{nemu.uuid}/testvm/testvm_a.img \
 -m 256 -enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
-virtio-net-pci,mac=de:ad:be:ef:00:01,netdev=netdev0 -netdev \
-tap,ifname=testvm_eth0,script=no,downscript=no,id=netdev0,\
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
+tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,\
 vhost=on -pidfile /tmp/{nemu.uuid}/testvm/qemu.pid -qmp \
 unix:/tmp/{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
 -spice port=5900,disable-ticketing=on"
@@ -55,10 +55,10 @@ qemu-xhci,id=usbbus -boot d -cdrom /dev/null.iso -drive \
 node-name=hd0,media=disk,if=ide,file=\
 /tmp/{nemu.uuid}/testvm/testvm_a.img \
 -m 512 -smp 10 -M {nemu.qemu_mtype()} -device \
-virtio-net-pci,mac=de:ad:be:ef:00:01,netdev=netdev0 -netdev \
-tap,ifname=testvm_eth0,script=no,downscript=no,id=netdev0,\
-vhost=on -device virtio-net-pci,mac=de:ad:be:ef:00:02,netdev=netdev1 \
--netdev tap,ifname=testvm_eth1,script=no,downscript=no,id=netdev1 \
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
+tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,\
+vhost=on -device virtio-net-pci,mac=de:ad:be:ef:00:02,id=dev-deadbeef0002,netdev=net-deadbeef0002 \
+-netdev tap,ifname=testvm_eth1,script=no,downscript=no,id=net-deadbeef0002 \
 -pidfile /tmp/{nemu.uuid}/testvm/qemu.pid -qmp \
 unix:/tmp/{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
 -spice port=5900,disable-ticketing=on"
@@ -89,8 +89,8 @@ qemu-xhci,id=usbbus -boot d -cdrom /dev/null.iso -drive \
 node-name=hd0,media=disk,if=virtio,file=\
 /tmp/{nemu.uuid}/testvm-clone/testvm-clone_a.img \
 -m 256 -enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
-virtio-net-pci,mac=de:ad:be:ef:00:02,netdev=netdev0 -netdev \
-tap,ifname=vm-deadbeef0002,script=no,downscript=no,id=netdev0,\
+virtio-net-pci,mac=de:ad:be:ef:00:02,id=dev-deadbeef0002,netdev=net-deadbeef0002 -netdev \
+tap,ifname=vm-deadbeef0002,script=no,downscript=no,id=net-deadbeef0002,\
 vhost=on -pidfile /tmp/{nemu.uuid}/testvm-clone/qemu.pid -qmp \
 unix:/tmp/{nemu.uuid}/testvm-clone/qmp.sock,server,nowait -vga qxl \
 -spice port=5901,disable-ticketing=on"

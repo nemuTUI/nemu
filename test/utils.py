@@ -75,7 +75,7 @@ class Tmux():
             if wait_max >= wait_cur:
                 break
 
-        sub = subprocess.run(["tmux", "-L", self.uuid,
+        sub = subprocess.run(["tmux", "-f", "tmux.conf", "-L", self.uuid,
                 "new-session", "-d", os.getenv("NEMU_BIN_DIR") + "/nemu",
                 "--cfg", path + "/nemu.cfg"])
 
@@ -88,6 +88,15 @@ class Tmux():
                 break
 
         return sub.returncode
+
+    def dump_screen(self, log_path):
+            subprocess.run(["tmux", "-L", self.uuid, "capture-pane"])
+            sub = subprocess.run(["tmux", "-L", self.uuid, "show-buffer"],
+                    capture_output=True)
+            subprocess.run(["tmux", "-L", self.uuid, "delete-buffer"])
+
+            with open(log_path, 'w') as log:
+                log.write(sub.stdout.decode('utf-8'))
 
     def send(self, key, count = 1):
         rc = 0
