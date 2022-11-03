@@ -9,5 +9,5 @@ add_custom_target(test
     COMMENT "Run UI tests:"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND NEMU_BIN_DIR=${CMAKE_BINARY_DIR} QEMU_BIN_DIR=${NM_DEFAULT_QEMUDIR}
-        NEMU_TARGET_OS=${NEMU_TARGET_OS} python -m tap *_test.py
+        NEMU_TARGET_OS=${NEMU_TARGET_OS} python -m unittest -v *_test.py
     )
