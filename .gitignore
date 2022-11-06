@@ -9,6 +9,7 @@ cmake_install.cmake
 cmake_uninstall.cmake
 lang/cmake_install.cmake
 lang/nemu.mo
+test/testdata/deb_a.img
 install_manifest.txt
 build
 qemu

@@ -7,7 +7,7 @@ import subprocess
 class Nemu():
     def __init__(self):
         self.uuid = uuid.uuid4().hex
-        self.test_dir = "/tmp/" + self.uuid
+        self.test_dir = "/tmp/nemu_" + self.uuid
         self.pidfile = self.test_dir + "/nemu.pid"
 
         os.mkdir(self.test_dir)
@@ -21,15 +21,15 @@ class Nemu():
 
     def result(self, vm):
         # wait for nemu stops
-        wait_max = 100 # wait for 10 seconds max
+        wait_max = 300 # wait for 30 seconds max
         wait_cur = 0
         while os.path.exists(self.pidfile):
             time.sleep(0.1)
             wait_cur += 1
-            if wait_max >= wait_cur:
+            if wait_cur == wait_max:
                 break
         sub = subprocess.run([os.getenv("NEMU_BIN_DIR") + "/nemu",
-            "--cfg", "/tmp/" + self.uuid + "/nemu.cfg", "--cmd", vm],
+            "--cfg", "/tmp/nemu_" + self.uuid + "/nemu.cfg", "--cmd", vm],
             capture_output=True)
         return sub.stdout.decode('utf-8')
 
