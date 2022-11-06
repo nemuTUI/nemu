@@ -2,7 +2,7 @@ name: linux_musl
 
 on:
   pull_request:
-    types: [ open, reopen, synchronize ]
+    types: [ opened, reopened, synchronize ]
   workflow_dispatch:
     branches: [ master ]
   push:
