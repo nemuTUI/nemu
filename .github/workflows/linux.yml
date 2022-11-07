@@ -15,55 +15,59 @@ permissions:
   security-events: write
 
 jobs:
-  cleanup:
-    runs-on: [ self-hosted, linux-do ]
-    container: grafin1992/nemu-ci:v1.2
-    steps:
-      - name: Clean workspace
-        run: rm -rf nemu
-
   clone:
     runs-on: [ self-hosted, linux-do ]
-    container: grafin1992/nemu-ci:v1.2
-    needs: cleanup
+    container: voidso/nemu-ci:v1.0
 
     steps:
       - name: Get nEMU sources
-        run: git clone --depth 1 https://github.com/nemuTUI/nemu
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
 
   configure:
     runs-on: [ self-hosted, linux-do ]
-    container: grafin1992/nemu-ci:v1.2
+    container: voidso/nemu-ci:v1.0
     needs: clone
 
     steps:
       - name: Configure nEMU build
-        working-directory: ./nemu
         run: |
-          mkdir build && cd build
-          cmake -G Ninja ../ \
+          cmake -G Ninja \
             -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
 
   build:
     runs-on: [ self-hosted, linux-do ]
-    container: grafin1992/nemu-ci:v1.2
+    container: voidso/nemu-ci:v1.0
     needs: configure
 
     steps:
       - name: Build nEMU
-        working-directory: ./nemu/build
-        run: ninja
+        run: cmake --build .
+
+  out-of-source-build:
+    runs-on: [ self-hosted, linux-do ]
+    container: voidso/nemu-ci:v1.0
+    needs: build
+
+    steps:
+      - name: Build nEMU out of source
+        run: |
+          rm CMakeCache.txt
+          mkdir build && cd build
+          cmake -G Ninja .. \
+            -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+          cmake --build .
 
   codeql:
     runs-on: [ self-hosted, linux-do ]
-    container: grafin1992/nemu-ci:v1.2
+    container: voidso/nemu-ci:v1.0
     needs: clone
     env:
       _JAVA_OPTIONS: -Xmx1024m
 
     steps:
       - name: Check with CodeQL
-        working-directory: ./nemu
         run: |
           /codeql/codeql database create lgtm --language=cpp
           /codeql/codeql database analyze lgtm --format=sarif-latest \
@@ -74,12 +78,11 @@ jobs:
 
   cppcheck:
     runs-on: [ self-hosted, linux-do ]
-    container: grafin1992/nemu-ci:v1.2
+    container: voidso/nemu-ci:v1.0
     needs: clone
 
     steps:
       - name: Check with cppcheck
-        working-directory: ./nemu
         run: |
           ./ci/cppcheck-sarif.py \
             -a "--enable=all --suppress=missingIncludeSystem --xml -q" \
@@ -90,12 +93,11 @@ jobs:
 
   codespell:
     runs-on: [ self-hosted, linux-do ]
-    container: grafin1992/nemu-ci:v1.2
+    container: voidso/nemu-ci:v1.0
     needs: clone
 
     steps:
       - name: Check with codespell
-        working-directory: ./nemu
         run: |
           ./ci/codespell-sarif.py \
             -a "-q 3 -L fo,ser,ans,chello -S ./lgtm,./_lgtm_detected_source_root" \
