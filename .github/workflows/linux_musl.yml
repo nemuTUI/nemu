@@ -9,7 +9,7 @@ on:
     branches: [ master ]
 
 jobs:
-  clone:
+  musl_build:
     runs-on: [ self-hosted, linux-do ]
     container: voidso/nemu-musl-ci:v1.1
 
@@ -19,22 +19,10 @@ jobs:
         with:
           fetch-depth: 1
 
-  configure:
-    runs-on: [ self-hosted, linux-do ]
-    container: voidso/nemu-musl-ci:v1.1
-    needs: clone
-
-    steps:
       - name: Configure nEMU build
         run: |
           cmake -G Ninja \
             -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
 
-  build:
-    runs-on: [ self-hosted, linux-do ]
-    container: voidso/nemu-musl-ci:v1.1
-    needs: configure
-
-    steps:
       - name: Build nEMU
         run: cmake --build .

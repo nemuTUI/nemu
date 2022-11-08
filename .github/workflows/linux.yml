@@ -15,9 +15,11 @@ permissions:
   security-events: write
 
 jobs:
-  clone:
+  linux-build:
     runs-on: [ self-hosted, linux-do ]
     container: voidso/nemu-ci:v1.0
+    env:
+      _JAVA_OPTIONS: -Xmx1024m
 
     steps:
       - name: Get nEMU sources
@@ -25,63 +27,24 @@ jobs:
         with:
           fetch-depth: 1
 
-  configure:
-    runs-on: [ self-hosted, linux-do ]
-    container: voidso/nemu-ci:v1.0
-    needs: clone
-
-    steps:
       - name: Configure nEMU build
         run: |
           cmake -G Ninja \
             -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
 
-  build:
-    runs-on: [ self-hosted, linux-do ]
-    container: voidso/nemu-ci:v1.0
-    needs: configure
-
-    steps:
       - name: Build nEMU
         run: cmake --build .
 
-  out-of-source-build:
-    runs-on: [ self-hosted, linux-do ]
-    container: voidso/nemu-ci:v1.0
-    needs: build
-
-    steps:
-      - name: Build nEMU out of source
-        run: |
-          rm CMakeCache.txt
-          mkdir build && cd build
-          cmake -G Ninja .. \
-            -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
-          cmake --build .
-
-  codeql:
-    runs-on: [ self-hosted, linux-do ]
-    container: voidso/nemu-ci:v1.0
-    needs: clone
-    env:
-      _JAVA_OPTIONS: -Xmx1024m
-
-    steps:
       - name: Check with CodeQL
         run: |
-          /codeql/codeql database create lgtm --language=cpp
+          /codeql/codeql database create lgtm --language=cpp \
+            --command='cmake --build . --clean-first'
           /codeql/codeql database analyze lgtm --format=sarif-latest \
             --output=./codeql-lgtm.sarif cpp-lgtm.qls
           /codeql/codeql github upload-results \
             --repository="${GITHUB_REPOSITORY}" --ref="${GITHUB_REF}" \
             --commit="${GITHUB_SHA}" --sarif=./codeql-lgtm.sarif
 
-  cppcheck:
-    runs-on: [ self-hosted, linux-do ]
-    container: voidso/nemu-ci:v1.0
-    needs: clone
-
-    steps:
       - name: Check with cppcheck
         run: |
           ./ci/cppcheck-sarif.py \
@@ -91,17 +54,15 @@ jobs:
             --repository="${GITHUB_REPOSITORY}" --ref="${GITHUB_REF}" \
             --commit="${GITHUB_SHA}" --sarif=./cppcheck.sarif
 
-  codespell:
-    runs-on: [ self-hosted, linux-do ]
-    container: voidso/nemu-ci:v1.0
-    needs: clone
-
-    steps:
       - name: Check with codespell
         run: |
-          ./ci/codespell-sarif.py \
-            -a "-q 3 -L fo,ser,ans,chello -S ./lgtm,./_lgtm_detected_source_root" \
-            -o ./codespell.sarif ./
-          /codeql/codeql github upload-results \
-            --repository="${GITHUB_REPOSITORY}" --ref="${GITHUB_REF}" \
-            --commit="${GITHUB_SHA}" --sarif=./codespell.sarif
+          codespell -q 3 -L fo,ser,ans,chello -S \
+          ./lgtm,./_lgtm_detected_source_root
+
+      - name: Build nEMU out of source
+        run: |
+          rm CMakeCache.txt
+          mkdir build && cd build
+          cmake -G Ninja .. \
+            -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+          cmake --build .
