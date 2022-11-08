@@ -4,7 +4,7 @@ from utils import Tmux
 
 class TestVm(unittest.TestCase):
     def test_01_install(self):
-        """Test VM install"""
+        """VM install"""
         self.maxDiff = None
         nemu = Nemu()
         tmux = Tmux()
@@ -29,7 +29,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
         nemu.cleanup()
 
     def test_02_edit_base_settings(self):
-        """Test VM edit base settings"""
+        """Edit main settings"""
         self.maxDiff = None
         nemu = Nemu()
         tmux_init = Tmux()
@@ -65,7 +65,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
         nemu.cleanup()
 
     def test_03_clone(self):
-        """Test clone VM"""
+        """Clone VM"""
         self.maxDiff = None
         nemu = Nemu()
         tmux_init = Tmux()
@@ -94,4 +94,131 @@ vhost=on -pidfile /tmp/nemu_{nemu.uuid}/testvm-clone/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/testvm-clone/qmp.sock,server,nowait -vga qxl \
 -spice port=5901,disable-ticketing=on"
         self.assertEqual(nemu.result("testvm-clone"), expected)
+        nemu.cleanup()
+
+    def test_04_edit_viewer_settings(self):
+        """Edit viewer settings"""
+        self.maxDiff = None
+        nemu = Nemu()
+        tmux_init = Tmux()
+        tmux_init.setup(nemu.test_dir)
+        keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
+                ["10"], ["Down", 3], ["/dev/null.iso"], ["Enter"], ["q"]]
+        for key in keys:
+            rc = tmux_init.send(*key)
+            self.assertTrue(0 == rc)
+
+        tmux_edit = Tmux()
+        tmux_edit.setup(nemu.test_dir)
+        keys_edit = [["C"], ["Right"], ["Down"], ["BSpace", 4], ["12345"],
+                ["Down"], ["/dev/pts/7"], ["Down"], ["/tmp/ntty0"], ["Down"], ["Right"],
+                ["Down"], ["Right"], ["Enter"], ["q"]]
+        for key in keys_edit:
+            rc = tmux_edit.send(*key)
+            self.assertTrue(0 == rc)
+
+        expected = f"{nemu.qemu_bin()}/qemu-system-x86_64 -daemonize -usb -device \
+qemu-xhci,id=usbbus -boot d -cdrom /dev/null.iso -drive \
+node-name=hd0,media=disk,if=virtio,file=\
+/tmp/nemu_{nemu.uuid}/testvm/testvm_a.img \
+-m 256 -enable-kvm -cpu host -M {nemu.qemu_mtype()} -device usb-tablet,bus=usbbus.0 \
+-chardev socket,path=/tmp/ntty0,server,nowait,id=socket_testvm -device \
+isa-serial,chardev=socket_testvm -chardev tty,path=/dev/pts/7,id=tty_testvm \
+-device isa-serial,chardev=tty_testvm -device \
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
+tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,vhost=on \
+-pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
+unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vnc :6445"
+        self.assertEqual(nemu.result("testvm"), expected)
+        nemu.cleanup()
+
+    def test_05_share_9pfs(self):
+        """Share host filesystem"""
+        self.maxDiff = None
+        nemu = Nemu()
+        tmux = Tmux()
+        tmux.setup(nemu.test_dir)
+        keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
+                ["10"], ["Down", 3], ["/dev/null.iso"], ["Enter"], ["q"]]
+        for key in keys:
+            rc = tmux.send(*key)
+            self.assertTrue(0 == rc)
+
+        tmux_edit = Tmux()
+        tmux_edit.setup(nemu.test_dir)
+        keys_edit = [["h"], ["Right"], ["Down"], ["/tmp"], ["Down"],
+                ["share"], ["Enter"], ["q"]]
+        for key in keys_edit:
+            rc = tmux_edit.send(*key)
+            self.assertTrue(0 == rc)
+
+        expected = f"{nemu.qemu_bin()}/qemu-system-x86_64 -daemonize -usb -device \
+qemu-xhci,id=usbbus -boot d -cdrom /dev/null.iso -drive \
+node-name=hd0,media=disk,if=virtio,file=\
+/tmp/nemu_{nemu.uuid}/testvm/testvm_a.img \
+-m 256 -fsdev local,security_model=none,id=fsdev0,path=/tmp \
+-device virtio-9p-pci,fsdev=fsdev0,mount_tag=share \
+-enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
+tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,\
+vhost=on -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
+unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
+-spice port=5900,disable-ticketing=on"
+        self.assertEqual(nemu.result("testvm"), expected)
+        nemu.cleanup()
+
+    def test_06_additional_drive(self):
+        """Add/Delete additional drive"""
+        self.maxDiff = None
+        nemu = Nemu()
+        tmux = Tmux()
+        tmux.setup(nemu.test_dir)
+        keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
+                ["10"], ["Down", 3], ["/dev/null.iso"], ["Enter"], ["q"]]
+        for key in keys:
+            rc = tmux.send(*key)
+            self.assertTrue(0 == rc)
+
+        tmux_add = Tmux()
+        tmux_add.setup(nemu.test_dir)
+        keys_add = [["a"], ["1"], ["Down"], ["Left"], ["Down"],
+                ["Right"], ["Enter"], ["q"]]
+        for key in keys_add:
+            rc = tmux_add.send(*key)
+            self.assertTrue(0 == rc)
+
+        expected = f"{nemu.qemu_bin()}/qemu-system-x86_64 -daemonize -usb -device \
+qemu-xhci,id=usbbus -boot d -cdrom /dev/null.iso \
+-drive node-name=hd0,media=disk,if=virtio,file=\
+/tmp/nemu_{nemu.uuid}/testvm/testvm_a.img \
+-device virtio-scsi-pci,id=scsi \
+-drive node-name=hd1,media=disk,if=none,file=\
+/tmp/nemu_{nemu.uuid}/testvm/testvm_b.img,discard=unmap,detect-zeroes=unmap \
+-device scsi-hd,drive=hd1 -m 256 \
+-enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
+tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,\
+vhost=on -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
+unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
+-spice port=5900,disable-ticketing=on"
+        self.assertEqual(nemu.result("testvm"), expected)
+
+        tmux_del = Tmux()
+        tmux_del.setup(nemu.test_dir)
+        keys_del = [["v"], ["Enter"], ["q"]]
+        for key in keys_del:
+            rc = tmux_del.send(*key)
+            self.assertTrue(0 == rc)
+
+        expected = f"{nemu.qemu_bin()}/qemu-system-x86_64 -daemonize -usb -device \
+qemu-xhci,id=usbbus -boot d -cdrom /dev/null.iso \
+-drive node-name=hd0,media=disk,if=virtio,file=\
+/tmp/nemu_{nemu.uuid}/testvm/testvm_a.img -m 256 \
+-enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
+tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,\
+vhost=on -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
+unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
+-spice port=5900,disable-ticketing=on"
+        self.assertEqual(nemu.result("testvm"), expected)
         nemu.cleanup()
