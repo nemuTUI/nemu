@@ -5,7 +5,7 @@ from utils import Tmux
 
 class TestOVA(unittest.TestCase):
     def test_01_install(self):
-        """Test OVA import"""
+        """OVA import"""
         self.maxDiff = None
         nemu = Nemu()
         tmux = Tmux()
