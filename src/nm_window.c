@@ -740,7 +740,7 @@ void nm_print_help(void)
         "kill vm process",
         "search vm, filters",
         "previous group",
-        "next grup",
+        "next group",
         NULL
     };
 

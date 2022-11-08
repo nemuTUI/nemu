@@ -411,7 +411,7 @@ static void __nm_vm_snapshot_load(const nm_str_t *name, const nm_str_t *snap,
         nm_str_format(&query, NM_RESET_LOAD_SQL, name->data);
         nm_db_edit(query.data);
 
-        /* set load flag for current shapshot */
+        /* set load flag for current snapshot */
         nm_str_format(&query, NM_SNAP_UPDATE_LOAD_SQL, name->data, snap->data);
         nm_db_edit(query.data);
 
