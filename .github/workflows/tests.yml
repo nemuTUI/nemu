@@ -1,0 +1,35 @@
+name: tests
+
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+  workflow_dispatch:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get install tmux qemu-utils qemu-system-x86 ninja-build \
+            libdbus-1-dev libncurses-dev libsqlite3-dev libusb-1.0-0-dev \
+            libarchive-dev libgraphviz-dev libudev-dev libjson-c-dev libxml2-dev \
+            libssl-dev gettext
+
+      - name: Get sources
+        uses: actions/checkout@v3
+        with:
+          lfs: 'true'
+          fetch-depth: 1
+
+      - name: Build nEMU
+        run: |
+          cmake -G Ninja \
+            -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+          cmake --build .
+
+      - name: Run tests
+        run: cmake --build . --target test
