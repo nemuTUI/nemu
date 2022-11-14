@@ -16,4 +16,5 @@ qemu
 .ycm_extra_conf.py
 .color_coded
 compile_commands.json
+testdata
 __pycache__/

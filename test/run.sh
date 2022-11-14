@@ -1,9 +1,13 @@
 #!/bin/bash
 set -eu
 
+OVA_URL='https://drive.google.com/u/0/uc?id=1vxpcgv_hR4UpIoK9QvPeXC22BnuZYK3n'
+
+test -d testdata || mkdir testdata
+
 pushd testdata > /dev/null
-if ! test -f deb_a.img; then
-    tar xvf deb_a.img.tar.xz
+if ! test -f dsl.ova; then
+    gdown "${OVA_URL}"
 fi
 popd > /dev/null
 
