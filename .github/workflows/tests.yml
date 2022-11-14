@@ -22,14 +22,24 @@ jobs:
       - name: Get sources
         uses: actions/checkout@v3
         with:
-          lfs: 'true'
           fetch-depth: 1
+
+      - name: Install tests requirements
+        run: |
+          pip3 install -r test/requirements.txt
 
       - name: Build nEMU
         run: |
           cmake -G Ninja \
             -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
           cmake --build .
+
+      - name: Cache testdata
+        id: cache-testdata
+        uses: actions/cache@v3
+        with:
+          path: test/testdata/dsl.ova
+          key: ${{ runner.os }}-testdata
 
       - name: Run tests
         run: cmake --build . --target test
