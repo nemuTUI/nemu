@@ -48,6 +48,8 @@ int nm_cleanup_dir(const nm_str_t *path);
 int nm_mkdir_parent(const nm_str_t *path, mode_t mode);
 
 const char *nm_nemu_path(void);
+void nm_get_drive_size(const nm_str_t *path,
+        off_t *virtual_size, off_t *actual_size);
 
 /*
  * get date and time, format:

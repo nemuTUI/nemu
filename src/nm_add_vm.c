@@ -334,17 +334,12 @@ static int nm_add_vm_get_data(nm_vm_t *vm)
     /* Check for free space for importing drive image */
     if (import) {
         off_t size_gb = 0;
-        struct stat img_info;
+        off_t virtual_size, actual_size;
 
-        memset(&img_info, 0, sizeof(img_info));
-
-        if (stat(vm->srcp.data, &img_info) == 0) {
-            size_gb = img_info.st_size / 1024 / 1024 / 1024;
-            nm_str_format(&vm->drive.size, "%ld", size_gb);
-        } else {
-            nm_bug(_("%s: cannot get stat of file: %s"),
-                    __func__, vm->srcp.data);
-        }
+        nm_get_drive_size(&vm->srcp, &virtual_size, &actual_size);
+        size_gb = actual_size / 1073741824;
+        nm_str_format(&vm->drive.size, "%g",
+                (double) virtual_size / 1073741824);
 
         if (size_gb >= nm_hw_disk_free()) {
             curs_set(0);

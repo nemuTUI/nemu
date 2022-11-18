@@ -16,6 +16,8 @@
 #include <errno.h>
 #include <time.h>
 
+#include <json.h>
+
 enum {
     NM_BLKSIZE      = 131072, /* 128KiB */
     NM_SOCK_READLEN = 1024,
@@ -528,5 +530,54 @@ void nm_gen_uid(nm_str_t *res)
 
     nm_str_free(&time);
     nm_str_free(&rnd);
+}
+
+void
+nm_get_drive_size(const nm_str_t *path, off_t *virtual_size, off_t *actual_size)
+{
+    struct json_object *js, *jso;
+    nm_vect_t cmdv = NM_INIT_VECT;
+    nm_str_t buf = NM_INIT_STR;
+    nm_str_t out = NM_INIT_STR;
+    const char *res;
+
+    if (!virtual_size || !actual_size) {
+        return;
+    }
+
+    nm_str_format(&buf, "%s/qemu-img", nm_cfg_get()->qemu_bin_path.data);
+    nm_vect_insert(&cmdv, buf.data, buf.len + 1, NULL);
+    nm_vect_insert_cstr(&cmdv, "info");
+    nm_vect_insert_cstr(&cmdv, "--output");
+    nm_vect_insert_cstr(&cmdv, "json");
+    nm_vect_insert_cstr(&cmdv, path->data);
+    nm_vect_end_zero(&cmdv);
+
+    if (nm_spawn_process(&cmdv, &out) != NM_OK) {
+        nm_bug(_("%s: cannot get drive info"), __func__);
+    }
+
+    js = json_tokener_parse(out.data);
+    if (!js) {
+        nm_bug(_("%s: cannot parse json"), __func__);
+    }
+
+    json_object_object_get_ex(js, "virtual-size", &jso);
+    if (!jso) {
+        nm_bug(_("%s: virtual-size is missing"), __func__);
+    }
+    res = json_object_get_string(jso);
+    *virtual_size = nm_str_ttoul(res, 10);
+
+    json_object_object_get_ex(js, "actual-size", &jso);
+    if (!jso) {
+        nm_bug(_("%s: actual-size is missing"), __func__);
+    }
+    res = json_object_get_string(jso);
+    *actual_size = nm_str_ttoul(res, 10);
+
+    nm_str_free(&buf);
+    nm_vect_free(&cmdv, NULL);
+    json_object_put(js);
 }
 /* vim:set ts=4 sw=4: */
