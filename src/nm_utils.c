@@ -577,6 +577,7 @@ nm_get_drive_size(const nm_str_t *path, off_t *virtual_size, off_t *actual_size)
     *actual_size = nm_str_ttoul(res, 10);
 
     nm_str_free(&buf);
+    nm_str_free(&out);
     nm_vect_free(&cmdv, NULL);
     json_object_put(js);
 }
