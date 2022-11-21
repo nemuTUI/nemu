@@ -41,6 +41,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(NM_OS_LINUX TRUE)
 elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   set(NM_OS_FREEBSD TRUE)
+elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set(NM_OS_DARWIN TRUE)
+  add_definitions(-DNM_OS_DARWIN)
 else()
   message(FATAL_ERROR "Build on ${CMAKE_SYSTEM_NAME} is not supported")
 endif()
@@ -101,16 +104,24 @@ endif()
 
 find_package(Sqlite3 REQUIRED)
 find_package(Threads REQUIRED)
+if(NOT NM_OS_DARWIN)
 find_package(RT REQUIRED)
 find_package(libusb-1.0 REQUIRED)
 find_package(UDev REQUIRED)
+endif()
 find_package(Intl REQUIRED)
 pkg_check_modules(JSONC REQUIRED json-c)
 
+if(NOT NM_OS_DARWIN)
 target_link_libraries(
   ${PROJECT_NAME} ${CURSES_LIBRARIES} ${SQLITE3_LIBRARIES} ${JSONC_LINK_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT} ${LIBUSB_1_LIBRARIES} ${UDEV_LIBRARIES}
   ${RT_LIBRARY} ${Intl_LIBRARIES})
+else()
+target_link_libraries(
+  ${PROJECT_NAME} ${CURSES_LIBRARIES} ${SQLITE3_LIBRARIES} ${JSONC_LINK_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT} ${LIBUSB_1_LIBRARIES} ${Intl_LIBRARIES})
+endif()
 include_directories(${CURSES_INCLUDE_PATH} ${SQLITE3_INCLUDE_DIR}
                     ${UDEV_INCLUDE_DIR} ${JSONC_INCLUDE_DIRS} ${Intl_INCLUDE_DIRS})
 include_directories(SYSTEM ${LIBUSB_1_INCLUDE_DIRS})

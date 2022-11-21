@@ -12,7 +12,10 @@
 #include <sys/wait.h> /* waitpid(2) */
 #include <time.h> /* nanosleep(2) */
 #include <pthread.h>
+
+#if !defined(NM_OS_DARWIN)
 #include <mqueue.h>
+#endif
 
 #include <json.h>
 
@@ -25,7 +28,9 @@ static int nm_mon_store_pid(void);
 
 typedef struct nm_qmp_w_data {
     nm_str_t *cmd;
+#if !defined(NM_OS_DARWIN)
     pthread_barrier_t *barrier;
+#endif
 } nm_qmp_w_data_t;
 
 typedef struct nm_clean_data {
@@ -71,6 +76,7 @@ static void nm_mon_cleanup(void)
     nm_exit_core();
 }
 
+#if !defined(NM_OS_DARWIN)
 void *nm_qmp_worker(void *data)
 {
     struct json_object *parsed, *args, *jobid;
@@ -149,7 +155,9 @@ void *nm_qmp_worker(void *data)
 
     pthread_exit(NULL);
 }
+#endif /* NM_OS_DARWIN */
 
+#if !defined(NM_OS_DARWIN)
 void *nm_qmp_dispatcher(void *ctx)
 {
     const nm_cfg_t *cfg = nm_cfg_get();
@@ -222,6 +230,7 @@ out:
     mq_close(mq);
     pthread_exit(NULL);
 }
+#endif /* NM_OS_DARWIN */
 
 static bool nm_mon_check_version(pid_t *opid)
 {
@@ -463,10 +472,12 @@ void nm_mon_loop(void)
 
     nm_db_init();
     nm_mon_build_list(&mon_list, &vm_list);
+#if !defined(NM_OS_DARWIN)
     if (pthread_create(&qmp_thr, NULL,
                 nm_qmp_dispatcher, &clean.qmp_ctrl) != 0) {
         nm_exit(EXIT_FAILURE);
     }
+#endif
 #if defined (NM_OS_LINUX)
     pthread_setname_np(qmp_thr, "nemu-qmp-dsp");
 #endif

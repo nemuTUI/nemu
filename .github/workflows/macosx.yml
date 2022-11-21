@@ -1,0 +1,30 @@
+name: macosx
+
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+  workflow_dispatch:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  macosx_build:
+    runs-on: macos-12
+
+    steps:
+      - name: Get nEMU sources
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Install dependencies
+        run: brew install cmake json-c openssl libarchive
+
+      - name: Build nEMU
+        run: |
+          mkdir build && cd build
+          cmake ../ -DOPENSSL_ROOT_DIR=`find /usr/local/Cellar -name 'opensslv.h' | sed 's|/openssl/[^/]*$||'` \
+            -DLibArchive_INCLUDE_DIR=`find /usr/local/Cellar -name 'archive_entry.h' | sed 's|/[^/]*$||'` \
+            -DNM_WITH_NCURSES=ON
+          cmake --build .

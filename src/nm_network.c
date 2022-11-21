@@ -496,6 +496,14 @@ uint64_t nm_net_mac_s2n(const nm_str_t *addr)
     return mac;
 }
 
+#if defined(NM_OS_DARWIN)
+/* TODO: add MacOSX support */
+static void nm_net_manage_tap(NM_UNUSED const nm_str_t *name,
+        NM_UNUSED int on_off)
+{
+   return;
+}
+#else
 static void nm_net_manage_tap(const nm_str_t *name, int on_off)
 {
     struct ifreq ifr;
@@ -541,6 +549,7 @@ static void nm_net_manage_tap(const nm_str_t *name, int on_off)
     close(sock);
 #endif /* NM_OS_LINUX */
 }
+#endif /* NM_OS_DARWIN */
 
 #if defined(NM_OS_LINUX)
 static void nm_net_rtnl_open(struct rtnl_handle *rth)

@@ -4,6 +4,7 @@
 [![Packaging status](https://repology.org/badge/tiny-repos/nemu.svg)](https://repology.org/project/nemu/versions)
 [![Linux build](https://github.com/nemuTUI/nemu/actions/workflows/linux.yml/badge.svg)](https://github.com/nemuTUI/nemu/actions/workflows/linux.yml)
 [![FreeBSD build](https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml/badge.svg)](https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml)
+[![MacOSX build](https://github.com/nemuTUI/nemu/actions/workflows/macosx.yml/badge.svg)](https://github.com/nemuTUI/nemu/actions/workflows/macosx.yml)
 
 [![gif-demo](https://user-images.githubusercontent.com/5861368/152040930-cb4e7e69-08b0-4902-bc20-925e061ae414.png)](https://user-images.githubusercontent.com/5861368/152041148-f6acc0a3-445f-40a1-9fa2-e4c16ca76b0f.gif)
 
@@ -31,7 +32,7 @@
 [![Alt Overview](https://img.youtube.com/vi/jOtCY--LEN8/1.jpg)](https://www.youtube.com/watch?v=jOtCY--LEN8)
 
 ## Environment Requirements
- * Linux/FreeBSD host
+ * Linux/FreeBSD/MacOSX host
  * QEMU (>= 2.12.0 [minimum] >= 6.0.0 [all features])
 
 ## Packages

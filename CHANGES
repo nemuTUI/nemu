@@ -1,5 +1,6 @@
 v3.2.0 - Future
 ------------------------
+    - Feature: build on MacOSX
     - Bugfix: fix wrong drive virtual size on import
 
 v3.1.0 - 16.10.1022
