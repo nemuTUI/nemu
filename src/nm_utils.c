@@ -179,7 +179,9 @@ static void nm_copy_file_default(int in_fd, int out_fd)
     char *buf = nm_alloc(NM_BLKSIZE);
     ssize_t nread;
 
+#if !defined(NM_OS_DARWIN)
     posix_fadvise(in_fd, 0, 0, POSIX_FADV_SEQUENTIAL);
+#endif
 
     while ((nread = read(in_fd, buf, NM_BLKSIZE)) > 0) {
         char *bufsp = buf;
@@ -413,6 +415,10 @@ const char *nm_nemu_path(void)
     size_t len = sizeof(nemu_path);
 
     rc = sysctl(mib, 4, nemu_path, &len, NULL, 0);
+#elif defined(NM_OS_DARWIN)
+    uint32_t bufsize = PATH_MAX;
+
+    rc = _NSGetExecutablePath(nemu_path, &bufsize);
 #endif
 
     if (rc < 0) {

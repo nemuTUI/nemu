@@ -100,10 +100,12 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
             }
 
             /* load snapshot and resume vm after suspend */
+#if !defined(NM_OS_DARWIN)
             if (flags & NM_VMCTL_CONT) {
                 nm_qmp_loadvm(name, &snap);
                 nm_qmp_vm_resume(name);
             }
+#endif
         }
     }
 
@@ -534,7 +536,12 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     }
 
     if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_KVM), NM_ENABLE) == NM_OK) {
+#if defined(NM_OS_DARWIN)
+        nm_vect_insert_cstr(argv, "-accel");
+        nm_vect_insert_cstr(argv, "hvf");
+#else
         nm_vect_insert_cstr(argv, "-enable-kvm");
+#endif
         if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_HCPU),
                     NM_ENABLE) == NM_OK) {
             nm_vect_insert_cstr(argv, "-cpu");
@@ -904,6 +911,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                         NM_SQL_IF_NAME + idx_shift)) == NM_OK) {
             nm_net_del_tap(nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift));
         }
+        (void) tfds;
+#elif defined(NM_OS_DARWIN)
         (void) tfds;
 #endif /* NM_OS_LINUX */
         nm_str_free(&id);
@@ -1338,7 +1347,11 @@ static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port,
     char *argsp = args->data;
     size_t total = 0;
     nm_str_t warn_msg = NM_INIT_STR;
+    nm_str_t bin_path = NM_INIT_STR;
     nm_str_t buf = NM_INIT_STR;
+
+    nm_str_copy(&bin_path, bin);
+    nm_str_replace_text(&bin_path, " ", "\\ ");
 
     nm_str_format(&warn_msg, _("%s viewer: port is not set"),
             (type == NM_VIEWER_SPICE) ? "spice" : "vnc");
@@ -1348,7 +1361,7 @@ static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port,
         goto out;
     }
 
-    nm_str_append_format(cmd, "%s ", bin->data);
+    nm_str_append_format(cmd, "%s ", bin_path.data);
 
     if (pos->title != -1 && pos->title < pos->port) {
         nm_str_add_str_part(cmd, args, pos->title);
@@ -1379,6 +1392,7 @@ static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port,
     nm_debug("viewer cmd:\"%s\"\n", cmd->data);
 out:
     nm_str_free(&buf);
+    nm_str_free(&bin_path);
     nm_str_free(&warn_msg);
 }
 

@@ -9,7 +9,9 @@
 
 #include <sys/socket.h>
 #include <sys/un.h>
+#if !defined(NM_OS_DARWIN)
 #include <mqueue.h>
+#endif
 #include <time.h>
 
 #include <json.h>
@@ -30,6 +32,7 @@ static const char NM_QMP_CMD_VM_STOP[]  = "{\"execute\":\"stop\"}";
 static const char NM_QMP_CMD_VM_CONT[]  = "{\"execute\":\"cont\"}";
 static const char NM_QMP_CMD_JOBS[]     = "{\"execute\":\"query-jobs\"}";
 
+#if !defined(NM_OS_DARWIN)
 static const char NM_QMP_CMD_SAVEVM[]   =
     "{\"execute\":\"snapshot-save\",\"arguments\":{\"job-id\":"
     "\"vmsave-%s-%s\",\"tag\":\"%s\",\"vmstate\":\"%s\",\"devices\":[%s]}}";
@@ -41,6 +44,7 @@ static const char NM_QMP_CMD_LOADVM[]   =
 static const char NM_QMP_CMD_DELVM[]    =
     "{\"execute\":\"snapshot-delete\",\"arguments\":{\"job-id\":"
     "\"vmdel-%s-%s\",\"tag\":\"%s\",\"devices\":[%s]}}";
+#endif
 
 static const char NM_QMP_CMD_USB_ADD[]  =
     "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"usb-host\","
@@ -106,7 +110,9 @@ static int nm_qmp_talk(int sd, const char *cmd,
                        size_t len, struct timeval *tv);
 static void nm_qmp_talk_async(int sd, const char *cmd,
         size_t len, const char *jobid);
+#if !defined(NM_OS_DARWIN)
 static int nm_qmp_send(const nm_str_t *cmd);
+#endif
 static int nm_qmp_check_answer(const nm_str_t *answer);
 static int nm_qmp_parse(const char *jobid, const nm_str_t *answer);
 static int nm_qmp_check_job(const char *jobid, const nm_str_t *answer);
@@ -148,6 +154,7 @@ void nm_qmp_vm_resume(const nm_str_t *name)
     nm_qmp_vm_exec(name, NM_QMP_CMD_VM_CONT, &tv);
 }
 
+#if !defined(NM_OS_DARWIN)
 int nm_qmp_savevm(const nm_str_t *name, const nm_str_t *snap)
 {
     nm_vect_t drives = NM_INIT_VECT;
@@ -246,6 +253,7 @@ int nm_qmp_delvm(const nm_str_t *name, const nm_str_t *snap)
 
     return rc;
 }
+#endif /* NM_OS_DARWIN */
 
 int nm_qmp_usb_attach(const nm_str_t *name, const nm_usb_data_t *usb)
 {
@@ -410,6 +418,7 @@ out:
     return rc;
 }
 
+#if !defined(NM_OS_DARWIN)
 static int nm_qmp_send(const nm_str_t *cmd)
 {
     mqd_t mq;
@@ -427,6 +436,7 @@ static int nm_qmp_send(const nm_str_t *cmd)
 
     return NM_OK;
 }
+#endif
 
 #if defined (NM_OS_LINUX)
 /*
