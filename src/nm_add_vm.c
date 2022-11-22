@@ -376,10 +376,10 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "
         "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
         vm->name.data, vm->memo.data, vm->cpus.data,
-#if (NM_OS_LINUX)
+#if defined(NM_OS_LINUX) || defined(NM_OS_DARWIN)
         NM_ENABLE, NM_ENABLE, /* enable KVM and host CPU by default */
 #else
-        NM_DISABLE, NM_DISABLE, /* disable KVM on non Linux platform */
+        NM_DISABLE, NM_DISABLE, /* disable KVM on non supported platform */
 #endif
         vm->vncp.data, vm->arch.data,
         imported ? "" : vm->srcp.data,
