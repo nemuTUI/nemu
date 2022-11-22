@@ -21,9 +21,9 @@ qemu-xhci,id=usbbus -boot d -cdrom /tmp/null.iso -drive \
 node-name=hd0,media=disk,if=virtio,file=\
 /tmp/nemu_{nemu.uuid}/testvm/testvm_a.img \
 -m 256 -enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
-virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
-tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,\
-vhost=on -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
+-netdev user,id=net-deadbeef0001 \
+-pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
 -spice port=5900,disable-ticketing=on"
         self.assertEqual(nemu.result("testvm"), expected)
@@ -55,9 +55,9 @@ qemu-xhci,id=usbbus -boot d -cdrom /tmp/null.iso -drive \
 node-name=hd0,media=disk,if=ide,file=\
 /tmp/nemu_{nemu.uuid}/testvm/testvm_a.img \
 -m 512 -smp 10 -M {nemu.qemu_mtype()} -device \
-virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
-tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,\
-vhost=on -device virtio-net-pci,mac=de:ad:be:ef:00:02,id=dev-deadbeef0002,netdev=net-deadbeef0002 \
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
+-netdev user,id=net-deadbeef0001 \
+-device virtio-net-pci,mac=de:ad:be:ef:00:02,id=dev-deadbeef0002,netdev=net-deadbeef0002 \
 -netdev tap,ifname=testvm_eth1,script=no,downscript=no,id=net-deadbeef0002 \
 -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
@@ -89,9 +89,9 @@ qemu-xhci,id=usbbus -boot d -cdrom /tmp/null.iso -drive \
 node-name=hd0,media=disk,if=virtio,file=\
 /tmp/nemu_{nemu.uuid}/testvm-clone/testvm-clone_a.img \
 -m 256 -enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
-virtio-net-pci,mac=de:ad:be:ef:00:02,id=dev-deadbeef0002,netdev=net-deadbeef0002 -netdev \
-tap,ifname=vm-deadbeef0002,script=no,downscript=no,id=net-deadbeef0002,\
-vhost=on -pidfile /tmp/nemu_{nemu.uuid}/testvm-clone/qemu.pid -qmp \
+virtio-net-pci,mac=de:ad:be:ef:00:02,id=dev-deadbeef0002,netdev=net-deadbeef0002 \
+-netdev user,id=net-deadbeef0002 \
+-pidfile /tmp/nemu_{nemu.uuid}/testvm-clone/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/testvm-clone/qmp.sock,server,nowait -vga qxl \
 -spice port=5901,disable-ticketing=on"
         self.assertEqual(nemu.result("testvm-clone"), expected)
@@ -126,8 +126,8 @@ node-name=hd0,media=disk,if=virtio,file=\
 -chardev socket,path=/tmp/ntty0,server,nowait,id=socket_testvm -device \
 isa-serial,chardev=socket_testvm -chardev tty,path=/dev/pts/7,id=tty_testvm \
 -device isa-serial,chardev=tty_testvm -device \
-virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
-tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,vhost=on \
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
+-netdev user,id=net-deadbeef0001 \
 -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vnc :6445"
         self.assertEqual(nemu.result("testvm"), expected)
@@ -160,9 +160,9 @@ node-name=hd0,media=disk,if=virtio,file=\
 -m 256 -fsdev local,security_model=none,id=fsdev0,path=/tmp \
 -device virtio-9p-pci,fsdev=fsdev0,mount_tag=share \
 -enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
-virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
-tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,\
-vhost=on -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
+-netdev user,id=net-deadbeef0001 \
+-pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
 -spice port=5900,disable-ticketing=on"
         self.assertEqual(nemu.result("testvm"), expected)
@@ -197,9 +197,9 @@ qemu-xhci,id=usbbus -boot d -cdrom /tmp/null.iso \
 /tmp/nemu_{nemu.uuid}/testvm/testvm_b.img,discard=unmap,detect-zeroes=unmap \
 -device scsi-hd,drive=hd1 -m 256 \
 -enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
-virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
-tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,\
-vhost=on -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
+-netdev user,id=net-deadbeef0001 \
+-pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
 -spice port=5900,disable-ticketing=on"
         self.assertEqual(nemu.result("testvm"), expected)
@@ -216,9 +216,9 @@ qemu-xhci,id=usbbus -boot d -cdrom /tmp/null.iso \
 -drive node-name=hd0,media=disk,if=virtio,file=\
 /tmp/nemu_{nemu.uuid}/testvm/testvm_a.img -m 256 \
 -enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
-virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
-tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,\
-vhost=on -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
+virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
+-netdev user,id=net-deadbeef0001 \
+-pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
 -spice port=5900,disable-ticketing=on"
         self.assertEqual(nemu.result("testvm"), expected)
@@ -254,9 +254,9 @@ node-name=hd0,media=disk,if=virtio,file=\
 /tmp/nemu_{nemu.uuid}/testvm/testvm_a.img -m 256 \
 -enable-kvm -cpu host -bios /tmp/efi -M {nemu.qemu_mtype()} \
 -kernel /tmp/kern -append cmd -initrd /tmp/initrd -gdb tcp::12345 -S \
--device virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 -netdev \
-tap,ifname=testvm_eth0,script=no,downscript=no,id=net-deadbeef0001,\
-vhost=on -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
+-device virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
+-netdev user,id=net-deadbeef0001 \
+-pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
 -spice port=5900,disable-ticketing=on"
         self.assertEqual(nemu.result("testvm"), expected)
