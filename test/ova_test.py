@@ -21,7 +21,7 @@ class TestOVA(unittest.TestCase):
 -drive node-name=hd0,media=disk,if=virtio,file=/tmp/nemu_{nemu.uuid}/dsl/Damn_Small_Linux-disk1.vmdk \
 -m 256 -enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
 virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
--netdev tap,ifname=dsl_eth0,script=no,downscript=no,id=net-deadbeef0001,vhost=on \
+-netdev user,id=net-deadbeef0001 \
 -pidfile /tmp/nemu_{nemu.uuid}/dsl/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/dsl/qmp.sock,server,nowait -vga qxl \
 -spice port=5900,disable-ticketing=on"
