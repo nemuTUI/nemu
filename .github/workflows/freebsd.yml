@@ -16,6 +16,10 @@ jobs:
       - name: FreeBSD-13.0 build test
         run: |
           git clone https://github.com/nemuTUI/nemu
-          cd nemu && mkdir build && cd build
+          cd nemu
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git checkout ${{ github.head_ref }}
+          fi
+          mkdir build && cd build
           cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
           make
