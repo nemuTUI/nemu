@@ -1,5 +1,6 @@
 v3.2.0 - Future
 ------------------------
+    - Feature: flash image support
     - Feature: build on MacOSX
     - Change: user networking is set by default on VM install
     - Bugfix: fix wrong drive virtual size on import

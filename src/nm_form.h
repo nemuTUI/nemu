@@ -128,6 +128,7 @@ typedef struct {
 typedef struct {
     nm_str_t inst_path;
     nm_str_t bios;
+    nm_str_t pflash;
     nm_str_t kernel;
     nm_str_t cmdline;
     nm_str_t initrd;
@@ -139,7 +140,7 @@ typedef struct {
 #define NM_INIT_VM_BOOT (nm_vm_boot_t) { \
                          NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                          NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                         0, 0 }
+                         NM_INIT_STR, 0, 0 }
 
 typedef struct {
     nm_str_t name;

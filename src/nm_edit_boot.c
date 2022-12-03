@@ -11,6 +11,7 @@
 static const char NM_LC_EDIT_BOOT_FORM_INST[] = "OS Installed";
 static const char NM_LC_EDIT_BOOT_FORM_SRCP[] = "Path to ISO/IMG";
 static const char NM_LC_EDIT_BOOT_FORM_BIOS[] = "Path to BIOS";
+static const char NM_LC_EDIT_BOOT_FORM_FLSH[] = "Path to flash";
 static const char NM_LC_EDIT_BOOT_FORM_KERN[] = "Path to kernel";
 static const char NM_LC_EDIT_BOOT_FORM_CMDL[] = "Kernel cmdline";
 static const char NM_LC_EDIT_BOOT_FORM_INIT[] = "Path to initrd";
@@ -27,6 +28,7 @@ enum {
     NM_LBL_INST = 0,  NM_FLD_INST,
     NM_LBL_SRCP, NM_FLD_SRCP,
     NM_LBL_BIOS, NM_FLD_BIOS,
+    NM_LBL_FLSH, NM_FLD_FLSH,
     NM_LBL_KERN, NM_FLD_KERN,
     NM_LBL_CMDL, NM_FLD_CMDL,
     NM_LBL_INIT, NM_FLD_INIT,
@@ -90,6 +92,9 @@ void nm_edit_boot(const nm_str_t *name)
             fields[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
             break;
         case NM_FLD_BIOS:
+            fields[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
+            break;
+        case NM_FLD_FLSH:
             fields[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
             break;
         case NM_FLD_KERN:
@@ -159,6 +164,8 @@ static void nm_edit_boot_fields_setup(const nm_vmctl_data_t *cur)
             nm_vect_str_ctx(&cur->main, NM_SQL_ISO));
     set_field_buffer(fields[NM_FLD_BIOS], 0,
             nm_vect_str_ctx(&cur->main, NM_SQL_BIOS));
+    set_field_buffer(fields[NM_FLD_FLSH], 0,
+            nm_vect_str_ctx(&cur->main, NM_SQL_FLASH));
     set_field_buffer(fields[NM_FLD_KERN], 0,
             nm_vect_str_ctx(&cur->main, NM_SQL_KERN));
     set_field_buffer(fields[NM_FLD_CMDL], 0,
@@ -192,6 +199,9 @@ static size_t nm_edit_boot_labels_setup(void)
             break;
         case NM_LBL_BIOS:
             nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_BIOS));
+            break;
+        case NM_LBL_FLSH:
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_FLSH));
             break;
         case NM_LBL_KERN:
             nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_KERN));
@@ -236,6 +246,7 @@ static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
     nm_get_field_buf(fields[NM_FLD_INST], &inst);
     nm_get_field_buf(fields[NM_FLD_SRCP], &vm->inst_path);
     nm_get_field_buf(fields[NM_FLD_BIOS], &vm->bios);
+    nm_get_field_buf(fields[NM_FLD_FLSH], &vm->pflash);
     nm_get_field_buf(fields[NM_FLD_KERN], &vm->kernel);
     nm_get_field_buf(fields[NM_FLD_CMDL], &vm->cmdline);
     nm_get_field_buf(fields[NM_FLD_INIT], &vm->initrd);
@@ -293,6 +304,12 @@ static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
     if (field_status(fields[NM_FLD_BIOS])) {
         nm_str_format(&query, "UPDATE vms SET bios='%s' WHERE name='%s'",
                 vm->bios.data, name->data);
+        nm_db_edit(query.data);
+    }
+
+    if (field_status(fields[NM_FLD_FLSH])) {
+        nm_str_format(&query, "UPDATE vms SET pflash='%s' WHERE name='%s'",
+                vm->pflash.data, name->data);
         nm_db_edit(query.data);
     }
 

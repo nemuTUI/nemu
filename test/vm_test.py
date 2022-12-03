@@ -239,9 +239,9 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
         tmux_edit = Tmux()
         tmux_edit.setup(nemu.test_dir)
         keys_edit = [["b"], ["Right"], ["Down"], ["BSpace", 4], ["_edit.iso"],
-                ["Down"], ["/tmp/efi"], ["Down"], ["/tmp/kern"], ["Down"],
-                ["cmd"], ["Down"], ["/tmp/initrd"], ["Down"], ["12345"],
-                ["Down"], ["Right"], ["Enter"], ["q"]]
+                ["Down"], ["/tmp/efi"], ["Down"], ["/tmp/flash"], ["Down"],
+                ["/tmp/kern"], ["Down"], ["cmd"], ["Down"], ["/tmp/initrd"],
+                ["Down"], ["12345"], ["Down"], ["Right"], ["Enter"], ["q"]]
         for key in keys_edit:
             rc = tmux_edit.send(*key)
             self.assertTrue(0 == rc)
@@ -252,7 +252,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
 qemu-xhci,id=usbbus -cdrom /tmp/null_edit.iso -drive \
 node-name=hd0,media=disk,if=virtio,file=\
 /tmp/nemu_{nemu.uuid}/testvm/testvm_a.img -m 256 \
--enable-kvm -cpu host -bios /tmp/efi -M {nemu.qemu_mtype()} \
+-enable-kvm -cpu host -bios /tmp/efi -pflash /tmp/flash -M {nemu.qemu_mtype()} \
 -kernel /tmp/kern -append cmd -initrd /tmp/initrd -gdb tcp::12345 -S \
 -device virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
 -netdev user,id=net-deadbeef0001 \

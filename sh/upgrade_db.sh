@@ -6,7 +6,7 @@ if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=17
+DB_ACTUAL_VERSION=18
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 USER=$(whoami)
 RC=0
@@ -198,6 +198,12 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
              (
              sqlite3 "$DB_PATH" -line 'ALTER TABLE ifaces ADD smb char;' &&
              sqlite3 "$DB_PATH" -line 'PRAGMA user_version=17'
+             ) || RC=1
+            ;;
+         ( 17 )
+             (
+             sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD pflash char;' &&
+             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=18'
              ) || RC=1
             ;;
 

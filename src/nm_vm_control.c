@@ -571,6 +571,13 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             nm_vect_str(&vm->main, NM_SQL_BIOS)->len + 1, NULL);
     }
 
+    if (nm_vect_str_len(&vm->main, NM_SQL_FLASH)) {
+        nm_vect_insert_cstr(argv, "-pflash");
+        nm_vect_insert(argv,
+            nm_vect_str(&vm->main, NM_SQL_FLASH)->data,
+            nm_vect_str(&vm->main, NM_SQL_FLASH)->len + 1, NULL);
+    }
+
     if (nm_vect_str_len(&vm->main, NM_SQL_MACH)) {
         nm_vect_insert_cstr(argv, "-M");
         nm_vect_insert(argv,
@@ -1139,6 +1146,11 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
     if (nm_vect_str_len(&vm.main, NM_SQL_BIOS)) {
         nm_str_append_format(&info, "%-12s%s\n", "bios: ",
             nm_vect_str_ctx(&vm.main, NM_SQL_BIOS));
+    }
+
+    if (nm_vect_str_len(&vm.main, NM_SQL_FLASH)) {
+        nm_str_append_format(&info, "%-12s%s\n", "flash: ",
+            nm_vect_str_ctx(&vm.main, NM_SQL_FLASH));
     }
 
     if (nm_vect_str_len(&vm.main, NM_SQL_KERN)) {
