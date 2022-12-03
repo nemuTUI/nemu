@@ -8,7 +8,7 @@
 
 #if defined(NM_OS_LINUX)
 #include <sys/sysinfo.h>
-#elif defined(NM_OS_FREEBSD)
+#elif defined(NM_OS_FREEBSD) || defined(NM_OS_DARWIN)
 #include <sys/sysctl.h>
 #endif
 
@@ -21,13 +21,17 @@ uint32_t nm_hw_total_ram(void)
     memset(&info, 0, sizeof(info));
     sysinfo(&info);
     ram = info.totalram / 1024 / 1024;
-#elif defined(NM_OS_FREEBSD)
+#elif defined(NM_OS_FREEBSD) || defined(NM_OS_DARWIN)
     uint64_t mem;
     int mib[2];
     size_t len = sizeof(mem);
 
     mib[0] = CTL_HW;
+#if defined(NM_OS_DARWIN)
+    mib[1] = HW_MEMSIZE;
+#elif defined(NM_OS_FREEBSD)
     mib[1] = HW_PHYSMEM;
+#endif
 
     if (sysctl(mib, 2, &mem, &len, NULL, 0) != 0) {
         nm_bug("%s: sysctl: %s", __func__, strerror(errno));
