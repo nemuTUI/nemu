@@ -1018,6 +1018,7 @@ void nm_vm_free(nm_vm_t *vm)
 void nm_vm_free_boot(nm_vm_boot_t *vm)
 {
     nm_str_free(&vm->bios);
+    nm_str_free(&vm->pflash);
     nm_str_free(&vm->initrd);
     nm_str_free(&vm->kernel);
     nm_str_free(&vm->cmdline);

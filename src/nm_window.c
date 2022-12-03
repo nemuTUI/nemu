@@ -567,6 +567,11 @@ nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status)
                 nm_vect_str_ctx(&vm_->main, NM_SQL_BIOS));
         NM_PR_VM_INFO();
     }
+    if (nm_vect_str_len(&vm_->main, NM_SQL_FLASH)) {
+        nm_str_format(&buf, "%-12s%s", "flash: ",
+                nm_vect_str_ctx(&vm_->main, NM_SQL_FLASH));
+        NM_PR_VM_INFO();
+    }
     if (nm_vect_str_len(&vm_->main, NM_SQL_KERN)) {
         nm_str_format(&buf, "%-12s%s", "kernel: ",
                 nm_vect_str_ctx(&vm_->main, NM_SQL_KERN));
