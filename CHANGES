@@ -1,5 +1,10 @@
 v3.2.0 - Future
 ------------------------
+    - Feature: new cli commands for VM snapshots:
+        --snap-save <vm-name> --name <snap-name> create snapshot
+        --snap-load <vm-name> --name <snap-name> load snapshot
+        --snap-del  <vm-name> --name <snap-name> delete snapshot
+        --snap-list <vm-name> show snapshots
     - Feature: flash image support
     - Feature: build on MacOSX
     - Change: user networking is set by default on VM install

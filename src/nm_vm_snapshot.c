@@ -306,6 +306,127 @@ out:
     nm_str_free(&buf);
 }
 
+void
+nm_vm_cli_snapshot_save(const nm_str_t *vm_name, const nm_str_t *snap_name)
+{
+    nm_str_t query = NM_INIT_STR;
+    nm_vect_t snap_names = NM_INIT_VECT;
+    nm_vmsnap_t snap_data = NM_INIT_VMSNAP;
+
+    if (access(nm_cfg_get()->daemon_pid.data, R_OK) == -1) {
+        fprintf(stderr, "%s\n", _("nEMU daemon is not running"));
+        return;
+    }
+
+    int vm_status = nm_qmp_test_socket(vm_name);
+
+    if (vm_status != NM_OK) {
+        fprintf(stderr, "%s\n", _("VM must be running"));
+        return;
+    }
+
+    nm_str_format(&query, NM_SNAP_GET_NAME_SQL,
+            vm_name->data, snap_name->data);
+    nm_db_select(query.data, &snap_names);
+
+    if (snap_names.n_memb != 0) {
+        fprintf(stderr, _("'%s' is already used\n"), snap_name->data);
+        goto out;
+    }
+
+    if (nm_qmp_savevm(vm_name, snap_name) != NM_ERR) {
+        nm_str_copy(&snap_data.snap_name, snap_name);
+        nm_vm_snapshot_to_db(vm_name, &snap_data);
+        nm_str_free(&snap_data.snap_name);
+    }
+
+out:
+    nm_vect_free(&snap_names, nm_str_vect_free_cb);
+    nm_str_free(&query);
+}
+
+void
+nm_vm_cli_snapshot_load(const nm_str_t *vm_name, const nm_str_t *snap_name)
+{
+    nm_str_t query = NM_INIT_STR;
+    nm_vect_t snap_names = NM_INIT_VECT;
+    int vm_status = nm_qmp_test_socket(vm_name);
+
+    if (access(nm_cfg_get()->daemon_pid.data, R_OK) == -1) {
+        fprintf(stderr, "%s\n", _("nEMU daemon is not running"));
+        return;
+    }
+
+    nm_str_format(&query, NM_SNAP_GET_NAME_SQL,
+            vm_name->data, snap_name->data);
+    nm_db_select(query.data, &snap_names);
+
+    if (!snap_names.n_memb) {
+        fprintf(stderr, _("'%s' no such snapshot\n"), snap_name->data);
+        goto out;
+    }
+
+    __nm_vm_snapshot_load(vm_name, snap_name, (vm_status == NM_OK) ? 1 : 0);
+
+out:
+    nm_vect_free(&snap_names, nm_str_vect_free_cb);
+    nm_str_free(&query);
+}
+
+void
+nm_vm_cli_snapshot_del(const nm_str_t *vm_name, const nm_str_t *snap_name)
+{
+    nm_str_t query = NM_INIT_STR;
+    nm_vect_t snap_names = NM_INIT_VECT;
+    int vm_status = nm_qmp_test_socket(vm_name);
+
+    if (access(nm_cfg_get()->daemon_pid.data, R_OK) == -1) {
+        fprintf(stderr, "%s\n", _("nEMU daemon is not running"));
+        return;
+    }
+
+    nm_str_format(&query, NM_SNAP_GET_NAME_SQL,
+            vm_name->data, snap_name->data);
+    nm_db_select(query.data, &snap_names);
+
+    if (!snap_names.n_memb) {
+        fprintf(stderr, _("'%s' no such snapshot\n"), snap_name->data);
+        goto out;
+    }
+
+    __nm_vm_snapshot_delete(vm_name, snap_name, (vm_status == NM_OK) ? 1 : 0);
+
+out:
+    nm_vect_free(&snap_names, nm_str_vect_free_cb);
+    nm_str_free(&query);
+}
+
+void nm_vm_cli_snapshot_list(const nm_str_t *vm_name)
+{
+    nm_str_t query = NM_INIT_STR;
+    size_t count;
+
+    nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, vm_name->data);
+    nm_db_select(query.data, &snaps);
+
+    if (!snaps.n_memb) {
+        goto out;
+    }
+
+    count = snaps.n_memb / 5;
+    for (size_t n = 0; n < count; n++) {
+        size_t idx_shift = 5 * n;
+
+        printf("%-15s [%s]\n",
+                nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_NAME + idx_shift),
+                nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_TIME + idx_shift));
+    }
+
+out:
+    nm_vect_free(&snaps, nm_str_vect_free_cb);
+    nm_str_free(&query);
+}
+
 void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
 {
     nm_form_data_t *form_data = NULL;

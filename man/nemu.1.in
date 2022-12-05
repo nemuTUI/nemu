@@ -9,22 +9,22 @@ nemu \- ncurses UI for QEMU.
 nEMU is a ncurses UI for QEMU with many other functions.
 .SH "OPTIONS"
 .TP
-.I \-s name, \-\-start=name.
+.I \-s VMNAME, \-\-start=VMNAME.
 Start VM
 .TP
-.I \-p name, \-\-powerdown=name
+.I \-p VMNAME, \-\-powerdown=VMNAME
 Send powerdown command. The VM will get an ACPI shutdown request and usually shutdown cleanly.
 .TP
-.I \-f name, \-\-force-stop=name
+.I \-f VMNAME, \-\-force-stop=VMNAME
 Shutdown VM immediately.
 .TP
-.I \-k name, \-\-kill=name
+.I \-k VMNAME, \-\-kill=VMNAME
 Send kill signal to QEMU process associated with VM name.
 .TP
-.I \-i name, \-\-info=name
+.I \-i VMNAME, \-\-info=VMNAME
 Displays VM information.
 .TP
-.I \-m name, \-\-cmd=name
+.I \-m VMNAME, \-\-cmd=VMNAME
 Displays VM command line.
 .TP
 .I \-d, \-\-daemon
@@ -32,6 +32,21 @@ Start nEMU daemon.
 .TP
 .I \-c, \-\-create-veth
 Create VETH interfaces.
+.TP
+.I \-\-name=NAME
+Snapshot name. Used with --snap-save, --snap-del, --snap-load.
+.TP
+.I \-\-snap-save=VMNAME
+Create snapshot. Used with --name.
+.TP
+.I \-\-snap-load=VMNAME
+Load snapshot. Used with --name.
+.TP
+.I \-\-snap-del=VMNAME
+Delete snapshot. Used with --name.
+.TP
+.I \-\-snap-list=VMNAME
+Show snapshots.
 .TP
 .I \-v, \-\-version
 Displays the current version.

@@ -7,6 +7,7 @@
 #include <nm_mon_daemon.h>
 #include <nm_ovf_import.h>
 #include <nm_vm_control.h>
+#include <nm_vm_snapshot.h>
 #include <nm_qmp_control.h>
 #include <nm_lan_settings.h>
 
@@ -83,11 +84,38 @@ static void nm_process_args(int argc, char **argv)
     const char *optstr = NM_OPT_ARGS;
     nm_str_t vmname = NM_INIT_STR;
     nm_str_t vmnames = NM_INIT_STR;
+#if !defined(NM_OS_DARWIN)
+    nm_str_t snapname = NM_INIT_STR;
+#endif
     nm_vect_t vm_list = NM_INIT_VECT;
 
+    enum {
+        OPT_SNAP_SAVE = CHAR_MAX + 1,
+        OPT_SNAP_LOAD = CHAR_MAX + 2,
+        OPT_SNAP_DEL  = CHAR_MAX + 3,
+        OPT_SNAP_LIST = CHAR_MAX + 4,
+        OPT_SNAP_NAME = CHAR_MAX + 5
+    };
+
+    enum snap_action {
+        ACTION_NONE,
+        ACTION_SNAP_SAVE,
+        ACTION_SNAP_LOAD,
+        ACTION_SNAP_DEL
+    };
+
+    enum snap_action action = ACTION_NONE;
+
     static const struct option longopts[] = {
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
         { "create-veth", no_argument,       NULL, 'c' },
+#endif
+#if !defined(NM_OS_DARWIN)
+        { "snap-save",   required_argument, NULL, OPT_SNAP_SAVE },
+        { "snap-load",   required_argument, NULL, OPT_SNAP_LOAD },
+        { "snap-del",    required_argument, NULL, OPT_SNAP_DEL  },
+        { "snap-list",   required_argument, NULL, OPT_SNAP_LIST },
+        { "name",        required_argument, NULL, OPT_SNAP_NAME },
 #endif
         { "start",       required_argument, NULL, 's' },
         { "powerdown",   required_argument, NULL, 'p' },
@@ -106,7 +134,7 @@ static void nm_process_args(int argc, char **argv)
 
     while ((opt = getopt_long(argc, argv, optstr, longopts, NULL)) != -1) {
         switch (opt) {
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
         case 'c':
             nm_init_core();
             nm_lan_create_veth(NM_TRUE);
@@ -255,6 +283,33 @@ static void nm_process_args(int argc, char **argv)
             nm_print_feset();
             nm_cfg_free();
             nm_exit(NM_OK);
+#if !defined(NM_OS_DARWIN)
+        case OPT_SNAP_LIST:
+            nm_init_core();
+            {
+                nm_str_t name = NM_INIT_STR;
+
+                nm_str_format(&name, "%s", optarg);
+                nm_vm_cli_snapshot_list(&name);
+                nm_str_free(&name);
+            }
+            nm_exit_core();
+        case OPT_SNAP_SAVE:
+            action = ACTION_SNAP_SAVE;
+            nm_str_format(&vmname, "%s", optarg);
+            break;
+        case OPT_SNAP_LOAD:
+            action = ACTION_SNAP_LOAD;
+            nm_str_format(&vmname, "%s", optarg);
+            break;
+        case OPT_SNAP_DEL:
+            action = ACTION_SNAP_DEL;
+            nm_str_format(&vmname, "%s", optarg);
+            break;
+        case OPT_SNAP_NAME:
+            nm_str_format(&snapname, "%s", optarg);
+            break;
+#endif
         case 'h':
             printf("%s\n", _("-s, --start      <name> start vm"));
             printf("%s\n", _("-p, --powerdown  <name> powerdown vm"));
@@ -266,15 +321,60 @@ static void nm_process_args(int argc, char **argv)
             printf("%s\n", _("-C, --cfg        <path> path to config file"));
             printf("%s\n", _("-l, --list              list vms"));
             printf("%s\n", _("-d, --daemon            vm monitoring daemon"));
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
             printf("%s\n", _("-c, --create-veth       create veth interfaces"));
 #endif
             printf("%s\n", _("-v, --version           show version"));
             printf("%s\n", _("-h, --help              show help"));
+#if !defined(NM_OS_DARWIN)
+            printf("%s%s\n", _("    --snap-save <vm-name> --name <snap-name>"),
+                    _(" create snapshot"));
+            printf("%s%s\n", _("    --snap-load <vm-name> --name <snap-name>"),
+                    _(" load snapshot"));
+            printf("%s%s\n", _("    --snap-del  <vm-name> --name <snap-name>"),
+                    _(" delete snapshot"));
+            printf("%s%s\n", _("    --snap-list <vm-name>"),
+                    _(" show snapshots"));
+#endif
             nm_exit(NM_OK);
         default:
             nm_exit(NM_ERR);
         }
+    }
+
+    switch (action) {
+#if !defined(NM_OS_DARWIN)
+    case ACTION_SNAP_SAVE:
+    case ACTION_SNAP_LOAD:
+    case ACTION_SNAP_DEL:
+        if (!snapname.len) {
+            fprintf(stderr, _("snapshot name is not set (--name)\n"));
+            nm_exit(NM_ERR);
+        }
+
+        nm_init_core();
+
+        switch (action) {
+        case ACTION_SNAP_SAVE:
+            nm_vm_cli_snapshot_save(&vmname, &snapname);
+            break;
+        case ACTION_SNAP_LOAD:
+            nm_vm_cli_snapshot_load(&vmname, &snapname);
+            break;
+        case ACTION_SNAP_DEL:
+            nm_vm_cli_snapshot_del(&vmname, &snapname);
+            break;
+        default:
+            break;
+        }
+
+        nm_str_free(&snapname);
+        nm_str_free(&vmname);
+        nm_exit_core();
+        break;
+#endif
+    default:
+        break;
     }
 }
 
