@@ -6,7 +6,7 @@
 
 #include <sqlite3.h>
 
-#define NM_DB_VERSION "18"
+#define NM_DB_VERSION "19"
 
 /*
  * @TODO Those queries should have constant naming convention
@@ -23,7 +23,7 @@ static const char NM_CLONE_VMS_SQL[] =
     "iso, install, usb, usbid, bios, kernel, mouse_override, kernel_append, "
     "tty_path, socket_path, initrd, machine, fs9p_enable, fs9p_path, "
     "fs9p_name, usb_type, spice, debug_port, debug_freeze, cmdappend, team, "
-    "display_type, pflash FROM vms WHERE name='%s'";
+    "display_type, pflash, spice_agent FROM vms WHERE name='%s'";
 
 static const char NM_RESET_LOAD_SQL[] =
     "UPDATE vmsnapshots SET load='0' WHERE vm_name='%s'";
@@ -231,6 +231,7 @@ enum select_main_idx {
     NM_SQL_GROUP,
     NM_SQL_DISPLAY,
     NM_SQL_FLASH,
+    NM_SQL_AGENT,
     NM_VM_IDX_COUNT
 };
 

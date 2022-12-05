@@ -1,5 +1,6 @@
 v3.2.0 - Future
 ------------------------
+    - Feature: Spice agent support
     - Feature: new cli commands for VM snapshots:
         --snap-save <vm-name> --name <snap-name> create snapshot
         --snap-load <vm-name> --name <snap-name> load snapshot

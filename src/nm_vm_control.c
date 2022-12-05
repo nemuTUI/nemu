@@ -1010,6 +1010,18 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             nm_str_append_format(&buf, ",addr=127.0.0.1");
         }
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
+
+        if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_AGENT),
+                    NM_ENABLE) == NM_OK) {
+            nm_vect_insert_cstr(argv, "-device");
+            nm_vect_insert_cstr(argv, "virtio-serial");
+            nm_vect_insert_cstr(argv, "-chardev");
+            nm_vect_insert_cstr(argv,
+                    "spicevmc,id=vdagent,debug=0,name=vdagent");
+            nm_vect_insert_cstr(argv, "-device");
+            nm_vect_insert_cstr(argv,
+                    "virtserialport,chardev=vdagent,name=com.redhat.spice.0");
+        }
     } else {
         nm_vect_insert_cstr(argv, "-vnc");
         if (cfg->listen_any) {
