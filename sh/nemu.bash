@@ -27,16 +27,17 @@ _nemu_completions()
     if [[ "$COMP_CWORD" == 1 ]]; then
         COMPREPLY=( $(compgen -W "-h --help -l --list -s --start -p --powerdown \
             -f --force-stop -z --reset -k --kill -i --info -v --version \
-            -d --daemon -c --create-veth -m --cmd -C --cfg" -- "$curr") )
+            -d --daemon -c --create-veth -m --cmd -C --cfg \
+            --name --snap-list --snap-save --snap-del --snap-load" -- "$curr") )
     elif [[ "$COMP_CWORD" == 2 ]]; then
         case "$prev" in
             "-s"|"--start")
                 COMPREPLY=( $(compgen -W "$(get_stopped_vms)" -- "$curr") )
             ;;
-            "-p"|"--powerdown"|"-f"|"--force-stop"|"-z"|"--reset"|"-k"|"--kill")
+            "-p"|"--powerdown"|"-f"|"--force-stop"|"-z"|"--reset"|"-k"|"--kill"|"--snap-save")
                 COMPREPLY=( $(compgen -W "$(get_running_vms)" -- "$curr") )
             ;;
-            "-i"|"--info"|"-m"|"--cmd")
+            "-i"|"--info"|"-m"|"--cmd"|"--snap-list"|"--snap-del"|"--snap-load")
                 COMPREPLY=( $(compgen -W "$(get_all_vms)" -- "$curr") )
             ;;
             *)
