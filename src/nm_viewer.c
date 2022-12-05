@@ -12,17 +12,19 @@ typedef struct {
     nm_str_t tty;
     nm_str_t sock;
     nm_str_t sync;
+    nm_str_t agent;
     nm_str_t display;
 } nm_view_data_t;
 
 #define NM_INIT_VIEW_DATA (nm_view_data_t) { NM_INIT_STR, NM_INIT_STR, \
-    NM_INIT_STR,  NM_INIT_STR, NM_INIT_STR, NM_INIT_STR }
+    NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, NM_INIT_STR }
 
 static const char NM_LC_VIEWER_FORM_SPICE[] = "Spice server";
 static const char NM_LC_VIEWER_FORM_PORT[]  = "VNC/Spice port";
 static const char NM_LC_VIEWER_FORM_TTYP[]  = "Serial TTY";
 static const char NM_LC_VIEWER_FORM_SOCK[]  = "Serial socket";
 static const char NM_LC_VIEWER_FORM_SYNC[]  = "Sync mouse position";
+static const char NM_LC_VIEWER_FORM_AGENT[] = "Spice Agent";
 static const char NM_LC_VIEWER_FORM_DSP[]   = "Display type";
 
 static void nm_viewer_init_windows(nm_form_t *form);
@@ -38,6 +40,7 @@ enum {
     NM_LBL_TTYP, NM_FLD_TTYP,
     NM_LBL_SOCK, NM_FLD_SOCK,
     NM_LBL_SYNC, NM_FLD_SYNC,
+    NM_LBL_AGENT, NM_FLD_AGENT,
     NM_LBL_DSP, NM_FLD_DSP,
     NM_FLD_COUNT,
 };
@@ -103,6 +106,10 @@ void nm_viewer(const nm_str_t *name)
                 n / 2, form_data, "^/.*");
             break;
         case NM_FLD_SYNC:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_yes_no, false, false);
+            break;
+        case NM_FLD_AGENT:
             fields[n] = nm_field_enum_new(
                 n / 2, form_data, nm_form_yes_no, false, false);
             break;
@@ -175,6 +182,13 @@ static void nm_viewer_fields_setup(const nm_vmctl_data_t *vm)
     } else {
         set_field_buffer(fields[NM_FLD_SYNC], 0, nm_form_yes_no[1]);
     }
+
+    if (nm_str_cmp_st(nm_vect_str(&vm->main, NM_SQL_AGENT),
+                NM_ENABLE) == NM_OK) {
+        set_field_buffer(fields[NM_FLD_AGENT], 0, nm_form_yes_no[0]);
+    } else {
+        set_field_buffer(fields[NM_FLD_AGENT], 0, nm_form_yes_no[1]);
+    }
 }
 
 static size_t nm_viewer_labels_setup(void)
@@ -199,6 +213,9 @@ static size_t nm_viewer_labels_setup(void)
             break;
         case NM_LBL_SYNC:
             nm_str_format(&buf, "%s", _(NM_LC_VIEWER_FORM_SYNC));
+            break;
+        case NM_LBL_AGENT:
+            nm_str_format(&buf, "%s", _(NM_LC_VIEWER_FORM_AGENT));
             break;
         case NM_LBL_DSP:
             nm_str_format(&buf, "%s", _(NM_LC_VIEWER_FORM_DSP));
@@ -228,6 +245,7 @@ static inline void nm_viewer_free(nm_view_data_t *data)
     nm_str_free(&data->tty);
     nm_str_free(&data->sock);
     nm_str_free(&data->sync);
+    nm_str_free(&data->agent);
     nm_str_free(&data->display);
 }
 
@@ -241,6 +259,7 @@ static int nm_viewer_get_data(nm_view_data_t *vm)
     nm_get_field_buf(fields[NM_FLD_TTYP], &vm->tty);
     nm_get_field_buf(fields[NM_FLD_SOCK], &vm->sock);
     nm_get_field_buf(fields[NM_FLD_SYNC], &vm->sync);
+    nm_get_field_buf(fields[NM_FLD_AGENT], &vm->agent);
     nm_get_field_buf(fields[NM_FLD_DSP],  &vm->display);
 
     if (field_status(fields[NM_FLD_SPICE])) {
@@ -251,6 +270,9 @@ static int nm_viewer_get_data(nm_view_data_t *vm)
     }
     if (field_status(fields[NM_FLD_SYNC])) {
         nm_form_check_data(_(NM_LC_VIEWER_FORM_SYNC), vm->sync, err);
+    }
+    if (field_status(fields[NM_FLD_AGENT])) {
+        nm_form_check_data(_(NM_LC_VIEWER_FORM_AGENT), vm->agent, err);
     }
     if (field_status(fields[NM_FLD_DSP])) {
         nm_form_check_data(_(NM_LC_VIEWER_FORM_DSP), vm->display, err);
@@ -308,6 +330,18 @@ static void nm_viewer_update_db(const nm_str_t *name, nm_view_data_t *vm)
         nm_str_format(&query, "UPDATE vms SET mouse_override='%s' "
                 "WHERE name='%s'",
                 sync_on ? NM_ENABLE : NM_DISABLE, name->data);
+        nm_db_edit(query.data);
+    }
+
+    if (field_status(fields[NM_FLD_AGENT])) {
+        int agent_on = 0;
+
+        if (nm_str_cmp_st(&vm->agent, "yes") == NM_OK) {
+            agent_on = 1;
+        }
+        nm_str_format(&query, "UPDATE vms SET spice_agent='%s' "
+                "WHERE name='%s'",
+                agent_on ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);
     }
 

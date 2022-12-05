@@ -6,7 +6,7 @@ if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=18
+DB_ACTUAL_VERSION=19
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 USER=$(whoami)
 RC=0
@@ -206,6 +206,13 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
              sqlite3 "$DB_PATH" -line 'PRAGMA user_version=18'
              ) || RC=1
             ;;
+         ( 18 )
+             (
+             sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD spice_agent integer;' &&
+             sqlite3 "$DB_PATH" -line 'UPDATE vms SET spice_agent="0";' &&
+             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=19'
+             ) || RC=1
+             ;;
 
         ( * )
             echo "Unsupported database user_version" >&2
