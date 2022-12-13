@@ -32,7 +32,7 @@
 [![Alt Overview](https://img.youtube.com/vi/jOtCY--LEN8/1.jpg)](https://www.youtube.com/watch?v=jOtCY--LEN8)
 
 ## Environment Requirements
- * Linux/FreeBSD/MacOSX host
+ * Linux/FreeBSD/MacOS host
  * QEMU (>= 2.12.0 [minimum] >= 6.0.0 [all features])
 
 ## Packages
@@ -41,6 +41,7 @@
  * Gentoo: `emerge app-emulation/nemu`
  * FreeBSD: `pkg install nemu` or `make -C /usr/ports/emulators/nemu install clean`
  * RPMs: [stable](https://copr.fedorainfracloud.org/coprs/grafin1992/nEMU/), [latest](https://copr.fedorainfracloud.org/coprs/grafin1992/nEMU-latest/)
+ * MacOS: `brew install nemu`
 
 ## Remote clients
  * [nemu-droid](https://github.com/nemuTUI/nemu-droid)
