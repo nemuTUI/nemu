@@ -74,7 +74,7 @@ static inline char *__attribute__((format_arg(1))) _(const char *str)
 }
 static inline void nm_init_core(void)
 {
-    nm_cfg_init();
+    nm_cfg_init(false);
     nm_db_init();
 }
 static inline void __attribute__((noreturn)) nm_exit_core()

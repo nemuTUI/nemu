@@ -66,7 +66,7 @@ typedef struct {
     uint32_t debug:1;
 } nm_cfg_t;
 
-void nm_cfg_init(void);
+void nm_cfg_init(bool bypass_cfg);
 void nm_cfg_free(void);
 const nm_cfg_t *nm_cfg_get(void);
 
