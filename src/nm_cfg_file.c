@@ -102,7 +102,7 @@ static inline void nm_cfg_get_color(size_t pos, short *color,
 static void nm_cfg_get_targets(nm_str_t *buf, const nm_str_t *path);
 static void nm_cfg_get_view(nm_view_args_t *view, const nm_str_t *buf);
 
-void nm_cfg_init(void)
+void nm_cfg_init(bool bypass_cfg)
 {
     struct stat file_info;
     struct passwd *pw = getpwuid(getuid());
@@ -119,7 +119,15 @@ void nm_cfg_init(void)
     }
 
     nm_locate_cfg(&cfg_path, pw->pw_dir);
-    nm_generate_cfg(pw->pw_dir, &cfg_path);
+    if (stat(cfg_path.data, &file_info) == -1) {
+        if (bypass_cfg) {
+            nm_str_free(&cfg_path);
+            return;
+        }
+        nm_generate_cfg(pw->pw_dir, &cfg_path);
+    }
+
+    memset(&file_info, 0, sizeof(file_info));
     ini = nm_ini_parser_init(&cfg_path);
 
     /* Get debug file path */
@@ -467,10 +475,6 @@ out:
 static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
 {
     struct stat file_info;
-
-    if (stat(cfg_path->data, &file_info) == 0) {
-        return;
-    }
 
     printf(_("Config file \"%s\" is not found.\n"), cfg_path->data);
     printf(_("You can copy example from:\n"));

@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
     nm_process_args(argc, argv);
 
-    nm_cfg_init();
+    nm_cfg_init(false);
     nm_db_init();
     nm_mon_start();
 #if defined (NM_OS_LINUX)
@@ -278,7 +278,7 @@ static void nm_process_args(int argc, char **argv)
             nm_vect_free(&vm_list, nm_str_vect_free_cb);
             nm_exit_core();
         case 'v':
-            nm_cfg_init();
+            nm_cfg_init(true);
             printf("nEMU %s\n", NM_VERSION);
             nm_print_feset();
             nm_cfg_free();

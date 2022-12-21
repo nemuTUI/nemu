@@ -412,7 +412,7 @@ void nm_mon_loop(void)
     struct timespec ts;
     pid_t pid;
 
-    nm_cfg_init();
+    nm_cfg_init(false);
     cfg = nm_cfg_get();
     if (access(cfg->daemon_pid.data, R_OK) != -1) {
         return;
