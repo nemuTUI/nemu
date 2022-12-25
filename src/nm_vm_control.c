@@ -100,12 +100,10 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
             }
 
             /* load snapshot and resume vm after suspend */
-#if !defined(NM_OS_DARWIN)
             if (flags & NM_VMCTL_CONT) {
                 nm_qmp_loadvm(name, &snap);
                 nm_qmp_vm_resume(name);
             }
-#endif
         }
     }
 

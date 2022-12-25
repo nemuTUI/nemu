@@ -13,7 +13,10 @@
 #include <time.h> /* nanosleep(2) */
 #include <pthread.h>
 
-#if !defined(NM_OS_DARWIN)
+#if defined(NM_OS_DARWIN)
+#include <nm_sysv_queue.h>
+#include <nm_pthread_barrier.h>
+#else
 #include <mqueue.h>
 #endif
 
@@ -28,9 +31,7 @@ static int nm_mon_store_pid(void);
 
 typedef struct nm_qmp_w_data {
     nm_str_t *cmd;
-#if !defined(NM_OS_DARWIN)
     pthread_barrier_t *barrier;
-#endif
 } nm_qmp_w_data_t;
 
 typedef struct nm_clean_data {
@@ -76,7 +77,6 @@ static void nm_mon_cleanup(void)
     nm_exit_core();
 }
 
-#if !defined(NM_OS_DARWIN)
 void *nm_qmp_worker(void *data)
 {
     struct json_object *parsed, *args, *jobid;
@@ -155,23 +155,23 @@ void *nm_qmp_worker(void *data)
 
     pthread_exit(NULL);
 }
-#endif /* NM_OS_DARWIN */
 
-#if !defined(NM_OS_DARWIN)
 void *nm_qmp_dispatcher(void *ctx)
 {
     const nm_cfg_t *cfg = nm_cfg_get();
     nm_thr_ctrl_t *args = ctx;
+    FILE *log;
+#if !defined(NM_OS_DARWIN)
     struct mq_attr mq_attr;
     char *msg = NULL;
-    ssize_t rcv_len;
-    FILE *log;
     mqd_t mq;
+#endif
 
     if ((log = fopen(cfg->log_path.data, "w")) == NULL) {
         pthread_exit(NULL);
     }
 
+#if !defined(NM_OS_DARWIN)
     if ((mq = mq_open(NM_MQ_PATH, O_RDWR | O_CREAT,
                     0600, NULL)) == (mqd_t) -1) {
         fprintf(log, "%s:cannot open mq: %s\n", __func__, strerror(errno));
@@ -186,10 +186,12 @@ void *nm_qmp_dispatcher(void *ctx)
     }
 
     msg = nm_calloc(1, mq_attr.mq_msgsize + 1);
+#endif
 
     while (!args->stop) {
+#if !defined(NM_OS_DARWIN)
         struct timespec ts;
-
+        ssize_t rcv_len;
         memset(msg, 0, mq_attr.mq_msgsize + 1);
         memset(&ts, 0, sizeof(ts));
         clock_gettime(CLOCK_REALTIME, &ts);
@@ -197,8 +199,13 @@ void *nm_qmp_dispatcher(void *ctx)
 
         rcv_len = mq_timedreceive(mq, msg, mq_attr.mq_msgsize, NULL, &ts);
         if (rcv_len > 0) {
-            nm_qmp_w_data_t data = NM_QMP_W_INIT;
             nm_str_t cmd = NM_INIT_STR;
+#else
+        nm_str_t cmd = NM_INIT_STR;
+
+        if (nm_sysv_queue_recv(&cmd)) {
+#endif
+            nm_qmp_w_data_t data = NM_QMP_W_INIT;
             pthread_barrier_t barr;
             pthread_t thr;
 
@@ -210,27 +217,36 @@ void *nm_qmp_dispatcher(void *ctx)
             data.barrier = &barr;
             data.cmd = &cmd;
 
+#if !defined(NM_OS_DARWIN)
             nm_str_format(&cmd, "%s", msg);
+#endif
 
             if (pthread_create(&thr, NULL, nm_qmp_worker, &data) != 0) {
                 nm_exit(EXIT_FAILURE);
             }
-#if defined (NM_OS_LINUX)
+#if defined(NM_OS_LINUX)
             pthread_setname_np(thr, "nemu-qmp-worker");
 #endif
             pthread_barrier_wait(&barr);
             pthread_barrier_destroy(&barr);
             nm_str_free(&cmd);
+#if defined(NM_OS_DARWIN)
+        } else {
+            usleep(1000000); /* 1 sec */
         }
+#else
+        }
+#endif /* NM_OS_DARWIN */
     }
 
+#if !defined(NM_OS_DARWIN)
 out:
     free(msg);
-    fclose(log);
     mq_close(mq);
+#endif
+    fclose(log);
     pthread_exit(NULL);
 }
-#endif /* NM_OS_DARWIN */
 
 static bool nm_mon_check_version(pid_t *opid)
 {
@@ -472,12 +488,10 @@ void nm_mon_loop(void)
 
     nm_db_init();
     nm_mon_build_list(&mon_list, &vm_list);
-#if !defined(NM_OS_DARWIN)
     if (pthread_create(&qmp_thr, NULL,
                 nm_qmp_dispatcher, &clean.qmp_ctrl) != 0) {
         nm_exit(EXIT_FAILURE);
     }
-#endif
 #if defined (NM_OS_LINUX)
     pthread_setname_np(qmp_thr, "nemu-qmp-dsp");
 #endif

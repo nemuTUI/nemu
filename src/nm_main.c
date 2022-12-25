@@ -84,9 +84,7 @@ static void nm_process_args(int argc, char **argv)
     const char *optstr = NM_OPT_ARGS;
     nm_str_t vmname = NM_INIT_STR;
     nm_str_t vmnames = NM_INIT_STR;
-#if !defined(NM_OS_DARWIN)
     nm_str_t snapname = NM_INIT_STR;
-#endif
     nm_vect_t vm_list = NM_INIT_VECT;
 
     enum {
@@ -110,13 +108,11 @@ static void nm_process_args(int argc, char **argv)
 #if defined(NM_OS_LINUX)
         { "create-veth", no_argument,       NULL, 'c' },
 #endif
-#if !defined(NM_OS_DARWIN)
         { "snap-save",   required_argument, NULL, OPT_SNAP_SAVE },
         { "snap-load",   required_argument, NULL, OPT_SNAP_LOAD },
         { "snap-del",    required_argument, NULL, OPT_SNAP_DEL  },
         { "snap-list",   required_argument, NULL, OPT_SNAP_LIST },
         { "name",        required_argument, NULL, OPT_SNAP_NAME },
-#endif
         { "start",       required_argument, NULL, 's' },
         { "powerdown",   required_argument, NULL, 'p' },
         { "force-stop",  required_argument, NULL, 'f' },
@@ -283,7 +279,6 @@ static void nm_process_args(int argc, char **argv)
             nm_print_feset();
             nm_cfg_free();
             nm_exit(NM_OK);
-#if !defined(NM_OS_DARWIN)
         case OPT_SNAP_LIST:
             nm_init_core();
             {
@@ -309,7 +304,6 @@ static void nm_process_args(int argc, char **argv)
         case OPT_SNAP_NAME:
             nm_str_format(&snapname, "%s", optarg);
             break;
-#endif
         case 'h':
             printf("%s\n", _("-s, --start      <name> start vm"));
             printf("%s\n", _("-p, --powerdown  <name> powerdown vm"));
@@ -326,7 +320,6 @@ static void nm_process_args(int argc, char **argv)
 #endif
             printf("%s\n", _("-v, --version           show version"));
             printf("%s\n", _("-h, --help              show help"));
-#if !defined(NM_OS_DARWIN)
             printf("%s%s\n", _("    --snap-save <vm-name> --name <snap-name>"),
                     _(" create snapshot"));
             printf("%s%s\n", _("    --snap-load <vm-name> --name <snap-name>"),
@@ -335,7 +328,6 @@ static void nm_process_args(int argc, char **argv)
                     _(" delete snapshot"));
             printf("%s%s\n", _("    --snap-list <vm-name>"),
                     _(" show snapshots"));
-#endif
             nm_exit(NM_OK);
         default:
             nm_exit(NM_ERR);
@@ -343,7 +335,6 @@ static void nm_process_args(int argc, char **argv)
     }
 
     switch (action) {
-#if !defined(NM_OS_DARWIN)
     case ACTION_SNAP_SAVE:
     case ACTION_SNAP_LOAD:
     case ACTION_SNAP_DEL:
@@ -372,7 +363,6 @@ static void nm_process_args(int argc, char **argv)
         nm_str_free(&vmname);
         nm_exit_core();
         break;
-#endif
     default:
         break;
     }
