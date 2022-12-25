@@ -9,8 +9,6 @@
 #include <nm_qmp_control.h>
 #include <nm_vm_snapshot.h>
 
-#if !defined(NM_OS_DARWIN)
-
 typedef struct {
     nm_str_t snap_name;
     nm_str_t load;
@@ -665,5 +663,4 @@ static void nm_vm_snapshot_to_db(const nm_str_t *name, const nm_vmsnap_t *data)
     nm_str_free(&query);
 }
 
-#endif /* NM_OS_DARWIN */
 /* vim:set ts=4 sw=4: */

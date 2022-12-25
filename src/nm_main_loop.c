@@ -328,7 +328,7 @@ void nm_start_main_loop(void)
             case NM_KEY_C_UP:
                 nm_viewer(name);
                 break;
-#if !defined(NM_OS_DARWIN)
+
             case NM_KEY_S_UP:
                 if (access(cfg->daemon_pid.data, R_OK) == -1) {
                     nm_warn(_(NM_MSG_NO_DAEMON));
@@ -360,7 +360,6 @@ void nm_start_main_loop(void)
                 }
                 nm_vm_snapshot_delete(name, vm_status);
                 break;
-#endif /* NM_OS_DARWIN */
 
             case NM_KEY_L:
                 if (vm_status) {
