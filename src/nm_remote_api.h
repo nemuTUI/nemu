@@ -1,7 +1,7 @@
 #ifndef NM_REMOTE_API_H_
 #define NM_REMOTE_API_H_
 
-#define NM_API_VERSION "0.2"
+#define NM_API_VERSION "0.3"
 
 #include <nm_mon_daemon.h>
 
