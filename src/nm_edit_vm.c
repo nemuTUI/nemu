@@ -449,57 +449,7 @@ nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac)
     }
 
     if (field_status(fields[NM_FLD_IFSCNT])) {
-        size_t cur_count = cur->ifs.n_memb / NM_IFS_IDX_COUNT;
-
-        if (vm->ifs.count < cur_count) {
-            for (; cur_count > vm->ifs.count; cur_count--) {
-                size_t idx_shift = NM_IFS_IDX_COUNT * (cur_count - 1);
-
-                nm_str_format(&query, NM_DEL_IFACE_SQL,
-                    nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
-                    nm_vect_str_ctx(&cur->ifs, NM_SQL_IF_NAME + idx_shift));
-                nm_db_edit(query.data);
-            }
-        }
-
-        if (vm->ifs.count > cur_count) {
-            for (size_t n = cur_count; n < vm->ifs.count; n++) {
-                int altname;
-                nm_str_t if_name = NM_INIT_STR;
-                nm_str_t if_name_copy = NM_INIT_STR;
-                nm_str_t maddr = NM_INIT_STR;
-
-                mac++;
-
-                nm_net_mac_n2s(mac, &maddr);
-                nm_str_format(&if_name, "%s_eth%zu",
-                        nm_vect_str_ctx(&cur->main, NM_SQL_NAME), n);
-                nm_str_copy(&if_name_copy, &if_name);
-
-                altname = nm_net_fix_tap_name(&if_name, &maddr);
-
-                nm_str_format(&query,
-                        "INSERT INTO ifaces(vm_name, if_name, mac_addr, "
-                        "if_drv, vhost, macvtap, altname) "
-                        "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
-                        nm_vect_str_ctx(&cur->main, NM_SQL_NAME),
-                        if_name.data,
-                        maddr.data,
-                        NM_DEFAULT_NETDRV,
-#if defined(NM_OS_LINUX)
-                        NM_ENABLE,
-#else
-                        NM_DISABLE,
-#endif
-                        NM_DISABLE,
-                        (altname) ? if_name_copy.data : "");
-                nm_db_edit(query.data);
-
-                nm_str_free(&if_name);
-                nm_str_free(&if_name_copy);
-                nm_str_free(&maddr);
-            }
-        }
+        nm_edit_update_ifs(&query, cur, vm, mac);
     }
 
     if (field_status(fields[NM_FLD_DISKIN])) {
@@ -553,6 +503,63 @@ nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac)
     }
 
     nm_str_free(&query);
+}
+
+void
+nm_edit_update_ifs(nm_str_t *query, const nm_vmctl_data_t *vm_cur,
+        const nm_vm_t *vm_new, uint64_t mac)
+{
+    size_t cur_count = vm_cur->ifs.n_memb / NM_IFS_IDX_COUNT;
+
+    if (vm_new->ifs.count < cur_count) {
+        for (; cur_count > vm_new->ifs.count; cur_count--) {
+            size_t idx_shift = NM_IFS_IDX_COUNT * (cur_count - 1);
+
+            nm_str_format(query, NM_DEL_IFACE_SQL,
+                    nm_vect_str_ctx(&vm_cur->main, NM_SQL_NAME),
+                    nm_vect_str_ctx(&vm_cur->ifs, NM_SQL_IF_NAME + idx_shift));
+            nm_db_edit(query->data);
+        }
+    }
+
+    if (vm_new->ifs.count > cur_count) {
+        for (size_t n = cur_count; n < vm_new->ifs.count; n++) {
+            int altname;
+            nm_str_t if_name = NM_INIT_STR;
+            nm_str_t if_name_copy = NM_INIT_STR;
+            nm_str_t maddr = NM_INIT_STR;
+
+            mac++;
+
+            nm_net_mac_n2s(mac, &maddr);
+            nm_str_format(&if_name, "%s_eth%zu",
+                    nm_vect_str_ctx(&vm_cur->main, NM_SQL_NAME), n);
+            nm_str_copy(&if_name_copy, &if_name);
+
+            altname = nm_net_fix_tap_name(&if_name, &maddr);
+
+            nm_str_format(query,
+                    "INSERT INTO ifaces(vm_name, if_name, mac_addr, "
+                    "if_drv, vhost, macvtap, altname) "
+                    "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+                    nm_vect_str_ctx(&vm_cur->main, NM_SQL_NAME),
+                    if_name.data,
+                    maddr.data,
+                    NM_DEFAULT_NETDRV,
+#if defined(NM_OS_LINUX)
+                    NM_ENABLE,
+#else
+                    NM_DISABLE,
+#endif
+                    NM_DISABLE,
+                    (altname) ? if_name_copy.data : "");
+            nm_db_edit(query->data);
+
+            nm_str_free(&if_name);
+            nm_str_free(&if_name_copy);
+            nm_str_free(&maddr);
+        }
+    }
 }
 
 /* vim:set ts=4 sw=4: */

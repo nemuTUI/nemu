@@ -60,3 +60,21 @@ param list:
     typeof: value: integer
   disk_iface - disk interface driver
     typeof: value: string, value_list: array of string
+
+Set VM settings.
+APIv: >= 0.3
+request: { "exec": "vm_set_settings", "name": "_name_", "auth": "_pass_", "param": "_value_" }
+reply:   { "return": "ok" } or { "return": "err", "error": "_error_" }
+param list:
+  smp - CPU count, format: sockets:cores?:threads?
+    typeof: string
+  mem - the amount of RAM
+    typeof: integer
+  kvm - KVM status
+    typeof: bool
+  hcpu - host CPU status
+    typeof: bool
+  netifs - network interface count
+    typeof: integer
+  disk_iface - disk interface driver
+    typeof: string

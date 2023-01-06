@@ -6,6 +6,7 @@
 #include <nm_mon_daemon.h>
 #include <nm_vm_control.h>
 #include <nm_database.h>
+#include <nm_edit_vm.h>
 #include <nm_utils.h>
 #include <nm_form.h>
 
@@ -43,6 +44,8 @@ static void
 nm_api_md_vmgetconnectport(struct json_object *request, nm_str_t *reply);
 static void
 nm_api_md_vmgetsettings(struct json_object *request, nm_str_t *reply);
+static void
+nm_api_md_vmsetsettings(struct json_object *request, nm_str_t *reply);
 
 static nm_api_ops_t nm_api[] = {
     { .method = "nemu_version",        .run = nm_api_md_nemu_version     },
@@ -53,7 +56,8 @@ static nm_api_ops_t nm_api[] = {
     { .method = "vm_stop",             .run = nm_api_md_vmstop           },
     { .method = "vm_force_stop",       .run = nm_api_md_vmforcestop      },
     { .method = "vm_get_connect_port", .run = nm_api_md_vmgetconnectport },
-    { .method = "vm_get_settings",     .run = nm_api_md_vmgetsettings    }
+    { .method = "vm_get_settings",     .run = nm_api_md_vmgetsettings    },
+    { .method = "vm_set_settings",     .run = nm_api_md_vmsetsettings    }
 };
 
 void *nm_api_server(void *ctx)
@@ -818,6 +822,191 @@ out:
     nm_str_free(&name_str);
     nm_str_free(&settings);
     nm_vmctl_free_data(&vm);
+    json_object_put(request);
+}
+
+static void
+nm_api_md_vmsetsettings(struct json_object *request, nm_str_t *reply)
+{
+    regex_t reg;
+    bool vm_exist = false;
+    nm_str_t query = NM_INIT_STR;
+    nm_str_t name_str = NM_INIT_STR;
+    nm_mon_vms_t *vms = mon_data->vms;
+    struct json_object *jreq;
+    nm_vm_t vm_new = NM_INIT_VM;
+    nm_vmctl_data_t vm_cur = NM_VMCTL_INIT_DATA;
+    int rc = nm_api_check_auth(request, reply);
+
+    memset(&reg, 0, sizeof(regex_t));
+
+    if (rc != NM_OK) {
+        goto out;
+    }
+
+    json_object_object_get_ex(request, "name", &jreq);
+    if (!jreq) {
+        nm_str_format(reply, NM_API_RET_ERR, "name param is missing");
+        goto out;
+    }
+
+    nm_str_format(&name_str, "%s", json_object_get_string(jreq));
+    for (size_t n = 0; n < vms->list->n_memb; n++) {
+        if (nm_str_cmp_ss(nm_mon_item_get_name(vms->list, n),
+                    &name_str) ==  NM_OK) {
+            vm_exist = true;
+            break;
+        }
+    }
+
+    if (!vm_exist) {
+        nm_str_format(reply, NM_API_RET_ERR, "VM does not exists");
+        goto out;
+    }
+
+    nm_vmctl_get_data(&name_str, &vm_cur);
+
+    json_object_object_get_ex(request, "smp", &jreq);
+    if (jreq) {
+        const char *regex = "^[0-9]+(:[0-9]+)?(:[0-9]+)?$";
+
+        if (regcomp(&reg, regex, REG_EXTENDED) != 0) {
+            nm_bug("%s: regcomp failed", __func__);
+        }
+
+        if (json_object_get_type(jreq) != json_type_string) {
+            nm_str_format(reply, NM_API_RET_ERR, "Wrong `smp` type");
+            goto out;
+        }
+
+        nm_str_format(&vm_new.cpus, "%s", json_object_get_string(jreq));
+        if (regexec(&reg, vm_new.cpus.data, 0, NULL, 0) != 0) {
+            nm_str_format(reply, NM_API_RET_ERR, "Incorrect `smp` value");
+            goto out;
+        }
+
+        if (nm_str_cmp_ss(nm_vect_str(&vm_cur.main, NM_SQL_SMP),
+                    &vm_new.cpus) != NM_OK) {
+            nm_str_format(&query, "UPDATE vms SET smp='%s' WHERE name='%s'",
+                    vm_new.cpus.data, name_str.data);
+            nm_db_edit(query.data);
+        }
+    }
+
+    json_object_object_get_ex(request, "mem", &jreq);
+    if (jreq) {
+        if (json_object_get_type(jreq) != json_type_int) {
+            nm_str_format(reply, NM_API_RET_ERR, "Wrong `mem` type");
+            goto out;
+        }
+        nm_str_format(&vm_new.memo, "%d", json_object_get_int(jreq));
+        if (nm_str_cmp_ss(nm_vect_str(&vm_cur.main, NM_SQL_MEM),
+                    &vm_new.memo) != NM_OK) {
+            nm_str_format(&query, "UPDATE vms SET mem='%s' WHERE name='%s'",
+                    vm_new.memo.data, name_str.data);
+            nm_db_edit(query.data);
+        }
+    }
+
+    json_object_object_get_ex(request, "kvm", &jreq);
+    if (jreq) {
+        bool cur_value = false;
+
+        if (json_object_get_type(jreq) != json_type_boolean) {
+            nm_str_format(reply, NM_API_RET_ERR, "Wrong `kvm` type");
+            goto out;
+        }
+
+        vm_new.kvm.enable = json_object_get_boolean(jreq);
+        if (nm_str_cmp_st(nm_vect_str(&vm_cur.main, NM_SQL_KVM),
+                    NM_ENABLE) == NM_OK) {
+            cur_value = true;
+        }
+
+        if (cur_value != vm_new.kvm.enable) {
+            nm_str_format(&query, "UPDATE vms SET kvm='%s' WHERE name='%s'",
+                    vm_new.kvm.enable ? NM_ENABLE : NM_DISABLE, name_str.data);
+            nm_db_edit(query.data);
+        }
+    }
+
+    json_object_object_get_ex(request, "hcpu", &jreq);
+    if (jreq) {
+        bool cur_value = false;
+
+        if (json_object_get_type(jreq) != json_type_boolean) {
+            nm_str_format(reply, NM_API_RET_ERR, "Wrong `hcpu` type");
+            goto out;
+        }
+
+        vm_new.kvm.hostcpu_enable = json_object_get_boolean(jreq);
+        if (nm_str_cmp_st(nm_vect_str(&vm_cur.main, NM_SQL_HCPU),
+                    NM_ENABLE) == NM_OK) {
+            cur_value = true;
+        }
+
+        if (cur_value != vm_new.kvm.hostcpu_enable) {
+            nm_str_format(&query, "UPDATE vms SET hcpu='%s' WHERE name='%s'",
+                    vm_new.kvm.hostcpu_enable ? NM_ENABLE : NM_DISABLE,
+                    name_str.data);
+            nm_db_edit(query.data);
+        }
+    }
+
+    json_object_object_get_ex(request, "netifs", &jreq);
+    if (jreq) {
+        if (json_object_get_type(jreq) != json_type_int) {
+            nm_str_format(reply, NM_API_RET_ERR, "Wrong `netifs` type");
+            goto out;
+        }
+        vm_new.ifs.count = json_object_get_int(jreq);
+        if ((vm_cur.ifs.n_memb / NM_IFS_IDX_COUNT) != vm_new.ifs.count) {
+            nm_edit_update_ifs(&query,
+                    &vm_cur, &vm_new, nm_form_get_last_mac());
+        }
+    }
+
+    json_object_object_get_ex(request, "disk_iface", &jreq);
+    if (jreq) {
+        const char **disk_drivers = nm_form_drive_drv;
+        bool found = false;
+
+        if (json_object_get_type(jreq) != json_type_string) {
+            nm_str_format(reply, NM_API_RET_ERR, "Wrong `disk_iface` type");
+            goto out;
+        }
+
+        nm_str_format(&vm_new.drive.driver, "%s", json_object_get_string(jreq));
+        while (*disk_drivers) {
+            if (nm_str_cmp_st(&vm_new.drive.driver, *disk_drivers) == NM_OK) {
+                found = true;
+                break;
+            }
+            disk_drivers++;
+        }
+
+        if (!found) {
+            nm_str_format(reply, NM_API_RET_ERR, "Wrong `disk_iface` value");
+            goto out;
+        }
+
+        if (nm_str_cmp_ss(nm_vect_str(&vm_cur.drives, NM_SQL_DRV_TYPE),
+                    &vm_new.drive.driver) != NM_OK) {
+            nm_str_format(&query, "UPDATE drives SET drive_drv='%s' "
+                    "WHERE vm_name='%s'",
+                    vm_new.drive.driver.data, name_str.data);
+            nm_db_edit(query.data);
+        }
+    }
+
+    nm_str_format(reply, "%s", NM_API_RET_OK);
+
+out:
+    regfree(&reg);
+    nm_str_free(&query);
+    nm_str_free(&name_str);
+    nm_vmctl_free_data(&vm_cur);
+    nm_vm_free(&vm_new);
     json_object_put(request);
 }
 
