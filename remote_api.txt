@@ -1,5 +1,5 @@
 API for remote control.
-Current version: 0.2
+Current version: 0.3
 
 Get API version (no auth required).
 APIv: >= 0.1
