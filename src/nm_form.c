@@ -951,9 +951,7 @@ int nm_form_name_used(const nm_str_t *name)
     nm_vect_t res = NM_INIT_VECT;
     nm_str_t query = NM_INIT_STR;
 
-    nm_str_alloc_text(&query, "SELECT id FROM vms WHERE name='");
-    nm_str_add_str(&query, name);
-    nm_str_add_char(&query, '\'');
+    nm_str_format(&query, NM_SQL_VMS_SELECT_ID, name->data);
 
     nm_db_select(query.data, &res);
     if (res.n_memb > 0) {
@@ -973,8 +971,7 @@ uint64_t nm_form_get_last_mac(void)
     uint64_t mac;
     nm_vect_t res = NM_INIT_VECT;
 
-    nm_db_select("SELECT COALESCE(MAX(mac_addr), 'de:ad:be:ef:00:00') "
-            "FROM ifaces", &res);
+    nm_db_select(NM_SQL_IFACES_SELECT_MAX_MADDR, &res);
 
     mac = nm_net_mac_s2n(res.data[0]);
 
@@ -988,9 +985,7 @@ uint32_t nm_form_get_free_vnc(void)
     uint32_t vnc;
     nm_vect_t res = NM_INIT_VECT;
 
-    nm_db_select("SELECT DISTINCT vnc + 1 FROM vms "
-            "UNION SELECT 0 EXCEPT SELECT DISTINCT vnc FROM vms "
-            "ORDER BY vnc ASC LIMIT 1", &res);
+    nm_db_select(NM_SQL_VMS_SELECT_FREE_VNC, &res);
 
     vnc = nm_str_stoui(res.data[0], 10);
 

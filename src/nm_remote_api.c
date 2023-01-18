@@ -619,7 +619,7 @@ nm_api_md_vmgetconnectport(struct json_object *request, nm_str_t *reply)
         goto out;
     }
 
-    nm_str_format(&query, NM_VMCTL_GET_VNC_PORT_SQL, name_str);
+    nm_str_format(&query, NM_SQL_VMS_SELECT_VNC, name_str);
     nm_db_select(query.data, &res);
     port = nm_str_stoui(nm_vect_str(&res, 0), 10) + NM_STARTING_VNC_PORT;
     nm_str_format(reply, NM_API_RET_VAL_UINT, port);
@@ -887,7 +887,7 @@ nm_api_md_vmsetsettings(struct json_object *request, nm_str_t *reply)
 
         if (nm_str_cmp_ss(nm_vect_str(&vm_cur.main, NM_SQL_SMP),
                     &vm_new.cpus) != NM_OK) {
-            nm_str_format(&query, "UPDATE vms SET smp='%s' WHERE name='%s'",
+            nm_str_format(&query, NM_SQL_VMS_UPDATE_SMP,
                     vm_new.cpus.data, name_str.data);
             nm_db_edit(query.data);
         }
@@ -902,7 +902,7 @@ nm_api_md_vmsetsettings(struct json_object *request, nm_str_t *reply)
         nm_str_format(&vm_new.memo, "%d", json_object_get_int(jreq));
         if (nm_str_cmp_ss(nm_vect_str(&vm_cur.main, NM_SQL_MEM),
                     &vm_new.memo) != NM_OK) {
-            nm_str_format(&query, "UPDATE vms SET mem='%s' WHERE name='%s'",
+            nm_str_format(&query, NM_SQL_VMS_UPDATE_MEM,
                     vm_new.memo.data, name_str.data);
             nm_db_edit(query.data);
         }
@@ -924,7 +924,7 @@ nm_api_md_vmsetsettings(struct json_object *request, nm_str_t *reply)
         }
 
         if (cur_value != vm_new.kvm.enable) {
-            nm_str_format(&query, "UPDATE vms SET kvm='%s' WHERE name='%s'",
+            nm_str_format(&query, NM_SQL_VMS_UPDATE_KVM,
                     vm_new.kvm.enable ? NM_ENABLE : NM_DISABLE, name_str.data);
             nm_db_edit(query.data);
         }
@@ -946,7 +946,7 @@ nm_api_md_vmsetsettings(struct json_object *request, nm_str_t *reply)
         }
 
         if (cur_value != vm_new.kvm.hostcpu_enable) {
-            nm_str_format(&query, "UPDATE vms SET hcpu='%s' WHERE name='%s'",
+            nm_str_format(&query, NM_SQL_VMS_UPDATE_HCPU,
                     vm_new.kvm.hostcpu_enable ? NM_ENABLE : NM_DISABLE,
                     name_str.data);
             nm_db_edit(query.data);
@@ -992,8 +992,7 @@ nm_api_md_vmsetsettings(struct json_object *request, nm_str_t *reply)
 
         if (nm_str_cmp_ss(nm_vect_str(&vm_cur.drives, NM_SQL_DRV_TYPE),
                     &vm_new.drive.driver) != NM_OK) {
-            nm_str_format(&query, "UPDATE drives SET drive_drv='%s' "
-                    "WHERE vm_name='%s'",
+            nm_str_format(&query, NM_SQL_DRIVES_UPDATE_DRV,
                     vm_new.drive.driver.data, name_str.data);
             nm_db_edit(query.data);
         }

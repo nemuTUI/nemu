@@ -163,7 +163,7 @@ void nm_lan_settings(void)
         if (regen_data) {
             nm_vect_free(&veths_list, NULL);
             nm_vect_free(&veths, nm_str_vect_free_cb);
-            nm_db_select(NM_LAN_GET_VETH_SQL, &veths);
+            nm_db_select(NM_SQL_VETH_SELECT_FORMATED, &veths);
             veth_list_len = (getmaxy(side_window) - 4);
 
             veths_data.highlight = 1;
@@ -291,7 +291,7 @@ static void nm_lan_add_veth(void)
     nm_net_link_up(&l_name);
     nm_net_link_up(&r_name);
 
-    nm_str_format(&query, NM_LAN_ADD_VETH_SQL, l_name.data, r_name.data);
+    nm_str_format(&query, NM_SQL_VETH_INSERT, l_name.data, r_name.data);
     nm_db_edit(query.data);
 
 out:
@@ -356,7 +356,7 @@ static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn)
         goto out;
     }
 
-    nm_str_format(&query, NM_LAN_CHECK_NAME_SQL, ln->data, ln->data);
+    nm_str_format(&query, NM_SQL_VETH_SELECT_NAME, ln->data, ln->data);
     nm_db_select(query.data, &names);
     if (names.n_memb > 0) {
         nm_warn(_(NM_MSG_NAME_BUSY));
@@ -364,7 +364,7 @@ static int nm_lan_add_get_data(nm_str_t *ln, nm_str_t *rn)
         goto out;
     }
 
-    nm_str_format(&query, NM_LAN_CHECK_NAME_SQL, rn->data, rn->data);
+    nm_str_format(&query, NM_SQL_VETH_SELECT_NAME, rn->data, rn->data);
     nm_db_select(query.data, &names);
     if (names.n_memb > 0) {
         nm_warn(_(NM_MSG_NAME_BUSY));
@@ -392,10 +392,10 @@ static void nm_lan_del_veth(const nm_str_t *name)
     nm_lan_parse_name(name, &lname, &rname);
     nm_net_del_iface(&lname);
 
-    nm_str_format(&query, NM_LAN_DEL_VETH_SQL, lname.data);
+    nm_str_format(&query, NM_SQL_VETH_DELETE, lname.data);
     nm_db_edit(query.data);
 
-    nm_str_format(&query, NM_LAN_VETH_DEP_SQL, lname.data, rname.data);
+    nm_str_format(&query, NM_SQL_IFACES_UPDATE_RESET, lname.data, rname.data);
     nm_db_edit(query.data);
 
     nm_str_free(&lname);
@@ -445,7 +445,7 @@ static void nm_lan_veth_info(const nm_str_t *name)
     getmaxyx(action_window, rows, cols);
     nm_lan_parse_name(name, &buf, &rname);
 
-    nm_str_format(&query, NM_LAN_VETH_INF_SQL, buf.data);
+    nm_str_format(&query, NM_SQL_IFACES_SELECT_BY_PARENT, buf.data);
     nm_db_select(query.data, &ifs);
 
     nm_str_add_char(&buf, ':');
@@ -463,7 +463,7 @@ static void nm_lan_veth_info(const nm_str_t *name)
     nm_vect_free(&ifs, nm_str_vect_free_cb);
     nm_str_copy(&buf, &rname);
 
-    nm_str_format(&query, NM_LAN_VETH_INF_SQL, buf.data);
+    nm_str_format(&query, NM_SQL_IFACES_SELECT_BY_PARENT, buf.data);
     nm_db_select(query.data, &ifs);
 
     nm_str_add_char(&buf, ':');
@@ -510,7 +510,7 @@ void nm_lan_create_veth(int info)
     nm_vect_t veths = NM_INIT_VECT;
     size_t veth_count, veth_created = 0;
 
-    nm_db_select(NM_GET_VETH_SQL, &veths);
+    nm_db_select(NM_SQL_VETH_SELECT, &veths);
     veth_count = veths.n_memb / 2;
 
     for (size_t n = 0; n < veth_count; n++) {
@@ -670,7 +670,7 @@ static void nm_svg_fields_setup(void)
     const char **groups;
     nm_field_type_args_t groups_args = {0};
 
-    nm_db_select(NM_GET_GROUPS_SQL, &vgroup);
+    nm_db_select(NM_SQL_VMS_SELECT_TEAMS, &vgroup);
     groups = nm_calloc(vgroup.n_memb + 1, sizeof(char *));
     for (size_t n = 0; n < vgroup.n_memb; n++) {
         groups[n] = strdup(nm_vect_str_ctx(&vgroup, n));

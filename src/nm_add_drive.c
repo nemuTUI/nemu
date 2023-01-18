@@ -195,7 +195,7 @@ void nm_del_drive(const nm_str_t *name)
     size_t drv_list_len = (getmaxy(side_window) - 4);
     size_t drv_count;
 
-    nm_str_format(&query, NM_VM_GET_ADDDRIVES_SQL, name->data);
+    nm_str_format(&query, NM_SQL_DRIVES_SELECT_CAP, name->data);
     nm_db_select(query.data, &drives);
 
     if (drives.n_memb == 0) {
@@ -277,7 +277,7 @@ void nm_del_drive(const nm_str_t *name)
         nm_warn(_(NM_MSG_DRV_EDEL));
     }
 
-    nm_str_format(&query, NM_DEL_DRIVE_SQL,
+    nm_str_format(&query, NM_SQL_DRIVES_DELETE,
         name->data, nm_vect_str_ctx(&drives, 2 * (m_drvs.highlight - 1)));
 
 quit:
@@ -349,9 +349,7 @@ static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
     char drv_ch = 'a' + drive_count;
     nm_str_t query = NM_INIT_STR;
 
-    nm_str_format(&query, "INSERT INTO drives("
-        "vm_name, drive_name, drive_drv, capacity, boot, discard) "
-        "VALUES('%s', '%s_%c.img', '%s', '%s', '0', '%s')",
+    nm_str_format(&query, NM_SQL_DRIVES_INSERT_ADD,
         name->data, name->data, drv_ch, type->data, size->data,
         (nm_str_cmp_st(discard, "yes") == NM_OK) ? NM_ENABLE : NM_DISABLE);
     nm_db_edit(query.data);

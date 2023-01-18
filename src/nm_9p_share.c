@@ -17,13 +17,6 @@ typedef struct {
 
 #define NM_INIT_9P_DATA (nm_9p_data_t) { NM_INIT_STR, NM_INIT_STR, NM_INIT_STR }
 
-static const char NM_9P_SET_MODE_SQL[] =
-    "UPDATE vms SET fs9p_enable='%s' WHERE name='%s'";
-static const char NM_9P_SET_PATH_SQL[] =
-    "UPDATE vms SET fs9p_path='%s' WHERE name='%s'";
-static const char NM_9P_SET_NAME_SQL[] =
-    "UPDATE vms SET fs9p_name='%s' WHERE name='%s'";
-
 static const char NM_LC_9P_FORM_MODE[] = "Enable sharing";
 static const char NM_LC_9P_FORM_PATH[] = "Path to directory";
 static const char NM_LC_9P_FORM_NAME[] = "Name of the share";
@@ -215,7 +208,7 @@ static void nm_9p_update_db(const nm_str_t *name, const nm_9p_data_t *data)
     nm_str_t query = NM_INIT_STR;
 
     if (field_status(fields[NM_FLD_9PMODE])) {
-        nm_str_format(&query, NM_9P_SET_MODE_SQL,
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_9P_MODE,
             (nm_str_cmp_st(&data->mode, "yes") == NM_OK) ?
             "1" : "0", name->data);
         nm_db_edit(query.data);
@@ -223,13 +216,15 @@ static void nm_9p_update_db(const nm_str_t *name, const nm_9p_data_t *data)
     }
 
     if (field_status(fields[NM_FLD_9PPATH])) {
-        nm_str_format(&query, NM_9P_SET_PATH_SQL, data->path.data, name->data);
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_9P_PATH,
+                data->path.data, name->data);
         nm_db_edit(query.data);
         nm_str_trunc(&query, 0);
     }
 
     if (field_status(fields[NM_FLD_9PNAME])) {
-        nm_str_format(&query, NM_9P_SET_NAME_SQL, data->name.data, name->data);
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_9P_NAME,
+                data->name.data, name->data);
         nm_db_edit(query.data);
     }
 

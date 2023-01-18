@@ -58,7 +58,7 @@ node-name=hd0,media=disk,if=ide,file=\
 virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
 -netdev user,id=net-deadbeef0001 \
 -device virtio-net-pci,mac=de:ad:be:ef:00:02,id=dev-deadbeef0002,netdev=net-deadbeef0002 \
--netdev tap,ifname=testvm_eth1,script=no,downscript=no,id=net-deadbeef0002 \
+-netdev tap,ifname=testvm_eth1,script=no,downscript=no,id=net-deadbeef0002,vhost=on \
 -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
 -spice port=5900,disable-ticketing=on"
@@ -256,6 +256,41 @@ node-name=hd0,media=disk,if=virtio,file=\
 -kernel /tmp/kern -append cmd -initrd /tmp/initrd -gdb tcp::12345 -S \
 -device virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
 -netdev user,id=net-deadbeef0001 \
+-pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
+unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
+-spice port=5900,disable-ticketing=on"
+        self.assertEqual(nemu.result("testvm"), expected)
+        nemu.cleanup()
+
+    def test_08_network(self):
+        """* Network settings"""
+        self.maxDiff = None
+        nemu = Nemu()
+        tmux = Tmux()
+        tmux.setup(nemu.test_dir)
+        keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
+                ["10"], ["Down", 3], ["/tmp/null.iso"], ["Enter"], ["q"]]
+        for key in keys:
+            rc = tmux.send(*key)
+            self.assertTrue(0 == rc)
+
+        tmux_edit = Tmux()
+        tmux_edit.setup(nemu.test_dir)
+        keys_edit = [["i"], ["Enter"], ["End"], ["BSpace", 4], ["new"],
+                ["Down"], ["Left"], ["Down"], ["BSpace"], ["2"],
+                ["Down", 2], ["Left"], ["Down", 4], ["tcp::22-:2222"],
+                ["Down"], ["/share"], ["Enter"], ["q", 2]]
+        for key in keys_edit:
+            rc = tmux_edit.send(*key)
+            self.assertTrue(0 == rc)
+
+        expected = f"{nemu.qemu_bin()}/qemu-system-x86_64 -daemonize -usb -device \
+qemu-xhci,id=usbbus -boot d -cdrom /tmp/null.iso -drive \
+node-name=hd0,media=disk,if=virtio,file=\
+/tmp/nemu_{nemu.uuid}/testvm/testvm_a.img \
+-m 256 -enable-kvm -cpu host -M {nemu.qemu_mtype()} -device \
+vmxnet3,mac=de:ad:be:ef:00:02,id=dev-deadbeef0002,netdev=net-deadbeef0002 \
+-netdev user,id=net-deadbeef0002,hostfwd=tcp::22-:2222,smb=/share \
 -pidfile /tmp/nemu_{nemu.uuid}/testvm/qemu.pid -qmp \
 unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
 -spice port=5900,disable-ticketing=on"

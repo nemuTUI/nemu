@@ -70,10 +70,11 @@ void nm_svg_map(const char *path, const nm_vect_t *veths,
         }
 
         if (group->len) {
-            nm_str_format(&query, NM_GET_IFMAPGR_SQL,
+            nm_str_format(&query, NM_SQL_IFACES_SELECT_JOIN_TEAM,
                     group->data, lname.data, rname.data);
         } else {
-            nm_str_format(&query, NM_GET_IFMAP_SQL, lname.data, rname.data);
+            nm_str_format(&query, NM_SQL_IFACES_SELECT_JOIN_PARENT,
+                    lname.data, rname.data);
         }
         nm_db_select(query.data, &vms);
 

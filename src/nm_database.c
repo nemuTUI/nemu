@@ -16,6 +16,8 @@ static void nm_db_check_version(void);
 static int nm_db_update(void);
 static int nm_db_select_cb(void *v, int argc, char **argv,
                            char **unused NM_UNUSED);
+static int nm_db_select_value_cb(void *s, int argc, char **argv,
+                           char **unused NM_UNUSED);
 
 static void nm_db_init_key(void)
 {
@@ -35,30 +37,14 @@ void nm_db_init(void)
     int rc;
 
     const char *query[] = {
-        "PRAGMA user_version=" NM_DB_VERSION,
-        "CREATE TABLE vms(id integer PRIMARY KEY AUTOINCREMENT, "
-            "name char(31), mem integer, smp char, kvm integer, "
-            "hcpu integer, vnc integer, arch char(32), iso char, "
-            "install integer, usb integer, usbid char, bios char, kernel char, "
-            "mouse_override integer, kernel_append char, tty_path char, "
-            "socket_path char, initrd char, machine char, fs9p_enable integer, "
-            "fs9p_path char, fs9p_name char, usb_type char, spice integer, "
-            "debug_port integer, debug_freeze integer, cmdappend char, "
-            "team char, display_type char, pflash char, spice_agent integer)",
-        "CREATE TABLE ifaces(id integer primary key autoincrement, "
-            "vm_name char, if_name char, mac_addr char, ipv4_addr char, "
-            "if_drv char, vhost integer, macvtap integer, parent_eth char, "
-            "altname char, netuser integer, hostfwd char, smb char)",
-        "CREATE TABLE drives(id integer primary key autoincrement, "
-            "vm_name char, drive_name char, drive_drv char, capacity integer, "
-            "boot integer, discard integer)",
-        "CREATE TABLE vmsnapshots(id integer primary key autoincrement, "
-            "vm_name char, snap_name char, load integer, timestamp char)",
-        "CREATE TABLE veth(id integer primary key autoincrement, l_name char, "
-            "r_name char)",
-        "CREATE TABLE usb(id integer primary key autoincrement, "
-            "vm_name char, dev_name char, vendor_id char, product_id char, "
-            "serial char)"
+        NM_SQL_PRAGMA_USER_VERSION_SET,
+        NM_SQL_VMS_CREATE,
+        NM_SQL_IFACES_CREATE,
+        NM_SQL_DRIVES_CREATE,
+        NM_SQL_SNAPS_CREATE,
+        NM_SQL_VETH_CREATE,
+        NM_SQL_USB_CREATE,
+        NM_SQL_VETH_CREATE_TRIGGER
     };
 
     if (stat(cfg->db_path.data, &file_info) == -1) {
@@ -86,6 +72,16 @@ void nm_db_init(void)
         }
     }
 
+    /*
+     * Foreign key constraints are disabled by default
+     * (for backwards compatibility), so must be enabled separately
+     * for each database connection.
+     */
+    if (sqlite3_exec(db_conn->handler, NM_SQL_PRAGMA_FOREIGN_ON,
+                NULL, NULL, &db_errmsg) != SQLITE_OK) {
+        nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
+    }
+
     if (!need_create_db) {
         nm_db_check_version();
         return;
@@ -99,12 +95,14 @@ void nm_db_init(void)
         }
 
         if (sqlite3_exec(db_conn->handler, query[n],
-                    NULL, NULL, &db_errmsg) != SQLITE_OK)
+                    NULL, NULL, &db_errmsg) != SQLITE_OK) {
             nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
+        }
     }
 }
 
-void nm_db_select(const char *query, nm_vect_t *v)
+static void nm_db_select_common(const char *query, void *res,
+        int (*cb)(void *, int, char **, char **))
 {
     char *db_errmsg;
     db_conn_t *db;
@@ -119,10 +117,19 @@ void nm_db_select(const char *query, nm_vect_t *v)
 
     nm_debug("%s: \"%s\"\n", __func__, query);
 
-    if (sqlite3_exec(db->handler, query, nm_db_select_cb,
-                    (void *) v, &db_errmsg) != SQLITE_OK) {
+    if (sqlite3_exec(db->handler, query, cb, res, &db_errmsg) != SQLITE_OK) {
         nm_bug(_("%s: database error: %s"), __func__, db_errmsg);
     }
+}
+
+void nm_db_select(const char *query, nm_vect_t *res)
+{
+    nm_db_select_common(query, res, nm_db_select_cb);
+}
+
+void nm_db_select_value(const char *query, nm_str_t *res)
+{
+    nm_db_select_common(query, res, nm_db_select_value_cb);
 }
 
 void nm_db_edit(const char *query)
@@ -264,7 +271,7 @@ static void nm_db_check_version(void)
     nm_str_t query = NM_INIT_STR;
     nm_vect_t res = NM_INIT_VECT;
 
-    nm_str_alloc_text(&query, NM_GET_DB_VERSION_SQL);
+    nm_str_alloc_text(&query, NM_SQL_PRAGMA_USER_VERSION_GET);
     nm_db_select(query.data, &res);
 
     if (!res.n_memb) {
@@ -342,6 +349,20 @@ static int nm_db_select_cb(void *v, int argc, char **argv,
     }
 
     nm_str_free(&value);
+
+    return 0;
+}
+
+static int nm_db_select_value_cb(void *s, int argc, char **argv,
+                           char **unused NM_UNUSED)
+{
+    nm_str_t *res = s;
+
+    if (argc != 1) {
+        return 1;
+    }
+
+    nm_str_format(res, "%s", argv[0] ? argv[0] : "");
 
     return 0;
 }

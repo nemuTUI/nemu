@@ -290,57 +290,55 @@ static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
     nm_str_t query = NM_INIT_STR;
 
     if (field_status(fields[NM_FLD_INST])) {
-        nm_str_format(&query, "UPDATE vms SET install='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_INSTALL,
                 vm->installed ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_SRCP])) {
-        nm_str_format(&query, "UPDATE vms SET iso='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_ISO,
                 vm->inst_path.data, name->data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_BIOS])) {
-        nm_str_format(&query, "UPDATE vms SET bios='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_BIOS,
                 vm->bios.data, name->data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_FLSH])) {
-        nm_str_format(&query, "UPDATE vms SET pflash='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_FLASH,
                 vm->pflash.data, name->data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_KERN])) {
-        nm_str_format(&query, "UPDATE vms SET kernel='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_KERN,
                 vm->kernel.data, name->data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_CMDL])) {
-        nm_str_format(&query, "UPDATE vms SET kernel_append='%s' "
-                "WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_KERN_CMD,
                 vm->cmdline.data, name->data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_INIT])) {
-        nm_str_format(&query, "UPDATE vms SET initrd='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_INITRD,
                 vm->initrd.data, name->data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_DEBP])) {
-        nm_str_format(&query, "UPDATE vms SET debug_port='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_DBG_PORT,
                 vm->debug_port.data, name->data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_DEBF])) {
-        nm_str_format(&query, "UPDATE vms SET debug_freeze='%s' "
-                "WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_DBG_FREEZE,
                 vm->debug_freeze ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);
     }

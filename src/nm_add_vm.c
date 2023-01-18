@@ -369,12 +369,7 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     nm_str_t query = NM_INIT_STR;
 
     /* insert main VM data */
-    nm_str_format(&query,
-        "INSERT INTO vms(name, mem, smp, kvm, hcpu, vnc, arch, iso, "
-        "install, machine, mouse_override, usb, usb_type, fs9p_enable, "
-        "spice, debug_port, debug_freeze, display_type) "
-        "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "
-        "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+    nm_str_format(&query, NM_SQL_VMS_INSERT_NEW,
         vm->name.data, vm->memo.data, vm->cpus.data,
 #if defined(NM_OS_LINUX) || defined(NM_OS_DARWIN)
         NM_ENABLE, NM_ENABLE, /* enable KVM and host CPU by default */
@@ -389,34 +384,30 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         NM_DISABLE, /* mouse override */
         vm->usb_enable ? NM_ENABLE : NM_DISABLE, /* USB enabled */
         NM_DEFAULT_USBVER, /* set USB 3.0 by default */
+        NM_DISABLE, /* default usb_status is off */
         NM_DISABLE, /* disable 9pfs by default */
         /* SPICE enabled */
         (nm_cfg_get()->spice_default) ? NM_ENABLE : NM_DISABLE,
         "", /* GDB debug port */
         NM_DISABLE, /* disable GDB debug by default */
-        NM_DEFAULT_DISPLAY /* Display type */
+        NM_DEFAULT_DISPLAY, /* Display type */
+        NM_DISABLE /* disable SPICE agent debug by default */
     );
 
     nm_db_edit(query.data);
 
     /* insert drive info */
     if (drives == NULL) {
-        nm_str_format(&query,
-            "INSERT INTO drives(vm_name, drive_name, drive_drv, "
-            "capacity, boot, discard) "
-            "VALUES('%s', '%s_a.img', '%s', '%s', '%s', '%s')",
-            vm->name.data, vm->name.data, vm->drive.driver.data,
-            vm->drive.size.data,
-            NM_ENABLE, /* boot flag */
-            vm->drive.discard ? NM_ENABLE : NM_DISABLE
-            );
+        nm_str_format(&query, NM_SQL_DRIVES_INSERT_NEW,
+                vm->name.data, vm->name.data, vm->drive.driver.data,
+                vm->drive.size.data,
+                NM_ENABLE, /* boot flag */
+                vm->drive.discard ? NM_ENABLE : NM_DISABLE
+                );
         nm_db_edit(query.data);
     } else { /* imported from OVF */
         for (size_t n = 0; n < drives->n_memb; n++) {
-            nm_str_format(&query,
-                "INSERT INTO drives(vm_name, drive_name, drive_drv, "
-                "capacity, boot, discard) "
-                "VALUES('%s', '%s', '%s', '%s', '%s', '%s')",
+            nm_str_format(&query, NM_SQL_DRIVES_INSERT_IMPORTED,
                 vm->name.data,
                 nm_drive_file(drives->data[n])->data, NM_DEFAULT_DRVINT,
                 nm_drive_size(drives->data[n])->data,
@@ -441,19 +432,17 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         nm_str_copy(&if_name_copy, &if_name);
         altname = nm_net_fix_tap_name(&if_name, &maddr);
 
-        nm_str_format(&query,
-            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, "
-            "vhost, macvtap, altname, netuser) "
-            "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '1')",
+        nm_str_format(&query, NM_SQL_IFACES_INSERT_NEW,
             vm->name.data, if_name.data, maddr.data, vm->ifs.driver.data,
 #if defined (NM_OS_LINUX)
             nm_str_cmp_st(&vm->ifs.driver, NM_DEFAULT_NETDRV) == NM_OK ?
-            "1" : "0", /* Enable vhost by default for virtio-net-pci device */
+            "1" : "0", /* enable vhost by default for virtio-net-pci device */
 #else
             "0",
 #endif
             "0", /* disable macvtap by default */
-            (altname) ? if_name_copy.data : ""
+            (altname) ? if_name_copy.data : "",
+            NM_ENABLE /* enable user-net */
         );
         nm_db_edit(query.data);
 

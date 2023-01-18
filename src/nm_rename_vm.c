@@ -12,7 +12,8 @@ static const char NM_LC_RENAME_FORM_MSG[] = "New VM name";
 
 static void nm_rename_init_windows(nm_form_t *form);
 static void nm_rename_vm_in_db(const nm_vmctl_data_t *vm,
-        const nm_str_t *new_name);
+        const nm_str_t *new_name,
+        const nm_str_t *id);
 static void nm_rename_vm_in_fs(const nm_vmctl_data_t *vm,
         const nm_str_t *new_name);
 
@@ -49,6 +50,7 @@ void nm_rename_vm(const nm_str_t *name)
     nm_field_t *fields[NM_FLD_COUNT + 1] = {NULL};
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_str_t buf = NM_INIT_STR;
+    nm_str_t query = NM_INIT_STR;
     nm_str_t new_name = NM_INIT_STR;
     nm_spinner_data_t sp_data = NM_INIT_SPINNER;
     nm_vect_t err = NM_INIT_VECT;
@@ -106,8 +108,11 @@ void nm_rename_vm(const nm_str_t *name)
 
     nm_vmctl_clear_tap(name);
 
+    nm_str_format(&query, NM_SQL_VMS_SELECT_ID,
+            nm_vect_str_ctx(&vm.main, NM_SQL_NAME));
+    nm_db_select_value(query.data, &buf);
     nm_db_begin_transaction();
-    nm_rename_vm_in_db(&vm, &new_name);
+    nm_rename_vm_in_db(&vm, &new_name, &buf);
     nm_rename_vm_in_fs(&vm, &new_name);
     nm_db_commit();
 
@@ -123,11 +128,14 @@ out:
     nm_form_data_free(form_data);
     nm_fields_free(fields);
     nm_str_free(&buf);
+    nm_str_free(&query);
     nm_str_free(&new_name);
 }
 
 static void
-nm_rename_vm_in_db(const nm_vmctl_data_t *vm, const nm_str_t *new_name)
+nm_rename_vm_in_db(const nm_vmctl_data_t *vm,
+                   const nm_str_t *new_name,
+                   const nm_str_t *id)
 {
     nm_str_t query = NM_INIT_STR;
     nm_str_t buf_1 = NM_INIT_STR;
@@ -146,11 +154,8 @@ nm_rename_vm_in_db(const nm_vmctl_data_t *vm, const nm_str_t *new_name)
         nm_str_copy(&buf_1, old_drive_name);
         nm_str_replace_text(&buf_1, old_name->data, new_name->data);
 
-        nm_str_format(&query,
-            "UPDATE drives SET vm_name = '%s', drive_name = '%s' "
-                "WHERE vm_name = '%s' AND drive_name = '%s'",
-            new_name->data, buf_1.data,
-            old_name->data, old_drive_name->data);
+        nm_str_format(&query, NM_SQL_DRIVES_UPDATE_NAME_BY_ID,
+            buf_1.data, id->data, old_drive_name->data);
         nm_db_atomic(query.data);
     }
 
@@ -172,35 +177,18 @@ nm_rename_vm_in_db(const nm_vmctl_data_t *vm, const nm_str_t *new_name)
         nm_str_replace_text(&buf_2, old_name->data, new_name->data);
         altname = nm_net_fix_tap_name(&buf_1, &maddr);
 
-        nm_str_format(&query,
-            "UPDATE ifaces SET vm_name = '%s', if_name = '%s', altname = '%s' "
-                "WHERE if_name = '%s'",
-            new_name->data,
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_NAME_BY_ID,
             buf_1.data,
             (altname) ? buf_2.data : "",
+            id->data,
             old_iface_name->data);
         nm_db_atomic(query.data);
 
         nm_str_free(&maddr);
     }
 
-    // Update usb
-    nm_str_format(&query,
-        "UPDATE usb SET vm_name = '%s' WHERE vm_name = '%s'",
-        new_name->data,
-        old_name->data);
-    nm_db_atomic(query.data);
-
-    // Update vmsnapshots
-    nm_str_format(&query,
-        "UPDATE vmsnapshots SET vm_name = '%s' WHERE vm_name = '%s'",
-        new_name->data,
-        old_name->data);
-    nm_db_atomic(query.data);
-
     // Update vms
-    nm_str_format(&query,
-        "UPDATE vms SET name = '%s' WHERE name = '%s'",
+    nm_str_format(&query, NM_SQL_VMS_UPDATE_NAME,
         new_name->data,
         old_name->data);
     nm_db_atomic(query.data);

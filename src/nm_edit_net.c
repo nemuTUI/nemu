@@ -321,7 +321,7 @@ nm_edit_net_unplug(const nm_str_t *name, const nm_vmctl_data_t *vm,
     }
 
     if_name = nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift);
-    nm_str_format(&query, NM_DEL_IFACE_SQL, name->data, if_name->data);
+    nm_str_format(&query, NM_SQL_IFACES_DELETE, name->data, if_name->data);
     nm_db_edit(query.data);
 #if defined(NM_OS_LINUX)
     uint32_t tap_idx = nm_net_iface_idx(if_name);
@@ -718,7 +718,7 @@ nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp, bool add)
             nm_str_t query = NM_INIT_STR;
             nm_vect_t netv = NM_INIT_VECT;
 
-            nm_str_format(&query, NM_GET_IFACE_SQL,
+            nm_str_format(&query, NM_SQL_IFACES_SELECT_ID,
                 name->data, ifp->name.data, NM_DEFAULT_NETDRV);
             nm_db_select(query.data, &netv);
 
@@ -760,60 +760,56 @@ nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp, bool add)
     nm_str_t query = NM_INIT_STR;
 
     if (add) {
-        nm_str_format(&query,
-                "INSERT INTO ifaces(vm_name, if_name) VALUES('%s', '%s')",
-                name->data, ifp->name.data);
+        nm_str_format(&query, NM_SQL_IFACES_INSERT_NEW,
+                name->data,
+                ifp->name.data,
+                "",
+                NM_DEFAULT_NETDRV,
+#if defined(NM_OS_LINUX)
+                NM_ENABLE,
+#else
+                NM_DISABLE,
+#endif
+                NM_DISABLE, "", NM_DISABLE);
         nm_db_edit(query.data);
     } else {
         if (field_status(fields[NM_FLD_NAME])) {
-            nm_str_format(&query,
-                    "UPDATE ifaces SET if_name='%s' WHERE vm_name='%s' "
-                    "AND if_name='%s'",
+            nm_str_format(&query, NM_SQL_IFACES_UPDATE_NAME,
                     ifp->name.data, name->data, ifp->oldname.data);
             nm_db_edit(query.data);
         }
     }
 
     if (field_status(fields[NM_FLD_NDRV]) || add) {
-        nm_str_format(&query,
-                "UPDATE ifaces SET if_drv='%s' WHERE vm_name='%s' "
-                "AND if_name='%s'",
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_DRV,
                 ifp->drv.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
 
 #if defined(NM_OS_LINUX)
         /* disable vhost if driver is not virtio-net */
         if (nm_str_cmp_st(&ifp->drv, NM_DEFAULT_NETDRV) != NM_OK) {
-            nm_str_format(&query,
-                    "UPDATE ifaces SET vhost='0' WHERE vm_name='%s' "
-                    "AND if_name='%s'",
-                    name->data, ifp->name.data);
+            nm_str_format(&query, NM_SQL_IFACES_UPDATE_VHOST,
+                    NM_DISABLE, name->data, ifp->name.data);
             nm_db_edit(query.data);
         }
 #endif
     }
 
     if (field_status(fields[NM_FLD_MADR]) || add) {
-        nm_str_format(&query,
-                "UPDATE ifaces SET mac_addr='%s' WHERE vm_name='%s' "
-                "AND if_name='%s'",
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_MADDR,
                 ifp->maddr.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_IPV4]) || add) {
-        nm_str_format(&query,
-                "UPDATE ifaces SET ipv4_addr='%s' WHERE vm_name='%s' "
-                "AND if_name='%s'",
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_IPV4,
                 ifp->ipv4.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
 
 #if defined (NM_OS_LINUX)
     if (field_status(fields[NM_FLD_VHST]) || add) {
-        nm_str_format(&query,
-                "UPDATE ifaces SET vhost='%s' WHERE vm_name='%s' "
-                "AND if_name='%s'",
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_VHOST,
                 (nm_str_cmp_st(&ifp->vhost, "yes") == NM_OK) ?
                 NM_ENABLE : NM_DISABLE,
                 name->data, ifp->name.data);
@@ -835,42 +831,33 @@ nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp, bool add)
             nm_bug("%s: macvtap_idx is not found", __func__);
         }
 
-        nm_str_format(&query,
-            "UPDATE ifaces SET macvtap='%zd' WHERE vm_name='%s' "
-            "AND if_name='%s'",
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_MACVTAP,
             macvtap_idx, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_PETH]) || add) {
-        nm_str_format(&query,
-            "UPDATE ifaces SET parent_eth='%s' WHERE vm_name='%s' "
-            "AND if_name='%s'",
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_PARENT,
             ifp->parent_eth.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
 #endif
 
     if (field_status(fields[NM_FLD_USER]) || add) {
-        nm_str_format(&query,
-            "UPDATE ifaces SET netuser='%s' WHERE vm_name='%s' "
-            "AND if_name='%s'",
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_USERNET,
             (nm_str_cmp_st(&ifp->netuser, "yes") == NM_OK) ?
             NM_ENABLE : NM_DISABLE, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_FWD]) || add) {
-        nm_str_format(&query,
-            "UPDATE ifaces SET hostfwd='%s' WHERE vm_name='%s' "
-            "AND if_name='%s'",
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_HOSTFWD,
             ifp->hostfwd.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_SMB]) || add) {
-        nm_str_format(&query,
-            "UPDATE ifaces SET smb='%s' WHERE vm_name='%s' AND if_name='%s'",
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_SMB,
             ifp->smb.data, name->data, ifp->name.data);
         nm_db_edit(query.data);
     }
@@ -901,7 +888,7 @@ static int nm_edit_net_maddr_busy(const nm_str_t *mac)
     int rc = NM_OK;
     nm_vect_t maddrs = NM_INIT_VECT;
 
-    nm_db_select(NM_GET_IFACES_MACS, &maddrs);
+    nm_db_select(NM_SQL_IFACES_SELECT_MAC, &maddrs);
 
     for (size_t n = 0; n < maddrs.n_memb; n++) {
         if (nm_str_cmp_ss(mac, nm_vect_str(&maddrs, n)) == NM_OK) {
@@ -921,7 +908,7 @@ static bool nm_check_nic_name_busy(const nm_str_t *name)
     nm_str_t query = NM_INIT_STR;
     bool rc = false;
 
-    nm_str_format(&query, NM_GET_IFACES_NAMES, name->data);
+    nm_str_format(&query, NM_SQL_IFACES_SELECT_ID_BY_NAME, name->data);
     nm_db_select(query.data, &names);
     if (names.n_memb > 0) {
         rc = true;
