@@ -273,7 +273,7 @@ out:
 void nm_print_snapshots(const nm_vect_t *v)
 {
     nm_str_t buf = NM_INIT_STR;
-    size_t count = v->n_memb / 5;
+    size_t count = v->n_memb / NM_SQL_VMSNAP_COUNT;
     size_t y = 7, x = 2;
     size_t cols, rows;
     chtype ch1, ch2;
@@ -281,13 +281,8 @@ void nm_print_snapshots(const nm_vect_t *v)
     ch1 = ch2 = 0;
     getmaxyx(action_window, rows, cols);
 
-    enum {
-        NM_SQL_VMSNAP_NAME = 2,
-        NM_SQL_VMSNAP_TIME = 4
-    };
-
     for (size_t n = 0; n < count; n++) {
-        size_t idx_shift = 5 * n;
+        size_t idx_shift = NM_SQL_VMSNAP_COUNT * n;
 
         if (n && n < count) {
             ch1 = (n != (count - 1)) ? ACS_LTEE : ACS_LLCORNER;

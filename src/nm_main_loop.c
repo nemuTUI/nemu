@@ -100,10 +100,10 @@ void nm_start_main_loop(void)
 
             switch (nm_filter.type) {
             case NM_FILTER_NONE:
-                nm_str_format(&query, "%s", NM_GET_VMS_SQL);
+                nm_str_format(&query, "%s", NM_SQL_VMS_SELECT_NAMES);
                 break;
             case NM_FILTER_GROUP:
-                nm_str_format(&query, NM_GET_VMS_FILTER_GROUP_SQL,
+                nm_str_format(&query, NM_SQL_VMS_SELECT_NAMES_BY_TEAM,
                         nm_filter.query.data);
                 break;
             }
@@ -688,7 +688,7 @@ static void nm_iterate_groups(bool forward)
     nm_str_t query = NM_INIT_STR;
     nm_vect_t group_list = NM_INIT_VECT;
 
-    nm_str_format(&query, "%s", NM_GET_GROUPS_SQL);
+    nm_str_format(&query, "%s", NM_SQL_VMS_SELECT_TEAMS);
     nm_db_select(query.data, &group_list);
 
     if (group_list.n_memb) {

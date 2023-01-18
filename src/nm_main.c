@@ -263,7 +263,7 @@ static void nm_process_args(int argc, char **argv)
             nm_exit(NM_OK);
         case 'l':
             nm_init_core();
-            nm_db_select(NM_GET_VMS_SQL, &vm_list);
+            nm_db_select(NM_SQL_VMS_SELECT_NAMES, &vm_list);
             for (size_t i = 0; i < vm_list.n_memb; ++i) {
                 const nm_str_t *name = (nm_str_t *)vm_list.data[i];
                 int status = nm_qmp_test_socket(name);

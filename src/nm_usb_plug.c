@@ -83,7 +83,7 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
             _(NM_LC_USB_FORM_MSG), strlen(_(NM_LC_USB_FORM_MSG)));
 
     /* check for usb enabled first */
-    nm_str_format(&buf, NM_USB_CHECK_SQL, name->data);
+    nm_str_format(&buf, NM_SQL_USB_SELECT_STATUS, name->data);
     nm_db_select(buf.data, &db_result);
 
     if (vm_status && nm_str_cmp_st(nm_vect_str(&db_result, 0),
@@ -163,7 +163,7 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
 
     usb_data.dev = &usb_dev;
 
-    nm_str_format(&buf, NM_USB_GET_SQL, name->data);
+    nm_str_format(&buf, NM_SQL_USB_SELECT_ALL_BY_NAME, name->data);
     nm_db_select(buf.data, &db_result);
 
     if (!db_result.n_memb) {
@@ -206,7 +206,7 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
         (void) nm_qmp_usb_detach(name, &usb_data);
     }
 
-    nm_str_format(&buf, NM_USB_DELETE_SQL,
+    nm_str_format(&buf, NM_SQL_USB_DELETE_ITEM,
             name->data,
             usb_dev.name.data,
             usb_dev.vendor_id.data,
@@ -231,7 +231,7 @@ int nm_usb_check_plugged(const nm_str_t *name)
     nm_vect_t db_result = NM_INIT_VECT;
     nm_str_t query = NM_INIT_STR;
 
-    nm_str_format(&query, NM_USB_GET_SQL, name->data);
+    nm_str_format(&query, NM_SQL_USB_SELECT_ALL_BY_NAME, name->data);
     nm_db_select(query.data, &db_result);
 
     if (!db_result.n_memb) {
@@ -321,7 +321,7 @@ static int nm_usb_plug_get_data(const nm_str_t *name, nm_usb_data_t *usb,
 
     nm_usb_get_serial(usb->dev, &usb->serial);
 
-    nm_str_format(&buf, NM_USB_EXISTS_SQL,
+    nm_str_format(&buf, NM_SQL_USB_SELECT_DEV,
             name->data,
             usb->dev->name.data,
             usb->dev->vendor_id.data,
@@ -392,7 +392,7 @@ nm_usb_plug_update_db(const nm_str_t *name, const nm_usb_data_t *usb)
 {
     nm_str_t query = NM_INIT_STR;
 
-    nm_str_format(&query, NM_USB_ADD_SQL,
+    nm_str_format(&query, NM_SQL_USB_INSERT_NEW,
             name->data,
             usb->dev->name.data,
             usb->dev->vendor_id.data,

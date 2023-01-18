@@ -26,16 +26,19 @@ void nm_vmctl_get_data(const nm_str_t *name, nm_vmctl_data_t *vm)
 {
     nm_str_t query = NM_INIT_STR;
 
-    nm_str_format(&query, NM_VM_GET_LIST_SQL, name->data);
+    nm_str_format(&query, NM_SQL_VMS_SELECT_ALL, name->data);
     nm_db_select(query.data, &vm->main);
 
-    nm_str_format(&query, NM_VM_GET_IFACES_SQL, name->data);
+    nm_str_format(&query, NM_SQL_VMS_SELECT_PROPS_BY_ID,
+            nm_vect_str_ctx(&vm->main, NM_SQL_ID));
     nm_db_select(query.data, &vm->ifs);
 
-    nm_str_format(&query, NM_VM_GET_DRIVES_SQL, name->data);
+    nm_str_format(&query, NM_SQL_DRIVES_SELECT_BY_ID,
+            nm_vect_str_ctx(&vm->main, NM_SQL_ID));
     nm_db_select(query.data, &vm->drives);
 
-    nm_str_format(&query, NM_USB_GET_SQL, name->data);
+    nm_str_format(&query, NM_SQL_USB_SELECT_ALL_BY_ID,
+            nm_vect_str_ctx(&vm->main, NM_SQL_ID));
     nm_db_select(query.data, &vm->usb);
 
     nm_str_free(&query);
@@ -62,10 +65,8 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
             nm_str_trunc(nm_vect_str(&vm.main, NM_SQL_INST), 0);
             nm_str_add_text(nm_vect_str(&vm.main, NM_SQL_INST), NM_DISABLE);
 
-            nm_str_alloc_text(&query,
-                    "UPDATE vms SET install='0' WHERE name='");
-            nm_str_add_str(&query, name);
-            nm_str_add_char(&query, '\'');
+            nm_str_format(&query, NM_SQL_VMS_UPDATE_INSTALL,
+                    NM_DISABLE, name->data);
             nm_db_edit(query.data);
 
             nm_str_free(&query);
@@ -124,7 +125,7 @@ void nm_vmctl_delete(const nm_str_t *name)
 
     nm_str_format(&vmdir, "%s/%s/", nm_cfg_get()->vm_dir.data, name->data);
 
-    nm_str_format(&query, NM_SELECT_DRIVE_NAMES_SQL, name->data);
+    nm_str_format(&query, NM_SQL_DRIVES_SELECT_NAME, name->data);
     nm_db_select(query.data, &drives);
 
     for (size_t n = 0; n < drives.n_memb; n++) {
@@ -166,19 +167,7 @@ void nm_vmctl_delete(const nm_str_t *name)
 
     nm_vmctl_clear_tap(name);
 
-    nm_str_format(&query, NM_DEL_DRIVES_SQL, name->data);
-    nm_db_edit(query.data);
-
-    nm_str_format(&query, NM_DEL_VMSNAP_SQL, name->data);
-    nm_db_edit(query.data);
-
-    nm_str_format(&query, NM_DEL_IFS_SQL, name->data);
-    nm_db_edit(query.data);
-
-    nm_str_format(&query, NM_DEL_USB_SQL, name->data);
-    nm_db_edit(query.data);
-
-    nm_str_format(&query, NM_DEL_VM_SQL, name->data);
+    nm_str_format(&query, NM_SQL_VMS_DELETE_VM, name->data);
     nm_db_edit(query.data);
 
     if (!delete_ok) {
@@ -227,7 +216,7 @@ void nm_vmctl_connect(const nm_str_t *name)
 
     int unused __attribute__((unused));
 
-    nm_str_format(&query, NM_VMCTL_GET_VNC_PORT_SQL, name->data);
+    nm_str_format(&query, NM_SQL_VMS_SELECT_VNC, name->data);
     nm_db_select(query.data, &res);
     port = nm_str_stoui(nm_vect_str(&res, 0), 10) + NM_STARTING_VNC_PORT;
     if (nm_str_cmp_st(nm_vect_str(&res, 1), NM_ENABLE) == NM_OK) {
@@ -473,7 +462,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_str_t query = NM_INIT_STR;
         nm_vect_t snap_res = NM_INIT_VECT;
 
-        nm_str_format(&query, NM_GET_VMSNAP_LOAD_SQL, name->data);
+        nm_str_format(&query, NM_SQL_SNAPS_SELECT_LOAD, name->data);
         nm_db_select(query.data, &snap_res);
 
         if (snap_res.n_memb > 0) {
@@ -482,7 +471,8 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
 
             /* reset load flag */
             if (!(*flags & NM_VMCTL_INFO)) {
-                nm_str_format(&query, NM_RESET_LOAD_SQL, name->data);
+                nm_str_format(&query, NM_SQL_SNAPS_UPDATE_RESET_LOAD,
+                        name->data);
                 nm_db_edit(query.data);
             }
 
@@ -555,7 +545,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         nm_str_t query = NM_INIT_STR;
 
         nm_str_format(&query,
-                      NM_USB_UPDATE_STATE_SQL,
+                      NM_SQL_VMS_UPDATE_USB_STATUS,
                       nm_vect_str_ctx(&vm->main, NM_SQL_USBF),
                       name->data);
         nm_db_edit(query.data);
@@ -950,7 +940,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             nm_vect_t vms_ports = NM_INIT_VECT;
             uint32_t *occupied_ports;
 
-            nm_db_select("SELECT vnc FROM vms ORDER BY vnc ASC", &vms_ports);
+            nm_db_select(NM_SQL_VMS_SELECT_ALL_VNC, &vms_ports);
 
             occupied_ports = (uint32_t *)calloc(vms_ports.n_memb,
                     sizeof(uint32_t));
@@ -982,7 +972,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
                     curr_port - NM_STARTING_VNC_PORT);
             nm_str_t query = NM_INIT_STR;
 
-            nm_str_format(&query, "UPDATE vms SET vnc='%u' WHERE name='%s'",
+            nm_str_format(&query, NM_SQL_VMS_UPDATE_VNC,
                 curr_port - NM_STARTING_VNC_PORT,
                 nm_vect_str_ctx(&vm->main, NM_SQL_NAME));
             nm_db_edit(query.data);
@@ -1296,7 +1286,7 @@ void nm_vmctl_clear_all_tap(void)
     nm_str_t query = NM_INIT_STR;
     int clear_done;
 
-    nm_db_select("SELECT name FROM vms", &vms);
+    nm_db_select(NM_SQL_VMS_SELECT_NAMES, &vms);
     clear_done = nm_vmctl_clear_tap_vect(&vms);
 
     nm_notify(clear_done ? _(NM_MSG_IFCLR_DONE) : _(NM_MSG_IFCLR_NONE));
@@ -1325,7 +1315,7 @@ static int nm_vmctl_clear_tap_vect(const nm_vect_t *vms)
             continue;
         }
 
-        nm_str_format(&query, NM_VM_GET_IFACES_SQL, nm_vect_str_ctx(vms, n));
+        nm_str_format(&query, NM_SQL_VMS_SELECT_PROPS, nm_vect_str_ctx(vms, n));
         nm_db_select(query.data, &ifaces);
         ifs_count = ifaces.n_memb / NM_IFS_IDX_COUNT;
 

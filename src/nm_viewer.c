@@ -295,7 +295,7 @@ static void nm_viewer_update_db(const nm_str_t *name, nm_view_data_t *vm)
         if (nm_str_cmp_st(&vm->spice, "yes") == NM_OK) {
             spice_on = 1;
         }
-        nm_str_format(&query, "UPDATE vms SET spice='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_SPICE,
                 spice_on ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);
     }
@@ -303,20 +303,17 @@ static void nm_viewer_update_db(const nm_str_t *name, nm_view_data_t *vm)
     if (field_status(fields[NM_FLD_PORT])) {
         uint32_t vnc_port = nm_str_stoui(&vm->port, 10) - NM_STARTING_VNC_PORT;
 
-        nm_str_format(&query, "UPDATE vms SET vnc='%u' WHERE name='%s'",
-                vnc_port, name->data);
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_VNC, vnc_port, name->data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_TTYP])) {
-        nm_str_format(&query, "UPDATE vms SET tty_path='%s' WHERE name='%s'",
-                vm->tty.data, name->data);
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_TTY, vm->tty.data, name->data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_SOCK])) {
-        nm_str_format(&query, "UPDATE vms SET socket_path='%s' "
-                "WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_SOCKET,
                 vm->sock.data, name->data);
         nm_db_edit(query.data);
     }
@@ -327,8 +324,7 @@ static void nm_viewer_update_db(const nm_str_t *name, nm_view_data_t *vm)
         if (nm_str_cmp_st(&vm->sync, "yes") == NM_OK) {
             sync_on = 1;
         }
-        nm_str_format(&query, "UPDATE vms SET mouse_override='%s' "
-                "WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_MOUSE,
                 sync_on ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);
     }
@@ -339,15 +335,13 @@ static void nm_viewer_update_db(const nm_str_t *name, nm_view_data_t *vm)
         if (nm_str_cmp_st(&vm->agent, "yes") == NM_OK) {
             agent_on = 1;
         }
-        nm_str_format(&query, "UPDATE vms SET spice_agent='%s' "
-                "WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_AGENT,
                 agent_on ? NM_ENABLE : NM_DISABLE, name->data);
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_DSP])) {
-        nm_str_format(&query, "UPDATE vms SET display_type='%s' "
-                "WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_DISPLAY,
                 vm->display.data, name->data);
         nm_db_edit(query.data);
     }

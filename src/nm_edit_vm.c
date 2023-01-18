@@ -423,26 +423,26 @@ nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac)
     nm_str_t query = NM_INIT_STR;
 
     if (field_status(fields[NM_FLD_CPUNUM])) {
-        nm_str_format(&query, "UPDATE vms SET smp='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_SMP,
             vm->cpus.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_RAMTOT])) {
-        nm_str_format(&query, "UPDATE vms SET mem='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_MEM,
             vm->memo.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_KVMFLG])) {
-        nm_str_format(&query, "UPDATE vms SET kvm='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_KVM,
             vm->kvm.enable ? NM_ENABLE : NM_DISABLE,
             nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_HOSCPU])) {
-        nm_str_format(&query, "UPDATE vms SET hcpu='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_HCPU,
             vm->kvm.hostcpu_enable ? NM_ENABLE : NM_DISABLE,
             nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
@@ -453,48 +453,46 @@ nm_edit_vm_update_db(nm_vm_t *vm, const nm_vmctl_data_t *cur, uint64_t mac)
     }
 
     if (field_status(fields[NM_FLD_DISKIN])) {
-        nm_str_format(&query, "UPDATE drives SET drive_drv='%s' "
-                "WHERE vm_name='%s'",
+        nm_str_format(&query, NM_SQL_DRIVES_UPDATE_DRV,
                 vm->drive.driver.data,
                 nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_DISCARD])) {
-        nm_str_format(&query, "UPDATE drives SET discard='%s' "
-                "WHERE vm_name='%s'",
+        nm_str_format(&query, NM_SQL_DRIVES_UPDATE_DISCARD,
                 vm->drive.discard ? NM_ENABLE : NM_DISABLE,
                 nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_USBUSE])) {
-        nm_str_format(&query, "UPDATE vms SET usb='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_USB,
                 vm->usb_enable ? NM_ENABLE : NM_DISABLE,
                 nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_USBTYP])) {
-        nm_str_format(&query, "UPDATE vms SET usb_type='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_USBTYPE,
                 vm->usb_type.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_MACH])) {
-        nm_str_format(&query, "UPDATE vms SET machine='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_MACHINE,
                 vm->mach.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_ARGS])) {
-        nm_str_format(&query, "UPDATE vms SET cmdappend='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_CMD,
                 vm->cmdappend.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
     }
 
     if (field_status(fields[NM_FLD_GROUP])) {
-        nm_str_format(&query, "UPDATE vms SET team='%s' WHERE name='%s'",
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_TEAM,
                 vm->group.data, nm_vect_str_ctx(&cur->main, NM_SQL_NAME));
         nm_db_edit(query.data);
         if (nm_filter.type == NM_FILTER_GROUP) {
@@ -515,7 +513,7 @@ nm_edit_update_ifs(nm_str_t *query, const nm_vmctl_data_t *vm_cur,
         for (; cur_count > vm_new->ifs.count; cur_count--) {
             size_t idx_shift = NM_IFS_IDX_COUNT * (cur_count - 1);
 
-            nm_str_format(query, NM_DEL_IFACE_SQL,
+            nm_str_format(query, NM_SQL_IFACES_DELETE,
                     nm_vect_str_ctx(&vm_cur->main, NM_SQL_NAME),
                     nm_vect_str_ctx(&vm_cur->ifs, NM_SQL_IF_NAME + idx_shift));
             nm_db_edit(query->data);
@@ -538,10 +536,7 @@ nm_edit_update_ifs(nm_str_t *query, const nm_vmctl_data_t *vm_cur,
 
             altname = nm_net_fix_tap_name(&if_name, &maddr);
 
-            nm_str_format(query,
-                    "INSERT INTO ifaces(vm_name, if_name, mac_addr, "
-                    "if_drv, vhost, macvtap, altname) "
-                    "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+            nm_str_format(query, NM_SQL_IFACES_INSERT_NEW,
                     nm_vect_str_ctx(&vm_cur->main, NM_SQL_NAME),
                     if_name.data,
                     maddr.data,
@@ -552,7 +547,8 @@ nm_edit_update_ifs(nm_str_t *query, const nm_vmctl_data_t *vm_cur,
                     NM_DISABLE,
 #endif
                     NM_DISABLE,
-                    (altname) ? if_name_copy.data : "");
+                    (altname) ? if_name_copy.data : "",
+                    NM_DISABLE);
             nm_db_edit(query->data);
 
             nm_str_free(&if_name);

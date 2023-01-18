@@ -162,7 +162,7 @@ int nm_qmp_savevm(const nm_str_t *name, const nm_str_t *snap)
     size_t drives_count;
     int rc;
 
-    nm_str_format(&query, NM_VM_GET_DRIVES_SQL, name->data);
+    nm_str_format(&query, NM_SQL_DRIVES_SELECT, name->data);
     nm_db_select(query.data, &drives);
     drives_count = drives.n_memb / NM_DRV_IDX_COUNT;
 
@@ -195,7 +195,7 @@ int nm_qmp_loadvm(const nm_str_t *name, const nm_str_t *snap)
     size_t drives_count;
     int rc;
 
-    nm_str_format(&query, NM_VM_GET_DRIVES_SQL, name->data);
+    nm_str_format(&query, NM_SQL_DRIVES_SELECT, name->data);
     nm_db_select(query.data, &drives);
     drives_count = drives.n_memb / NM_DRV_IDX_COUNT;
 
@@ -228,7 +228,7 @@ int nm_qmp_delvm(const nm_str_t *name, const nm_str_t *snap)
     size_t drives_count;
     int rc;
 
-    nm_str_format(&query, NM_VM_GET_DRIVES_SQL, name->data);
+    nm_str_format(&query, NM_SQL_DRIVES_SELECT, name->data);
     nm_db_select(query.data, &drives);
     drives_count = drives.n_memb / NM_DRV_IDX_COUNT;
 

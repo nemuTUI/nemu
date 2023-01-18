@@ -177,7 +177,8 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     last_mac = nm_form_get_last_mac();
     last_vnc = nm_form_get_free_vnc();
 
-    nm_str_format(&query, NM_CLONE_VMS_SQL, dst->data, last_vnc, src->data);
+    nm_str_format(&query, NM_SQL_VMS_INSERT_CLONE,
+            dst->data, last_vnc, src->data);
     nm_db_edit(query.data);
 
     /* insert network interface info */
@@ -197,11 +198,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
         nm_str_copy(&if_name_copy, &if_name);
         altname = nm_net_fix_tap_name(&if_name, &maddr);
 
-        nm_str_format(&query,
-            "INSERT INTO ifaces(vm_name, if_name, mac_addr, if_drv, vhost, "
-            "macvtap, parent_eth, altname, netuser, hostfwd, smb) "
-            "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', "
-            "'%s', '%s', '%s', '%s')",
+        nm_str_format(&query, NM_SQL_IFACES_INSERT_CLONED,
             dst->data, if_name.data, maddr.data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_DRV + idx_shift)->data,
             nm_vect_str(&vm->ifs, NM_SQL_IF_VHO + idx_shift)->data,
@@ -224,10 +221,7 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
     for (size_t n = 0; n < drives_count; n++) {
         size_t idx_shift = NM_DRV_IDX_COUNT * n;
 
-        nm_str_format(&query,
-            "INSERT INTO drives(vm_name, drive_name, drive_drv, "
-            "capacity, boot, discard) "
-            "VALUES('%s', '%s_%c.img', '%s', '%s', '%s', '%s')",
+        nm_str_format(&query, NM_SQL_DRIVES_INSERT_CLONED,
             dst->data, dst->data, drv_ch,
             nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift)->data,
             nm_vect_str(&vm->drives, NM_SQL_DRV_SIZE + idx_shift)->data,

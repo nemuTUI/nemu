@@ -35,14 +35,6 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
                                     int vm_status);
 
 enum {
-    NM_SQL_VMSNAP_ID = 0,
-    NM_SQL_VMSNAP_VM,
-    NM_SQL_VMSNAP_NAME,
-    NM_SQL_VMSNAP_LOAD,
-    NM_SQL_VMSNAP_TIME
-};
-
-enum {
     NM_LBL_VMSNAPNAME = 0, NM_FLD_VMSNAPNAME,
     NM_LBL_VMLOAD, NM_FLD_VMLOAD,
     NM_FLD_COUNT
@@ -222,7 +214,7 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
     size_t snaps_count = 0;
     size_t msg_len;
 
-    nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, name->data);
+    nm_str_format(&query, NM_SQL_SNAPS_SELECT_ALL, name->data);
     nm_db_select(query.data, &snaps);
 
     if (snaps.n_memb == 0) {
@@ -230,9 +222,9 @@ void nm_vm_snapshot_delete(const nm_str_t *name, int vm_status)
         goto out;
     }
 
-    snaps_count = snaps.n_memb / 5;
+    snaps_count = snaps.n_memb / NM_SQL_VMSNAP_COUNT;
     for (size_t n = 0; n < snaps_count; n++) {
-        size_t idx_shift = 5 * n;
+        size_t idx_shift = NM_SQL_VMSNAP_COUNT * n;
 
         nm_vect_insert(&choices,
             nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_NAME + idx_shift),
@@ -323,7 +315,7 @@ nm_vm_cli_snapshot_save(const nm_str_t *vm_name, const nm_str_t *snap_name)
         return;
     }
 
-    nm_str_format(&query, NM_SNAP_GET_NAME_SQL,
+    nm_str_format(&query, NM_SQL_SNAPS_SELECT_SNAP,
             vm_name->data, snap_name->data);
     nm_db_select(query.data, &snap_names);
 
@@ -355,7 +347,7 @@ nm_vm_cli_snapshot_load(const nm_str_t *vm_name, const nm_str_t *snap_name)
         return;
     }
 
-    nm_str_format(&query, NM_SNAP_GET_NAME_SQL,
+    nm_str_format(&query, NM_SQL_SNAPS_SELECT_SNAP,
             vm_name->data, snap_name->data);
     nm_db_select(query.data, &snap_names);
 
@@ -383,7 +375,7 @@ nm_vm_cli_snapshot_del(const nm_str_t *vm_name, const nm_str_t *snap_name)
         return;
     }
 
-    nm_str_format(&query, NM_SNAP_GET_NAME_SQL,
+    nm_str_format(&query, NM_SQL_SNAPS_SELECT_SNAP,
             vm_name->data, snap_name->data);
     nm_db_select(query.data, &snap_names);
 
@@ -404,16 +396,16 @@ void nm_vm_cli_snapshot_list(const nm_str_t *vm_name)
     nm_str_t query = NM_INIT_STR;
     size_t count;
 
-    nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, vm_name->data);
+    nm_str_format(&query, NM_SQL_SNAPS_SELECT_ALL, vm_name->data);
     nm_db_select(query.data, &snaps);
 
     if (!snaps.n_memb) {
         goto out;
     }
 
-    count = snaps.n_memb / 5;
+    count = snaps.n_memb / NM_SQL_VMSNAP_COUNT;
     for (size_t n = 0; n < count; n++) {
-        size_t idx_shift = 5 * n;
+        size_t idx_shift = NM_SQL_VMSNAP_COUNT * n;
 
         printf("%-15s [%s]\n",
                 nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_NAME + idx_shift),
@@ -439,7 +431,7 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
     pthread_t spin_th;
     size_t msg_len;
 
-    nm_str_format(&query, NM_GET_SNAPS_ALL_SQL, name->data);
+    nm_str_format(&query, NM_SQL_SNAPS_SELECT_ALL, name->data);
     nm_db_select(query.data, &snaps);
 
     if (snaps.n_memb == 0) {
@@ -447,9 +439,9 @@ void nm_vm_snapshot_load(const nm_str_t *name, int vm_status)
         goto out;
     }
 
-    snaps_count = snaps.n_memb / 5;
+    snaps_count = snaps.n_memb / NM_SQL_VMSNAP_COUNT;
     for (size_t n = 0; n < snaps_count; n++) {
-        size_t idx_shift = 5 * n;
+        size_t idx_shift = NM_SQL_VMSNAP_COUNT * n;
 
         nm_vect_insert(&choices,
             nm_vect_str_ctx(&snaps, NM_SQL_VMSNAP_NAME + idx_shift),
@@ -529,11 +521,12 @@ static void __nm_vm_snapshot_load(const nm_str_t *name, const nm_str_t *snap,
         nm_str_t query = NM_INIT_STR;
 
         /* reset load flag for all snapshots for current vm */
-        nm_str_format(&query, NM_RESET_LOAD_SQL, name->data);
+        nm_str_format(&query, NM_SQL_SNAPS_UPDATE_RESET_LOAD, name->data);
         nm_db_edit(query.data);
 
         /* set load flag for current snapshot */
-        nm_str_format(&query, NM_SNAP_UPDATE_LOAD_SQL, name->data, snap->data);
+        nm_str_format(&query, NM_SQL_SNAPS_UPDATE_SET_LOAD,
+                name->data, snap->data);
         nm_db_edit(query.data);
 
         nm_str_free(&query);
@@ -560,7 +553,7 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
         nm_vect_t drives = NM_INIT_VECT;
 
         /* get first drive name */
-        nm_str_format(&query, NM_GET_BOOT_DRIVE_SQL, name->data);
+        nm_str_format(&query, NM_SQL_DRIVES_SELECT_BOOT, name->data);
         nm_db_select(query.data, &drives);
         if (drives.n_memb == 0) {
             nm_str_free(&query);
@@ -600,7 +593,7 @@ static void __nm_vm_snapshot_delete(const nm_str_t *name, const nm_str_t *snap,
         /* delete snapshot from database */
         nm_str_t query = NM_INIT_STR;
 
-        nm_str_format(&query, NM_DELETE_SNAP_SQL, name->data, snap->data);
+        nm_str_format(&query, NM_SQL_SNAPS_DELETE_SNAP, name->data, snap->data);
         nm_db_edit(query.data);
 
         nm_str_free(&query);
@@ -625,7 +618,7 @@ static int nm_vm_snapshot_get_data(const nm_str_t *name, nm_vmsnap_t *data)
         goto out;
     }
 
-    nm_str_format(&query, NM_SNAP_GET_NAME_SQL,
+    nm_str_format(&query, NM_SQL_SNAPS_SELECT_SNAP,
             name->data, data->snap_name.data);
     nm_db_select(query.data, &names);
 
@@ -651,10 +644,10 @@ static void nm_vm_snapshot_to_db(const nm_str_t *name, const nm_vmsnap_t *data)
     }
 
     if (!data->update) {
-        nm_str_format(&query, NM_INSERT_SNAP_SQL,
-            name->data, data->snap_name.data, load);
+        nm_str_format(&query, NM_SQL_SNAPS_INSERT,
+            data->snap_name.data, load, name->data);
     } else {
-        nm_str_format(&query, NM_UPDATE_SNAP_SQL, load,
+        nm_str_format(&query, NM_SQL_SNAPS_UPDATE_PROPS, load,
             name->data, data->snap_name.data);
     }
 

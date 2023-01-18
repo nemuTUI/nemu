@@ -555,7 +555,7 @@ static void nm_mon_build_list(nm_vect_t *list, nm_vect_t *vms)
     nm_vect_free(list, NULL);
     nm_vect_free(vms, nm_str_vect_free_cb);
 
-    nm_db_select(NM_GET_VMS_SQL, vms);
+    nm_db_select(NM_SQL_VMS_SELECT_NAMES, vms);
 
     for (size_t n = 0; n < vms->n_memb; n++) {
         nm_mon_item_t item = NM_ITEM_INIT;
