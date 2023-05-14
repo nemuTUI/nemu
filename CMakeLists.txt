@@ -134,7 +134,7 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD_REQUIRED ON)
 set_property(
   TARGET ${PROJECT_NAME}
   APPEND_STRING
-  PROPERTY COMPILE_FLAGS "-Wall -Wextra -Wformat-security -pedantic -std=c99 ")
+  PROPERTY COMPILE_FLAGS "-Wall -Wextra -Wformat-security -pedantic")
 set_property(
   TARGET ${PROJECT_NAME}
   APPEND_STRING
