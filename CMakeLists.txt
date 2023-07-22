@@ -70,6 +70,7 @@ option(NM_WITH_DBUS "Build with D-Bus support" OFF)
 option(NM_WITH_QEMU "Build with embedded QEMU" OFF)
 option(NM_WITH_NCURSES "Build with embedded statically linked ncurses" OFF)
 option(NM_WITH_REMOTE "Build with remote control" OFF)
+option(NM_WITH_USB "Build with USB support" OFF)
 
 include_directories(src)
 aux_source_directory(src SRC_LIST)
@@ -106,8 +107,6 @@ find_package(Sqlite3 REQUIRED)
 find_package(Threads REQUIRED)
 if(NOT NM_OS_DARWIN)
 find_package(RT REQUIRED)
-find_package(libusb-1.0 REQUIRED)
-find_package(UDev REQUIRED)
 endif()
 find_package(Intl REQUIRED)
 pkg_check_modules(JSONC REQUIRED json-c)
@@ -115,16 +114,14 @@ pkg_check_modules(JSONC REQUIRED json-c)
 if(NOT NM_OS_DARWIN)
 target_link_libraries(
   ${PROJECT_NAME} ${CURSES_LIBRARIES} ${SQLITE3_LIBRARIES} ${JSONC_LINK_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT} ${LIBUSB_1_LIBRARIES} ${UDEV_LIBRARIES}
-  ${RT_LIBRARY} ${Intl_LIBRARIES})
+  ${CMAKE_THREAD_LIBS_INIT} ${RT_LIBRARY} ${Intl_LIBRARIES})
 else()
 target_link_libraries(
   ${PROJECT_NAME} ${CURSES_LIBRARIES} ${SQLITE3_LIBRARIES} ${JSONC_LINK_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT} ${LIBUSB_1_LIBRARIES} ${Intl_LIBRARIES})
+  ${CMAKE_THREAD_LIBS_INIT} ${Intl_LIBRARIES})
 endif()
 include_directories(${CURSES_INCLUDE_PATH} ${SQLITE3_INCLUDE_DIR}
-                    ${UDEV_INCLUDE_DIR} ${JSONC_INCLUDE_DIRS} ${Intl_INCLUDE_DIRS})
-include_directories(SYSTEM ${LIBUSB_1_INCLUDE_DIRS})
+                    ${JSONC_INCLUDE_DIRS} ${Intl_INCLUDE_DIRS})
 
 add_definitions(-DNM_FULL_DATAROOTDIR="${CMAKE_INSTALL_FULL_DATAROOTDIR}")
 add_definitions(-DNM_FULL_LOCALEDIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
@@ -243,6 +240,15 @@ if(NM_WITH_QEMU)
   add_definitions(-DNM_WITH_QEMU)
 endif()
 
+if(NM_WITH_USB)
+  find_package(libusb-1.0 REQUIRED)
+  find_package(UDev REQUIRED)
+  target_link_libraries(${PROJECT_NAME} ${LIBUSB_1_LIBRARIES} ${UDEV_LIBRARIES})
+  include_directories(${UDEV_INCLUDE_DIR})
+  include_directories(SYSTEM ${LIBUSB_1_INCLUDE_DIRS})
+  add_definitions(-DNM_WITH_USB)
+endif()
+
 if(NOT GIT_TAG_VERSION)
   execute_process(
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/sh/git_get_version.sh
@@ -357,6 +363,7 @@ message(STATUS "OVF support: ${NM_WITH_OVF_SUPPORT}")
 message(STATUS "Network map export: ${NM_WITH_NETWORK_MAP}")
 message(STATUS "D-Bus support: ${NM_WITH_DBUS}")
 message(STATUS "Remote control support: ${NM_WITH_REMOTE}")
+message(STATUS "USB support: ${NM_WITH_USB}")
 message(STATUS "Embedded QEMU: ${NM_WITH_QEMU}")
 if(NM_WITH_QEMU)
   message(STATUS "Embedded QEMU targets: ${NM_QEMU_TARGET_LIST}")

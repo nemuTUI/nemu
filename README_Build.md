@@ -9,7 +9,7 @@ $ git clone https://github.com/nemuTUI/nemu
 ```sh
 $ cd nemu
 $ mkdir build && cd build
-$ cmake -G Ninja .. -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+$ cmake -G Ninja .. -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_USB=ON
 $ cmake --build .
 ```
 

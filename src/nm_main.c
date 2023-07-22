@@ -412,6 +412,13 @@ static void nm_print_feset(void)
             NM_FESET(" Remote control", NO, "-")
 #endif
             );
+    nm_vect_insert_cstr(&feset,
+#if defined (NM_WITH_USB)
+            NM_FESET(" USB Support", YES, "+")
+#else
+            NM_FESET(" USB Support", NO, "-")
+#endif
+            );
 
     for (size_t n = 0; n < feset.n_memb; n++) {
         nm_str_append_format(&msg, " %s\n", (char *) nm_vect_at(&feset, n));

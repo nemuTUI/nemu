@@ -703,7 +703,7 @@ void nm_print_help(void)
         "i", "C", "a", "l", "b", "h",
         "m", "v", "u", "P", "R", "S",
         "X", "D",
-#if defined (NM_OS_LINUX)
+#if defined (NM_WITH_USB)
         "+", "-",
 #endif
         "k", "/", "[", "]"
@@ -733,10 +733,10 @@ void nm_print_help(void)
         "take vm snapshot",
         "revert vm snapshot",
         "delete vm snapshot",
-#if defined (NM_OS_LINUX)
+#if defined(NM_WITH_USB)
         "attach usb device",
         "detach usb device",
-#endif
+#endif /* NM_WITH_USB */
         "kill vm process",
         "search vm, filters",
         "previous group",

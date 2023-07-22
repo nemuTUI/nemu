@@ -22,6 +22,7 @@ for F in $FILES; do
         -DNM_WITH_DBUS -DNM_WITH_NETWORK_MAP             \
         -DNM_WITH_OVF_SUPPORT -DNM_WITH_REMOTE           \
         -DNM_WITH_SPICE -DNM_WITH_VNC_CLIENT             \
+        -DNM_WITH_USB                                    \
         -E $F -o ${TMPDIR}/${E}.e
 done
 
@@ -32,7 +33,7 @@ pushd $TMPDIR > /dev/null
 # static const char msg[] = "message";
 # printf("%s", _(msg));
 #
-# so we have to edit code. We use NM_LC_ prefix for strings 
+# so we have to edit code. We use NM_LC_ prefix for strings
 # that must be processed by gettext.
 for F in $FILES; do
     E=${F//\.c/\.e}
