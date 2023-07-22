@@ -349,9 +349,9 @@ static int nm_add_vm_get_data(nm_vm_t *vm)
     }
 
     vm->ifs.count = nm_str_stoui(&ifs_buf, 10);
-#if defined (NM_OS_LINUX)
+#if defined (NM_WITH_USB)
     vm->usb_enable = 1; /* enable USB by default */
-#endif
+#endif /* NM_WITH_USB */
 
     rc = nm_form_name_used(&vm->name);
 

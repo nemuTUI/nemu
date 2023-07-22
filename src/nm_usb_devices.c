@@ -11,7 +11,7 @@ enum {NM_USB_SERIAL_LEN = 127};
 
 static inline void nm_usb_dev_free(nm_usb_dev_t *dev);
 
-#if defined (NM_OS_LINUX)
+#if defined (NM_WITH_USB)
 #include <libudev.h>
 #include <libusb.h>
 
@@ -23,11 +23,11 @@ static int nm_usb_get_product_str(char *buf, size_t size,
         uint16_t vid, uint16_t pid);
 
 static struct udev_hwdb *hwdb;
-#endif /* NM_OS_LINUX */
+#endif /* NM_WITH_USB */
 
 void nm_usb_get_devs(nm_vect_t *v)
 {
-#if defined(NM_OS_LINUX)
+#if defined(NM_WITH_USB)
     libusb_device **list = NULL;
     libusb_context *ctx = NULL;
     struct udev *udev = NULL;
@@ -93,13 +93,13 @@ void nm_usb_get_devs(nm_vect_t *v)
     libusb_exit(ctx);
 #else
     (void) v;
-#endif /* NM_OS_LINUX */
+#endif /* NM_WITH_USB */
 }
 
 int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
 {
     int rc = NM_ERR;
-#if defined (NM_OS_LINUX)
+#if defined (NM_WITH_USB)
     libusb_context *ctx = NULL;
     libusb_device **list = NULL;
     int usb_rc;
@@ -158,7 +158,7 @@ int nm_usb_get_serial(const nm_usb_dev_t *dev, nm_str_t *serial)
 #else
     (void) dev;
     (void) serial;
-#endif /* NM_OS_LINUX */
+#endif /* NM_WITH_USB */
 
     return rc;
 }
@@ -203,7 +203,7 @@ static inline void nm_usb_dev_free(nm_usb_dev_t *dev)
     nm_str_free(&dev->product_id);
 }
 
-#if defined (NM_OS_LINUX)
+#if defined (NM_WITH_USB)
 static const char *nm_usb_hwdb_get(const char *modalias, const char *key)
 {
     struct udev_list_entry *entry = NULL;
@@ -268,6 +268,6 @@ nm_usb_get_product_str(char *buf, size_t size, uint16_t vid, uint16_t pid)
 
     return snprintf(buf, size, "%s", cp);
 }
-#endif /* NM_OS_LINUX */
+#endif /* NM_WITH_USB */
 
 /* vim:set ts=4 sw=4: */

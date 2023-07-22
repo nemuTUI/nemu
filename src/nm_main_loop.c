@@ -292,7 +292,7 @@ void nm_start_main_loop(void)
                 nm_init_side();
                 break;
 
-#if defined(NM_OS_LINUX)
+#if defined(NM_WITH_USB)
             case NM_KEY_PLUS:
                 nm_usb_plug(name, vm_status);
                 break;
@@ -300,7 +300,9 @@ void nm_start_main_loop(void)
             case NM_KEY_MINUS:
                 nm_usb_unplug(name, vm_status);
                 break;
+#endif /* NM_WITH_USB */
 
+#if defined(NM_OS_LINUX)
             case NM_KEY_H:
                 nm_9p_share(name);
                 break;

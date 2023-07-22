@@ -22,7 +22,7 @@ jobs:
       - name: Configure nEMU build
         run: |
           cmake -G Ninja \
-            -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+            -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_USB=ON
 
       - name: Build nEMU
         run: cmake --build .

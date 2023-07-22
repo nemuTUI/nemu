@@ -28,7 +28,8 @@ build: dirs
 		-DNM_WITH_NETWORK_MAP=ON \
 		-DNM_WITH_DBUS=ON \
 		-DNM_WITH_REMOTE=ON \
-		-DNM_WITH_QEMU=ON && \
+		-DNM_WITH_QEMU=ON \
+		-DNM_WITH_USB=ON && \
 	cpack -G RPM --config ./CPackSourceConfig.cmake && \
 	cp *.src.rpm $(outdir) && \
 	cd ${TOP_DIR} && \

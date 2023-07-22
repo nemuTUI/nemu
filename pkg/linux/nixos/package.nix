@@ -26,6 +26,7 @@
 , withSpice ? true
 , withVNC ? true
 , withRemote ? false
+, withUSB ? true
 
 , vmDir ? ".local/share/nemu/vms"
 , databaseName ? ".local/share/nemu/nemu.db"
@@ -52,8 +53,6 @@ stdenv.mkDerivation rec {
   buildInputs = [
     gettext
     libpthreadstubs
-    libudev
-    libusb1
     sqlite
     qemu
     ncurses
@@ -66,7 +65,8 @@ stdenv.mkDerivation rec {
     ++ lib.optionals withOVF [ libxml2 libarchive ]
     ++ lib.optional withSpice virtviewer
     ++ lib.optional withVNC tigervnc
-    ++ lib.optional withRemote openssl;
+    ++ lib.optional withRemote openssl
+    ++ lib.optional withUSB [ libudev libusb1 ];
 
   cmakeFlags = [
     "-DNM_DEFAULT_VMDIR=${vmDir}"
@@ -80,7 +80,8 @@ stdenv.mkDerivation rec {
     ++ lib.optional withOVF "-DNM_WITH_OVF_SUPPORT=ON"
     ++ lib.optional withSpice "-DNM_WITH_SPICE=ON"
     ++ lib.optional withVNC "-DNM_WITH_VNC_CLIENT=ON"
-    ++ lib.optional withRemote "-DNM_WITH_REMOTE=ON";
+    ++ lib.optional withRemote "-DNM_WITH_REMOTE=ON"
+    ++ lib.optional withUSB "-DNM_WITH_USB=ON";
 
   preConfigure = ''
     patchShebangs .

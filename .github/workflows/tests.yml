@@ -32,7 +32,7 @@ jobs:
       - name: Build nEMU
         run: |
           cmake -G Ninja \
-            -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
+            -DNM_WITH_NETWORK_MAP=ON -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON -DNM_WITH_USB=ON
           cmake --build .
 
       - name: Cache testdata
