@@ -29,7 +29,7 @@ RDEPEND="
 	network-map? ( media-gfx/graphviz[svg] )
 	usb? (
 		dev-libs/libusb:1
-		|| ( sys-fs/eudev sys-fs/udev sys-apps/systemd )
+		|| ( sys-apps/systemd-utils[udev] sys-apps/systemd )
 	)"
 DEPEND="${RDEPEND}
 	sys-devel/gettext"
