@@ -1,6 +1,6 @@
 # nEMU [Ncurses UI for QEMU]
 
-[![Latest Tag](https://img.shields.io/github/tag/nemuTUI/nemu.svg)](https://github.com/nemuTUI/nemu/tags)
+[![Release](https://img.shields.io/github/v/release/nemuTUI/nemu?include_prereleases&label=Release&labelColor=2d3532)](https://github.com/nemuTUI/nemu/releases)
 [![Packaging status](https://repology.org/badge/tiny-repos/nemu.svg)](https://repology.org/project/nemu/versions)
 [![Linux build](https://github.com/nemuTUI/nemu/actions/workflows/linux.yml/badge.svg)](https://github.com/nemuTUI/nemu/actions/workflows/linux.yml)
 [![FreeBSD build](https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml/badge.svg)](https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml)
