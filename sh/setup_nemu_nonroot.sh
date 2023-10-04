@@ -24,14 +24,22 @@ else
         echo "Couldn't find user home directory" >&2
         exit 1
     fi
-    if [ ! -f ${USER_DIR}/.nemu.cfg ]; then
-        echo "Couldn't find .nemu.cfg in user home directory" >&2
+
+    NEMU_CFG=""
+    if [ -f "${USER_DIR}/.nemu.cfg" ]; then
+        NEMU_CFG="${USER_DIR}/.nemu.cfg"
+    elif [ -f "${USER_DIR}/.config/nemu/nemu.cfg" ]; then
+        NEMU_CFG="${USER_DIR}/.config/nemu/nemu.cfg"
+    fi
+
+    if [ -z $NEMU_CFG ]; then
+        echo "Couldn't find nemu.cfg in user home directory" >&2
         exit 1
     fi
 
-    QEMU_BIN_PATH=$(grep '^qemu_bin_path' ${USER_DIR}/.nemu.cfg | awk '{ printf "%s\n", $3 }')
+    QEMU_BIN_PATH=$(grep '^qemu_bin_path' $NEMU_CFG | awk '{ printf "%s\n", $3 }')
     if [ -z "$QEMU_BIN_PATH" ]; then
-        echo "Couldn't get qemu_bin_path from .nemu.cfg" >&2
+        echo "Couldn't get qemu_bin_path from ${NEMU_CFG}" >&2
         exit 1
     fi
 fi
