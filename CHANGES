@@ -1,3 +1,11 @@
+v3.3.0 - 04.10.2023
+------------------------
+    - Feature: support vga none option
+    - Feature: snapshots now works on MacOS
+    - Feature: new remote_api method - vm_set_settings
+    - Change: make usb optional at buildtime
+    - Change: database internals was refactored
+
 v3.2.0 - 06.12.2022
 ------------------------
     - Feature: Spice agent support
