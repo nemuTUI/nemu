@@ -1,13 +1,13 @@
 # nEMU [Ncurses UI for QEMU]
 
-[![Release](https://img.shields.io/github/v/release/nemuTUI/nemu?include_prereleases&label=Release&labelColor=2d3532)](https://github.com/nemuTUI/nemu/releases)
-[![Packaging status](https://repology.org/badge/tiny-repos/nemu.svg)](https://repology.org/project/nemu/versions)
-[![Linux build](https://github.com/nemuTUI/nemu/actions/workflows/linux.yml/badge.svg)](https://github.com/nemuTUI/nemu/actions/workflows/linux.yml)
-[![FreeBSD build](https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml/badge.svg)](https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml)
-[![MacOSX build](https://github.com/nemuTUI/nemu/actions/workflows/macosx.yml/badge.svg)](https://github.com/nemuTUI/nemu/actions/workflows/macosx.yml)
-[![discord](https://img.shields.io/discord/1055425285593501706?color=%237289da&logo=discord&logoColor=white&label=discord)](https://discord.gg/s3NZCKGkqv)
+[![Release][release-bage]][release-url]
+[![Packaging status][repo-bage]][repo-url]
+[![Linux build][ci-linux-bage]][ci-linux-url]
+[![FreeBSD build][ci-freebsd-bage]][ci-freebsd-url]
+[![MacOS build][ci-macos-bage]][ci-mscos-url]
+[![discord][discord-bage]][discord-url]
 
-[![gif-demo](https://user-images.githubusercontent.com/5861368/152040930-cb4e7e69-08b0-4902-bc20-925e061ae414.png)](https://user-images.githubusercontent.com/5861368/152041148-f6acc0a3-445f-40a1-9fa2-e4c16ca76b0f.gif)
+[![gif-demo][demo-thumb]][demo-url]
 ## Features
  * Install/delete/clone/rename VM
  * Show VM status, CPU usage
@@ -45,3 +45,18 @@
 
 ## Remote clients
  * [nemu-droid](https://github.com/nemuTUI/nemu-droid)
+
+[release-bage]: https://img.shields.io/github/v/release/nemuTUI/nemu?include_prereleases&label=Release&labelColor=2d3532
+[release-url]: https://github.com/nemuTUI/nemu/releases
+[repo-bage]: https://repology.org/badge/tiny-repos/nemu.svg
+[repo-url]: https://repology.org/project/nemu/versions
+[ci-linux-bage]: https://github.com/nemuTUI/nemu/actions/workflows/linux.yml/badge.svg
+[ci-linux-url]: https://github.com/nemuTUI/nemu/actions/workflows/linux.yml
+[ci-freebsd-bage]: https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml/badge.svg
+[ci-freebsd-url]: https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml
+[ci-macos-bage]: https://github.com/nemuTUI/nemu/actions/workflows/macosx.yml/badge.svg
+[ci-macos-url]: https://github.com/nemuTUI/nemu/actions/workflows/macosx.yml
+[discord-bage]: https://img.shields.io/discord/1055425285593501706?color=%237289da&logo=discord&logoColor=white&label=discord
+[discord-url]: https://discord.gg/s3NZCKGkqv
+[demo-thumb]: https://user-images.githubusercontent.com/5861368/152040930-cb4e7e69-08b0-4902-bc20-925e061ae414.png
+[demo-url]: https://user-images.githubusercontent.com/5861368/152041148-f6acc0a3-445f-40a1-9fa2-e4c16ca76b0f.gif
