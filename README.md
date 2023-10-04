@@ -4,7 +4,7 @@
 [![Packaging status][repo-bage]][repo-url]
 [![Linux build][ci-linux-bage]][ci-linux-url]
 [![FreeBSD build][ci-freebsd-bage]][ci-freebsd-url]
-[![MacOS build][ci-macos-bage]][ci-mscos-url]
+[![MacOS build][ci-macos-bage]][ci-macos-url]
 [![discord][discord-bage]][discord-url]
 
 [![gif-demo][demo-thumb]][demo-url]
