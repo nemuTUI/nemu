@@ -14,6 +14,9 @@ db = /home/user/.nemu.db
 # override highlight color of running VM's. Example:
 # hl_color = 00afd7
 
+# override error text color. Example:
+# err_color = ff45c1
+
 # glyph_checkbox = 1
 # glyph_separator = 0
 
