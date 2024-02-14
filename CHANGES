@@ -1,6 +1,8 @@
 v3.3.1 - future
 ------------------------
     - Feature: error text color config option
+    - Bugfix: segfault when accessing network interface without a name
+        (GH: #167).
 
 v3.3.0 - 04.10.2023
 ------------------------
