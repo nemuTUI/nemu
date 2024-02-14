@@ -41,6 +41,7 @@ typedef struct {
     nm_str_t qemu_bin_path;
     nm_vect_t qemu_targets;
     nm_rgb_t hl_color;
+    nm_rgb_t err_color;
     nm_glyph_t glyphs;
     nm_str_t debug_path;
     uint64_t daemon_sleep;
@@ -63,6 +64,7 @@ typedef struct {
     uint32_t spice_default:1;
     uint32_t log_enabled:1;
     uint32_t hl_is_set:1;
+    uint32_t err_is_set:1;
     uint32_t debug:1;
 } nm_cfg_t;
 

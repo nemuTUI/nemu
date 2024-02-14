@@ -58,13 +58,19 @@ void nm_start_main_loop(void)
 
     nm_filter = NM_INIT_FILTER;
     init_pair(NM_COLOR_BLACK, COLOR_BLACK, COLOR_WHITE);
-    init_pair(NM_COLOR_RED, COLOR_RED, COLOR_WHITE);
     if (cfg->hl_is_set && can_change_color()) {
         init_color(COLOR_WHITE + 1,
                 cfg->hl_color.r, cfg->hl_color.g, cfg->hl_color.b);
         init_pair(NM_COLOR_HIGHLIGHT, COLOR_WHITE + 1, -1);
     } else {
         init_pair(NM_COLOR_HIGHLIGHT, COLOR_GREEN, -1);
+    }
+    if (cfg->err_is_set && can_change_color()) {
+        init_color(COLOR_WHITE + 2,
+                cfg->err_color.r, cfg->err_color.g, cfg->err_color.b);
+        init_pair(NM_COLOR_RED, COLOR_WHITE + 2, COLOR_WHITE);
+    } else {
+        init_pair(NM_COLOR_RED, COLOR_RED, COLOR_WHITE);
     }
 
     nm_create_windows();

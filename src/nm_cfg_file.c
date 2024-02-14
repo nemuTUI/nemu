@@ -46,6 +46,7 @@ static const char NM_INI_S_DMON[]       = "nemu-monitor";
 static const char NM_INI_P_VM[]         = "vmdir";
 static const char NM_INI_P_DB[]         = "db";
 static const char NM_INI_P_HL[]         = "hl_color";
+static const char NM_INI_P_ERR[]        = "err_color";
 static const char NM_INI_P_CS[]         = "cursor_style";
 static const char NM_INI_P_DEBUG_PATH[] = "debug_path";
 static const char NM_INI_P_PROT[]       = "spice_default";
@@ -293,6 +294,21 @@ void nm_cfg_init(bool bypass_cfg)
         cfg.hl_is_set = 1;
         nm_debug("HL color: r:%d g:%d b:%d\n",
                 cfg.hl_color.r, cfg.hl_color.g, cfg.hl_color.b);
+    }
+    nm_str_trunc(&tmp_buf, 0);
+    if (nm_get_opt_param(ini, NM_INI_S_MAIN, NM_INI_P_ERR, &tmp_buf) == NM_OK) {
+        if (tmp_buf.len != 6) {
+            nm_bug(_("cfg: incorrect color value %s, example:cd1430"),
+                    tmp_buf.data);
+        }
+
+        nm_cfg_get_color(0, &cfg.err_color.r, &tmp_buf);
+        nm_cfg_get_color(2, &cfg.err_color.g, &tmp_buf);
+        nm_cfg_get_color(4, &cfg.err_color.b, &tmp_buf);
+
+        cfg.err_is_set = 1;
+        nm_debug("Error color: r:%d g:%d b:%d\n",
+                cfg.err_color.r, cfg.err_color.g, cfg.err_color.b);
     }
     nm_str_trunc(&tmp_buf, 0);
     if (nm_get_opt_param(ini, NM_INI_S_MAIN, NM_INI_P_CS, &tmp_buf) == NM_OK) {
@@ -580,6 +596,8 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                     "debug_path = /tmp/nemu_debug.log\n\n");
             fprintf(cfg_file, "# override highlight color of running VM's. "
                     "Example:\n# hl_color = 00afd7\n\n");
+            fprintf(cfg_file, "# override error text color. "
+                    "Example:\n# err_color = cd1430\n\n");
             fprintf(cfg_file, "# glyph_checkbox = 1\n# "
                     "glyph_separator = 0\n\n");
             fprintf(cfg_file,

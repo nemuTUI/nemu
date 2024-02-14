@@ -1,3 +1,7 @@
+v3.3.1 - future
+------------------------
+    - Feature: error text color config option
+
 v3.3.0 - 04.10.2023
 ------------------------
     - Feature: support vga none option
