@@ -633,7 +633,7 @@ nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp, bool add)
     nm_get_field_buf(fields[NM_FLD_FWD], &ifp->hostfwd);
     nm_get_field_buf(fields[NM_FLD_SMB], &ifp->smb);
 
-    if (field_status(fields[NM_FLD_NAME])) {
+    if (field_status(fields[NM_FLD_NAME]) || add) {
         nm_form_check_data(_("Interface name"), ifp->name, err);
     }
     if (field_status(fields[NM_FLD_NDRV])) {
