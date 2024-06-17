@@ -5,7 +5,6 @@
 [![Linux build][ci-linux-bage]][ci-linux-url]
 [![FreeBSD build][ci-freebsd-bage]][ci-freebsd-url]
 [![MacOS build][ci-macos-bage]][ci-macos-url]
-[![discord][discord-bage]][discord-url]
 
 [![gif-demo][demo-thumb]][demo-url]
 ## Features
@@ -56,7 +55,5 @@
 [ci-freebsd-url]: https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml
 [ci-macos-bage]: https://github.com/nemuTUI/nemu/actions/workflows/macosx.yml/badge.svg
 [ci-macos-url]: https://github.com/nemuTUI/nemu/actions/workflows/macosx.yml
-[discord-bage]: https://img.shields.io/discord/1055425285593501706?color=%237289da&logo=discord&logoColor=white&label=discord
-[discord-url]: https://discord.gg/s3NZCKGkqv
 [demo-thumb]: https://user-images.githubusercontent.com/5861368/152040930-cb4e7e69-08b0-4902-bc20-925e061ae414.png
 [demo-url]: https://user-images.githubusercontent.com/5861368/152041148-f6acc0a3-445f-40a1-9fa2-e4c16ca76b0f.gif
