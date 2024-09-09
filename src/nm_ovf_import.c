@@ -33,10 +33,11 @@ enum {NM_BLOCK_SIZE = 10240};
 static const char NM_OVA_TMP_DIR[] = ".tmp_ova";
 static const char NM_OVA_DIR_TEMPL[] = "extract_XXXXXX";
 
-static const char NM_LC_OVF_FORM_PATH[] = "Path to OVA";
-static const char NM_LC_OVF_FORM_ARCH[] = "Architecture";
-static const char NM_LC_OVF_FORM_NAME[] = "Name (optional)";
-static const char NM_LC_OVF_FORM_VER[]  = "OVF version";
+static const char NM_LC_OVF_FORM_PATH[]       = "Path to OVA";
+static const char NM_LC_OVF_FORM_ARCH[]       = "Architecture";
+static const char NM_LC_OVF_FORM_NAME[]       = "Name (optional)";
+static const char NM_LC_OVF_FORM_VER[]        = "OVF version";
+static const char NM_LC_OVF_FORM_DRV_FORMAT[] = "Disk image format";
 static const char NM_XML_OVF_NS[]    = "ovf";
 static const char NM_XML_RASD_NS[]   = "rasd";
 static const char NM_XML_SASD_NS[]   = "sasd";
@@ -128,7 +129,7 @@ static void nm_ovf_get_text(nm_str_t *res, nm_xml_xpath_ctx_pt ctx,
                             const char *xpath, const char *param);
 static inline void nm_drive_free(nm_drive_t *d);
 static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
-                                  const char *templ_path);
+        const char *templ_path, const nm_str_t *format);
 static void nm_ovf_to_db(nm_vm_t *vm, const nm_vect_t *drives);
 static int nm_ova_get_data(nm_vm_t *vm, int *version);
 
@@ -137,6 +138,7 @@ enum {
     NM_OVA_LBL_ARCH, NM_OVA_FLD_ARCH,
     NM_OVA_LBL_NAME, NM_OVA_FLD_NAME,
     NM_OVA_LBL_VER, NM_OVA_FLD_VER,
+    NM_OVA_LBL_FMT, NM_OVA_FLD_FMT,
     NM_FLD_COUNT
 };
 
@@ -237,6 +239,10 @@ void nm_ovf_import(void)
             fields[n] = nm_field_enum_new(
                 n / 2, form_data, nm_ovf_version, false, false);
             break;
+        case NM_OVA_FLD_FMT:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_drive_fmt, false, false);
+            break;
         default:
             fields[n] = nm_field_label_new(n / 2, form_data);
             break;
@@ -309,7 +315,7 @@ void nm_ovf_import(void)
         goto out;
     }
 
-    nm_ovf_convert_drives(&drives, &vm.name, templ_path.data);
+    nm_ovf_convert_drives(&drives, &vm.name, templ_path.data, &vm.drive.format);
     nm_ovf_to_db(&vm, &drives);
 
 out:
@@ -343,6 +349,7 @@ static void nm_ovf_fields_setup(void)
     set_field_buffer(fields[NM_OVA_FLD_ARCH], 0,
             *nm_cfg_get()->qemu_targets.data);
     set_field_buffer(fields[NM_OVA_FLD_VER], 0, *nm_ovf_version);
+    set_field_buffer(fields[NM_OVA_FLD_FMT], 0, NM_DEFAULT_DRVFMT);
     field_opts_off(fields[NM_OVA_FLD_SRC], O_STATIC);
     field_opts_off(fields[NM_OVA_FLD_NAME], O_STATIC);
 }
@@ -366,6 +373,9 @@ static size_t nm_ovf_labels_setup(void)
             break;
         case NM_OVA_LBL_VER:
             nm_str_format(&buf, "%s", _(NM_LC_OVF_FORM_VER));
+            break;
+        case NM_OVA_LBL_FMT:
+            nm_str_format(&buf, "%s", _(NM_LC_OVF_FORM_DRV_FORMAT));
             break;
         default:
             continue;
@@ -770,7 +780,7 @@ static inline void nm_drive_free(nm_drive_t *d)
 }
 
 static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
-                                  const char *templ_path)
+        const char *templ_path, const nm_str_t *format)
 {
     nm_str_t vm_dir = NM_INIT_STR;
     nm_str_t buf = NM_INIT_STR;
@@ -789,7 +799,7 @@ static void nm_ovf_convert_drives(const nm_vect_t *drives, const nm_str_t *name,
 
         nm_vect_insert_cstr(&argv, "convert");
         nm_vect_insert_cstr(&argv, "-O");
-        nm_vect_insert_cstr(&argv, "qcow2");
+        nm_vect_insert_cstr(&argv, format->data);
 
         nm_str_format(&buf, "%s/%s",
             templ_path, (nm_drive_file(drives->data[n]))->data);
@@ -839,6 +849,7 @@ static int nm_ova_get_data(nm_vm_t *vm, int *version)
     nm_get_field_buf(fields[NM_OVA_FLD_SRC], &vm->srcp);
     nm_get_field_buf(fields[NM_OVA_FLD_ARCH], &vm->arch);
     nm_get_field_buf(fields[NM_OVA_FLD_VER], &ver);
+    nm_get_field_buf(fields[NM_OVA_FLD_FMT], &vm->drive.format);
     if (field_status(fields[NM_OVA_FLD_NAME])) {
         nm_get_field_buf(fields[NM_OVA_FLD_NAME], &vm->name);
         nm_form_check_data(_(NM_LC_OVF_FORM_NAME), vm->name, err);
@@ -846,6 +857,7 @@ static int nm_ova_get_data(nm_vm_t *vm, int *version)
 
     nm_form_check_data(_(NM_LC_OVF_FORM_PATH), vm->srcp, err);
     nm_form_check_data(_(NM_LC_OVF_FORM_ARCH), vm->arch, err);
+    nm_form_check_data(_(NM_LC_OVF_FORM_DRV_FORMAT), vm->drive.format, err);
     nm_form_check_data(_(NM_LC_OVF_FORM_VER), ver, err);
 
     if (nm_str_cmp_st(&ver, nm_ovf_version[0]) == NM_OK) {

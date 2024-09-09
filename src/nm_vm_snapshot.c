@@ -296,6 +296,26 @@ out:
     nm_str_free(&buf);
 }
 
+bool
+nm_vm_snapshot_check_format(const nm_str_t *vm_name)
+{
+    nm_str_t query = NM_INIT_STR;
+    nm_vect_t res = NM_INIT_VECT;
+    bool ok = true;
+
+    nm_str_format(&query, NM_SQL_DRIVES_CHECK_SNAP, vm_name->data);
+    nm_db_select(query.data, &res);
+
+    if (res.n_memb == 0) {
+        ok = false;
+    }
+
+    nm_vect_free(&res, nm_str_vect_free_cb);
+    nm_str_free(&query);
+
+    return ok;
+}
+
 void
 nm_vm_cli_snapshot_save(const nm_str_t *vm_name, const nm_str_t *snap_name)
 {
@@ -306,6 +326,12 @@ nm_vm_cli_snapshot_save(const nm_str_t *vm_name, const nm_str_t *snap_name)
     if (access(nm_cfg_get()->daemon_pid.data, R_OK) == -1) {
         fprintf(stderr, "%s\n", _("nEMU daemon is not running"));
         return;
+    }
+
+    if (nm_vm_snapshot_check_format(vm_name) == false) {
+        fprintf(stderr,
+                _("Snapshots are only available for the qcow2 format\n"));
+        goto out;
     }
 
     int vm_status = nm_qmp_test_socket(vm_name);

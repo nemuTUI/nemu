@@ -85,6 +85,7 @@ extern nm_filter_t nm_filter;
 #define NM_MSG_OVA_HEADER "Import OVA image"
 #define NM_MSG_MUST_STOP  "VM must be stopped" NM_MSG_ANY_KEY
 #define NM_MSG_MUST_RUN   "VM must be running" NM_MSG_ANY_KEY
+#define NM_MSG_BAD_FMT    "Only qcow2 format is supported" NM_MSG_ANY_KEY
 #define NM_MSG_DELETE     "Confirm deletion? (y/n)"
 #define NM_MSG_INSTALL    "Install VM"
 #define NM_MSG_IMPORT     "Import drive image"

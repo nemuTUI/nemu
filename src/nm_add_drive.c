@@ -11,19 +11,24 @@
 #include <nm_vm_control.h>
 
 static const char NM_LC_DRIVE_FORM_MSG[] = "Drive interface";
+static const char NM_LC_DRIVE_FORM_FORMAT[] = "Disk image format";
 static const char NM_LC_DRIVE_FORM_DIS[] = "Discard mode";
 static const char NM_LC_DRIVE_FORM_SZ_START[] = "Size [1-";
 static const char NM_LC_DRIVE_FORM_SZ_END[]   = "]Gb";
 
 static void nm_add_drive_init_windows(nm_form_t *form);
 static size_t nm_add_drive_labels_setup(void);
-static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
-                               const nm_str_t *type, const nm_vect_t *drives,
-                               const nm_str_t *discard);
+static void nm_add_drive_to_db(const nm_str_t *name,
+                               const nm_str_t *size,
+                               const nm_str_t *type,
+                               const nm_vect_t *drives,
+                               const nm_str_t *discard,
+                               const nm_str_t *format);
 
 enum {
     NM_LBL_DRVSIZE = 0, NM_FLD_DRVSIZE,
     NM_LBL_DRVTYPE, NM_FLD_DRVTYPE,
+    NM_LBL_FORMAT, NM_FLD_FORMAT,
     NM_LBL_DISCARD, NM_FLD_DISCARD,
     NM_FLD_COUNT
 };
@@ -57,13 +62,14 @@ void nm_add_drive(const nm_str_t *name)
     nm_form_t *form = NULL;
     nm_str_t drv_size = NM_INIT_STR;
     nm_str_t drv_type = NM_INIT_STR;
+    nm_str_t format = NM_INIT_STR;
     nm_str_t discard = NM_INIT_STR;
     nm_vmctl_data_t vm = NM_VMCTL_INIT_DATA;
     nm_vect_t err = NM_INIT_VECT;
     size_t msg_len;
 
     nm_vmctl_get_data(name, &vm);
-    if ((vm.drives.n_memb / 4) == NM_DRIVE_LIMIT) {
+    if ((vm.drives.n_memb / NM_DRV_IDX_COUNT) == NM_DRIVE_LIMIT) {
         nm_str_t warn_msg = NM_INIT_STR;
 
         nm_str_format(&warn_msg, _("%zu %s"), NM_DRIVE_LIMIT, NM_NSG_DRV_LIM);
@@ -94,6 +100,10 @@ void nm_add_drive(const nm_str_t *name)
             fields[n] = nm_field_enum_new(
                 n / 2, form_data, nm_form_drive_drv, false, false);
             break;
+        case NM_FLD_FORMAT:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_drive_fmt, false, false);
+            break;
         case NM_FLD_DISCARD:
             fields[n] = nm_field_enum_new(
                 n / 2, form_data, nm_form_yes_no, false, false);
@@ -107,6 +117,7 @@ void nm_add_drive(const nm_str_t *name)
 
     nm_add_drive_labels_setup();
     set_field_buffer(fields[NM_FLD_DRVTYPE], 0, NM_DEFAULT_DRVINT);
+    set_field_buffer(fields[NM_FLD_FORMAT], 0, NM_DEFAULT_DRVFMT);
     set_field_buffer(fields[NM_FLD_DISCARD], 0, nm_form_yes_no[1]);
     nm_fields_unset_status(fields);
 
@@ -119,6 +130,7 @@ void nm_add_drive(const nm_str_t *name)
 
     nm_get_field_buf(fields[NM_FLD_DRVSIZE], &drv_size);
     nm_get_field_buf(fields[NM_FLD_DRVTYPE], &drv_type);
+    nm_get_field_buf(fields[NM_FLD_FORMAT], &format);
     nm_get_field_buf(fields[NM_FLD_DISCARD], &discard);
 
     if (!drv_size.len) {
@@ -131,10 +143,11 @@ void nm_add_drive(const nm_str_t *name)
         goto out;
     }
 
-    if (nm_add_drive_to_fs(name, &drv_size, &vm.drives) != NM_OK) {
+    if (nm_add_drive_to_fs(name, &drv_size, &vm.drives, &format) != NM_OK) {
         nm_bug(_("%s: cannot create image file"), __func__);
     }
-    nm_add_drive_to_db(name, &drv_size, &drv_type, &vm.drives, &discard);
+    nm_add_drive_to_db(name, &drv_size, &drv_type,
+            &vm.drives, &discard, &format);
 
 out:
     NM_FORM_EXIT();
@@ -162,6 +175,9 @@ static size_t nm_add_drive_labels_setup(void)
             break;
         case NM_LBL_DRVTYPE:
             nm_str_format(&buf, "%s", _(NM_LC_DRIVE_FORM_MSG));
+            break;
+        case NM_LBL_FORMAT:
+            nm_str_format(&buf, "%s", _(NM_LC_DRIVE_FORM_FORMAT));
             break;
         case NM_LBL_DISCARD:
             nm_str_format(&buf, "%s", _(NM_LC_DRIVE_FORM_DIS));
@@ -294,7 +310,7 @@ out:
 }
 
 int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
-    const nm_vect_t *drives)
+    const nm_vect_t *drives, const nm_str_t *format)
 {
     nm_str_t buf = NM_INIT_STR;
     nm_vect_t argv = NM_INIT_VECT;
@@ -304,7 +320,7 @@ int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
 
     nm_vect_insert_cstr(&argv, "create");
     nm_vect_insert_cstr(&argv, "-f");
-    nm_vect_insert_cstr(&argv, "qcow2");
+    nm_vect_insert_cstr(&argv, format->data);
 
 /*
  * @TODO Fix conversion from size_t to char
@@ -313,7 +329,7 @@ int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
     size_t drive_count = 0;
 
     if (drives != NULL) {
-        drive_count = drives->n_memb / 4;
+        drive_count = drives->n_memb / NM_DRV_IDX_COUNT;
     }
 
     char drv_ch = 'a' + drive_count;
@@ -339,19 +355,20 @@ int nm_add_drive_to_fs(const nm_str_t *name, const nm_str_t *size,
 
 static void nm_add_drive_to_db(const nm_str_t *name, const nm_str_t *size,
                                const nm_str_t *type, const nm_vect_t *drives,
-                               const nm_str_t *discard)
+                               const nm_str_t *discard, const nm_str_t *format)
 {
 /*
  * @TODO Fix conversion from size_t to char
  * (might be a problem if there is too many drives)
  */
-    size_t drive_count = drives->n_memb / 4;
+    size_t drive_count = drives->n_memb / NM_DRV_IDX_COUNT;
     char drv_ch = 'a' + drive_count;
     nm_str_t query = NM_INIT_STR;
 
     nm_str_format(&query, NM_SQL_DRIVES_INSERT_ADD,
         name->data, name->data, drv_ch, type->data, size->data,
-        (nm_str_cmp_st(discard, "yes") == NM_OK) ? NM_ENABLE : NM_DISABLE);
+        (nm_str_cmp_st(discard, "yes") == NM_OK) ? NM_ENABLE : NM_DISABLE,
+        format->data);
     nm_db_edit(query.data);
 
     nm_str_free(&query);

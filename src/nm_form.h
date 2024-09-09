@@ -77,10 +77,12 @@ typedef struct {
 typedef struct {
     nm_str_t driver;
     nm_str_t size;
+    nm_str_t format;
     uint32_t discard:1;
 } nm_vm_drive_t;
 
-#define NM_INIT_VM_DRIVE (nm_vm_drive_t) { NM_INIT_STR, NM_INIT_STR, 0 }
+#define NM_INIT_VM_DRIVE (nm_vm_drive_t) { NM_INIT_STR, NM_INIT_STR, \
+    NM_INIT_STR, 0 }
 
 typedef struct {
     int field_hpad;
@@ -226,6 +228,7 @@ void *nm_file_progress(void *data);
 extern const char *nm_form_yes_no[];
 extern const char *nm_form_net_drv[];
 extern const char *nm_form_drive_drv[];
+extern const char *nm_form_drive_fmt[];
 extern const char *nm_form_macvtap[];
 extern const char *nm_form_usbtype[];
 extern const char *nm_form_svg_layer[];

@@ -13,19 +13,20 @@
 #include <nm_cfg_file.h>
 #include <nm_ovf_import.h>
 
-static const char NM_LC_VM_FORM_NAME[]      = "Name";
-static const char NM_LC_VM_FORM_ARCH[]      = "Architecture";
-static const char NM_LC_VM_FORM_CPU[]       = "CPU count";
-static const char NM_LC_VM_FORM_MEM_BEGIN[] = "Memory [4-";
-static const char NM_LC_VM_FORM_MEM_END[]   = "]Mb";
-static const char NM_LC_VM_FORM_DRV_BEGIN[] = "Disk [1-";
-static const char NM_LC_VM_FORM_DRV_END[]   = "]Gb";
-static const char NM_LC_VM_FORM_DRV_IF[]    = "Disk interface";
-static const char NM_LC_VM_FORM_DRV_DIS[]   = "Discard mode";
-static const char NM_LC_VM_FORM_IMP_PATH[]  = "Path to disk image";
-static const char NM_LC_VM_FORM_INS_PATH[]  = "Path to ISO/IMG";
-static const char NM_LC_VM_FORM_NET_IFS[]   = "Network interfaces";
-static const char NM_LC_VM_FORM_NET_DRV[]   = "Net driver";
+static const char NM_LC_VM_FORM_NAME[]       = "Name";
+static const char NM_LC_VM_FORM_ARCH[]       = "Architecture";
+static const char NM_LC_VM_FORM_CPU[]        = "CPU count";
+static const char NM_LC_VM_FORM_MEM_BEGIN[]  = "Memory [4-";
+static const char NM_LC_VM_FORM_MEM_END[]    = "]Mb";
+static const char NM_LC_VM_FORM_DRV_BEGIN[]  = "Disk [1-";
+static const char NM_LC_VM_FORM_DRV_END[]    = "]Gb";
+static const char NM_LC_VM_FORM_DRV_IF[]     = "Disk interface";
+static const char NM_LC_VM_FORM_DRV_FORMAT[] = "Disk image format";
+static const char NM_LC_VM_FORM_DRV_DIS[]    = "Discard mode";
+static const char NM_LC_VM_FORM_IMP_PATH[]   = "Path to disk image";
+static const char NM_LC_VM_FORM_INS_PATH[]   = "Path to ISO/IMG";
+static const char NM_LC_VM_FORM_NET_IFS[]    = "Network interfaces";
+static const char NM_LC_VM_FORM_NET_DRV[]    = "Net driver";
 
 static void nm_add_vm_init_windows(nm_form_t *form);
 static void nm_add_vm_fields_setup(void);
@@ -41,6 +42,7 @@ enum {
     NM_LBL_RAMTOT, NM_FLD_RAMTOT,
     NM_LBL_DISKSZ, NM_FLD_DISKSZ,
     NM_LBL_DISKIN, NM_FLD_DISKIN,
+    NM_LBL_DISKFMT, NM_FLD_DISKFMT,
     NM_LBL_DISCARD, NM_FLD_DISCARD,
     NM_LBL_SOURCE, NM_FLD_SOURCE,
     NM_LBL_IFSCNT, NM_FLD_IFSCNT,
@@ -139,6 +141,10 @@ static void nm_add_vm_main(void)
             fields[n] = nm_field_enum_new(
                 n / 2, form_data, nm_form_drive_drv, false, false);
             break;
+        case NM_FLD_DISKFMT:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_drive_fmt, false, false);
+            break;
         case NM_FLD_DISCARD:
             fields[n] = nm_field_enum_new(
                 n / 2, form_data, nm_form_yes_no, false, false);
@@ -215,6 +221,7 @@ static void nm_add_vm_fields_setup(void)
             *nm_cfg_get()->qemu_targets.data);
     set_field_buffer(fields[NM_FLD_CPUNUM], 0, "1");
     set_field_buffer(fields[NM_FLD_DISKIN], 0, NM_DEFAULT_DRVINT);
+    set_field_buffer(fields[NM_FLD_DISKFMT], 0, NM_DEFAULT_DRVFMT);
     set_field_buffer(fields[NM_FLD_DISCARD], 0, nm_form_yes_no[1]);
     set_field_buffer(fields[NM_FLD_IFSCNT], 0, "1");
     if (import) {
@@ -255,6 +262,9 @@ static size_t nm_add_vm_labels_setup(void)
             break;
         case NM_LBL_DISKIN:
             nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_DRV_IF));
+            break;
+        case NM_LBL_DISKFMT:
+            nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_DRV_FORMAT));
             break;
         case NM_LBL_DISCARD:
             nm_str_format(&buf, "%s", _(NM_LC_VM_FORM_DRV_DIS));
@@ -305,6 +315,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm)
     if (!import) {
         nm_get_field_buf(fields[NM_FLD_DISKSZ], &vm->drive.size);
     }
+    nm_get_field_buf(fields[NM_FLD_DISKFMT], &vm->drive.format);
     nm_get_field_buf(fields[NM_FLD_DISCARD], &discard);
     nm_get_field_buf(fields[NM_FLD_DISKIN], &vm->drive.driver);
     nm_get_field_buf(fields[NM_FLD_IFSCNT], &ifs_buf);
@@ -317,6 +328,7 @@ static int nm_add_vm_get_data(nm_vm_t *vm)
     if (!import) {
         nm_form_check_data(_("Disk"), vm->drive.size, err);
     }
+    nm_form_check_data(_("Disk image format"), vm->drive.format, err);
     nm_form_check_data(_("Disk interface"), vm->drive.driver, err);
     nm_form_check_data(_("Discard mode"), discard, err);
     nm_form_check_data(_("Path to ISO/IMG"), vm->srcp, err);
@@ -402,7 +414,8 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
                 vm->name.data, vm->name.data, vm->drive.driver.data,
                 vm->drive.size.data,
                 NM_ENABLE, /* boot flag */
-                vm->drive.discard ? NM_ENABLE : NM_DISABLE
+                vm->drive.discard ? NM_ENABLE : NM_DISABLE,
+                vm->drive.format.data
                 );
         nm_db_edit(query.data);
     } else { /* imported from OVF */
@@ -412,7 +425,8 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
                 nm_drive_file(drives->data[n])->data, NM_DEFAULT_DRVINT,
                 nm_drive_size(drives->data[n])->data,
                 n == 0 ? NM_ENABLE : NM_DISABLE, /* boot flag */
-                vm->drive.discard ? NM_ENABLE : NM_DISABLE
+                vm->drive.discard ? NM_ENABLE : NM_DISABLE,
+                vm->drive.format.data
                 );
             nm_db_edit(query.data);
         }
@@ -454,10 +468,38 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
     nm_str_free(&query);
 }
 
+static void nm_convert_drives(const nm_str_t *vm_dir, const nm_str_t *src_img,
+        const nm_str_t *dst_img, const nm_str_t *format)
+{
+    nm_str_t buf = NM_INIT_STR;
+    nm_vect_t argv = NM_INIT_VECT;
+
+    nm_str_format(&buf, "%s/qemu-img", nm_cfg_get()->qemu_bin_path.data);
+    nm_vect_insert(&argv, buf.data, buf.len + 1, NULL);
+
+    nm_vect_insert_cstr(&argv, "convert");
+    nm_vect_insert_cstr(&argv, "-O");
+    nm_vect_insert_cstr(&argv, format->data);
+    nm_vect_insert_cstr(&argv, src_img->data);
+    nm_vect_insert_cstr(&argv, dst_img->data);
+
+    nm_cmd_str(&buf, &argv);
+    nm_debug("add_vm: exec: %s\n", buf.data);
+
+    nm_vect_end_zero(&argv);
+    if (nm_spawn_process(&argv, NULL) != NM_OK) {
+        rmdir(vm_dir->data);
+        nm_bug(_("%s: cannot convert image file"), __func__);
+    }
+
+    nm_vect_free(&argv, NULL);
+    nm_str_free(&buf);
+}
+
 static void nm_add_vm_to_fs(nm_vm_t *vm)
 {
     nm_str_t vm_dir = NM_INIT_STR;
-    nm_str_t buf = NM_INIT_STR;
+    nm_str_t dst_img = NM_INIT_STR;
 
     nm_str_format(&vm_dir, "%s/%s", nm_cfg_get()->vm_dir.data, vm->name.data);
 
@@ -467,16 +509,17 @@ static void nm_add_vm_to_fs(nm_vm_t *vm)
     }
 
     if (!import) {
-        if (nm_add_drive_to_fs(&vm->name, &vm->drive.size, NULL) != NM_OK) {
+        if (nm_add_drive_to_fs(&vm->name, &vm->drive.size,
+                    NULL, &vm->drive.format) != NM_OK) {
             nm_bug(_("%s: cannot create image file"), __func__);
         }
     } else {
-        nm_str_format(&buf, "%s/%s_a.img", vm_dir.data, vm->name.data);
-        nm_copy_file(&vm->srcp, &buf);
+        nm_str_format(&dst_img, "%s/%s_a.img", vm_dir.data, vm->name.data);
+        nm_convert_drives(&vm_dir, &vm->srcp, &dst_img, &vm->drive.format);
     }
 
     nm_str_free(&vm_dir);
-    nm_str_free(&buf);
+    nm_str_free(&dst_img);
 }
 
 /* vim:set ts=4 sw=4: */

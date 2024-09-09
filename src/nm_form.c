@@ -41,6 +41,12 @@ const char *nm_form_drive_drv[] = {
     NULL
 };
 
+const char *nm_form_drive_fmt[] = {
+    "qcow2",
+    "raw",
+    NULL
+};
+
 const char *nm_form_macvtap[] = {
     "no",
     "macvtap:bridge",
