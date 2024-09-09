@@ -14,6 +14,7 @@ void nm_vm_cli_snapshot_load(const nm_str_t *vm_name,
         const nm_str_t *snap_name);
 void nm_vm_cli_snapshot_del(const nm_str_t *vm_name,
         const nm_str_t *snap_name);
+bool nm_vm_snapshot_check_format(const nm_str_t *vm_name);
 
 #endif /* NM_VM_SNAPSHOT_H_ */
 /* vim:set ts=4 sw=4: */

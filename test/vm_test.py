@@ -11,7 +11,7 @@ class TestVm(unittest.TestCase):
         tmux = Tmux()
         tmux.setup(nemu.test_dir)
         keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
-                ["10"], ["Down", 3], ["/tmp/null.iso"], ["Enter"], ["q"]]
+                ["10"], ["Down", 4], ["/tmp/null.iso"], ["Enter"], ["q"]]
         for key in keys:
             rc = tmux.send(*key)
             self.assertTrue(0 == rc)
@@ -36,7 +36,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
         tmux_init = Tmux()
         tmux_init.setup(nemu.test_dir)
         keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
-                ["10"], ["Down", 3], ["/tmp/null.iso"], ["Enter"], ["q"]]
+                ["10"], ["Down", 4], ["/tmp/null.iso"], ["Enter"], ["q"]]
         for key in keys:
             rc = tmux_init.send(*key)
             self.assertTrue(0 == rc)
@@ -72,7 +72,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
         tmux_init = Tmux()
         tmux_init.setup(nemu.test_dir)
         keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
-                ["10"], ["Down", 3], ["/tmp/null.iso"], ["Enter"], ["q"]]
+                ["10"], ["Down", 4], ["/tmp/null.iso"], ["Enter"], ["q"]]
         for key in keys:
             rc = tmux_init.send(*key)
             self.assertTrue(0 == rc)
@@ -104,7 +104,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm-clone/qmp.sock,server,nowait -vga qxl \
         tmux_init = Tmux()
         tmux_init.setup(nemu.test_dir)
         keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
-                ["10"], ["Down", 3], ["/tmp/null.iso"], ["Enter"], ["q"]]
+                ["10"], ["Down", 4], ["/tmp/null.iso"], ["Enter"], ["q"]]
         for key in keys:
             rc = tmux_init.send(*key)
             self.assertTrue(0 == rc)
@@ -140,7 +140,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vnc :6445"
         tmux = Tmux()
         tmux.setup(nemu.test_dir)
         keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
-                ["10"], ["Down", 3], ["/tmp/null.iso"], ["Enter"], ["q"]]
+                ["10"], ["Down", 4], ["/tmp/null.iso"], ["Enter"], ["q"]]
         for key in keys:
             rc = tmux.send(*key)
             self.assertTrue(0 == rc)
@@ -175,14 +175,14 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
         tmux = Tmux()
         tmux.setup(nemu.test_dir)
         keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
-                ["10"], ["Down", 3], ["/tmp/null.iso"], ["Enter"], ["q"]]
+                ["10"], ["Down", 4], ["/tmp/null.iso"], ["Enter"], ["q"]]
         for key in keys:
             rc = tmux.send(*key)
             self.assertTrue(0 == rc)
 
         tmux_add = Tmux()
         tmux_add.setup(nemu.test_dir)
-        keys_add = [["a"], ["1"], ["Down"], ["Left"], ["Down"],
+        keys_add = [["a"], ["1"], ["Down"], ["Left"], ["Down", 2],
                 ["Right"], ["Enter"], ["q"]]
         for key in keys_add:
             rc = tmux_add.send(*key)
@@ -231,7 +231,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
         tmux = Tmux()
         tmux.setup(nemu.test_dir)
         keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
-                ["10"], ["Down", 3], ["/tmp/null.iso"], ["Enter"], ["q"]]
+                ["10"], ["Down", 4], ["/tmp/null.iso"], ["Enter"], ["q"]]
         for key in keys:
             rc = tmux.send(*key)
             self.assertTrue(0 == rc)
@@ -269,7 +269,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
         tmux = Tmux()
         tmux.setup(nemu.test_dir)
         keys = [["I"], ["testvm"], ["Down", 3], ["256"], ["Down"],
-                ["10"], ["Down", 3], ["/tmp/null.iso"], ["Enter"], ["q"]]
+                ["10"], ["Down", 4], ["/tmp/null.iso"], ["Enter"], ["q"]]
         for key in keys:
             rc = tmux.send(*key)
             self.assertTrue(0 == rc)

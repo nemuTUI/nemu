@@ -226,7 +226,8 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
             nm_vect_str(&vm->drives, NM_SQL_DRV_TYPE + idx_shift)->data,
             nm_vect_str(&vm->drives, NM_SQL_DRV_SIZE + idx_shift)->data,
             nm_vect_str(&vm->drives, NM_SQL_DRV_BOOT + idx_shift)->data,
-            nm_vect_str(&vm->drives, NM_SQL_DRV_DISC + idx_shift)->data);
+            nm_vect_str(&vm->drives, NM_SQL_DRV_DISC + idx_shift)->data,
+            nm_vect_str(&vm->drives, NM_SQL_DRV_FMT + idx_shift)->data);
         nm_db_edit(query.data);
 
         drv_ch++;

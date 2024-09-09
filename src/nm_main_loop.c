@@ -342,6 +342,10 @@ void nm_start_main_loop(void)
                     nm_warn(_(NM_MSG_NO_DAEMON));
                     break;
                 }
+                if (nm_vm_snapshot_check_format(name) == false) {
+                    nm_warn(_(NM_MSG_BAD_FMT));
+                    break;
+                }
                 if (!vm_status) {
                     nm_warn(NM_MSG_MUST_RUN);
                     break;

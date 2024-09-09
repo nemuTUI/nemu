@@ -1121,12 +1121,13 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
         memset(&img_info, 0, sizeof(img_info));
         stat(drive_path.data, &img_info);
 
-        nm_str_append_format(&info, "disk%zu%-7s%s [%.2gGb/%sGb real/virt, %s] "
-                "%s\n", n, ":",
+        nm_str_append_format(&info, "disk%zu%-7s%s [%.2gGb/%sGb real/virt, %s, "
+                "%s] %s\n", n, ":",
                 nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_NAME + idx_shift),
                 (double) img_info.st_size / 1073741824,
                 nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_SIZE + idx_shift),
                 nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_TYPE + idx_shift),
+                nm_vect_str_ctx(&vm.drives, NM_SQL_DRV_FMT + idx_shift),
                 boot ? "*" : "");
 
         nm_str_free(&drive_path);

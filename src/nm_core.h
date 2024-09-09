@@ -62,6 +62,7 @@ static const char NM_DISABLE[] = "0";
 
 static const char NM_DEFAULT_NETDRV[]  = "virtio-net-pci";
 static const char NM_DEFAULT_DRVINT[]  = "virtio";
+static const char NM_DEFAULT_DRVFMT[]  = "qcow2";
 static const char NM_DEFAULT_USBVER[]  = "XHCI";
 static const char NM_VM_PID_FILE[]     = "qemu.pid";
 static const char NM_VM_QMP_FILE[]     = "qmp.sock";

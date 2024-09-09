@@ -6,7 +6,7 @@
 
 #include <sqlite3.h>
 
-#define NM_DB_VERSION "20"
+#define NM_DB_VERSION "21"
 
 /* PRAGMAS */
 static const char NM_SQL_PRAGMA_FOREIGN_ON[] =
@@ -42,6 +42,7 @@ static const char NM_SQL_DRIVES_CREATE[] =
     "CREATE TABLE drives(drive_name TEXT NOT NULL, drive_drv TEXT NOT NULL, "
     "capacity INTEGER NOT NULL, boot INTEGER NOT NULL, "
     "discard INTEGER NOT NULL, vm_id INTEGER NOT NULL, "
+    "format TEXT NOT NULL, "
     "FOREIGN KEY(vm_id) REFERENCES vms(id) ON DELETE CASCADE)";
 
 static const char NM_SQL_SNAPS_CREATE[] =
@@ -301,35 +302,35 @@ static const char NM_SQL_IFACES_UPDATE_RESET[] =
 /* DRIVES */
 static const char NM_SQL_DRIVES_INSERT_CLONED[] =
     "INSERT INTO drives(vm_id, drive_name, drive_drv, "
-    "capacity, boot, discard) "
+    "capacity, boot, discard, format) "
     "VALUES((SELECT id FROM vms WHERE name='%s'), "
-    "'%s_%c.img', '%s', '%s', %s, %s)";
+    "'%s_%c.img', '%s', '%s', %s, %s, '%s')";
 
 static const char NM_SQL_DRIVES_INSERT_NEW[] =
     "INSERT INTO drives(vm_id, drive_name, drive_drv, "
-    "capacity, boot, discard) "
+    "capacity, boot, discard, format) "
     "VALUES((SELECT id FROM vms WHERE name='%s'), "
-    "'%s_a.img', '%s', %s, %s, %s)";
+    "'%s_a.img', '%s', %s, %s, %s, '%s')";
 
 static const char NM_SQL_DRIVES_INSERT_ADD[] =
     "INSERT INTO drives(vm_id, drive_name, drive_drv, "
-    "capacity, boot, discard) "
+    "capacity, boot, discard, format) "
     "VALUES((SELECT id FROM vms WHERE name='%s'), "
-    "'%s_%c.img', '%s', %s, 0, %s)";
+    "'%s_%c.img', '%s', %s, 0, %s, '%s')";
 
 static const char NM_SQL_DRIVES_INSERT_IMPORTED[] =
     "INSERT INTO drives(vm_id, drive_name, drive_drv, "
-    "capacity, boot, discard) "
+    "capacity, boot, discard, format) "
     "VALUES((SELECT id FROM vms WHERE name='%s'), "
-    "'%s', '%s', '%s', '%s', '%s')";
+    "'%s', '%s', '%s', '%s', '%s', '%s')";
 
 static const char NM_SQL_DRIVES_SELECT[] =
-    "SELECT drive_name, drive_drv, capacity, boot, discard "
+    "SELECT drive_name, drive_drv, capacity, boot, discard, format "
     "FROM drives WHERE vm_id=(SELECT id FROM vms WHERE name='%s') "
     "ORDER BY drive_name ASC";
 
 static const char NM_SQL_DRIVES_SELECT_BY_ID[] =
-    "SELECT drive_name, drive_drv, capacity, boot, discard "
+    "SELECT drive_name, drive_drv, capacity, boot, discard, format "
     "FROM drives WHERE vm_id=%s ORDER BY drive_name ASC";
 
 static const char NM_SQL_DRIVES_SELECT_CAP[] =
@@ -343,6 +344,11 @@ static const char NM_SQL_DRIVES_SELECT_BOOT[] =
 static const char NM_SQL_DRIVES_SELECT_NAME[] =
     "SELECT drive_name FROM drives WHERE "
     "vm_id=(SELECT id FROM vms WHERE name='%s')";
+
+static const char NM_SQL_DRIVES_CHECK_SNAP[] =
+    "SELECT drive_name FROM drives "
+    "WHERE vm_id=(SELECT id FROM vms WHERE name='%s') AND boot=1 "
+    "AND format='qcow2'";
 
 static const char NM_SQL_DRIVES_UPDATE_DISCARD[] =
     "UPDATE drives SET discard=%s "
@@ -512,6 +518,7 @@ enum select_drive_idx {
     NM_SQL_DRV_SIZE,
     NM_SQL_DRV_BOOT,
     NM_SQL_DRV_DISC,
+    NM_SQL_DRV_FMT,
     NM_DRV_IDX_COUNT
 };
 
