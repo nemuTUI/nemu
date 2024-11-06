@@ -310,13 +310,13 @@ static const char NM_SQL_DRIVES_INSERT_NEW[] =
     "INSERT INTO drives(vm_id, drive_name, drive_drv, "
     "capacity, boot, discard, format) "
     "VALUES((SELECT id FROM vms WHERE name='%s'), "
-    "'%s_a.img', '%s', %s, %s, %s, '%s')";
+    "'%s_a.img', '%s', '%s', %s, %s, '%s')";
 
 static const char NM_SQL_DRIVES_INSERT_ADD[] =
     "INSERT INTO drives(vm_id, drive_name, drive_drv, "
     "capacity, boot, discard, format) "
     "VALUES((SELECT id FROM vms WHERE name='%s'), "
-    "'%s_%c.img', '%s', %s, 0, %s, '%s')";
+    "'%s_%c.img', '%s', '%s', 0, %s, '%s')";
 
 static const char NM_SQL_DRIVES_INSERT_IMPORTED[] =
     "INSERT INTO drives(vm_id, drive_name, drive_drv, "

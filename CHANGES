@@ -1,6 +1,7 @@
 unreleased
 ------------------------
     - Feature: image format type support: qcow2 and raw
+    - Bugfix: fix import on some locales
 
 v3.3.1 - 19.02.2024
 ------------------------
