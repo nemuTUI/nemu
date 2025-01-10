@@ -51,6 +51,10 @@
 
 #define NM_UNUSED __attribute__((__unused__))
 
+#ifndef S_BLKSIZE
+#define S_BLKSIZE 512
+#endif
+
 static const int NM_OK;
 static const int NM_ERR = -1;
 
