@@ -10,7 +10,7 @@ on:
 
 jobs:
   macosx_build:
-    runs-on: macos-12
+    runs-on: macos-latest
 
     steps:
       - name: Get nEMU sources
@@ -24,7 +24,7 @@ jobs:
       - name: Build nEMU
         run: |
           mkdir build && cd build
-          cmake ../ -DOPENSSL_ROOT_DIR=`find /usr/local/Cellar -name 'opensslv.h' | sed 's|/openssl/[^/]*$||'` \
-            -DLibArchive_INCLUDE_DIR=`find /usr/local/Cellar -name 'archive_entry.h' | sed 's|/[^/]*$||'` \
+          cmake ../ -DOPENSSL_ROOT_DIR=`find /opt/homebrew/Cellar -name 'opensslv.h' | sed 's|/openssl/[^/]*$||'` \
+            -DLibArchive_INCLUDE_DIR=`find /opt/homebrew/Cellar -name 'archive_entry.h' | sed 's|/[^/]*$||'` \
             -DNM_WITH_NCURSES=ON
           cmake --build .
