@@ -31,17 +31,21 @@ static const char NM_DEFAULT_SPICE[]    = "/usr/bin/remote-viewer";
 static const char NM_DEFAULT_QEMUDIR[]  = "/usr/bin";
 #endif /* NM_WITH_QEMU */
 
+static const int NM_DEFAULT_REFRESH = 500;
+
 static const char NM_DEFAULT_VNCARG[]   = ":%p";
 static const char NM_DEFAULT_SPICEARG[] = "--title %t spice://127.0.0.1:%p";
 
 static const char NM_DEFAULT_TARGET[]   = "x86_64,i386";
 
 static const char NM_DEFAULT_PID[]      = "/tmp/nemu.pid";
+static const char NM_DEFAULT_PNG[]      = "/tmp/nemu.png";
 
 static const char NM_INI_S_MAIN[]       = "main";
 static const char NM_INI_S_VIEW[]       = "viewer";
 static const char NM_INI_S_QEMU[]       = "qemu";
 static const char NM_INI_S_DMON[]       = "nemu-monitor";
+static const char NM_INI_S_PREV[]       = "preview";
 
 static const char NM_INI_P_VM[]         = "vmdir";
 static const char NM_INI_P_DB[]         = "db";
@@ -64,6 +68,7 @@ static const char NM_INI_P_AUTO[]       = "autostart";
 static const char NM_INI_P_SLP[]        = "sleep";
 static const char NM_INI_P_GL_SEP[]     = "glyph_separator";
 static const char NM_INI_P_GL_CHECK[]   = "glyph_checkbox";
+static const char NM_INI_P_REFRESH[]    = "refresh_timeout";
 #if defined (NM_WITH_REMOTE)
 static const char NM_INI_P_API_SRV[]    = "remote_control";
 static const char NM_INI_P_API_IFACE[]  = "remote_interface";
@@ -77,6 +82,9 @@ static const char NM_INI_P_API_HASH[]   = "remote_hash";
 static const char NM_INI_P_DYES[]       = "dbus_enabled";
 static const char NM_INI_P_DTMT[]       = "dbus_timeout";
 #endif
+static const char NM_INI_P_PREV_FLAG[]  = "enabled";
+static const char NM_INI_P_PREV_SCALE[] = "scale";
+static const char NM_INI_P_PREV_PATH[]  = "png_path";
 
 static const char * const CURSOR_STYLE_STR[]   = {
     "Default",
@@ -355,6 +363,34 @@ void nm_cfg_init(bool bypass_cfg)
         cfg.glyphs.checkbox = !!nm_str_stoui(&tmp_buf, 10);
     }
 
+    nm_str_trunc(&tmp_buf, 0);
+    if (nm_get_opt_param(ini, NM_INI_S_MAIN, NM_INI_P_REFRESH,
+                &tmp_buf) == NM_OK) {
+        cfg.refresh_timeout = nm_str_stoul(&tmp_buf, 10);
+    } else {
+        cfg.refresh_timeout = NM_DEFAULT_REFRESH;
+    }
+
+    /* VM preview */
+    nm_str_trunc(&tmp_buf, 0);
+    if (nm_get_opt_param(ini, NM_INI_S_PREV, NM_INI_P_PREV_FLAG,
+                &tmp_buf) == NM_OK) {
+        cfg.preview.enabled = !!nm_str_stoui(&tmp_buf, 10);
+    } else {
+        cfg.preview.enabled = 0;
+    }
+    nm_str_trunc(&tmp_buf, 0);
+    if (nm_get_opt_param(ini, NM_INI_S_PREV, NM_INI_P_PREV_SCALE,
+                &tmp_buf) == NM_OK) {
+        cfg.preview.scale = !!nm_str_stoui(&tmp_buf, 10);
+    } else {
+        cfg.preview.scale = 0;
+    }
+    if (nm_get_opt_param(ini, NM_INI_S_PREV, NM_INI_P_PREV_PATH,
+                &cfg.preview.path) != NM_OK) {
+        nm_str_alloc_text(&cfg.preview.path, NM_DEFAULT_PNG);
+    }
+
 #if defined (NM_WITH_REMOTE)
     nm_str_trunc(&tmp_buf, 0);
     cfg.api_server = 0;
@@ -428,6 +464,7 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.pid);
     nm_str_free(&cfg.daemon_pid);
     nm_str_free(&cfg.qemu_bin_path);
+    nm_str_free(&cfg.preview.path);
     nm_vect_free(&cfg.qemu_targets, NULL);
 #if defined (NM_WITH_REMOTE)
     nm_str_free(&cfg.api_cert_path);
@@ -605,6 +642,11 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
                     "# see https://terminalguide.namepad.de/seq/csi_sq_t_space/"
                     "\n# if not set VTE's default cursor style will be used\n"
                     "# cursor_style = 1\n\n");
+            fprintf(cfg_file, "# Properties refresh timeout (ms)\n"
+                    "# refresh_timeout = 500\n\n");
+            fprintf(cfg_file, "[preview]\n");
+            fprintf(cfg_file, "# enabled = 0\n# scale = 0\n"
+                    "# png_path = /tmp/nemu.png\n\n");
             fprintf(cfg_file, "[viewer]\n");
             fprintf(cfg_file, "# default protocol (1 - spice, 0 - vnc)"
                     "\nspice_default = 1\n\n");

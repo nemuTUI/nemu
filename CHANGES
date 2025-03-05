@@ -1,5 +1,14 @@
 unreleased
 ------------------------
+    - Feature: VM preview
+        Terminal must support kitty graphics protocol
+        New config parameters:
+          [preview]
+          enabled = 0|1
+          scale = 0|1
+          png_path = /path/to/vm.png
+    - Feature: configurable refresh timeout for properties window
+        Parameter `refresh_timeout` in `main` section
     - Feature: image format type support: qcow2 and raw
     - Bugfix: fix import on some locales
 

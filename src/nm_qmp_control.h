@@ -10,6 +10,7 @@ void nm_qmp_vm_stop(const nm_str_t *name);
 void nm_qmp_vm_reset(const nm_str_t *name);
 void nm_qmp_vm_pause(const nm_str_t *name);
 void nm_qmp_vm_resume(const nm_str_t *name);
+void nm_qmp_take_screenshot(const nm_str_t *name, const nm_str_t *path);
 int nm_qmp_savevm(const nm_str_t *name, const nm_str_t *snap);
 int nm_qmp_loadvm(const nm_str_t *name, const nm_str_t *snap);
 int nm_qmp_delvm(const nm_str_t *name, const nm_str_t *snap);
