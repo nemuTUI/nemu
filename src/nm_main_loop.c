@@ -188,6 +188,10 @@ void nm_start_main_loop(void)
          * Otherwise text will be flicker in tty.
          */
         if (ch != ERR) {
+            if (cfg->preview.enabled) {
+                printf("\x1b_Ga=d,d=i,i=20509,q=2;\x1b\x5c");
+                fflush(stdout);
+            }
             clear_action = 1;
         }
 

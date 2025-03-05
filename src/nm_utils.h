@@ -66,5 +66,8 @@ void nm_get_time(nm_str_t *res, const char *fmt);
 void nm_gen_rand_str(nm_str_t *res, size_t len);
 void nm_gen_uid(nm_str_t *res);
 
+/* Caller must free the return value. */
+char *nm_64_encode(const uint8_t *src, size_t src_len);
+
 #endif /* NM_UTILS_H_ */
 /* vim:set ts=4 sw=4: */

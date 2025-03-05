@@ -84,6 +84,10 @@ static const char NM_QMP_DEV_NET_ADD[] =
 static const char NM_QMP_DEV_DEL[] =
     "{'execute':'device_del','arguments':{'id':'dev-%s'}}";
 
+static const char NM_QMP_TAKE_SCREENSHOT[] =
+    "{'execute':'screendump','arguments':{'filename':'%s',"
+    "'format':'png'}}";
+
 #if defined NM_OS_LINUX
 static const char NM_QMP_NET_TAP_FD_ADD[] =
     "{'execute':'netdev_add','arguments':{'type':'tap',"
@@ -150,6 +154,16 @@ void nm_qmp_vm_resume(const nm_str_t *name)
     struct timeval tv = { .tv_sec = 0, .tv_usec = 1000000 }; /* 1s */
 
     nm_qmp_vm_exec(name, NM_QMP_CMD_VM_CONT, &tv);
+}
+
+void nm_qmp_take_screenshot(const nm_str_t *name, const nm_str_t *path)
+{
+    nm_str_t qmp_query = NM_INIT_STR;
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 1000000 }; /* 1s */
+
+    nm_str_format(&qmp_query, NM_QMP_TAKE_SCREENSHOT, path->data);
+    nm_qmp_vm_exec(name, qmp_query.data, &tv);
+    nm_str_free(&qmp_query);
 }
 
 int nm_qmp_savevm(const nm_str_t *name, const nm_str_t *snap)

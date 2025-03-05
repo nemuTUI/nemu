@@ -27,6 +27,12 @@ typedef struct {
 } nm_glyph_t;
 
 typedef struct {
+    nm_str_t path;
+    uint32_t enabled:1;
+    uint32_t scale:1;
+} nm_preview_t;
+
+typedef struct {
     nm_str_t vm_dir;
     nm_str_t db_path;
     nm_str_t vnc_bin;
@@ -43,8 +49,10 @@ typedef struct {
     nm_rgb_t hl_color;
     nm_rgb_t err_color;
     nm_glyph_t glyphs;
+    nm_preview_t preview;
     nm_str_t debug_path;
     uint64_t daemon_sleep;
+    uint64_t refresh_timeout;
     uint32_t cursor_style;
 #if defined (NM_WITH_DBUS)
     uint32_t dbus_enabled:1;

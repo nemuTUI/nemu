@@ -25,6 +25,14 @@ db = /home/user/.nemu.db
 # if not set VTE's default cursor style will be used
 # cursor_style = 1
 
+# Properties refresh timeout (ms)
+# refresh_timeout = 500
+
+[preview]
+# enabled = 0
+# scale = 0
+# png_path = /tmp/nemu.png
+
 [viewer]
 # default protocol (1 - spice, 0 - vnc)
 spice_default = 1
