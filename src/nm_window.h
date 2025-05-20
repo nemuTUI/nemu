@@ -168,6 +168,34 @@ enum nm_color {
     NM_COLOR_RED         = 4
 };
 
+/* possible lowercase keys (decimal)
+NM_KEY_A = 97
+NM_KEY_B = 98
+NM_KEY_C = 99
+NM_KEY_D = 100
+NM_KEY_E = 101
+NM_KEY_F = 102
+NM_KEY_G = 103
+NM_KEY_H = 104
+NM_KEY_I = 105
+NM_KEY_J = 106
+NM_KEY_K = 107
+NM_KEY_L = 108
+NM_KEY_M = 109
+NM_KEY_N = 110
+NM_KEY_O = 111
+NM_KEY_P = 112
+NM_KEY_Q = 113
+NM_KEY_R = 114
+NM_KEY_S = 115
+NM_KEY_T = 116
+NM_KEY_U = 117
+NM_KEY_V = 118
+NM_KEY_W = 119
+NM_KEY_X = 120
+NM_KEY_Y = 121
+NM_KEY_Z = 122
+*/
 enum nm_key {
     NM_KEY_ENTER    = 10,
     NM_KEY_ESC      = 27,
@@ -202,6 +230,34 @@ enum nm_key {
     NM_KEY_Z = 122
 };
 
+/* possible uppercase keys (decimal)
+NM_KEY_A_UP = 65
+NM_KEY_B_UP = 66
+NM_KEY_C_UP = 67
+NM_KEY_D_UP = 68
+NM_KEY_E_UP = 69
+NM_KEY_F_UP = 70
+NM_KEY_G_UP = 71
+NM_KEY_H_UP = 72
+NM_KEY_I_UP = 73
+NM_KEY_J_UP = 74
+NM_KEY_K_UP = 75
+NM_KEY_L_UP = 76
+NM_KEY_M_UP = 77
+NM_KEY_N_UP = 78
+NM_KEY_O_UP = 79
+NM_KEY_P_UP = 80
+NM_KEY_Q_UP = 81
+NM_KEY_R_UP = 82
+NM_KEY_S_UP = 83
+NM_KEY_T_UP = 84
+NM_KEY_U_UP = 85
+NM_KEY_V_UP = 86
+NM_KEY_W_UP = 87
+NM_KEY_X_UP = 88
+NM_KEY_Y_UP = 89
+NM_KEY_Z_UP = 90
+*/
 enum nm_key_upper {
     NM_KEY_A_UP = 65,
     NM_KEY_C_UP = 67,
