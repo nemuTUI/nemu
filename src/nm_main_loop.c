@@ -482,13 +482,13 @@ void nm_start_main_loop(void)
             nm_print_help();
         }
 
-        if (ch == KEY_LEFT) {
+        if (ch == NM_CTRL_KEY_H) {
             if (nm_window_scale_inc() == NM_OK) {
                 redraw_window = 1;
             }
         }
 
-        if (ch == KEY_RIGHT) {
+        if (ch == NM_CTRL_KEY_L) {
             if (nm_window_scale_dec() == NM_OK) {
                 redraw_window = 1;
             }

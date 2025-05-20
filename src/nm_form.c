@@ -499,19 +499,19 @@ int nm_form_draw(nm_form_t **form)
     while (confirm != NM_OK &&
             (ch = wgetch(form_data->parent_window)) != NM_KEY_ESC) {
         switch (ch) {
-        case KEY_DOWN:
+        case NM_CTRL_KEY_J:
             form_driver(*form, REQ_VALIDATION);
             form_driver(*form, REQ_NEXT_FIELD);
             form_driver(*form, REQ_END_LINE);
             break;
 
-        case KEY_UP:
+        case NM_CTRL_KEY_K:
             form_driver(*form, REQ_VALIDATION);
             form_driver(*form, REQ_PREV_FIELD);
             form_driver(*form, REQ_END_LINE);
             break;
 
-        case KEY_LEFT:
+        case NM_CTRL_KEY_H:
             if (field_type(current_field(*form)) == TYPE_ENUM) {
                 form_driver(*form, REQ_PREV_CHOICE);
             } else {
@@ -519,7 +519,7 @@ int nm_form_draw(nm_form_t **form)
             }
             break;
 
-        case KEY_RIGHT:
+        case NM_CTRL_KEY_L:
             if (field_type(current_field(*form)) == TYPE_ENUM) {
                 form_driver(*form, REQ_NEXT_CHOICE);
             } else {
