@@ -206,14 +206,17 @@ enum nm_key_upper {
     NM_KEY_A_UP = 65,
     NM_KEY_C_UP = 67,
     NM_KEY_D_UP = 68,
+    NM_KEY_F_UP = 70,
     NM_KEY_I_UP = 73,
+    NM_KEY_K_UP = 75,
     NM_KEY_N_UP = 78,
     NM_KEY_O_UP = 79,
     NM_KEY_P_UP = 80,
     NM_KEY_R_UP = 82,
     NM_KEY_S_UP = 83,
     NM_KEY_V_UP = 86,
-    NM_KEY_X_UP = 88
+    NM_KEY_X_UP = 88,
+    NM_KEY_Z_UP = 90
 };
 
 /*
