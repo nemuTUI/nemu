@@ -18,7 +18,7 @@ jobs:
           git clone https://github.com/nemuTUI/nemu
           cd nemu
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            git checkout ${{ github.head_ref }}
+            git checkout ${{ github.event.pull_request.head.sha }}
           fi
           mkdir build && cd build
           cmake ../ -DNM_WITH_DBUS=ON -DNM_WITH_REMOTE=ON
