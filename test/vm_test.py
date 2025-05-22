@@ -111,7 +111,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm-clone/qmp.sock,server,nowait -vga qxl \
 
         tmux_edit = Tmux()
         tmux_edit.setup(nemu.test_dir)
-        keys_edit = [["C"], ["Right"], ["Down"], ["BSpace", 4], ["12345"],
+        keys_edit = [["v"], ["Right"], ["Down"], ["BSpace", 4], ["12345"],
                 ["Down"], ["/dev/pts/7"], ["Down"], ["/tmp/ntty0"], ["Down"], ["Right"],
                 ["Down"], ["Right"], ["Enter"], ["q"]]
         for key in keys_edit:
@@ -206,7 +206,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
 
         tmux_del = Tmux()
         tmux_del.setup(nemu.test_dir)
-        keys_del = [["v"], ["Enter"], ["q"]]
+        keys_del = [["V"], ["Enter"], ["q"]]
         for key in keys_del:
             rc = tmux_del.send(*key)
             self.assertTrue(0 == rc)
