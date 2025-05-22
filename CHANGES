@@ -11,6 +11,7 @@ unreleased
         Parameter `refresh_timeout` in `main` section
     - Feature: image format type support: qcow2 and raw
     - Bugfix: fix import on some locales
+    - Feature: use less dangerous keyboard shortcuts
 
 v3.3.1 - 19.02.2024
 ------------------------
