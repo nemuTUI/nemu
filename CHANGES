@@ -1,5 +1,6 @@
 unreleased
 ------------------------
+    - Feature: use less dangerous keyboard shortcuts
     - Bugfix: the group filter `g:group_name` was not
         working at all as intended.
 
