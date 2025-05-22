@@ -224,7 +224,7 @@ void nm_start_main_loop(void)
                 nm_iterate_groups(false);
                 break;
 
-            case NM_KEY_R:
+            case NM_KEY_S:
                 if (vm_status) {
                     nm_warn(_(NM_MSG_RUNNING));
                     break;
@@ -240,37 +240,37 @@ void nm_start_main_loop(void)
                 nm_vmctl_start(name, NM_VMCTL_TEMP);
                 break;
 
-            case NM_KEY_P:
+            case NM_KEY_P_UP:
                 if (vm_status) {
                     nm_qmp_vm_shut(name);
                 }
                 break;
 
-            case NM_KEY_F:
+            case NM_KEY_F_UP:
                 if (vm_status) {
                     nm_qmp_vm_stop(name);
                 }
                 break;
 
-            case NM_KEY_Z:
+            case NM_KEY_Z_UP:
                 if (vm_status) {
                     nm_qmp_vm_reset(name);
                 }
                 break;
 
-            case NM_KEY_P_UP:
+            case NM_KEY_P:
                 if (vm_status) {
                     nm_qmp_vm_pause(name);
                 }
                 break;
 
-            case NM_KEY_R_UP:
+            case NM_KEY_R:
                 if (vm_status) {
                     nm_qmp_vm_resume(name);
                 }
                 break;
 
-            case NM_KEY_K:
+            case NM_KEY_K_UP:
                 if (vm_status) {
                     nm_vmctl_kill(name);
                 }
@@ -293,7 +293,7 @@ void nm_start_main_loop(void)
                 nm_add_drive(name);
                 break;
 
-            case NM_KEY_V:
+            case NM_KEY_V_UP:
                 if (vm_status) {
                     nm_warn(_(NM_MSG_MUST_STOP));
                     break;
@@ -313,7 +313,7 @@ void nm_start_main_loop(void)
 #endif /* NM_WITH_USB */
 
 #if defined(NM_OS_LINUX)
-            case NM_KEY_H:
+            case NM_KEY_O:
                 nm_9p_share(name);
                 break;
 #endif /* NM_OS_LINUX */
@@ -337,7 +337,7 @@ void nm_start_main_loop(void)
                 nm_edit_boot(name);
                 break;
 
-            case NM_KEY_C_UP:
+            case NM_KEY_V:
                 nm_viewer(name);
                 break;
 
@@ -361,7 +361,7 @@ void nm_start_main_loop(void)
                 nm_vm_snapshot_create(name);
                 break;
 
-            case NM_KEY_X_UP:
+            case NM_KEY_R_UP:
                 if (access(cfg->daemon_pid.data, R_OK) == -1) {
                     nm_warn(_(NM_MSG_NO_DAEMON));
                     break;
@@ -369,7 +369,7 @@ void nm_start_main_loop(void)
                 nm_vm_snapshot_load(name, vm_status);
                 break;
 
-            case NM_KEY_D_UP:
+            case NM_KEY_D:
                 if (access(cfg->daemon_pid.data, R_OK) == -1) {
                     nm_warn(_(NM_MSG_NO_DAEMON));
                     break;
@@ -377,7 +377,7 @@ void nm_start_main_loop(void)
                 nm_vm_snapshot_delete(name, vm_status);
                 break;
 
-            case NM_KEY_L:
+            case NM_KEY_C_UP:
                 if (vm_status) {
                     nm_warn(_(NM_MSG_MUST_STOP));
                     break;
@@ -389,7 +389,7 @@ void nm_start_main_loop(void)
                 nm_mon_ping();
                 break;
 
-            case NM_KEY_D:
+            case NM_KEY_D_UP:
                 if (vm_status) {
                     nm_warn(_(NM_MSG_MUST_STOP));
                     break;
@@ -482,13 +482,13 @@ void nm_start_main_loop(void)
             nm_print_help();
         }
 
-        if (ch == KEY_LEFT) {
+        if (ch == NM_CTRL_KEY_H) {
             if (nm_window_scale_inc() == NM_OK) {
                 redraw_window = 1;
             }
         }
 
-        if (ch == KEY_RIGHT) {
+        if (ch == NM_CTRL_KEY_L) {
             if (nm_window_scale_dec() == NM_OK) {
                 redraw_window = 1;
             }
