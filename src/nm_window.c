@@ -733,15 +733,15 @@ void nm_lan_help(void)
 void nm_print_help(void)
 {
     const char *keys[] = {
-        "r", "t", "c",
-        "p", "z", "f", "d", "y", "e",
-        "i", "C", "a", "l", "b", "h",
-        "m", "v", "u", "P", "R", "S",
-        "X", "D",
+        "s", "t", "c",
+        "P", "Z", "F", "D", "y", "e",
+        "i", "v", "a", "l", "b", "h",
+        "m", "V", "u", "p", "r", "S",
+        "R", "d",
 #if defined (NM_WITH_USB)
         "+", "-",
 #endif
-        "k", "/", "[", "]"
+        "K", "/", "[", "]"
 };
 
     const char *values[] = {
