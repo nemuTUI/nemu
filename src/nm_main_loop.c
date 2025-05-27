@@ -313,7 +313,7 @@ void nm_start_main_loop(void)
 #endif /* NM_WITH_USB */
 
 #if defined(NM_OS_LINUX)
-            case NM_KEY_H:
+            case NM_KEY_O:
                 nm_9p_share(name);
                 break;
 #endif /* NM_OS_LINUX */
@@ -377,7 +377,7 @@ void nm_start_main_loop(void)
                 nm_vm_snapshot_delete(name, vm_status);
                 break;
 
-            case NM_KEY_L:
+            case NM_KEY_C_UP:
                 if (vm_status) {
                     nm_warn(_(NM_MSG_MUST_STOP));
                     break;

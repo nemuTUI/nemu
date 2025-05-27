@@ -735,7 +735,7 @@ void nm_print_help(void)
     const char *keys[] = {
         "s", "t", "c",
         "P", "Z", "F", "D", "y", "e",
-        "i", "v", "a", "l", "b", "h",
+        "i", "v", "a", "C", "b", "o",
         "m", "V", "u", "p", "r", "S",
         "R", "d",
 #if defined (NM_WITH_USB)
