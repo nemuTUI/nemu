@@ -197,6 +197,7 @@ enum nm_color {
  * NM_KEY_Z = 122
 */
 enum nm_key {
+    // "ctrl+j" and "line feed" have the same address?!
     NM_KEY_ENTER    = 10,
     NM_KEY_ESC      = 27,
     NM_KEY_QUESTION = 63,
@@ -212,10 +213,11 @@ enum nm_key {
     NM_KEY_E = 101,
     NM_KEY_F = 102,
     NM_KEY_G = 103,
-    NM_KEY_H = 104,
+    NM_CTRL_KEY_H = 8,
     NM_KEY_I = 105,
-    NM_KEY_K = 107,
-    NM_KEY_L = 108,
+    NM_CTRL_KEY_J = 10,
+    NM_CTRL_KEY_K = 11,
+    NM_CTRL_KEY_L = 12,
     NM_KEY_M = 109,
     NM_KEY_O = 111,
     NM_KEY_P = 112,

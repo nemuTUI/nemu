@@ -153,12 +153,12 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
 
 void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
 {
-    if ((ch == KEY_UP) && (menu->highlight == 1) && (menu->item_first == 0) &&
+    if ((ch == NM_CTRL_KEY_K) && (menu->highlight == 1) && (menu->item_first == 0) &&
             (list_len < menu->v->n_memb)) {
         menu->highlight = list_len;
         menu->item_first = menu->v->n_memb - list_len;
         menu->item_last = menu->v->n_memb;
-    } else if (ch == KEY_UP) {
+    } else if (ch == NM_CTRL_KEY_K) {
         if ((menu->highlight == 1) && (menu->v->n_memb <= list_len)) {
             menu->highlight = menu->v->n_memb;
         } else if ((menu->highlight == 1) && (menu->item_first != 0)) {
@@ -167,12 +167,12 @@ void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
         } else {
             menu->highlight--;
         }
-    } else if ((ch == KEY_DOWN) && (menu->highlight == list_len) &&
+    } else if ((ch == NM_CTRL_KEY_J) && (menu->highlight == list_len) &&
             (menu->item_last == menu->v->n_memb)) {
         menu->highlight = 1;
         menu->item_first = 0;
         menu->item_last = list_len;
-    } else if (ch == KEY_DOWN) {
+    } else if (ch == NM_CTRL_KEY_J) {
         if ((menu->highlight == menu->v->n_memb) &&
                 (menu->v->n_memb <= list_len)) {
             menu->highlight = 1;
@@ -193,7 +193,7 @@ void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
         menu->item_last = menu->v->n_memb;
     }
 
-    if (ch == KEY_UP || ch == KEY_DOWN || ch == KEY_HOME || ch == KEY_END) {
+    if (ch == NM_CTRL_KEY_K || ch == NM_CTRL_KEY_J || ch == KEY_HOME || ch == KEY_END) {
         NM_STAT_CLEAN();
     }
 }
