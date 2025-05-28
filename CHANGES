@@ -12,6 +12,7 @@ unreleased
     - Feature: image format type support: qcow2 and raw
     - Bugfix: fix import on some locales
     - Feature: use less dangerous keyboard shortcuts
+    - Feature: improve contribution notice for future contributors
 
 v3.3.1 - 19.02.2024
 ------------------------
