@@ -111,7 +111,7 @@ static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
 static int nm_qmp_init_cmd(nm_qmp_handle_t *h);
 static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path);
 static int nm_qmp_talk(int sd, const char *cmd,
-                       size_t len, struct timeval *tv);
+                       size_t len, const struct timeval *tvp);
 static void nm_qmp_talk_async(int sd, const char *cmd,
         size_t len, const char *jobid);
 static int nm_qmp_send(const nm_str_t *cmd);
@@ -775,7 +775,7 @@ out:
 }
 
 static int nm_qmp_talk(int sd, const char *cmd,
-                       size_t len, struct timeval *tv)
+                       size_t len, const struct timeval *tvp)
 {
     nm_str_t answer = NM_INIT_STR;
     char buf[NM_QMP_READLEN];
@@ -783,9 +783,7 @@ static int nm_qmp_talk(int sd, const char *cmd,
     fd_set readset;
     int ret, read_done = 0;
     int rc = NM_OK;
-
-    FD_ZERO(&readset);
-    FD_SET(sd, &readset);
+    struct timeval tv;
 
     if (write(sd, cmd, len) == -1) {
         close(sd);
@@ -794,7 +792,11 @@ static int nm_qmp_talk(int sd, const char *cmd,
     }
 
     while (!read_done) {
-        ret = select(sd + 1, &readset, NULL, NULL, tv);
+        FD_ZERO(&readset);
+        FD_SET(sd, &readset);
+        memcpy(&tv, tvp, sizeof(struct timeval));
+
+        ret = select(sd + 1, &readset, NULL, NULL, &tv);
         if (ret == -1) {
             nm_bug("%s: select error: %s", __func__, strerror(errno));
         } else if (ret && FD_ISSET(sd, &readset)) { /* data is available */
@@ -845,12 +847,6 @@ static void nm_qmp_talk_async(int sd, const char *cmd,
     fd_set readset;
     ssize_t nread;
 
-    tv.tv_sec = 300;
-    tv.tv_usec = 0;
-
-    FD_ZERO(&readset);
-    FD_SET(sd, &readset);
-
     if (write(sd, cmd, len) == -1) {
         close(sd);
         //nm_warn(_(NM_MSG_Q_SE_ERR));
@@ -864,6 +860,11 @@ static void nm_qmp_talk_async(int sd, const char *cmd,
     }
 
     while (!read_done) {
+        FD_ZERO(&readset);
+        FD_SET(sd, &readset);
+        tv.tv_sec = 300;
+        tv.tv_usec = 0;
+
         /* query jobs */
         if (state == NM_QMP_STATE_REPEAT) {
             if (write(sd, NM_QMP_CMD_JOBS, sizeof(NM_QMP_CMD_JOBS) - 1) == -1) {
