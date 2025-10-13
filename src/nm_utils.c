@@ -592,33 +592,33 @@ static const char
 b64_chars[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-char *nm_64_encode(const uint8_t *src, size_t src_len)
+char *nm_64_encode(const nm_str_t *src)
 {
     size_t res_len;
     char *res;
 
-    res_len = 4 * ((src_len + 2) / 3);
+    res_len = 4 * ((src->len + 2) / 3);
     res = nm_calloc(1, res_len + 1);
     if (!res) {
         return NULL;
     }
 
-    for (size_t i = 0, j = 0; i < src_len; i += 3, j += 4) {
-        size_t a = i < src_len ? src[i] : 0;
-        size_t b = i + 1 < src_len ? src[i + 1] : 0;
-        size_t c = i + 2 < src_len ? src[i + 2] : 0;
+    for (size_t i = 0, j = 0; i < src->len; i += 3, j += 4) {
+        size_t a = i < src->len ? src->data[i] : 0;
+        size_t b = i + 1 < src->len ? src->data[i + 1] : 0;
+        size_t c = i + 2 < src->len ? src->data[i + 2] : 0;
         size_t abc = (a << 0x10) + (b << 0x8) + c;
 
         res[j] = b64_chars[(abc >> 18) & 0x3F];
         res[j + 1] = b64_chars[(abc >> 12) & 0x3F];
 
-        if (i + 1 < src_len) {
+        if (i + 1 < src->len) {
             res[j + 2] = b64_chars[(abc >> 6) & 0x3F];
         } else {
             res[j + 2] = '=';
         }
 
-        if (i + 2 < src_len) {
+        if (i + 2 < src->len) {
             res[j + 3] = b64_chars[abc & 0x3F];
         } else {
             res[j + 3] = '=';

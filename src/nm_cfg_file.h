@@ -28,6 +28,7 @@ typedef struct {
 
 typedef struct {
     nm_str_t path;
+    char *b64_path;
     uint32_t enabled:1;
     uint32_t scale:1;
 } nm_preview_t;
