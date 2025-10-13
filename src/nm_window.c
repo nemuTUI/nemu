@@ -664,33 +664,27 @@ nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status)
             (void) pid_num;
 #endif
             if (nm_cfg_get()->preview.enabled) {
-                char *b64;
-                nm_file_map_t png = NM_INIT_FILE;
                 size_t side_cols, NM_UNUSED side_rows;
+                const nm_str_t *png_path = &nm_cfg_get()->preview.path;
 
-                nm_qmp_take_screenshot(name, &nm_cfg_get()->preview.path);
-                png.name = &nm_cfg_get()->preview.path;
-                nm_map_file(&png);
-                b64 = nm_64_encode(png.mp, png.size);
-
+                nm_qmp_take_screenshot(name, png_path);
                 getmaxyx(side_window, side_rows, side_cols);
 
                 if (nm_cfg_get()->preview.scale) {
                     nm_str_format(&buf,
-                            "\x1b_Gi=20509,q=2,a=T,C=1,c=%zu,r=%zu,f=100;%s"
+                            "\x1b_Gi=20509,q=2,a=T,C=1,c=%zu,r=%zu,t=f,f=100;%s"
                             "\x1b\x5c",
-                            cols - 4, rows - y - 2, b64);
+                            cols - 4, rows - y - 2,
+                            nm_cfg_get()->preview.b64_path);
                 } else {
                     nm_str_format(&buf,
-                            "\x1b_Gi=20509,q=2,a=T,C=1,r=%zu,f=100;%s\x1b\x5c",
-                            rows - y - 3, b64);
+                            "\x1b_Gi=20509,q=2,a=T,C=1,r=%zu,t=f,f=100;%s"
+                            "\x1b\x5c",
+                            rows - y - 3, nm_cfg_get()->preview.b64_path);
                 }
                 mvcur(42, 42, y + 2, side_cols + 2);
                 printf("%s", buf.data);
                 fflush(stdout);
-
-                nm_unmap_file(&png);
-                free(b64);
             }
         } else { /* clear PID file info and cpu usage data */
             if (y < (rows - 2)) {

@@ -390,6 +390,7 @@ void nm_cfg_init(bool bypass_cfg)
                 &cfg.preview.path) != NM_OK) {
         nm_str_alloc_text(&cfg.preview.path, NM_DEFAULT_PNG);
     }
+    cfg.preview.b64_path = nm_64_encode(&cfg.preview.path);
 
 #if defined (NM_WITH_REMOTE)
     nm_str_trunc(&tmp_buf, 0);
@@ -465,6 +466,7 @@ void nm_cfg_free(void)
     nm_str_free(&cfg.daemon_pid);
     nm_str_free(&cfg.qemu_bin_path);
     nm_str_free(&cfg.preview.path);
+    free(cfg.preview.b64_path);
     nm_vect_free(&cfg.qemu_targets, NULL);
 #if defined (NM_WITH_REMOTE)
     nm_str_free(&cfg.api_cert_path);
