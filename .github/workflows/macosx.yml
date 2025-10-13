@@ -10,7 +10,7 @@ on:
 
 jobs:
   macosx_build:
-    runs-on: macos-latest
+    runs-on: macos-14
 
     steps:
       - name: Get nEMU sources
