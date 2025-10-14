@@ -82,7 +82,7 @@ static inline void nm_init_core(void)
     nm_cfg_init(false);
     nm_db_init();
 }
-static inline void __attribute__((noreturn)) nm_exit_core()
+static inline void __attribute__((noreturn)) nm_exit_core(void)
 {
     if (nm_db_in_transaction()) {
         nm_db_rollback();
