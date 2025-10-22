@@ -10,6 +10,11 @@ unreleased
     - Feature: configurable refresh timeout for properties window
         Parameter `refresh_timeout` in `main` section
     - Feature: image format type support: qcow2 and raw
+    - Feature: add `background_mode` to config file.
+        background_mode = 0 enables stdout and stderr and
+        also does not run the application in the background.
+        This parameter was added to allow embedding
+        spice-kitten into the UI.
     - Bugfix: fix import on some locales
 
 v3.3.1 - 19.02.2024

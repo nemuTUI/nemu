@@ -37,6 +37,9 @@ db = /home/user/.nemu.db
 # default protocol (1 - spice, 0 - vnc)
 spice_default = 1
 
+# run the application in the background.
+background_mode = 1
+
 # vnc client path.
 vnc_bin = /usr/bin/vncviewer
 

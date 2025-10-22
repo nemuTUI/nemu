@@ -54,6 +54,7 @@ static const char NM_INI_P_ERR[]        = "err_color";
 static const char NM_INI_P_CS[]         = "cursor_style";
 static const char NM_INI_P_DEBUG_PATH[] = "debug_path";
 static const char NM_INI_P_PROT[]       = "spice_default";
+static const char NM_INI_P_BGMD[]       = "background_mode";
 static const char NM_INI_P_VBIN[]       = "vnc_bin";
 static const char NM_INI_P_VARG[]       = "vnc_args";
 static const char NM_INI_P_SBIN[]       = "spice_bin";
@@ -209,6 +210,14 @@ void nm_cfg_init(bool bypass_cfg)
 
     nm_get_param(ini, NM_INI_S_VIEW, NM_INI_P_PROT, &tmp_buf, NULL);
     cfg.spice_default = !!nm_str_stoui(&tmp_buf, 10);
+    nm_str_trunc(&tmp_buf, 0);
+
+    if (nm_get_opt_param(ini, NM_INI_S_VIEW, NM_INI_P_BGMD,
+                &tmp_buf) == NM_OK) {
+        cfg.background_mode = !!nm_str_stoui(&tmp_buf, 10);
+    } else {
+        cfg.background_mode = 1;
+    }
     nm_str_trunc(&tmp_buf, 0);
 
     /* Get the VNC listen value */
@@ -652,6 +661,8 @@ static void nm_generate_cfg(const char *home, const nm_str_t *cfg_path)
             fprintf(cfg_file, "[viewer]\n");
             fprintf(cfg_file, "# default protocol (1 - spice, 0 - vnc)"
                     "\nspice_default = 1\n\n");
+            fprintf(cfg_file, "# run the application in the background."
+                    "\nbackground_mode = 1\n\n");
             fprintf(cfg_file, "# vnc client path.\nvnc_bin = %s\n\n",
                     vnc_bin.data);
             fprintf(cfg_file, "# vnc client args (%%t - title, %%p - port)"
