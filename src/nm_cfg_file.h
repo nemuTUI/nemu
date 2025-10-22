@@ -75,6 +75,7 @@ typedef struct {
     uint32_t hl_is_set:1;
     uint32_t err_is_set:1;
     uint32_t debug:1;
+    uint32_t background_mode:1;
 } nm_cfg_t;
 
 void nm_cfg_init(bool bypass_cfg);

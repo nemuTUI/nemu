@@ -1401,7 +1401,9 @@ static void nm_vmctl_gen_viewer(const nm_str_t *name, uint32_t port,
         nm_str_add_text_part(cmd, argsp, args->len - total - 2);
     }
 
-    nm_str_append_format(cmd, " > /dev/null 2>&1 &");
+    if (cfg->background_mode) {
+        nm_str_append_format(cmd, " > /dev/null 2>&1 &");
+    }
     nm_debug("viewer cmd:\"%s\"\n", cmd->data);
 out:
     nm_str_free(&buf);
