@@ -1,4 +1,4 @@
-unreleased
+v3.4.0 - 22.10.2025
 ------------------------
     - Feature: VM preview
         Terminal must support kitty graphics protocol
