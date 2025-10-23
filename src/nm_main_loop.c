@@ -664,7 +664,7 @@ static int nm_filter_check(const nm_str_t *input)
         return NM_ERR;
     }
 
-    if (input->data[0] != 'g' && input->data[1] != ':') {
+    if (input->data[0] != 'g' || input->data[1] != ':') {
         return NM_ERR;
     }
 
