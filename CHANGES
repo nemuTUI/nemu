@@ -1,3 +1,8 @@
+unreleased
+------------------------
+    - Bugfix: the group filter `g:group_name` was not
+        working at all as intended.
+
 v3.4.0 - 22.10.2025
 ------------------------
     - Feature: VM preview
