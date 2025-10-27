@@ -183,7 +183,6 @@ enum nm_key {
     NM_KEY_D = 100,
     NM_KEY_E = 101,
     NM_KEY_F = 102,
-    NM_KEY_G = 103,
     NM_KEY_H = 104,
     NM_KEY_I = 105,
     NM_KEY_K = 107,
@@ -197,7 +196,6 @@ enum nm_key {
     NM_KEY_T = 116,
     NM_KEY_U = 117,
     NM_KEY_V = 118,
-    NM_KEY_X = 120,
     NM_KEY_Y = 121,
     NM_KEY_Z = 122
 };
@@ -215,7 +213,6 @@ enum nm_key_upper {
     NM_KEY_R_UP = 82,
     NM_KEY_S_UP = 83,
     NM_KEY_V_UP = 86,
-    NM_KEY_X_UP = 88,
     NM_KEY_Z_UP = 90
 };
 
