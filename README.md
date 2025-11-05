@@ -45,6 +45,9 @@
 ## Remote clients
  * [nemu-droid](https://github.com/nemuTUI/nemu-droid)
 
+## SPICE client
+ * [spice-kitten](https://github.com/nemuTUI/spice-kitten)
+
 [release-bage]: https://img.shields.io/github/v/release/nemuTUI/nemu?include_prereleases&label=Release&labelColor=2d3532
 [release-url]: https://github.com/nemuTUI/nemu/releases
 [repo-bage]: https://repology.org/badge/tiny-repos/nemu.svg
