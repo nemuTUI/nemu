@@ -74,7 +74,7 @@ void nm_rename_vm(const nm_str_t *name)
     fields[1] = nm_field_regexp_new(0, form_data, "^[a-zA-Z0-9_-]{1,30} *$");
     fields[2] = NULL;
 
-    set_field_buffer(fields[0], 0, _(NM_MSG_RENAME_VM));
+    set_field_buffer(fields[0], 0, _(NM_LC_RENAME_FORM_MSG));
     nm_str_format(&buf, "%s", name->data);
     set_field_buffer(fields[1], 0, buf.data);
     nm_fields_unset_status(fields);
