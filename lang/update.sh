@@ -19,6 +19,7 @@ for F in $FILES; do
     gcc -I. -I/usr/include/json-c -I/usr/include/libxml2 \
         -I/usr/include/graphviz -I/usr/include/dbus-1.0  \
         -I/usr/lib64/dbus-1.0/include                    \
+        -I/usr/include/libusb-1.0                        \
         -DNM_WITH_DBUS -DNM_WITH_NETWORK_MAP             \
         -DNM_WITH_OVF_SUPPORT -DNM_WITH_REMOTE           \
         -DNM_WITH_SPICE -DNM_WITH_VNC_CLIENT             \
@@ -42,6 +43,6 @@ done
 
 popd > /dev/null
 popd > /dev/null
-xgettext --keyword=_ --language=C --add-comments --sort-output \
+xgettext --keyword=_ --language=C --add-comments \
     --from-code=UTF-8 --omit-header -o nemu.pot $TMPDIR/*.e
 msgmerge -N --update ru/nemu.po nemu.pot
