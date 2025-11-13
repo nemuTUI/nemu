@@ -456,7 +456,7 @@ msgstr "Пересылка порта"
 
 #: nm_edit_net.c:28
 msgid "Share folder"
-msgstr "Поделиться диреткорией"
+msgstr "Общий доступ к директории"
 
 #: nm_edit_net.c:78 nm_edit_net.c:99 nm_edit_net.c:204 nm_edit_net.c:209
 #, fuzzy
@@ -783,11 +783,11 @@ msgstr "QMP: ошибка исполнения, нажмите любую кно
 
 #: nm_rename_vm.c:11
 msgid "New VM name"
-msgstr "Новое имя виртуальной машины"
+msgstr "Новое имя"
 
-#: nm_rename_vm.c:40 nm_rename_vm.c:77
+#: nm_rename_vm.c:40
 msgid "Rename VM"
-msgstr "Переименовать виртуальную машину"
+msgstr "Переименовать ВМ"
 
 #: nm_rename_vm.c:221
 #, c-format
