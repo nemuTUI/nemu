@@ -38,7 +38,7 @@ pushd $TMPDIR > /dev/null
 # that must be processed by gettext.
 for F in $FILES; do
     E=${F//\.c/\.e}
-    sed -ri 's/(^static const char NM_LC_.*= )(".*")(;$)/\1_(\2_)\3/' $E
+    sed -ri 's/(^static const char NM_LC_.*= )(".*")(;$)/\1_(\2)\3/' $E
 done
 
 popd > /dev/null
