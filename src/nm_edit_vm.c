@@ -548,7 +548,9 @@ nm_edit_update_ifs(nm_str_t *query, const nm_vmctl_data_t *vm_cur,
 #endif
                     NM_DISABLE,
                     (altname) ? if_name_copy.data : "",
-                    NM_DISABLE);
+                    NM_DISABLE,
+                    NM_DISABLE,
+                    "");
             nm_db_edit(query->data);
 
             nm_str_free(&if_name);

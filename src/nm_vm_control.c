@@ -724,6 +724,15 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
             }
 
         } else if (nm_str_cmp_st(nm_vect_str(&vm->ifs,
+                           NM_SQL_IF_BGE + idx_shift),
+            NM_ENABLE) == NM_OK) {
+            nm_vect_insert_cstr(argv, "-netdev");
+            nm_str_format(&buf,
+                    "bridge,br=%s,id=net-%s",
+                    nm_vect_str(&vm->ifs, NM_SQL_IF_BETH + idx_shift)->data,
+                    id.data);
+
+        } else if (nm_str_cmp_st(nm_vect_str(&vm->ifs,
                         NM_SQL_IF_MVT + idx_shift),
                     NM_DISABLE) == NM_OK) {
             nm_vect_insert_cstr(argv, "-netdev");
@@ -877,27 +886,32 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
          * If we need to setup IPv4 address or altname we must create
          * the tap interface yourself.
          */
-        if ((nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
+        if ((nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_BGE + idx_shift),
                         NM_DISABLE) == NM_OK)) {
-            if ((!(*flags & NM_VMCTL_INFO)) &&
-                    (nm_net_iface_exists(nm_vect_str(&vm->ifs,
-                                                     NM_SQL_IF_NAME +
-                                                     idx_shift)) != NM_OK) &&
-                    (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT +
-                                               idx_shift),
-                                   NM_DISABLE) == NM_OK)) {
-                nm_net_add_tap(nm_vect_str(&vm->ifs,
-                            NM_SQL_IF_NAME + idx_shift));
+            if ((nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
+                            NM_DISABLE) == NM_OK)) {
+                if ((!(*flags & NM_VMCTL_INFO)) &&
+                        (nm_net_iface_exists(nm_vect_str(&vm->ifs,
+                                                   NM_SQL_IF_NAME +
+                                                   idx_shift)) != NM_OK) &&
+                        (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_MVT +
+                                                   idx_shift),
+                                       NM_DISABLE) == NM_OK)) {
+                    nm_net_add_tap(nm_vect_str(&vm->ifs,
+                                NM_SQL_IF_NAME + idx_shift));
 
-                if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_IP4 + idx_shift) != 0) {
-                    nm_net_set_ipaddr(nm_vect_str(&vm->ifs,
-                                NM_SQL_IF_NAME + idx_shift),
+                    if (nm_vect_str_len(&vm->ifs,
+                        NM_SQL_IF_IP4 + idx_shift) != 0) {
+                            nm_net_set_ipaddr(nm_vect_str(&vm->ifs,
+                                       NM_SQL_IF_NAME + idx_shift),
                             nm_vect_str(&vm->ifs, NM_SQL_IF_IP4 + idx_shift));
-                }
-                if (nm_vect_str_len(&vm->ifs, NM_SQL_IF_ALT + idx_shift) != 0) {
-                    nm_net_set_altname(nm_vect_str(&vm->ifs,
-                                NM_SQL_IF_NAME + idx_shift),
+                    }
+                    if (nm_vect_str_len(&vm->ifs,
+                        NM_SQL_IF_ALT + idx_shift) != 0) {
+                            nm_net_set_altname(nm_vect_str(&vm->ifs,
+                                        NM_SQL_IF_NAME + idx_shift),
                             nm_vect_str(&vm->ifs, NM_SQL_IF_ALT + idx_shift));
+                    }
                 }
             }
         }
