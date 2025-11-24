@@ -278,7 +278,7 @@ unix:/tmp/nemu_{nemu.uuid}/testvm/qmp.sock,server,nowait -vga qxl \
         tmux_edit.setup(nemu.test_dir)
         keys_edit = [["i"], ["Enter"], ["End"], ["BSpace", 4], ["new"],
                 ["Down"], ["Left"], ["Down"], ["BSpace"], ["2"],
-                ["Down", 2], ["Left"], ["Down", 4], ["tcp::22-:2222"],
+                ["Down", 2], ["Left"], ["Down", 6], ["tcp::22-:2222"],
                 ["Down"], ["/share"], ["Enter"], ["q", 2]]
         for key in keys_edit:
             rc = tmux_edit.send(*key)

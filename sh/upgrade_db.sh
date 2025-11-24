@@ -6,7 +6,7 @@ if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=21
+DB_ACTUAL_VERSION=22
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 USER=$(whoami)
 RC=0
@@ -380,6 +380,15 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             (
             sqlite3 "$DB_PATH" -line 'ALTER TABLE drives ADD format TEXT NOT NULL DEFAULT "qcow2";' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=21'
+            ) || RC=1
+            ;;
+
+        ( 21 )
+            (
+            sqlite3 "$DB_PATH" -line "ALTER TABLE ifaces ADD bridge integer DEFAULT 0;" &&
+            sqlite3 "$DB_PATH" -line "ALTER TABLE ifaces ADD bridge_eth TEXT;" &&
+            sqlite3 "$DB_PATH" -line "UPDATE ifaces SET bridge='0';" &&
+            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=22'
             ) || RC=1
             ;;
 

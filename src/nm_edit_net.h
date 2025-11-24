@@ -10,6 +10,8 @@ typedef struct {
     nm_str_t maddr;
     nm_str_t ipv4;
     nm_str_t netuser;
+    nm_str_t bridge;
+    nm_str_t bridge_eth;
     nm_str_t hostfwd;
     nm_str_t smb;
 #if defined (NM_OS_LINUX)
@@ -22,6 +24,7 @@ typedef struct {
 
 #if defined (NM_OS_LINUX)
 #define NM_INIT_NET_IF (nm_iface_t) { \
+                        NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \
                         NM_INIT_STR, NM_INIT_STR, \

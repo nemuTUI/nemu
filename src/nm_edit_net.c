@@ -24,6 +24,8 @@ static const char NM_LC_EDIT_NET_FORM_MTAP[] = "Enable MacVTap";
 static const char NM_LC_EDIT_NET_FORM_PETH[] = "MacVTap iface";
 #endif
 static const char NM_LC_EDIT_NET_FORM_USER[] = "User mode";
+static const char NM_LC_EDIT_NET_FORM_BRGE[] = "Bridge mode";
+static const char NM_LC_EDIT_NET_FORM_BETH[] = "Bridge iface";
 static const char NM_LC_EDIT_NET_FORM_FWD[]  = "Port forwarding";
 static const char NM_LC_EDIT_NET_FORM_SMB[]  = "Share folder";
 
@@ -56,6 +58,8 @@ enum {
     NM_LBL_MTAP, NM_FLD_MTAP,
     NM_LBL_PETH, NM_FLD_PETH,
 #endif
+    NM_LBL_BRGE, NM_FLD_BRGE,
+    NM_LBL_BETH, NM_FLD_BETH,
     NM_LBL_USER, NM_FLD_USER,
     NM_LBL_FWD, NM_FLD_FWD,
     NM_LBL_SMB, NM_FLD_SMB,
@@ -420,6 +424,14 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm,
             fields[n] = nm_field_regexp_new(n / 2, form_data, ".*");
             break;
 #endif
+        case NM_FLD_BRGE:
+            fields[n] = nm_field_enum_new(
+                n / 2, form_data, nm_form_yes_no, false, false);
+            break;
+        case NM_FLD_BETH:
+            fields[n] = nm_field_regexp_new(n / 2, form_data,
+                    "^[a-zA-Z0-9_]{1,15} *$");
+            break;
         case NM_FLD_USER:
             fields[n] = nm_field_enum_new(
                 n / 2, form_data, nm_form_yes_no, false, false);
@@ -442,6 +454,7 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm,
     nm_fields_unset_status(fields);
 
     form = nm_form_new(form_data, fields);
+    nm_form_add_hline(form, NM_LBL_BRGE);
     nm_form_add_hline(form, NM_LBL_USER);
     nm_form_post(form);
 
@@ -501,6 +514,8 @@ nm_edit_net_fields_setup(const nm_vmctl_data_t *vm, size_t if_idx, bool add)
         nm_str_free(&maddr);
 
         set_field_buffer(fields[NM_FLD_NDRV], 0, nm_form_net_drv[0]);
+        set_field_buffer(fields[NM_FLD_BRGE], 0, nm_form_yes_no[0]);
+        field_opts_off(fields[NM_FLD_BETH], O_STATIC);
         set_field_buffer(fields[NM_FLD_USER], 0, nm_form_yes_no[1]);
 #if defined (NM_OS_LINUX)
         set_field_buffer(fields[NM_FLD_VHST], 0, nm_form_yes_no[0]);
@@ -537,6 +552,12 @@ nm_edit_net_fields_setup(const nm_vmctl_data_t *vm, size_t if_idx, bool add)
 #else
     (void) mvtap_idx;
 #endif
+    set_field_buffer(fields[NM_FLD_BRGE], 0,
+        (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_BGE + idx_shift),
+                       NM_ENABLE) == NM_OK) ?
+        nm_form_yes_no[0] : nm_form_yes_no[1]);
+    set_field_buffer(fields[NM_FLD_BETH], 0,
+        nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_BETH + idx_shift));
     set_field_buffer(fields[NM_FLD_USER], 0,
         (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
                        NM_ENABLE) == NM_OK) ?
@@ -582,6 +603,12 @@ static size_t nm_edit_net_labels_setup(void)
             nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_PETH));
             break;
 #endif
+        case NM_LBL_BRGE:
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_BRGE));
+            break;
+        case NM_LBL_BETH:
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_BETH));
+            break;
         case NM_LBL_USER:
             nm_str_format(&buf, "%s", _(NM_LC_EDIT_NET_FORM_USER));
             break;
@@ -629,6 +656,8 @@ nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp, bool add)
     nm_get_field_buf(fields[NM_FLD_MTAP], &ifp->macvtap);
     nm_get_field_buf(fields[NM_FLD_PETH], &ifp->parent_eth);
 #endif
+    nm_get_field_buf(fields[NM_FLD_BRGE], &ifp->bridge);
+    nm_get_field_buf(fields[NM_FLD_BETH], &ifp->bridge_eth);
     nm_get_field_buf(fields[NM_FLD_USER], &ifp->netuser);
     nm_get_field_buf(fields[NM_FLD_FWD], &ifp->hostfwd);
     nm_get_field_buf(fields[NM_FLD_SMB], &ifp->smb);
@@ -650,6 +679,12 @@ nm_edit_net_get_data(const nm_str_t *name, nm_iface_t *ifp, bool add)
         nm_form_check_data(_("Enable MacVTap"), ifp->macvtap, err);
     }
 #endif
+    if (field_status(fields[NM_FLD_BRGE])) {
+        nm_form_check_data(_("Bridge mode"), ifp->bridge, err);
+    }
+    if (field_status(fields[NM_FLD_BETH])) {
+        nm_form_check_data(_("Bridge iface"), ifp->bridge_eth, err);
+    }
     if (field_status(fields[NM_FLD_USER])) {
         nm_form_check_data(_("User mode"), ifp->netuser, err);
     }
@@ -770,7 +805,7 @@ nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp, bool add)
 #else
                 NM_DISABLE,
 #endif
-                NM_DISABLE, "", NM_DISABLE);
+                NM_DISABLE, "", NM_DISABLE, NM_DISABLE, "");
         nm_db_edit(query.data);
     } else {
         if (field_status(fields[NM_FLD_NAME])) {
@@ -850,6 +885,19 @@ nm_edit_net_update_db(const nm_str_t *name, nm_iface_t *ifp, bool add)
         nm_db_edit(query.data);
     }
 
+    if (field_status(fields[NM_FLD_BRGE]) || add) {
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_BRIDGE,
+            (nm_str_cmp_st(&ifp->bridge, "yes") == NM_OK) ?
+            NM_ENABLE : NM_DISABLE, name->data, ifp->name.data);
+        nm_db_edit(query.data);
+    }
+
+    if (field_status(fields[NM_FLD_BETH]) || add) {
+        nm_str_format(&query, NM_SQL_IFACES_UPDATE_BETH,
+            ifp->bridge_eth.data, name->data, ifp->name.data);
+        nm_db_edit(query.data);
+    }
+
     if (field_status(fields[NM_FLD_FWD]) || add) {
         nm_str_format(&query, NM_SQL_IFACES_UPDATE_HOSTFWD,
             ifp->hostfwd.data, name->data, ifp->name.data);
@@ -878,6 +926,8 @@ static inline void nm_edit_net_iface_free(nm_iface_t *ifp)
     nm_str_free(&ifp->parent_eth);
 #endif
     nm_str_free(&ifp->netuser);
+    nm_str_free(&ifp->bridge);
+    nm_str_free(&ifp->bridge_eth);
     nm_str_free(&ifp->hostfwd);
     nm_str_free(&ifp->smb);
 }
