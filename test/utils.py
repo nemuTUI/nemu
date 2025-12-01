@@ -26,7 +26,7 @@ class Nemu():
         while os.path.exists(self.pidfile):
             time.sleep(0.1)
             wait_cur += 1
-            if wait_cur == wait_max:
+            if wait_cur >= wait_max:
                 break
         sub = subprocess.run([os.getenv("NEMU_BIN_DIR") + "/nemu",
             "--cfg", "/tmp/nemu_" + self.uuid + "/nemu.cfg", "--cmd", vm],
@@ -72,7 +72,7 @@ class Tmux():
         while os.path.exists(pidfile):
             time.sleep(0.1)
             wait_cur += 1
-            if wait_max >= wait_cur:
+            if wait_cur >= wait_max:
                 break
 
         sub = subprocess.run(["tmux", "-f", "tmux.conf", "-L", self.uuid,
@@ -84,7 +84,7 @@ class Tmux():
         while not os.path.exists(pidfile):
             time.sleep(0.1)
             wait_cur += 1
-            if wait_max >= wait_cur:
+            if wait_cur >= wait_max:
                 break
 
         return sub.returncode
