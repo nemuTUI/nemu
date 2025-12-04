@@ -340,6 +340,14 @@ void nm_print_iface_info(const nm_vmctl_data_t *vm, size_t idx)
 
     getmaxyx(action_window, rows, cols);
 
+    if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_BGE + idx_shift),
+                NM_ENABLE) == NM_OK) {
+        nm_str_format(&buf, "%-12s%s", "Bridge mode: ", "enabled");
+        NM_PR_VM_INFO();
+
+        goto out;
+    }
+
     if (nm_str_cmp_st(nm_vect_str(&vm->ifs, NM_SQL_IF_USR + idx_shift),
                 NM_ENABLE) == NM_OK) {
         nm_str_format(&buf, "%-12s%s", "User mode: ", "enabled");
@@ -489,6 +497,12 @@ nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status)
         if (nm_str_cmp_st(nm_vect_str(&vm_->ifs, NM_SQL_IF_USR + idx_shift),
                     NM_ENABLE) == NM_OK) {
             nm_str_format(&buf, "eth%zu%-8s%s [user mode]",
+                    n, ":",
+                    nm_vect_str_ctx(&vm_->ifs, NM_SQL_IF_NAME + idx_shift));
+        } else if (nm_str_cmp_st(nm_vect_str(&vm_->ifs,
+                            NM_SQL_IF_BGE + idx_shift),
+                    NM_ENABLE) == NM_OK) {
+            nm_str_format(&buf, "eth%zu%-8s%s [bridge mode]",
                     n, ":",
                     nm_vect_str_ctx(&vm_->ifs, NM_SQL_IF_NAME + idx_shift));
         } else {

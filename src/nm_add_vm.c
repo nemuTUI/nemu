@@ -456,7 +456,9 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
 #endif
             "0", /* disable macvtap by default */
             (altname) ? if_name_copy.data : "",
-            NM_ENABLE /* enable user-net */
+            NM_ENABLE, /* enable user-net */
+            NM_DISABLE, /* disable bridge by default */
+            "" /* no bridge interface by default */
         );
         nm_db_edit(query.data);
 
