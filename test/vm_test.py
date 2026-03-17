@@ -124,7 +124,7 @@ node-name=hd0,media=disk,if=virtio,file=\
 /tmp/nemu_{nemu.uuid}/testvm/testvm_a.img \
 -m 256 -enable-kvm -cpu host -M {nemu.qemu_mtype()} -device usb-tablet,bus=usbbus.0 \
 -chardev socket,path=/tmp/ntty0,server,nowait,id=socket_testvm -device \
-isa-serial,chardev=socket_testvm -chardev tty,path=/dev/pts/7,id=tty_testvm \
+isa-serial,chardev=socket_testvm -chardev serial,path=/dev/pts/7,id=tty_testvm \
 -device isa-serial,chardev=tty_testvm -device \
 virtio-net-pci,mac=de:ad:be:ef:00:01,id=dev-deadbeef0001,netdev=net-deadbeef0001 \
 -netdev user,id=net-deadbeef0001 \

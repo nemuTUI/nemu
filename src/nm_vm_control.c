@@ -655,7 +655,7 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
         }
 
         nm_vect_insert_cstr(argv, "-chardev");
-        nm_str_format(&buf, "tty,path=%s,id=tty_%s",
+        nm_str_format(&buf, "serial,path=%s,id=tty_%s",
             nm_vect_str(&vm->main, NM_SQL_TTY)->data,
             name->data);
         nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
