@@ -6,7 +6,7 @@
 
 #include <sqlite3.h>
 
-#define NM_DB_VERSION "21"
+#define NM_DB_VERSION "22"
 
 /* PRAGMAS */
 static const char NM_SQL_PRAGMA_FOREIGN_ON[] =
@@ -35,6 +35,7 @@ static const char NM_SQL_IFACES_CREATE[] =
     "mac_addr TEXT NOT NULL, ipv4_addr TEXT, if_drv TEXT NOT NULL, "
     "vhost INTEGER NOT NULL, macvtap INTEGER NOT NULL, parent_eth TEXT, "
     "altname TEXT, netuser INTEGER NOT NULL, hostfwd TEXT, smb TEXT, "
+    "bridge INTEGER DEFAULT 0, bridge_eth TEXT, "
     "vm_id INTEGER NOT NULL, "
     "FOREIGN KEY(vm_id) REFERENCES vms(id) ON DELETE CASCADE)";
 
@@ -105,12 +106,14 @@ static const char NM_SQL_VMS_SELECT_NAMES_BY_TEAM[] =
 
 static const char NM_SQL_VMS_SELECT_PROPS[] =
     "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost, "
-    "macvtap, parent_eth, altname, netuser, hostfwd, smb FROM ifaces "
+    "macvtap, parent_eth, altname, netuser, bridge, bridge_eth, "
+    "hostfwd, smb FROM ifaces "
     "WHERE vm_id=(SELECT id FROM vms WHERE name='%s') ORDER BY if_name ASC";
 
 static const char NM_SQL_VMS_SELECT_PROPS_BY_ID[] =
     "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost, "
-    "macvtap, parent_eth, altname, netuser, hostfwd, smb FROM ifaces "
+    "macvtap, parent_eth, altname, netuser, bridge, bridge_eth, "
+    "hostfwd, smb FROM ifaces "
     "WHERE vm_id=%s ORDER BY if_name ASC";
 
 static const char NM_SQL_VMS_SELECT_TEAMS[] =
@@ -218,9 +221,9 @@ static const char NM_SQL_IFACES_INSERT_CLONED[] =
 
 static const char NM_SQL_IFACES_INSERT_NEW[] =
     "INSERT INTO ifaces(vm_id, if_name, mac_addr, "
-    "if_drv, vhost, macvtap, altname, netuser) "
+    "if_drv, vhost, macvtap, altname, netuser, bridge, bridge_eth) "
     "VALUES((SELECT id FROM vms WHERE name='%s'), "
-    "'%s', '%s', '%s', %s, %s, '%s', %s)";
+    "'%s', '%s', '%s', %s, %s, '%s', %s, %s, '%s')";
 
 static const char NM_SQL_IFACES_SELECT_MAX_MADDR[] =
     "SELECT COALESCE(MAX(mac_addr), 'de:ad:be:ef:00:00') FROM ifaces";
@@ -273,6 +276,14 @@ static const char NM_SQL_IFACES_UPDATE_VHOST[] =
 
 static const char NM_SQL_IFACES_UPDATE_USERNET[] =
     "UPDATE ifaces SET netuser=%s WHERE "
+    "vm_id=(SELECT id FROM vms WHERE name='%s') AND if_name='%s'";
+
+static const char NM_SQL_IFACES_UPDATE_BRIDGE[] =
+    "UPDATE ifaces SET bridge=%s WHERE "
+    "vm_id=(SELECT id FROM vms WHERE name='%s') AND if_name='%s'";
+
+static const char NM_SQL_IFACES_UPDATE_BETH[] =
+    "UPDATE ifaces SET bridge_eth='%s' WHERE "
     "vm_id=(SELECT id FROM vms WHERE name='%s') AND if_name='%s'";
 
 static const char NM_SQL_IFACES_UPDATE_HOSTFWD[] =
@@ -507,6 +518,8 @@ enum select_ifs_idx {
     NM_SQL_IF_PET,
     NM_SQL_IF_ALT,
     NM_SQL_IF_USR,
+    NM_SQL_IF_BGE,
+    NM_SQL_IF_BETH,
     NM_SQL_IF_FWD,
     NM_SQL_IF_SMB,
     NM_IFS_IDX_COUNT
