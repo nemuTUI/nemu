@@ -918,13 +918,13 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     }
 
     nm_vect_insert_cstr(argv, "-pidfile");
-    nm_str_format(&buf, "%s%s",
-        vmdir.data, NM_VM_PID_FILE);
-    nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
+    nm_vect_insert(argv,
+            nm_vect_str(&vm->main, NM_SQL_PID)->data,
+            nm_vect_str(&vm->main, NM_SQL_PID)->len + 1, NULL);
 
     nm_vect_insert_cstr(argv, "-qmp");
-    nm_str_format(&buf, "unix:%s%s,server,nowait",
-        vmdir.data, NM_VM_QMP_FILE);
+    nm_str_format(&buf, "unix:%s,server,nowait",
+            nm_vect_str_ctx(&vm->main, NM_SQL_QMP));
     nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
     /* Check if vnc/spice port is available, generate new one if not */
@@ -1054,7 +1054,7 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
 
     nm_str_format(&info, "%-12s%s\n", "name: ", name->data);
 
-    status = nm_qmp_test_socket(name);
+    status = nm_qmp_test_socket(nm_vect_str(&vm.main, NM_SQL_QMP));
     nm_str_append_format(&info, "%-12s%s\n", "status: ",
         status == NM_OK ? "running" : "stopped");
 

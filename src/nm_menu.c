@@ -22,10 +22,10 @@ void nm_print_dropdown_menu(nm_menu_data_t *values, nm_window_t *w)
             n++, i++) {
         if (values->highlight == i + 1) {
             wattron(w, A_REVERSE);
-            mvwprintw(w, y, x, "%s", (char *) values->v->data[n]);
+            mvwprintw(w, y, x, "%s", (char *) values->items->data[n]);
             wattroff(w, A_REVERSE);
         } else {
-            mvwprintw(w, y, x, "%s", (char *) values->v->data[n]);
+            mvwprintw(w, y, x, "%s", (char *) values->items->data[n]);
         }
 
         y++;
@@ -60,11 +60,11 @@ void nm_print_base_menu(nm_menu_data_t *ifs)
         nm_str_t if_name = NM_INIT_STR;
         int space_num;
 
-        if (n >= ifs_->v->n_memb) {
+        if (n >= ifs_->items->n_memb) {
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
         }
 
-        nm_str_alloc_text(&if_name, (char *) ifs_->v->data[n]);
+        nm_str_alloc_text(&if_name, (char *) ifs_->items->data[n]);
         nm_align2line(&if_name, screen_x);
 
         space_num = (screen_x - if_name.len - 4);
@@ -115,11 +115,11 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
         int space_num;
         nm_str_t vm_name = NM_INIT_STR;
 
-        if (n >= vm_->v->n_memb) {
+        if (n >= vm_->items->n_memb) {
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
         }
 
-        nm_str_alloc_text(&vm_name, nm_vect_item_name_ctx(vm_->v, n));
+        nm_str_alloc_text(&vm_name, nm_vect_item_name_ctx(vm_->items, n));
         nm_align2line(&vm_name, screen_x);
 
         space_num = (screen_x - vm_name.len - 4);
@@ -129,11 +129,11 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
             }
         }
 
-        if (nm_qmp_test_socket(nm_vect_item_name(vm_->v, n)) == NM_OK) {
-            nm_vect_set_item_status(vm_->v, n, 1);
+        if (nm_qmp_test_socket(nm_vect_item_qmp_path(vm_->items, n)) == NM_OK) {
+            nm_vect_set_item_status(vm_->items, n, 1);
             wattron(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         } else {
-            nm_vect_set_item_status(vm_->v, n, 0);
+            nm_vect_set_item_status(vm_->items, n, 0);
             wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         }
 
@@ -154,13 +154,13 @@ void nm_print_vm_menu(nm_menu_data_t *vm)
 void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
 {
     if ((ch == KEY_UP) && (menu->highlight == 1) && (menu->item_first == 0) &&
-            (list_len < menu->v->n_memb)) {
+            (list_len < menu->items->n_memb)) {
         menu->highlight = list_len;
-        menu->item_first = menu->v->n_memb - list_len;
-        menu->item_last = menu->v->n_memb;
+        menu->item_first = menu->items->n_memb - list_len;
+        menu->item_last = menu->items->n_memb;
     } else if (ch == KEY_UP) {
-        if ((menu->highlight == 1) && (menu->v->n_memb <= list_len)) {
-            menu->highlight = menu->v->n_memb;
+        if ((menu->highlight == 1) && (menu->items->n_memb <= list_len)) {
+            menu->highlight = menu->items->n_memb;
         } else if ((menu->highlight == 1) && (menu->item_first != 0)) {
             menu->item_first--;
             menu->item_last--;
@@ -168,16 +168,16 @@ void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
             menu->highlight--;
         }
     } else if ((ch == KEY_DOWN) && (menu->highlight == list_len) &&
-            (menu->item_last == menu->v->n_memb)) {
+            (menu->item_last == menu->items->n_memb)) {
         menu->highlight = 1;
         menu->item_first = 0;
         menu->item_last = list_len;
     } else if (ch == KEY_DOWN) {
-        if ((menu->highlight == menu->v->n_memb) &&
-                (menu->v->n_memb <= list_len)) {
+        if ((menu->highlight == menu->items->n_memb) &&
+                (menu->items->n_memb <= list_len)) {
             menu->highlight = 1;
         } else if ((menu->highlight == list_len) &&
-                (menu->item_last < menu->v->n_memb)) {
+                (menu->item_last < menu->items->n_memb)) {
             menu->item_first++;
             menu->item_last++;
         } else {
@@ -189,8 +189,8 @@ void nm_menu_scroll(nm_menu_data_t *menu, size_t list_len, int ch)
         menu->item_last = list_len;
     } else if (ch == KEY_END) {
         menu->highlight = list_len;
-        menu->item_first = menu->v->n_memb - list_len;
-        menu->item_last = menu->v->n_memb;
+        menu->item_first = menu->items->n_memb - list_len;
+        menu->item_last = menu->items->n_memb;
     }
 
     if (ch == KEY_UP || ch == KEY_DOWN || ch == KEY_HOME || ch == KEY_END) {
@@ -229,11 +229,11 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
     for (size_t n = veth_->item_first, i = 0; n < veth_->item_last; n++, i++) {
         int space_num;
 
-        if (n >= veth_->v->n_memb) {
+        if (n >= veth_->items->n_memb) {
             nm_bug(_("%s: invalid index: %zu"), __func__, n);
         }
 
-        nm_str_alloc_text(&veth_name, nm_vect_item_name_ctx(veth_->v, n));
+        nm_str_alloc_text(&veth_name, nm_vect_item_name_ctx(veth_->items, n));
         nm_str_copy(&veth_copy, &veth_name);
         nm_align2line(&veth_name, screen_x);
         nm_lan_parse_name(&veth_copy, &veth_lname, &veth_rname);
@@ -247,13 +247,13 @@ void nm_print_veth_menu(nm_menu_data_t *veth, int get_status)
 
         if (get_status) {
             if (nm_net_link_status(&veth_lname) == NM_OK) {
-                nm_vect_set_item_status(veth_->v, n, 1);
+                nm_vect_set_item_status(veth_->items, n, 1);
             } else {
-                nm_vect_set_item_status(veth_->v, n, 0);
+                nm_vect_set_item_status(veth_->items, n, 0);
             }
         }
 
-        if (nm_vect_item_status(veth_->v, n)) {
+        if (nm_vect_item_status(veth_->items, n)) {
             wattron(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));
         } else {
             wattroff(side_window, COLOR_PAIR(NM_COLOR_HIGHLIGHT));

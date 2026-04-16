@@ -17,6 +17,8 @@ static const char NM_LC_EDIT_BOOT_FORM_CMDL[] = "Kernel cmdline";
 static const char NM_LC_EDIT_BOOT_FORM_INIT[] = "Path to initrd";
 static const char NM_LC_EDIT_BOOT_FORM_DEBP[] = "GDB debug port";
 static const char NM_LC_EDIT_BOOT_FORM_DEBF[] = "Freeze after start";
+static const char NM_LC_EDIT_BOOT_FORM_PIDF[] = "Path to PID file";
+static const char NM_LC_EDIT_BOOT_FORM_SOCF[] = "Path to QMP socket";
 
 static void nm_edit_boot_init_windows(nm_form_t *form);
 static void nm_edit_boot_fields_setup(const nm_vmctl_data_t *cur);
@@ -34,6 +36,8 @@ enum {
     NM_LBL_INIT, NM_FLD_INIT,
     NM_LBL_DEBP, NM_FLD_DEBP,
     NM_LBL_DEBF, NM_FLD_DEBF,
+    NM_LBL_PIDF, NM_FLD_PIDF,
+    NM_LBL_SOCF, NM_FLD_SOCF,
     NM_FLD_COUNT
 };
 
@@ -114,6 +118,12 @@ void nm_edit_boot(const nm_str_t *name)
             fields[n] = nm_field_enum_new(
                 n / 2, form_data, nm_form_yes_no, false, false);
             break;
+        case NM_FLD_PIDF:
+            fields[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
+            break;
+        case NM_FLD_SOCF:
+            fields[n] = nm_field_regexp_new(n / 2, form_data, "^/.*");
+            break;
         default:
             fields[n] = nm_field_label_new(n / 2, form_data);
             break;
@@ -181,6 +191,11 @@ static void nm_edit_boot_fields_setup(const nm_vmctl_data_t *cur)
     } else {
         set_field_buffer(fields[NM_FLD_DEBF], 0, nm_form_yes_no[1]);
     }
+
+    set_field_buffer(fields[NM_FLD_PIDF], 0,
+            nm_vect_str_ctx(&cur->main, NM_SQL_PID));
+    set_field_buffer(fields[NM_FLD_SOCF], 0,
+            nm_vect_str_ctx(&cur->main, NM_SQL_QMP));
 }
 
 static size_t nm_edit_boot_labels_setup(void)
@@ -218,6 +233,12 @@ static size_t nm_edit_boot_labels_setup(void)
         case NM_LBL_DEBF:
             nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_DEBF));
             break;
+        case NM_LBL_PIDF:
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_PIDF));
+            break;
+        case NM_LBL_SOCF:
+            nm_str_format(&buf, "%s", _(NM_LC_EDIT_BOOT_FORM_SOCF));
+            break;
         default:
             continue;
         }
@@ -252,9 +273,17 @@ static int nm_edit_boot_get_data(nm_vm_boot_t *vm)
     nm_get_field_buf(fields[NM_FLD_INIT], &vm->initrd);
     nm_get_field_buf(fields[NM_FLD_DEBP], &vm->debug_port);
     nm_get_field_buf(fields[NM_FLD_DEBF], &debug_freeze);
+    nm_get_field_buf(fields[NM_FLD_PIDF], &vm->pid_path);
+    nm_get_field_buf(fields[NM_FLD_SOCF], &vm->qmp_path);
 
     if (field_status(fields[NM_FLD_INST])) {
-        nm_form_check_data(_("OS Installed"), inst, err);
+        nm_form_check_data(_(NM_LC_EDIT_BOOT_FORM_INST), inst, err);
+    }
+    if (field_status(fields[NM_FLD_PIDF])) {
+        nm_form_check_data(_(NM_LC_EDIT_BOOT_FORM_PIDF), vm->pid_path, err);
+    }
+    if (field_status(fields[NM_FLD_SOCF])) {
+        nm_form_check_data(_(NM_LC_EDIT_BOOT_FORM_SOCF), vm->qmp_path, err);
     }
 
     if ((rc = nm_print_empty_fields(&err)) == NM_ERR) {
@@ -340,6 +369,18 @@ static void nm_edit_boot_update_db(const nm_str_t *name, nm_vm_boot_t *vm)
     if (field_status(fields[NM_FLD_DEBF])) {
         nm_str_format(&query, NM_SQL_VMS_UPDATE_DBG_FREEZE,
                 vm->debug_freeze ? NM_ENABLE : NM_DISABLE, name->data);
+        nm_db_edit(query.data);
+    }
+
+    if (field_status(fields[NM_FLD_PIDF])) {
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_PID_PATH,
+                vm->pid_path.data, name->data);
+        nm_db_edit(query.data);
+    }
+
+    if (field_status(fields[NM_FLD_SOCF])) {
+        nm_str_format(&query, NM_SQL_VMS_UPDATE_QMP_PATH,
+                vm->qmp_path.data, name->data);
         nm_db_edit(query.data);
     }
 
