@@ -14,10 +14,11 @@ typedef struct nm_thrctrl {
 
 typedef struct nm_mon_item {
     nm_str_t *name;
+    nm_str_t *qmp_path;
     int8_t state;
 } nm_mon_item_t;
 
-#define NM_ITEM_INIT (nm_mon_item_t) { NULL, -1 }
+#define NM_ITEM_INIT (nm_mon_item_t) { NULL, NULL, -1 }
 
 typedef struct nm_mon_vms {
     nm_vect_t *list;
@@ -54,6 +55,18 @@ static inline char
 *nm_mon_item_get_name_cstr(const nm_vect_t *v, const size_t idx)
 {
     return ((nm_mon_item_t *) nm_vect_at(v, idx))->name->data;
+}
+
+static inline nm_str_t
+*nm_mon_item_get_qmp_path(const nm_vect_t *v, const size_t idx)
+{
+    return ((nm_mon_item_t *) nm_vect_at(v, idx))->qmp_path;
+}
+
+static inline char
+*nm_mon_item_get_qmp_path_cstr(const nm_vect_t *v, const size_t idx)
+{
+    return ((nm_mon_item_t *) nm_vect_at(v, idx))->qmp_path->data;
 }
 
 #endif

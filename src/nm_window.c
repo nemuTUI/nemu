@@ -633,12 +633,9 @@ nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status)
     /* print runtime statistics and screen preview if enabled */
     {
         int fd;
-        nm_str_t pid_path = NM_INIT_STR;
 
-        nm_str_format(&pid_path, "%s/%s/%s",
-            nm_cfg_get()->vm_dir.data, name_->data, NM_VM_PID_FILE);
-
-        if ((status_ && (fd = open(pid_path.data, O_RDONLY)) != -1)) {
+        if ((status_ && (fd = open(nm_vect_str_ctx(&vm_->main, NM_SQL_PID),
+                            O_RDONLY)) != -1)) {
             char pid[10];
             ssize_t nread;
             int pid_num = 0;
@@ -667,7 +664,8 @@ nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status)
                 size_t side_cols, NM_UNUSED side_rows;
                 const nm_str_t *png_path = &nm_cfg_get()->preview.path;
 
-                nm_qmp_take_screenshot(name, png_path);
+                nm_qmp_take_screenshot(nm_vect_str(&vm_->main, NM_SQL_QMP),
+                        png_path);
                 getmaxyx(side_window, side_rows, side_cols);
 
                 if (nm_cfg_get()->preview.scale) {
@@ -697,8 +695,6 @@ nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status)
                 fflush(stdout);
             }
         }
-
-        nm_str_free(&pid_path);
     }
 
     nm_str_free(&buf);

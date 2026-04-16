@@ -320,8 +320,10 @@ void
 nm_vm_cli_snapshot_save(const nm_str_t *vm_name, const nm_str_t *snap_name)
 {
     nm_str_t query = NM_INIT_STR;
+    nm_str_t qmp_path = NM_INIT_STR;
     nm_vect_t snap_names = NM_INIT_VECT;
     nm_vmsnap_t snap_data = NM_INIT_VMSNAP;
+    int vm_status;
 
     if (access(nm_cfg_get()->daemon_pid.data, R_OK) == -1) {
         fprintf(stderr, "%s\n", _("nEMU daemon is not running"));
@@ -334,7 +336,9 @@ nm_vm_cli_snapshot_save(const nm_str_t *vm_name, const nm_str_t *snap_name)
         goto out;
     }
 
-    int vm_status = nm_qmp_test_socket(vm_name);
+    nm_str_format(&query, NM_SQL_VMS_SELECT_QMP_PATH, vm_name->data);
+    nm_db_select_value(query.data, &qmp_path);
+    vm_status = nm_qmp_test_socket(&qmp_path);
 
     if (vm_status != NM_OK) {
         fprintf(stderr, "%s\n", _("VM must be running"));
@@ -359,14 +363,20 @@ nm_vm_cli_snapshot_save(const nm_str_t *vm_name, const nm_str_t *snap_name)
 out:
     nm_vect_free(&snap_names, nm_str_vect_free_cb);
     nm_str_free(&query);
+    nm_str_free(&qmp_path);
 }
 
 void
 nm_vm_cli_snapshot_load(const nm_str_t *vm_name, const nm_str_t *snap_name)
 {
     nm_str_t query = NM_INIT_STR;
+    nm_str_t qmp_path = NM_INIT_STR;
     nm_vect_t snap_names = NM_INIT_VECT;
-    int vm_status = nm_qmp_test_socket(vm_name);
+    int vm_status;
+
+    nm_str_format(&query, NM_SQL_VMS_SELECT_QMP_PATH, vm_name->data);
+    nm_db_select_value(query.data, &qmp_path);
+    vm_status = nm_qmp_test_socket(&qmp_path);
 
     if (access(nm_cfg_get()->daemon_pid.data, R_OK) == -1) {
         fprintf(stderr, "%s\n", _("nEMU daemon is not running"));
@@ -387,14 +397,20 @@ nm_vm_cli_snapshot_load(const nm_str_t *vm_name, const nm_str_t *snap_name)
 out:
     nm_vect_free(&snap_names, nm_str_vect_free_cb);
     nm_str_free(&query);
+    nm_str_free(&qmp_path);
 }
 
 void
 nm_vm_cli_snapshot_del(const nm_str_t *vm_name, const nm_str_t *snap_name)
 {
     nm_str_t query = NM_INIT_STR;
+    nm_str_t qmp_path = NM_INIT_STR;
     nm_vect_t snap_names = NM_INIT_VECT;
-    int vm_status = nm_qmp_test_socket(vm_name);
+    int vm_status;
+
+    nm_str_format(&query, NM_SQL_VMS_SELECT_QMP_PATH, vm_name->data);
+    nm_db_select_value(query.data, &qmp_path);
+    vm_status = nm_qmp_test_socket(&qmp_path);
 
     if (access(nm_cfg_get()->daemon_pid.data, R_OK) == -1) {
         fprintf(stderr, "%s\n", _("nEMU daemon is not running"));
@@ -415,6 +431,7 @@ nm_vm_cli_snapshot_del(const nm_str_t *vm_name, const nm_str_t *snap_name)
 out:
     nm_vect_free(&snap_names, nm_str_vect_free_cb);
     nm_str_free(&query);
+    nm_str_free(&qmp_path);
 }
 
 void nm_vm_cli_snapshot_list(const nm_str_t *vm_name)

@@ -316,6 +316,7 @@ void nm_ovf_import(void)
     }
 
     nm_ovf_convert_drives(&drives, &vm.name, templ_path.data, &vm.drive.format);
+    nm_add_vm_set_default_paths(&vm);
     nm_ovf_to_db(&vm, &drives);
 
 out:

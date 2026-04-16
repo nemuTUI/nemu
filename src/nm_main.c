@@ -20,6 +20,7 @@
 static void signals_handler(int signal);
 static void nm_process_args(int argc, char **argv);
 static void nm_print_feset(void);
+static void nm_get_vm_sock(const nm_str_t *vm_name, nm_str_t *qmp);
 
 volatile sig_atomic_t redraw_window;
 
@@ -82,6 +83,7 @@ static void nm_process_args(int argc, char **argv)
 {
     int opt;
     const char *optstr = NM_OPT_ARGS;
+    nm_str_t qmp = NM_INIT_STR;
     nm_str_t vmname = NM_INIT_STR;
     nm_str_t vmnames = NM_INIT_STR;
     nm_str_t snapname = NM_INIT_STR;
@@ -144,7 +146,8 @@ static void nm_process_args(int argc, char **argv)
 
             for (size_t n = 0; n < vm_list.n_memb; n++) {
                 nm_str_alloc_text(&vmname, vm_list.data[n]);
-                if (nm_qmp_test_socket(&vmname) != NM_OK) {
+                nm_get_vm_sock(&vmname, &qmp);
+                if (nm_qmp_test_socket(&qmp) != NM_OK) {
                     nm_vmctl_start(&vmname, 0);
                 }
             }
@@ -152,6 +155,8 @@ static void nm_process_args(int argc, char **argv)
             nm_str_free(&vmnames);
             nm_vect_free(&vm_list, NULL);
             nm_str_free(&vmname);
+            nm_str_free(&qmp);
+
             nm_exit_core();
         case 'p':
             nm_init_core();
@@ -161,12 +166,14 @@ static void nm_process_args(int argc, char **argv)
 
             for (size_t n = 0; n < vm_list.n_memb; n++) {
                 nm_str_alloc_text(&vmname, vm_list.data[n]);
-                nm_qmp_vm_shut(&vmname);
+                nm_get_vm_sock(&vmname, &qmp);
+                nm_qmp_vm_shut(&qmp);
             }
 
             nm_str_free(&vmnames);
             nm_vect_free(&vm_list, NULL);
             nm_str_free(&vmname);
+            nm_str_free(&qmp);
             nm_exit_core();
         case 'f':
             nm_init_core();
@@ -176,12 +183,14 @@ static void nm_process_args(int argc, char **argv)
 
             for (size_t n = 0; n < vm_list.n_memb; n++) {
                 nm_str_alloc_text(&vmname, vm_list.data[n]);
-                nm_qmp_vm_stop(&vmname);
+                nm_get_vm_sock(&vmname, &qmp);
+                nm_qmp_vm_stop(&qmp);
             }
 
             nm_str_free(&vmnames);
             nm_vect_free(&vm_list, NULL);
             nm_str_free(&vmname);
+            nm_str_free(&qmp);
             nm_exit_core();
         case 'z':
             nm_init_core();
@@ -191,12 +200,14 @@ static void nm_process_args(int argc, char **argv)
 
             for (size_t n = 0; n < vm_list.n_memb; n++) {
                 nm_str_alloc_text(&vmname, vm_list.data[n]);
-                nm_qmp_vm_reset(&vmname);
+                nm_get_vm_sock(&vmname, &qmp);
+                nm_qmp_vm_reset(&qmp);
             }
 
             nm_str_free(&vmnames);
             nm_vect_free(&vm_list, NULL);
             nm_str_free(&vmname);
+            nm_str_free(&qmp);
             nm_exit_core();
         case 'k':
             nm_init_core();
@@ -263,10 +274,11 @@ static void nm_process_args(int argc, char **argv)
             nm_exit(NM_OK);
         case 'l':
             nm_init_core();
-            nm_db_select(NM_SQL_VMS_SELECT_NAMES, &vm_list);
-            for (size_t i = 0; i < vm_list.n_memb; ++i) {
-                const nm_str_t *name = (nm_str_t *)vm_list.data[i];
-                int status = nm_qmp_test_socket(name);
+            nm_db_select(NM_SQL_VMS_SELECT_NAMES_WITH_SOCK, &vm_list);
+            for (size_t i = 0; i < vm_list.n_memb; i += 2) {
+                const nm_str_t *name = (nm_str_t *) vm_list.data[i];
+                const nm_str_t *qmp_path = (nm_str_t *) vm_list.data[i + 1];
+                int status = nm_qmp_test_socket(qmp_path);
 
                 printf("%s - %s\n", name->data, status == NM_OK ?
                         "running" : "stopped");
@@ -430,5 +442,15 @@ static void nm_print_feset(void)
 
     nm_vect_free(&feset, NULL);
     nm_str_free(&msg);
+}
+
+static void nm_get_vm_sock(const nm_str_t *vm_name, nm_str_t *qmp)
+{
+    nm_str_t query = NM_INIT_STR;
+
+    nm_str_format(&query, NM_SQL_VMS_SELECT_QMP_PATH, vm_name->data);
+    nm_db_select_value(query.data, qmp);
+
+    nm_str_free(&query);
 }
 /* vim:set ts=4 sw=4: */

@@ -190,7 +190,7 @@ void nm_lan_settings(void)
                 nm_vect_insert(&veths_list, &veth, sizeof(veth), NULL);
             }
 
-            veths_data.v = &veths_list;
+            veths_data.items = &veths_list;
 
             regen_data = 0;
             renew_status = 1;

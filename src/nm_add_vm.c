@@ -197,6 +197,7 @@ static void nm_add_vm_main(void)
         }
     }
 
+    nm_add_vm_set_default_paths(&vm);
     nm_add_vm_to_fs(&vm);
     nm_add_vm_to_db(&vm, last_mac, import, NULL);
 
@@ -403,7 +404,9 @@ void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
         "", /* GDB debug port */
         NM_DISABLE, /* disable GDB debug by default */
         NM_DEFAULT_DISPLAY, /* Display type */
-        NM_DISABLE /* disable SPICE agent debug by default */
+        NM_DISABLE, /* disable SPICE agent debug by default */
+        vm->pid_path.data,
+        vm->qmp_path.data
     );
 
     nm_db_edit(query.data);
@@ -520,6 +523,16 @@ static void nm_add_vm_to_fs(nm_vm_t *vm)
 
     nm_str_free(&vm_dir);
     nm_str_free(&dst_img);
+}
+
+void nm_add_vm_set_default_paths(nm_vm_t *vm)
+{
+    const nm_cfg_t *cfg = nm_cfg_get();
+
+    nm_str_format(&vm->pid_path,
+            "%s/%s/%s", cfg->vm_dir.data, vm->name.data, NM_VM_PID_FILE);
+    nm_str_format(&vm->qmp_path,
+            "%s/%s/%s", cfg->vm_dir.data, vm->name.data, NM_VM_QMP_FILE);
 }
 
 /* vim:set ts=4 sw=4: */

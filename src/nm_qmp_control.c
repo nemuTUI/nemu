@@ -35,15 +35,15 @@ static const char NM_QMP_CMD_VM_CONT[]  = "{\"execute\":\"cont\"}";
 static const char NM_QMP_CMD_JOBS[]     = "{\"execute\":\"query-jobs\"}";
 
 static const char NM_QMP_CMD_SAVEVM[]   =
-    "{\"execute\":\"snapshot-save\",\"arguments\":{\"job-id\":"
+    "{\"qmp\":\"%s\",\"execute\":\"snapshot-save\",\"arguments\":{\"job-id\":"
     "\"vmsave-%s-%s\",\"tag\":\"%s\",\"vmstate\":\"%s\",\"devices\":[%s]}}";
 
 static const char NM_QMP_CMD_LOADVM[]   =
-    "{\"execute\":\"snapshot-load\",\"arguments\":{\"job-id\":"
+    "{\"qmp\":\"%s\",\"execute\":\"snapshot-load\",\"arguments\":{\"job-id\":"
     "\"vmload-%s-%s\",\"tag\":\"%s\",\"vmstate\":\"%s\",\"devices\":[%s]}}";
 
 static const char NM_QMP_CMD_DELVM[]    =
-    "{\"execute\":\"snapshot-delete\",\"arguments\":{\"job-id\":"
+    "{\"qmp\":\"%s\",\"execute\":\"snapshot-delete\",\"arguments\":{\"job-id\":"
     "\"vmdel-%s-%s\",\"tag\":\"%s\",\"devices\":[%s]}}";
 
 static const char NM_QMP_CMD_USB_ADD[]  =
@@ -106,63 +106,65 @@ typedef struct {
 
 #define NM_INIT_QMP (nm_qmp_handle_t) { .sd = -1 }
 
-static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
+static int nm_qmp_vm_exec(const nm_str_t *qmp_path, const char *cmd,
+                          struct timeval *tv);
+static int nm_qmp_vm_exec_quiet(const nm_str_t *qmp_path, const char *cmd,
                           struct timeval *tv);
 static int nm_qmp_init_cmd(nm_qmp_handle_t *h);
-static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path);
+static int nm_qmp_init_cmd_quiet(nm_qmp_handle_t *h);
 static int nm_qmp_talk(int sd, const char *cmd,
-                       size_t len, const struct timeval *tvp);
+                       size_t len, const struct timeval *tvp, bool ignore_err);
 static void nm_qmp_talk_async(int sd, const char *cmd,
         size_t len, const char *jobid);
 static int nm_qmp_send(const nm_str_t *cmd);
 static int nm_qmp_check_answer(const nm_str_t *answer);
 static int nm_qmp_parse(const char *jobid, const nm_str_t *answer);
 static int nm_qmp_check_job(const char *jobid, const nm_str_t *answer);
-int nm_qmp_add_macvtap(const nm_str_t *name,
+static int nm_qmp_add_macvtap(const nm_str_t *qmp_path,
         const nm_str_t *id, const nm_iface_t *nic);
 
-void nm_qmp_vm_shut(const nm_str_t *name)
+void nm_qmp_vm_shut(const nm_str_t *qmp_path)
 {
     struct timeval tv = { .tv_sec = 0, .tv_usec = 100000 }; /* 0.1s */
 
-    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_SHUT, &tv);
+    nm_qmp_vm_exec(qmp_path, NM_QMP_CMD_VM_SHUT, &tv);
 }
 
-void nm_qmp_vm_stop(const nm_str_t *name)
+void nm_qmp_vm_stop(const nm_str_t *qmp_path)
 {
     struct timeval tv = { .tv_sec = 0, .tv_usec = 100000 }; /* 0.1s */
 
-    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_QUIT, &tv);
+    nm_qmp_vm_exec(qmp_path, NM_QMP_CMD_VM_QUIT, &tv);
 }
 
-void nm_qmp_vm_reset(const nm_str_t *name)
+void nm_qmp_vm_reset(const nm_str_t *qmp_path)
 {
     struct timeval tv = { .tv_sec = 0, .tv_usec = 100000 }; /* 0.1s */
 
-    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_RESET, &tv);
+    nm_qmp_vm_exec(qmp_path, NM_QMP_CMD_VM_RESET, &tv);
 }
 
-void nm_qmp_vm_pause(const nm_str_t *name)
+void nm_qmp_vm_pause(const nm_str_t *qmp_path)
 {
     struct timeval tv = { .tv_sec = 0, .tv_usec = 1000000 }; /* 1s */
 
-    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_STOP, &tv);
+    nm_qmp_vm_exec(qmp_path, NM_QMP_CMD_VM_STOP, &tv);
 }
 
-void nm_qmp_vm_resume(const nm_str_t *name)
+void nm_qmp_vm_resume(const nm_str_t *qmp_path)
 {
     struct timeval tv = { .tv_sec = 0, .tv_usec = 1000000 }; /* 1s */
 
-    nm_qmp_vm_exec(name, NM_QMP_CMD_VM_CONT, &tv);
+    nm_qmp_vm_exec(qmp_path, NM_QMP_CMD_VM_CONT, &tv);
 }
 
-void nm_qmp_take_screenshot(const nm_str_t *name, const nm_str_t *path)
+void nm_qmp_take_screenshot(const nm_str_t *qmp_path, const nm_str_t *img_path)
 {
     nm_str_t qmp_query = NM_INIT_STR;
     struct timeval tv = { .tv_sec = 0, .tv_usec = 1000000 }; /* 1s */
 
-    nm_str_format(&qmp_query, NM_QMP_TAKE_SCREENSHOT, path->data);
-    nm_qmp_vm_exec(name, qmp_query.data, &tv);
+    nm_str_format(&qmp_query, NM_QMP_TAKE_SCREENSHOT, img_path->data);
+    nm_qmp_vm_exec_quiet(qmp_path, qmp_query.data, &tv);
     nm_str_free(&qmp_query);
 }
 
@@ -173,6 +175,7 @@ int nm_qmp_savevm(const nm_str_t *name, const nm_str_t *snap)
     nm_str_t devs = NM_INIT_STR;
     nm_str_t uid = NM_INIT_STR;
     nm_str_t cmd = NM_INIT_STR;
+    nm_str_t qmp_path = NM_INIT_STR;
     size_t drives_count;
     int rc;
 
@@ -186,8 +189,11 @@ int nm_qmp_savevm(const nm_str_t *name, const nm_str_t *snap)
 
     nm_gen_uid(&uid);
 
-    nm_str_format(&cmd, NM_QMP_CMD_SAVEVM, name->data, uid.data, snap->data,
-            "hd0", devs.data);
+    nm_str_format(&query, NM_SQL_VMS_SELECT_QMP_PATH, name->data);
+    nm_db_select_value(query.data, &qmp_path);
+
+    nm_str_format(&cmd, NM_QMP_CMD_SAVEVM,
+            qmp_path.data, name->data, uid.data, snap->data, "hd0", devs.data);
     rc = nm_qmp_send(&cmd);
 
     nm_vect_free(&drives, nm_str_vect_free_cb);
@@ -195,6 +201,7 @@ int nm_qmp_savevm(const nm_str_t *name, const nm_str_t *snap)
     nm_str_free(&cmd);
     nm_str_free(&query);
     nm_str_free(&uid);
+    nm_str_free(&qmp_path);
 
     return rc;
 }
@@ -206,6 +213,7 @@ int nm_qmp_loadvm(const nm_str_t *name, const nm_str_t *snap)
     nm_str_t devs = NM_INIT_STR;
     nm_str_t uid = NM_INIT_STR;
     nm_str_t cmd = NM_INIT_STR;
+    nm_str_t qmp_path = NM_INIT_STR;
     size_t drives_count;
     int rc;
 
@@ -219,8 +227,11 @@ int nm_qmp_loadvm(const nm_str_t *name, const nm_str_t *snap)
 
     nm_gen_uid(&uid);
 
-    nm_str_format(&cmd, NM_QMP_CMD_LOADVM, name->data, uid.data, snap->data,
-            "hd0", devs.data);
+    nm_str_format(&query, NM_SQL_VMS_SELECT_QMP_PATH, name->data);
+    nm_db_select_value(query.data, &qmp_path);
+
+    nm_str_format(&cmd, NM_QMP_CMD_LOADVM,
+            qmp_path.data, name->data, uid.data, snap->data, "hd0", devs.data);
     rc = nm_qmp_send(&cmd);
 
     nm_vect_free(&drives, nm_str_vect_free_cb);
@@ -228,6 +239,7 @@ int nm_qmp_loadvm(const nm_str_t *name, const nm_str_t *snap)
     nm_str_free(&cmd);
     nm_str_free(&query);
     nm_str_free(&uid);
+    nm_str_free(&qmp_path);
 
     return rc;
 }
@@ -239,6 +251,7 @@ int nm_qmp_delvm(const nm_str_t *name, const nm_str_t *snap)
     nm_str_t devs = NM_INIT_STR;
     nm_str_t uid = NM_INIT_STR;
     nm_str_t cmd = NM_INIT_STR;
+    nm_str_t qmp_path = NM_INIT_STR;
     size_t drives_count;
     int rc;
 
@@ -252,8 +265,11 @@ int nm_qmp_delvm(const nm_str_t *name, const nm_str_t *snap)
 
     nm_gen_uid(&uid);
 
-    nm_str_format(&cmd, NM_QMP_CMD_DELVM, name->data, uid.data,
-            snap->data, devs.data);
+    nm_str_format(&query, NM_SQL_VMS_SELECT_QMP_PATH, name->data);
+    nm_db_select_value(query.data, &qmp_path);
+
+    nm_str_format(&cmd, NM_QMP_CMD_DELVM,
+            qmp_path.data, name->data, uid.data, snap->data, devs.data);
     rc = nm_qmp_send(&cmd);
 
     nm_vect_free(&drives, nm_str_vect_free_cb);
@@ -261,11 +277,12 @@ int nm_qmp_delvm(const nm_str_t *name, const nm_str_t *snap)
     nm_str_free(&cmd);
     nm_str_free(&query);
     nm_str_free(&uid);
+    nm_str_free(&qmp_path);
 
     return rc;
 }
 
-int nm_qmp_usb_attach(const nm_str_t *name, const nm_usb_data_t *usb)
+int nm_qmp_usb_attach(const nm_str_t *qmp_path, const nm_usb_data_t *usb)
 {
     nm_str_t qmp_query = NM_INIT_STR;
     int rc;
@@ -278,14 +295,14 @@ int nm_qmp_usb_attach(const nm_str_t *name, const nm_usb_data_t *usb)
                   (usb->serial.len) ? usb->serial.data : "NULL");
 
     nm_debug("exec qmp: %s\n", qmp_query.data);
-    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+    rc = nm_qmp_vm_exec(qmp_path, qmp_query.data, &tv);
 
     nm_str_free(&qmp_query);
 
     return rc;
 }
 
-int nm_qmp_usb_detach(const nm_str_t *name, const nm_usb_data_t *usb)
+int nm_qmp_usb_detach(const nm_str_t *qmp_path, const nm_usb_data_t *usb)
 {
     nm_str_t qmp_query = NM_INIT_STR;
     int rc;
@@ -298,14 +315,14 @@ int nm_qmp_usb_detach(const nm_str_t *name, const nm_usb_data_t *usb)
                   (usb->serial.len) ? usb->serial.data : "NULL");
 
     nm_debug("exec qmp: %s\n", qmp_query.data);
-    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+    rc = nm_qmp_vm_exec(qmp_path, qmp_query.data, &tv);
 
     nm_str_free(&qmp_query);
 
     return rc;
 }
 
-int nm_qmp_nic_attach(const nm_str_t *name, const nm_iface_t *nic)
+int nm_qmp_nic_attach(const nm_str_t *qmp_path, const nm_iface_t *nic)
 {
     nm_str_t qmp_query = NM_INIT_STR;
     nm_str_t id = NM_INIT_STR;
@@ -337,7 +354,7 @@ int nm_qmp_nic_attach(const nm_str_t *name, const nm_iface_t *nic)
                     (nm_str_cmp_st(&nic->vhost, "yes") == NM_OK) ?
                     "true" : "false");
         } else {
-            rc = nm_qmp_add_macvtap(name, &id, nic);
+            rc = nm_qmp_add_macvtap(qmp_path, &id, nic);
             goto out;
         }
 #else
@@ -347,7 +364,7 @@ int nm_qmp_nic_attach(const nm_str_t *name, const nm_iface_t *nic)
     }
 
     nm_debug("exec qmp: %s\n", qmp_query.data);
-    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+    rc = nm_qmp_vm_exec(qmp_path, qmp_query.data, &tv);
     if (rc != NM_OK) {
         goto out;
     }
@@ -356,7 +373,7 @@ int nm_qmp_nic_attach(const nm_str_t *name, const nm_iface_t *nic)
             nic->drv.data, id.data, id.data, nic->maddr.data);
 
     nm_debug("exec qmp: %s\n", qmp_query.data);
-    rc = nm_qmp_vm_exec(name, qmp_query.data, &tv);
+    rc = nm_qmp_vm_exec(qmp_path, qmp_query.data, &tv);
 
 out:
     nm_str_free(&qmp_query);
@@ -393,16 +410,13 @@ out:
     return rc;
 }
 
-int nm_qmp_test_socket(const nm_str_t *name)
+int nm_qmp_test_socket(const nm_str_t *path)
 {
     int rc = NM_ERR;
-    nm_str_t sock_path = NM_INIT_STR;
     nm_qmp_handle_t qmp = NM_INIT_QMP;
 
-    nm_qmp_sock_path(name, &sock_path);
-
     qmp.sock.sun_family = AF_UNIX;
-    nm_strlcpy(qmp.sock.sun_path, sock_path.data, sizeof(qmp.sock.sun_path));
+    nm_strlcpy(qmp.sock.sun_path, path->data, sizeof(qmp.sock.sun_path));
 
     if ((qmp.sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         goto out;
@@ -423,8 +437,6 @@ int nm_qmp_test_socket(const nm_str_t *name)
 
     close(qmp.sd);
 out:
-    nm_str_free(&sock_path);
-
     return rc;
 }
 
@@ -457,7 +469,7 @@ static int nm_qmp_send(const nm_str_t *cmd)
  * All action with fd, sended with SCM_RIGHTS, must be done within single
  * connection.
  */
-int nm_qmp_add_macvtap(const nm_str_t *name,
+static int nm_qmp_add_macvtap(const nm_str_t *qmp_path,
         const nm_str_t *id, const nm_iface_t *nic)
 {
     int rc = NM_ERR;
@@ -465,15 +477,13 @@ int nm_qmp_add_macvtap(const nm_str_t *name,
     struct iovec iov[1];
     char control[CMSG_SPACE(sizeof(int))];
     struct cmsghdr *cmsg;
-    nm_str_t sock_path = NM_INIT_STR;
     nm_str_t qmp_cmd = NM_INIT_STR;
     nm_qmp_handle_t qmp = NM_INIT_QMP;
     struct timeval tv = { .tv_sec = 0, .tv_usec = 5000000 }; /* 5s */
     struct timespec ts;
 
-    nm_qmp_sock_path(name, &sock_path);
     qmp.sock.sun_family = AF_UNIX;
-    nm_strlcpy(qmp.sock.sun_path, sock_path.data, sizeof(qmp.sock.sun_path));
+    nm_strlcpy(qmp.sock.sun_path, qmp_path->data, sizeof(qmp.sock.sun_path));
 
     if ((qmp.sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         nm_warn(_(NM_MSG_Q_CR_ERR));
@@ -514,7 +524,7 @@ int nm_qmp_add_macvtap(const nm_str_t *name,
 
     nm_str_format(&qmp_cmd, NM_QMP_GETFD, id->data);
     nm_debug("exec qmp: %s\n", qmp_cmd.data);
-    rc = nm_qmp_talk(qmp.sd, qmp_cmd.data, qmp_cmd.len, &tv);
+    rc = nm_qmp_talk(qmp.sd, qmp_cmd.data, qmp_cmd.len, &tv, false);
     if (rc != NM_OK) {
         goto out;
     }
@@ -524,7 +534,7 @@ int nm_qmp_add_macvtap(const nm_str_t *name,
             (nm_str_cmp_st(&nic->vhost, "yes") == NM_OK) ?
             "true" : "false", id->data);
     nm_debug("exec qmp: %s\n", qmp_cmd.data);
-    rc = nm_qmp_talk(qmp.sd, qmp_cmd.data, qmp_cmd.len, &tv);
+    rc = nm_qmp_talk(qmp.sd, qmp_cmd.data, qmp_cmd.len, &tv, false);
     if (rc != NM_OK) {
         goto out;
     }
@@ -532,7 +542,7 @@ int nm_qmp_add_macvtap(const nm_str_t *name,
     nm_str_format(&qmp_cmd, NM_QMP_DEV_NET_ADD,
             nic->drv.data, id->data, id->data, nic->maddr.data);
     nm_debug("exec qmp: %s\n", qmp_cmd.data);
-    rc = nm_qmp_talk(qmp.sd, qmp_cmd.data, qmp_cmd.len, &tv);
+    rc = nm_qmp_talk(qmp.sd, qmp_cmd.data, qmp_cmd.len, &tv, false);
 
     /* FIXME We cannot immediately close the socket after network device add.
      * Fore some reason it does not work, so we need to sleep a little bit.
@@ -545,57 +555,68 @@ int nm_qmp_add_macvtap(const nm_str_t *name,
 
 out:
     close(qmp.sd);
-    nm_str_free(&sock_path);
     nm_str_free(&qmp_cmd);
 
     return rc;
 }
 #endif /* defined NM_OS_LINUX */
 
-static int nm_qmp_vm_exec(const nm_str_t *name, const char *cmd,
+static int nm_qmp_vm_exec(const nm_str_t *qmp_path, const char *cmd,
                           struct timeval *tv)
 {
-    nm_str_t sock_path = NM_INIT_STR;
     nm_qmp_handle_t qmp = NM_INIT_QMP;
     int rc = NM_ERR;
 
-    nm_qmp_sock_path(name, &sock_path);
-
     qmp.sock.sun_family = AF_UNIX;
-    nm_strlcpy(qmp.sock.sun_path, sock_path.data, sizeof(qmp.sock.sun_path));
+    nm_strlcpy(qmp.sock.sun_path, qmp_path->data, sizeof(qmp.sock.sun_path));
 
     if (nm_qmp_init_cmd(&qmp) == NM_ERR) {
+        close(qmp.sd);
         goto out;
     }
 
-    rc = nm_qmp_talk(qmp.sd, cmd, strlen(cmd), tv);
+    rc = nm_qmp_talk(qmp.sd, cmd, strlen(cmd), tv, false);
     close(qmp.sd);
 
 out:
-    nm_str_free(&sock_path);
     return rc;
 }
 
-void nm_qmp_vm_exec_async(const nm_str_t *name, const char *cmd,
-        const char *jobid)
+static int nm_qmp_vm_exec_quiet(const nm_str_t *qmp_path, const char *cmd,
+                          struct timeval *tv)
 {
-    nm_str_t sock_path = NM_INIT_STR;
     nm_qmp_handle_t qmp = NM_INIT_QMP;
-
-    nm_qmp_sock_path(name, &sock_path);
+    int rc = NM_ERR;
 
     qmp.sock.sun_family = AF_UNIX;
-    nm_strlcpy(qmp.sock.sun_path, sock_path.data, sizeof(qmp.sock.sun_path));
+    nm_strlcpy(qmp.sock.sun_path, qmp_path->data, sizeof(qmp.sock.sun_path));
+
+    if (nm_qmp_init_cmd_quiet(&qmp) == NM_ERR) {
+        close(qmp.sd);
+        goto out;
+    }
+
+    rc = nm_qmp_talk(qmp.sd, cmd, strlen(cmd), tv, true);
+    close(qmp.sd);
+
+out:
+    return rc;
+}
+
+void nm_qmp_vm_exec_async(const nm_str_t *qmp_path, const char *cmd,
+        const char *jobid)
+{
+    nm_qmp_handle_t qmp = NM_INIT_QMP;
+
+    qmp.sock.sun_family = AF_UNIX;
+    nm_strlcpy(qmp.sock.sun_path, qmp_path->data, sizeof(qmp.sock.sun_path));
 
     if (nm_qmp_init_cmd(&qmp) == NM_ERR) {
-        goto out;
+        return;
     }
 
     nm_qmp_talk_async(qmp.sd, cmd, strlen(cmd), jobid);
     close(qmp.sd);
-
-out:
-    nm_str_free(&sock_path);
 }
 
 static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
@@ -623,7 +644,34 @@ static int nm_qmp_init_cmd(nm_qmp_handle_t *h)
         return NM_ERR;
     }
 
-    return nm_qmp_talk(h->sd, NM_QMP_CMD_INIT, strlen(NM_QMP_CMD_INIT), &tv);
+    return nm_qmp_talk(h->sd, NM_QMP_CMD_INIT,
+            strlen(NM_QMP_CMD_INIT), &tv, false);
+}
+
+static int nm_qmp_init_cmd_quiet(nm_qmp_handle_t *h)
+{
+    socklen_t len = sizeof(h->sock);
+    struct timeval tv;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000; /* 0.1 s */
+
+    if ((h->sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+        return NM_ERR;
+    }
+
+    if (fcntl(h->sd, F_SETFL, O_NONBLOCK) == -1) {
+        close(h->sd);
+        return NM_ERR;
+    }
+
+    if (connect(h->sd, (struct sockaddr *) &h->sock, len) == -1) {
+        close(h->sd);
+        return NM_ERR;
+    }
+
+    return nm_qmp_talk(h->sd, NM_QMP_CMD_INIT,
+            strlen(NM_QMP_CMD_INIT), &tv, true);
 }
 
 static int nm_qmp_check_answer(const nm_str_t *answer)
@@ -775,7 +823,7 @@ out:
 }
 
 static int nm_qmp_talk(int sd, const char *cmd,
-                       size_t len, const struct timeval *tvp)
+                       size_t len, const struct timeval *tvp, bool ignore_err)
 {
     nm_str_t answer = NM_INIT_STR;
     char buf[NM_QMP_READLEN];
@@ -787,7 +835,9 @@ static int nm_qmp_talk(int sd, const char *cmd,
 
     if (write(sd, cmd, len) == -1) {
         close(sd);
-        nm_warn(_(NM_MSG_Q_SE_ERR));
+        if (!ignore_err) {
+            nm_warn(_(NM_MSG_Q_SE_ERR));
+        }
         return NM_ERR;
     }
 
@@ -820,14 +870,16 @@ static int nm_qmp_talk(int sd, const char *cmd,
     }
 
     if (answer.len == 0) {
-        nm_warn(_(NM_MSG_Q_NO_ANS));
+        if (!ignore_err) {
+            nm_warn(_(NM_MSG_Q_NO_ANS));
+        }
         rc = NM_ERR;
         goto err;
     }
 
 out:
     nm_debug("QMP: %s\n", answer.data);
-    if (rc != NM_OK) {
+    if (rc != NM_OK && !ignore_err) {
         nm_warn(_(NM_MSG_Q_EXEC_E));
     }
 err:
@@ -849,13 +901,11 @@ static void nm_qmp_talk_async(int sd, const char *cmd,
 
     if (write(sd, cmd, len) == -1) {
         close(sd);
-        //nm_warn(_(NM_MSG_Q_SE_ERR));
         return;
     }
 
     if (write(sd, NM_QMP_CMD_JOBS, sizeof(NM_QMP_CMD_JOBS) - 1) == -1) {
         close(sd);
-        //nm_warn(_(NM_MSG_Q_SE_ERR));
         return;
     }
 
@@ -869,7 +919,6 @@ static void nm_qmp_talk_async(int sd, const char *cmd,
         if (state == NM_QMP_STATE_REPEAT) {
             if (write(sd, NM_QMP_CMD_JOBS, sizeof(NM_QMP_CMD_JOBS) - 1) == -1) {
                 close(sd);
-                //nm_warn(_(NM_MSG_Q_SE_ERR));
                 return;
             }
             state = NM_QMP_STATE_UNDEF;
@@ -905,18 +954,8 @@ static void nm_qmp_talk_async(int sd, const char *cmd,
         }
     }
 
-    if (answer.len == 0) {
-        //nm_warn(_(NM_MSG_Q_NO_ANS));
-    }
-
 out:
     nm_str_free(&answer);
-}
-
-static void nm_qmp_sock_path(const nm_str_t *name, nm_str_t *path)
-{
-    nm_str_format(path, "%s/%s/qmp.sock",
-        nm_cfg_get()->vm_dir.data, name->data);
 }
 
 /* vim:set ts=4 sw=4: */

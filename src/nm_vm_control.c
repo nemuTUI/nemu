@@ -76,18 +76,13 @@ void nm_vmctl_start(const nm_str_t *name, int flags)
     nm_vmctl_gen_cmd(&argv, &vm, name, &flags, &tfds, &snap);
     if (argv.n_memb > 0) {
         if (nm_spawn_process(&argv, NULL) != NM_OK) {
-            nm_str_t qmp_path = NM_INIT_STR;
             struct stat qmp_info;
-
-            nm_str_format(&qmp_path, "%s/%s/%s",
-                nm_cfg_get()->vm_dir.data, name->data, NM_VM_QMP_FILE);
+            const char *qmp_path = nm_vect_str_ctx(&vm.main, NM_SQL_QMP);
 
             /* must delete qmp sock file if exists */
-            if (stat(qmp_path.data, &qmp_info) != -1) {
-                unlink(qmp_path.data);
+            if (stat(qmp_path, &qmp_info) != -1) {
+                unlink(qmp_path);
             }
-
-            nm_str_free(&qmp_path);
 
             nm_warn(_(NM_MSG_START_ERR));
         } else {
@@ -142,21 +137,24 @@ void nm_vmctl_delete(const nm_str_t *name)
     }
 
     { /* delete pid and QMP socket if exists */
-        nm_str_t path = NM_INIT_STR;
+        nm_str_t pid_path = NM_INIT_STR;
+        nm_str_t qmp_path = NM_INIT_STR;
 
-        nm_str_format(&path, "%s%s", vmdir.data, NM_VM_PID_FILE);
+        nm_str_format(&query, NM_SQL_VMS_SELECT_PID_PATH, name->data);
+        nm_db_select_value(query.data, &pid_path);
+        nm_str_format(&query, NM_SQL_VMS_SELECT_QMP_PATH, name->data);
+        nm_db_select_value(query.data, &qmp_path);
 
-        if (unlink(path.data) == -1 && errno != ENOENT) {
+        if (unlink(pid_path.data) == -1 && errno != ENOENT) {
             delete_ok = NM_FALSE;
         }
 
-        nm_str_trunc(&path, vmdir.len);
-        nm_str_add_text(&path, NM_VM_QMP_FILE);
-        if (unlink(path.data) == -1 && errno != ENOENT) {
+        if (unlink(qmp_path.data) == -1 && errno != ENOENT) {
             delete_ok = NM_FALSE;
         }
 
-        nm_str_free(&path);
+        nm_str_free(&pid_path);
+        nm_str_free(&qmp_path);
     }
 
     if (delete_ok) {
@@ -186,9 +184,10 @@ void nm_vmctl_kill(const nm_str_t *name)
     int fd;
     char buf[10];
     nm_str_t pid_file = NM_INIT_STR;
+    nm_str_t query = NM_INIT_STR;
 
-    nm_str_format(&pid_file, "%s/%s/%s",
-        nm_cfg_get()->vm_dir.data, name->data, NM_VM_PID_FILE);
+    nm_str_format(&query, NM_SQL_VMS_SELECT_PID_PATH, name->data);
+    nm_db_select_value(query.data, &pid_file);
 
     if ((fd = open(pid_file.data, O_RDONLY)) == -1) {
         return;
@@ -205,6 +204,7 @@ void nm_vmctl_kill(const nm_str_t *name)
     close(fd);
 
     nm_str_free(&pid_file);
+    nm_str_free(&query);
 }
 
 void nm_vmctl_connect(const nm_str_t *name)
@@ -918,13 +918,13 @@ void nm_vmctl_gen_cmd(nm_vect_t *argv, const nm_vmctl_data_t *vm,
     }
 
     nm_vect_insert_cstr(argv, "-pidfile");
-    nm_str_format(&buf, "%s%s",
-        vmdir.data, NM_VM_PID_FILE);
-    nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
+    nm_vect_insert(argv,
+            nm_vect_str(&vm->main, NM_SQL_PID)->data,
+            nm_vect_str(&vm->main, NM_SQL_PID)->len + 1, NULL);
 
     nm_vect_insert_cstr(argv, "-qmp");
-    nm_str_format(&buf, "unix:%s%s,server,nowait",
-        vmdir.data, NM_VM_QMP_FILE);
+    nm_str_format(&buf, "unix:%s,server,nowait",
+            nm_vect_str_ctx(&vm->main, NM_SQL_QMP));
     nm_vect_insert(argv, buf.data, buf.len + 1, NULL);
 
     /* Check if vnc/spice port is available, generate new one if not */
@@ -1054,7 +1054,7 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
 
     nm_str_format(&info, "%-12s%s\n", "name: ", name->data);
 
-    status = nm_qmp_test_socket(name);
+    status = nm_qmp_test_socket(nm_vect_str(&vm.main, NM_SQL_QMP));
     nm_str_append_format(&info, "%-12s%s\n", "status: ",
         status == NM_OK ? "running" : "stopped");
 
@@ -1207,12 +1207,9 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
 
     if (status == NM_OK) {
         int fd;
-        nm_str_t pid_path = NM_INIT_STR;
 
-        nm_str_format(&pid_path, "%s/%s/%s",
-            nm_cfg_get()->vm_dir.data, name->data, NM_VM_PID_FILE);
-
-        if ((fd = open(pid_path.data, O_RDONLY)) != -1) {
+        if ((fd = open(nm_vect_str_ctx(&vm.main, NM_SQL_PID),
+                        O_RDONLY)) != -1) {
             char pid[10];
             ssize_t nread;
 
@@ -1237,7 +1234,6 @@ nm_str_t nm_vmctl_info(const nm_str_t *name)
             }
             close(fd);
         }
-        nm_str_free(&pid_path);
     }
 
     nm_vmctl_free_data(&vm);

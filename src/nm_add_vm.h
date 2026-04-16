@@ -5,6 +5,7 @@
 
 void nm_add_vm(void);
 void nm_import_vm(void);
+void nm_add_vm_set_default_paths(nm_vm_t *vm);
 void nm_add_vm_to_db(nm_vm_t *vm, uint64_t mac,
                      int import, const nm_vect_t *drives);
 
