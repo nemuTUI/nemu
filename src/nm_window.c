@@ -667,7 +667,8 @@ nm_print_vm_info(const nm_str_t *name, const nm_vmctl_data_t *vm, int status)
                 size_t side_cols, NM_UNUSED side_rows;
                 const nm_str_t *png_path = &nm_cfg_get()->preview.path;
 
-                nm_qmp_take_screenshot(name, png_path);
+                nm_qmp_take_screenshot(nm_vect_str(&vm_->main, NM_SQL_QMP),
+                        png_path);
                 getmaxyx(side_window, side_rows, side_cols);
 
                 if (nm_cfg_get()->preview.scale) {

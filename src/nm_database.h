@@ -6,7 +6,7 @@
 
 #include <sqlite3.h>
 
-#define NM_DB_VERSION "21"
+#define NM_DB_VERSION "22"
 
 /* PRAGMAS */
 static const char NM_SQL_PRAGMA_FOREIGN_ON[] =
@@ -28,7 +28,8 @@ static const char NM_SQL_VMS_CREATE[] =
     "fs9p_enable INTEGER NOT NULL, fs9p_path TEXT, fs9p_name TEXT, "
     "usb_type TEXT NOT NULL, spice INTEGER NOT NULL, debug_port INTEGER, "
     "debug_freeze INTEGER NOT NULL, cmdappend TEXT, team TEXT, "
-    "display_type TEXT NOT NULL, pflash TEXT, spice_agent INTEGER NOT NULL)";
+    "display_type TEXT NOT NULL, pflash TEXT, spice_agent INTEGER NOT NULL, "
+    "pid_path TEXT NOT NULL, qmp_sock_path TEXT NOT NULL)";
 
 static const char NM_SQL_IFACES_CREATE[] =
     "CREATE TABLE ifaces(if_name TEXT NOT NULL, "
@@ -97,11 +98,20 @@ static const char NM_SQL_VMS_SELECT_ALL_VNC[] =
 static const char NM_SQL_VMS_SELECT_VNC[] =
     "SELECT vnc, spice FROM vms WHERE name='%s'";
 
+static const char NM_SQL_VMS_SELECT_QMP_PATH[] =
+    "SELECT qmp_sock_path FROM vms WHERE name='%s'";
+
 static const char NM_SQL_VMS_SELECT_NAMES[] =
     "SELECT name FROM vms ORDER BY name ASC";
 
 static const char NM_SQL_VMS_SELECT_NAMES_BY_TEAM[] =
     "SELECT name FROM vms WHERE team='%s' ORDER BY name ASC";
+
+static const char NM_SQL_VMS_SELECT_NAMES_WITH_SOCK[] =
+    "SELECT name, qmp_sock_path FROM vms ORDER BY name ASC";
+
+static const char NM_SQL_VMS_SELECT_NAMES_WITH_SOCK_BY_TEAM[] =
+    "SELECT name, qmp_sock_path FROM vms WHERE team='%s' ORDER BY name ASC";
 
 static const char NM_SQL_VMS_SELECT_PROPS[] =
     "SELECT if_name, mac_addr, if_drv, ipv4_addr, vhost, "
@@ -205,6 +215,12 @@ static const char NM_SQL_VMS_UPDATE_9P_NAME[] =
 
 static const char NM_SQL_VMS_UPDATE_USB_STATUS[] =
     "UPDATE vms SET usb_status=%s WHERE name='%s'";
+
+static const char NM_SQL_VMS_UPDATE_PID_PATH[] =
+    "UPDATE vms SET pid_path='%s' WHERE name='%s'";
+
+static const char NM_SQL_VMS_UPDATE_QMP_PATH[] =
+    "UPDATE vms SET qmp_sock_path='%s' WHERE name='%s'";
 
 static const char NM_SQL_VMS_DELETE_VM[] =
     "DELETE FROM vms WHERE name='%s'";
@@ -494,6 +510,8 @@ enum select_main_idx {
     NM_SQL_DISPLAY,
     NM_SQL_FLASH,
     NM_SQL_AGENT,
+    NM_SQL_PID,
+    NM_SQL_QMP,
     NM_VM_IDX_COUNT
 };
 
@@ -528,6 +546,12 @@ enum select_usb_idx {
     NM_SQL_USB_PID,
     NM_SQL_USB_SERIAL,
     NM_USB_IDX_COUNT
+};
+
+enum select_vms_idx {
+    NM_SQL_VMS_NAME = 0,
+    NM_SQL_VMS_QMP,
+    NM_VMS_IDX_COUNT,
 };
 
 enum {

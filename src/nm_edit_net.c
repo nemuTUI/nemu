@@ -194,11 +194,11 @@ void nm_edit_net(const nm_str_t *name)
                                NULL);
             }
 
-            ifs.v = &ifaces;
+            ifs.items = &ifaces;
             regen_data = false;
         }
 
-        if (ifs.v->n_memb > 0) {
+        if (ifs.items->n_memb > 0) {
             nm_menu_scroll(&ifs, nic_list_len, ch);
             werase(action_window);
             nm_init_action(_(NM_MSG_IF_PROP));
@@ -237,7 +237,7 @@ void nm_edit_net(const nm_str_t *name)
 }
 
 static void
-nm_edit_net_plug(const nm_str_t *name, nm_iface_t *ifp)
+nm_edit_net_plug(const nm_str_t *qmp_path, nm_iface_t *ifp)
 {
 #if defined(NM_OS_LINUX)
     /*
@@ -294,7 +294,7 @@ nm_edit_net_plug(const nm_str_t *name, nm_iface_t *ifp)
     }
 #endif /* NM_OS_LINUX */
 
-    nm_qmp_nic_attach(name, ifp);
+    nm_qmp_nic_attach(qmp_path, ifp);
 }
 
 static int
@@ -314,10 +314,10 @@ nm_edit_net_unplug(const nm_str_t *name, const nm_vmctl_data_t *vm,
 
     idx_shift = NM_IFS_IDX_COUNT * (--if_idx);
 
-    if (nm_qmp_test_socket(name) == NM_OK) {
+    if (nm_qmp_test_socket(nm_vect_str(&vm->main, NM_SQL_QMP)) == NM_OK) {
         nm_str_format(&iface_data.maddr, "%s",
                 nm_vect_str_ctx(&vm->ifs, NM_SQL_IF_MAC + idx_shift));
-        nm_qmp_nic_detach(name, &iface_data);
+        nm_qmp_nic_detach(nm_vect_str(&vm->main, NM_SQL_QMP), &iface_data);
     }
 
     if_name = nm_vect_str(&vm->ifs, NM_SQL_IF_NAME + idx_shift);
@@ -457,8 +457,9 @@ nm_edit_net_action(const nm_str_t *name, const nm_vmctl_data_t *vm,
 
     nm_edit_net_update_db(name, &iface_data, add);
 
-    if (add && (nm_qmp_test_socket(name) == NM_OK)) {
-        nm_edit_net_plug(name, &iface_data);
+    if (add &&
+            (nm_qmp_test_socket(nm_vect_str(&vm->main, NM_SQL_QMP)) == NM_OK)) {
+        nm_edit_net_plug(nm_vect_str(&vm->main, NM_SQL_QMP), &iface_data);
     }
 
 out:

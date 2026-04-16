@@ -135,6 +135,8 @@ typedef struct {
     nm_str_t cmdline;
     nm_str_t initrd;
     nm_str_t debug_port;
+    nm_str_t pid_path;
+    nm_str_t qmp_path;
     uint32_t installed:1;
     uint32_t debug_freeze:1;
 } nm_vm_boot_t;
@@ -142,7 +144,7 @@ typedef struct {
 #define NM_INIT_VM_BOOT (nm_vm_boot_t) { \
                          NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
                          NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, \
-                         NM_INIT_STR, 0, 0 }
+                         NM_INIT_STR, NM_INIT_STR, NM_INIT_STR, 0, 0 }
 
 typedef struct {
     nm_str_t name;

@@ -592,7 +592,7 @@ int nm_form_draw(nm_form_t **form)
                 } else {
                     list.item_last = list_len = args->count;
                 }
-                list.v = &values;
+                list.items = &values;
 
                 drop = newwin(list_len + 2, max_len + 4, y + 1, x);
                 keypad(drop, TRUE);
@@ -638,7 +638,7 @@ int nm_form_draw(nm_form_t **form)
                                 list.highlight) -1]);
                 }
 
-                nm_vect_free(list.v, NULL);
+                nm_vect_free(list.items, NULL);
                 hide_panel(panel);
                 update_panels();
                 doupdate();
@@ -1026,6 +1026,8 @@ void nm_vm_free_boot(nm_vm_boot_t *vm)
     nm_str_free(&vm->cmdline);
     nm_str_free(&vm->inst_path);
     nm_str_free(&vm->debug_port);
+    nm_str_free(&vm->pid_path);
+    nm_str_free(&vm->qmp_path);
 }
 
 /* vim:set ts=4 sw=4: */

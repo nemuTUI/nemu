@@ -6,27 +6,41 @@ if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
 fi
 
 DB_PATH="$1"
-DB_ACTUAL_VERSION=21
+DB_ACTUAL_VERSION=22
 DB_CURRENT_VERSION=$(sqlite3 "$DB_PATH" -line 'PRAGMA user_version;' | sed 's/.*[[:space:]]=[[:space:]]//')
 USER=$(whoami)
 RC=0
+CFG_PATH=""
+
+USER_DIR=$(grep ${USER} /etc/passwd | awk 'BEGIN { FS = ":" }; { printf "%s\n", $6 }')
+if [ ! -d "$USER_DIR" ]; then
+    echo "Couldn't find user home directory" >&2
+    exit 1
+fi
+
+if [ -n "$XDG_CONFIG_HOME" ]; then
+    if [ -f "${XDG_CONFIG_HOME}/nemu/nemu.cfg" ]; then
+        CFG_PATH="${XDG_CONFIG_HOME}/nemu/nemu.cfg"
+    fi
+else
+    if [ -f "${USER_DIR}/.config/nemu/nemu.cfg" ]; then
+        CFG_PATH="${USER_DIR}/.config/nemu/nemu.cfg"
+    fi
+fi
+
+if [ -z "$CFG_PATH" ]; then
+    CFG_PATH="${USER_DIR}/.nemu.cfg"
+
+    if [ ! -f "$CFG_PATH" ]; then
+        echo "Couldn't find nemu configuration file" >&2
+        exit 1
+    fi
+fi
 
 if [ "$#" -eq 2 ]; then
     QEMU_BIN_PATH="$3"
 else
-    USER_DIR=$(grep ${USER} /etc/passwd | awk 'BEGIN { FS = ":" }; { printf "%s\n", $6 }')
-    if [ ! -d "$USER_DIR" ]; then
-        echo "Couldn't find user home directory" >&2
-        exit 1
-    fi
-    #TODO we shouldn't expect to find .nemu.cfg in homedir
-    if [ ! -f ${USER_DIR}/.nemu.cfg ]; then
-        echo "Couldn't find .nemu.cfg in user home directory" >&2
-        exit 1
-    fi
-
-    #TODO we shouldn't expect to find .nemu.cfg in homedir
-    QEMU_BIN_PATH=$(grep qemu_bin_path ${USER_DIR}/.nemu.cfg | awk '{ printf "%s\n", $3 }')
+    QEMU_BIN_PATH=$(grep qemu_bin_path $CFG_PATH | awk '{ printf "%s\n", $3 }')
     if [ -z "$QEMU_BIN_PATH" ]; then
         echo "Couldn't get qemu_bin_path from .nemu.cfg" >&2
         exit 1
@@ -42,6 +56,22 @@ if [ "$DB_CURRENT_VERSION" = "$DB_ACTUAL_VERSION" ]; then
     echo "No need to upgrade."
     exit 0
 fi
+
+db_update_paths()
+{
+    local rc=0
+    local vm_dir=$(grep vmdir $CFG_PATH | awk '{ printf "%s\n", $3 }')
+    local vms=$(sqlite3 "$DB_PATH" -list 'SELECT name FROM vms')
+
+    for vm in $vms; do
+        sqlite3 "$DB_PATH" -line \
+            "UPDATE vms SET pid_path='${vm_dir}/${vm}/qemu.pid' WHERE name='${vm}'" || rc=1
+        sqlite3 "$DB_PATH" -line \
+            "UPDATE vms SET qmp_sock_path='${vm_dir}/${vm}/qmp.sock' WHERE name='${vm}'" || rc=1
+    done
+
+    return $rc
+}
 
 db_update_machine()
 {
@@ -380,6 +410,17 @@ while [ "$DB_CURRENT_VERSION" != "$DB_ACTUAL_VERSION" ]; do
             (
             sqlite3 "$DB_PATH" -line 'ALTER TABLE drives ADD format TEXT NOT NULL DEFAULT "qcow2";' &&
             sqlite3 "$DB_PATH" -line 'PRAGMA user_version=21'
+            ) || RC=1
+            ;;
+
+        ( 21 )
+            (
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD pid_path '`
+                `'TEXT NOT NULL DEFAULT "_must_be_set_";' &&
+            sqlite3 "$DB_PATH" -line 'ALTER TABLE vms ADD qmp_sock_path '`
+                `'TEXT NOT NULL DEFAULT "_must_be_set_";' &&
+            db_update_paths &&
+            sqlite3 "$DB_PATH" -line 'PRAGMA user_version=22'
             ) || RC=1
             ;;
 
