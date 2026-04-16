@@ -79,13 +79,11 @@ static void nm_mon_cleanup(void)
 
 void *nm_qmp_worker(void *data)
 {
-    struct json_object *parsed, *args, *jobid;
-    nm_str_t jobid_copy = NM_INIT_STR;
-    nm_str_t vmname = NM_INIT_STR;
+    struct json_object *parsed, *args, *jobid, *qmp;
+    nm_str_t qmp_path = NM_INIT_STR;
     nm_qmp_w_data_t *arg = data;
     nm_str_t cmd = NM_INIT_STR;
-    const char *jobid_str;
-    char *name_start;
+    const char *jobid_str, *qmp_str, *cmd_str;
 
     nm_str_copy(&cmd, arg->cmd);
     pthread_barrier_wait(arg->barrier);
@@ -100,58 +98,24 @@ void *nm_qmp_worker(void *data)
     }
     json_object_object_get_ex(parsed, "arguments", &args);
     json_object_object_get_ex(args, "job-id", &jobid);
+    json_object_object_get_ex(parsed, "qmp", &qmp);
 
-    if (!args || !jobid) {
+    if (!args || !jobid || !qmp) {
         nm_debug("%s: malformed json\n", __func__);
         pthread_exit(NULL);
     }
     jobid_str = json_object_get_string(jobid);
+    qmp_str = json_object_get_string(qmp);
+    nm_str_format(&qmp_path, "%s", qmp_str);
+    json_object_object_del(parsed, "qmp");
+    cmd_str = json_object_get_string(parsed);
 
-    /*
-     *  Get VM name from job-id
-     *  input string example: vmdel-vmname-2021-05-27-15-14-12-tVusSMWY
-     */
-    nm_str_format(&jobid_copy, "%s", jobid_str);
-
-    /*
-     *  Cut job-id, we have 7 dashes in UID.
-     *  input:  vmdel-vmname-2021-05-27-15-14-12-tVusSMWY
-     *                      <----<--<--<--<--<--<--------
-     *                      7    6  5  4  3  2  1
-     *  result: vmdel-vmname
-     */
-    for (size_t sep = 0; sep < 7; sep++) {
-        char *dash = strrchr(jobid_copy.data, '-');
-
-        if (dash) {
-            *dash = '\0';
-        } else {
-            break;
-        }
-    }
-
-    /*
-     *  Cut VM name:
-     *  input:  vmdel-vmname
-     *          ----->
-     *  result: -vmname
-     */
-    name_start = strchr(jobid_copy.data, '-');
-    if (!name_start) {
-        nm_debug("%s: error get VM name from job-id\n", __func__);
-        pthread_exit(NULL);
-    }
-
-    name_start++; /* skip dash */
-    nm_str_format(&vmname, "%s", name_start);
-
-    nm_qmp_vm_exec_async(&vmname, cmd.data, jobid_str);
+    nm_qmp_vm_exec_async(&qmp_path, cmd_str, jobid_str);
 
     json_object_put(parsed);
 
     nm_str_free(&cmd);
-    nm_str_free(&vmname);
-    nm_str_free(&jobid_copy);
+    nm_str_free(&qmp_path);
 
     pthread_exit(NULL);
 }
@@ -529,7 +493,8 @@ static void nm_mon_check_vms(const nm_vect_t *mon_list)
         char *name = nm_mon_item_get_name_cstr(mon_list, n);
         int8_t status = nm_mon_item_get_status(mon_list, n);
 
-        if (nm_qmp_test_socket(nm_mon_item_get_name(mon_list, n)) == NM_OK) {
+        if (nm_qmp_test_socket(nm_mon_item_get_qmp_path(mon_list, n))
+                == NM_OK) {
             if (!status) {
                 nm_str_format(&body, "%s started", name);
 #if defined (NM_WITH_DBUS)
@@ -555,12 +520,13 @@ static void nm_mon_build_list(nm_vect_t *list, nm_vect_t *vms)
     nm_vect_free(list, NULL);
     nm_vect_free(vms, nm_str_vect_free_cb);
 
-    nm_db_select(NM_SQL_VMS_SELECT_NAMES, vms);
+    nm_db_select(NM_SQL_VMS_SELECT_NAMES_WITH_SOCK, vms);
 
-    for (size_t n = 0; n < vms->n_memb; n++) {
+    for (size_t n = 0; n < vms->n_memb; n += 2) {
         nm_mon_item_t item = NM_ITEM_INIT;
 
         item.name = nm_vect_str(vms, n);
+        item.qmp_path = nm_vect_str(vms, n + 1);
         nm_vect_insert(list, &item, sizeof(nm_mon_item_t), NULL);
     }
 }

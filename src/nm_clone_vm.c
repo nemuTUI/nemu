@@ -168,18 +168,28 @@ static void nm_clone_vm_to_db(const nm_str_t *src, const nm_str_t *dst,
                               const nm_vmctl_data_t *vm)
 {
     nm_str_t query = NM_INIT_STR;
+    nm_str_t pid_path = NM_INIT_STR;
+    nm_str_t qmp_path = NM_INIT_STR;
     uint64_t last_mac;
     uint32_t last_vnc;
     size_t ifs_count;
     size_t drives_count;
     char drv_ch = 'a';
+    const nm_cfg_t *cfg = nm_cfg_get();
 
     last_mac = nm_form_get_last_mac();
     last_vnc = nm_form_get_free_vnc();
 
+    nm_str_format(&pid_path,
+            "%s/%s/%s", cfg->vm_dir.data, dst->data, NM_VM_PID_FILE);
+    nm_str_format(&qmp_path,
+            "%s/%s/%s", cfg->vm_dir.data, dst->data, NM_VM_QMP_FILE);
+
     nm_str_format(&query, NM_SQL_VMS_INSERT_CLONE,
-            dst->data, last_vnc, src->data);
+            dst->data, last_vnc, pid_path.data, qmp_path.data, src->data);
     nm_db_edit(query.data);
+    nm_str_free(&pid_path);
+    nm_str_free(&qmp_path);
 
     /* insert network interface info */
     ifs_count = vm->ifs.n_memb / NM_IFS_IDX_COUNT;

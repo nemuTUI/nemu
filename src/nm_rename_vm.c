@@ -137,6 +137,7 @@ nm_rename_vm_in_db(const nm_vmctl_data_t *vm,
                    const nm_str_t *new_name,
                    const nm_str_t *id)
 {
+    const nm_cfg_t *cfg = nm_cfg_get();
     nm_str_t query = NM_INIT_STR;
     nm_str_t buf_1 = NM_INIT_STR;
     nm_str_t buf_2 = NM_INIT_STR;
@@ -191,6 +192,18 @@ nm_rename_vm_in_db(const nm_vmctl_data_t *vm,
     nm_str_format(&query, NM_SQL_VMS_UPDATE_NAME,
         new_name->data,
         old_name->data);
+    nm_db_atomic(query.data);
+
+    // Update PID and QMP paths.
+    nm_str_format(&buf_1,
+            "%s/%s/%s", cfg->vm_dir.data, new_name->data, NM_VM_PID_FILE);
+    nm_str_format(&buf_2,
+            "%s/%s/%s", cfg->vm_dir.data, new_name->data, NM_VM_QMP_FILE);
+    nm_str_format(&query, NM_SQL_VMS_UPDATE_PID_PATH,
+            buf_1.data, new_name->data);
+    nm_db_atomic(query.data);
+    nm_str_format(&query, NM_SQL_VMS_UPDATE_QMP_PATH,
+            buf_2.data, new_name->data);
     nm_db_atomic(query.data);
 
     nm_str_free(&buf_1);

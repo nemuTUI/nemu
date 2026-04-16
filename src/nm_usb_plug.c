@@ -130,9 +130,15 @@ void nm_usb_plug(const nm_str_t *name, int vm_status)
     }
 
     if (vm_status) {
-        if (nm_qmp_usb_attach(name, &usb) != NM_OK) {
+        nm_str_t qmp_path = NM_INIT_STR;
+
+        nm_str_format(&buf, NM_SQL_VMS_SELECT_QMP_PATH, name->data);
+        nm_db_select_value(buf.data, &qmp_path);
+        if (nm_qmp_usb_attach(&qmp_path, &usb) != NM_OK) {
+            nm_str_free(&qmp_path);
             goto out;
         }
+        nm_str_free(&qmp_path);
     }
 
     nm_usb_plug_update_db(name, &usb);
@@ -203,7 +209,12 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
     }
 
     if (vm_status) {
+        nm_str_t qmp_path = NM_INIT_STR;
+
+        nm_str_format(&buf, NM_SQL_VMS_SELECT_QMP_PATH, name->data);
+        nm_db_select_value(buf.data, &qmp_path);
         (void) nm_qmp_usb_detach(name, &usb_data);
+        nm_str_free(&qmp_path);
     }
 
     nm_str_format(&buf, NM_SQL_USB_DELETE_ITEM,
