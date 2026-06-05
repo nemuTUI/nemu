@@ -58,5 +58,5 @@
 [ci-freebsd-url]: https://github.com/nemuTUI/nemu/actions/workflows/freebsd.yml
 [ci-macos-bage]: https://github.com/nemuTUI/nemu/actions/workflows/macosx.yml/badge.svg
 [ci-macos-url]: https://github.com/nemuTUI/nemu/actions/workflows/macosx.yml
-[demo-thumb]: https://user-images.githubusercontent.com/5861368/152040930-cb4e7e69-08b0-4902-bc20-925e061ae414.png
+[demo-thumb]: https://github.com/user-attachments/assets/e47c5585-6b24-4792-a0c4-f2a1f4dded13
 [demo-url]: https://user-images.githubusercontent.com/5861368/152041148-f6acc0a3-445f-40a1-9fa2-e4c16ca76b0f.gif
