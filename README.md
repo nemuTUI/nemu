@@ -1,10 +1,9 @@
 # nEMU [Ncurses UI for QEMU]
 
-[![Release][release-bage]][release-url]
-[![Packaging status][repo-bage]][repo-url]
 [![Linux build][ci-linux-bage]][ci-linux-url]
 [![FreeBSD build][ci-freebsd-bage]][ci-freebsd-url]
 [![MacOS build][ci-macos-bage]][ci-macos-url]
+[![Packaging status][repo-bage]][repo-url]
 
 [![gif-demo][demo-thumb]][demo-url]
 ## Features
@@ -48,8 +47,6 @@
 ## SPICE client
  * [spice-kitten](https://github.com/nemuTUI/spice-kitten)
 
-[release-bage]: https://img.shields.io/github/v/release/nemuTUI/nemu?include_prereleases&label=Release&labelColor=2d3532
-[release-url]: https://github.com/nemuTUI/nemu/releases
 [repo-bage]: https://repology.org/badge/tiny-repos/nemu.svg
 [repo-url]: https://repology.org/project/nemu/versions
 [ci-linux-bage]: https://github.com/nemuTUI/nemu/actions/workflows/linux.yml/badge.svg
