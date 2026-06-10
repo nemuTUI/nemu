@@ -461,6 +461,8 @@ static void nm_api_md_vmstart(struct json_object *request, nm_str_t *reply)
     int rc = nm_api_check_auth(request, reply);
     nm_mon_vms_t *vms = mon_data->vms;
     nm_str_t vmname = NM_INIT_STR;
+    nm_str_t query = NM_INIT_STR;
+    nm_str_t qmp = NM_INIT_STR;
     struct json_object *name;
     bool vm_exist = false;
     const char *name_str;
@@ -489,8 +491,10 @@ static void nm_api_md_vmstart(struct json_object *request, nm_str_t *reply)
         goto out;
     }
 
+    nm_str_format(&query, NM_SQL_VMS_SELECT_QMP_PATH, name_str);
+    nm_db_select_value(query.data, &qmp);
     nm_str_format(&vmname, "%s", name_str);
-    if (nm_qmp_test_socket(&vmname) != NM_OK) {
+    if (nm_qmp_test_socket(&qmp) != NM_OK) {
         nm_vmctl_start(&vmname, 0);
         nm_str_format(reply, "%s", NM_API_RET_OK);
     } else {
@@ -498,6 +502,8 @@ static void nm_api_md_vmstart(struct json_object *request, nm_str_t *reply)
     }
 out:
     nm_str_free(&vmname);
+    nm_str_free(&query);
+    nm_str_free(&qmp);
     json_object_put(request);
 }
 
@@ -505,7 +511,8 @@ static void nm_api_md_vmstop(struct json_object *request, nm_str_t *reply)
 {
     int rc = nm_api_check_auth(request, reply);
     nm_mon_vms_t *vms = mon_data->vms;
-    nm_str_t vmname = NM_INIT_STR;
+    nm_str_t query = NM_INIT_STR;
+    nm_str_t qmp = NM_INIT_STR;
     struct json_object *name;
     bool vm_exist = false;
     const char *name_str;
@@ -534,11 +541,13 @@ static void nm_api_md_vmstop(struct json_object *request, nm_str_t *reply)
         goto out;
     }
 
-    nm_str_format(&vmname, "%s", name_str);
-    nm_qmp_vm_shut(&vmname);
+    nm_str_format(&query, NM_SQL_VMS_SELECT_QMP_PATH, name_str);
+    nm_db_select_value(query.data, &qmp);
+    nm_qmp_vm_shut(&qmp);
     nm_str_format(reply, "%s", NM_API_RET_OK);
 out:
-    nm_str_free(&vmname);
+    nm_str_free(&query);
+    nm_str_free(&qmp);
     json_object_put(request);
 }
 
@@ -546,7 +555,8 @@ static void nm_api_md_vmforcestop(struct json_object *request, nm_str_t *reply)
 {
     int rc = nm_api_check_auth(request, reply);
     nm_mon_vms_t *vms = mon_data->vms;
-    nm_str_t vmname = NM_INIT_STR;
+    nm_str_t query = NM_INIT_STR;
+    nm_str_t qmp = NM_INIT_STR;
     struct json_object *name;
     bool vm_exist = false;
     const char *name_str;
@@ -575,11 +585,13 @@ static void nm_api_md_vmforcestop(struct json_object *request, nm_str_t *reply)
         goto out;
     }
 
-    nm_str_format(&vmname, "%s", name_str);
-    nm_qmp_vm_stop(&vmname);
+    nm_str_format(&query, NM_SQL_VMS_SELECT_QMP_PATH, name_str);
+    nm_db_select_value(query.data, &qmp);
+    nm_qmp_vm_stop(&qmp);
     nm_str_format(reply, "%s", NM_API_RET_OK);
 out:
-    nm_str_free(&vmname);
+    nm_str_free(&query);
+    nm_str_free(&qmp);
     json_object_put(request);
 }
 
