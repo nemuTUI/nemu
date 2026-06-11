@@ -213,7 +213,7 @@ void nm_usb_unplug(const nm_str_t *name, int vm_status)
 
         nm_str_format(&buf, NM_SQL_VMS_SELECT_QMP_PATH, name->data);
         nm_db_select_value(buf.data, &qmp_path);
-        (void) nm_qmp_usb_detach(name, &usb_data);
+        (void) nm_qmp_usb_detach(&qmp_path, &usb_data);
         nm_str_free(&qmp_path);
     }
 
