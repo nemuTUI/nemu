@@ -48,7 +48,7 @@ static const char NM_QMP_CMD_DELVM[]    =
 
 static const char NM_QMP_CMD_USB_ADD[]  =
     "{\"execute\":\"device_add\",\"arguments\":{\"driver\":\"usb-host\","
-    "\"hostbus\":\"%u\",\"hostaddr\":\"%u\",\"id\":\"usb-%s-%s-%s\"}}";
+    "\"hostbus\":%u,\"hostaddr\":%u,\"id\":\"usb-%s-%s-%s\"}}";
 
 static const char NM_QMP_CMD_USB_DEL[]  =
     "{\"execute\":\"device_del\",\"arguments\":{\"id\":\"usb-%s-%s-%s\"}}";
